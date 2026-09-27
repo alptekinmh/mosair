@@ -1,11 +1,5 @@
 # mosair
 
-SCARA robot mozaik tas uretim sistemi — cross-platform musteri uygulamasi.
-
-Gorsel yukle, genisligi gir, **Mos** butonuna bas, gercek tas dokulu mozaik sonucunu gor.
-
----
-
 ## Indir ve Calistir
 
 Isletim sisteminize uygun dosyayi indirin, zipi acin ve calistirin.
@@ -41,24 +35,11 @@ Isletim sisteminize uygun dosyayi indirin, zipi acin ve calistirin.
 
 ---
 
-## Kullanim
 
-1. Gorsel yukle
-2. Genislik (cm) gir
-3. **Mos** butonuna bas
-4. Gercek tas dokulu mozaik sonucunu gor
-5. PNG/JPEG olarak disa aktar
 
 ---
 
-## Teknoloji
 
-| | |
-|---|---|
-| UI | Avalonia UI 12 |
-| Goruntu Isleme | SkiaSharp |
-| Runtime | .NET 10 (self-contained) |
-| Platformlar | Windows x64, macOS x64, macOS ARM64 |
 
 ---
 
