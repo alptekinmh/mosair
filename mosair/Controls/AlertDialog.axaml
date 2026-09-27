@@ -1,0 +1,35 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mosair.Controls.AlertDialog"
+        Title=""
+        Width="420" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#2a2a30"
+        ExtendClientAreaToDecorationsHint="False">
+
+  <Border Padding="24" Background="#2a2a30">
+    <StackPanel Spacing="16">
+      <!-- Title -->
+      <TextBlock x:Name="TitleText"
+                 FontSize="16" FontWeight="SemiBold"
+                 Foreground="#ffffff"/>
+
+      <!-- Message -->
+      <TextBlock x:Name="MessageText"
+                 FontSize="13" TextWrapping="Wrap"
+                 Foreground="#cccccc"
+                 LineHeight="20"/>
+
+      <!-- OK Button -->
+      <Button x:Name="OkButton"
+              Content="Tamam"
+              HorizontalAlignment="Right"
+              MinWidth="90" Height="34"
+              FontSize="13" FontWeight="Medium"
+              Background="#3a7bfd" Foreground="#ffffff"
+              CornerRadius="4"
+              Click="OnOkClick"/>
+    </StackPanel>
+  </Border>
+</Window>
