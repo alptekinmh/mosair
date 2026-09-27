@@ -33,14 +33,6 @@ Isletim sisteminize uygun dosyayi indirin, zipi acin ve calistirin.
 3. Ilk acilista "tanimlanamayan gelistirici" uyarisi gelirse:
    **System Settings → Privacy & Security → Open Anyway**
 
----
 
-
-
----
-
-
-
----
 
 *ESCRobotics © 2026*
