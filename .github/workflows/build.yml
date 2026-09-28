@@ -16,7 +16,7 @@ jobs:
           - os: windows-latest
             rid: win-x64
             artifact: win-x64
-          - os: macos-13
+          - os: macos-latest
             rid: osx-x64
             artifact: osx-x64
           - os: macos-latest
