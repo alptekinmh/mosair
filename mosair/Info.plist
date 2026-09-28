@@ -12,6 +12,12 @@
     <string>1.0.0</string>
     <key>CFBundleShortVersionString</key>
     <string>1.0.0</string>
+    <key>CFBundleExecutable</key>
+    <string>mosair</string>
+    <key>CFBundleIconFile</key>
+    <string>mosair</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>12.0</string>
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>NSHighResolutionCapable</key>
