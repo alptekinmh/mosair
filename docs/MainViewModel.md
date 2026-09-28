@@ -70,8 +70,8 @@ Atanan sutunundaki renk satirini temsil eder.
 | `ImageDisplayWidth` | `_bitmapPixelWidth * _zoomLevel` | Gorselin gosterim genisligi |
 | `ImageDisplayHeight` | `_bitmapPixelHeight * _zoomLevel` | Gorselin gosterim yuksekligi |
 | `ZoomInfo` | `"N={zoom} {w}x{h}"` | Zoom bilgi metni |
-| `CanRunMosaic` | `ImageLoaded && !IsProcessing` | Mos butonu aktiflik |
-| `CanExport` | `MosaicDone && !IsProcessing` | Disa Aktar aktiflik |
+| `CanRunMosaic` | `ImageLoaded && !IsProcessing && !IsExporting` | Mos butonu aktiflik |
+| `CanExport` | `MosaicDone && !IsProcessing && !IsExporting` | Disa Aktar aktiflik |
 
 ## Navigator Ozellikleri
 
@@ -151,8 +151,8 @@ Grid cizgileri aciksa `ImageService.DrawOverlay()` ile bitmap uzerine ekler, kap
 ### SaveProject / OpenProject
 `.mos` formatinda proje kaydet ve yukle. `ProjectService` kullanir.
 
-### ExportImage(string path)
-RS bitmap veya export bitmap'i PNG/JPEG olarak kaydeder.
+### ExportImageAsync(string path)
+RS bitmap veya export bitmap'i PNG/JPEG olarak kaydeder. Bitmap'in kopyasi alinir ve encode `Task.Run` ile arka planda yapilir; bu sure boyunca `IsExporting` true olur (UI donmaz, Disa Aktar ikonu animasyon oynatir) ve kopya sayesinde piksel duzenlemeleri yazilan dosyayi etkilemez. Hata olursa `StatusText`'e yazilir.
 
 ### RefreshCatalogList / FilterCatalogByUsedColors
 Tam katalog listesini yukler / mos sonrasi yalnizca kullanilan renkleri gosterir.

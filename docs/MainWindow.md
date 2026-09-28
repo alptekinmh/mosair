@@ -28,6 +28,7 @@ Arka plan `#232328`. PathIcon tabanli ikon butonlari (`icon-btn` style) ve yesil
 | Gorsel Yukle ikonu | Dosya secici acar |
 | Proje Ac ikonu | .mos proje acar |
 | Kaydet / Farkli Kaydet / Disa Aktar ikonlari | Proje ve gorsel kayit |
+| Disa Aktar ikonu (`exportBtn`) | `IsExporting` true iken ok tepsiye dusme animasyonu oynatir |
 | **Mos** butonu (yesil) | Mozaiklestirmeyi baslatir |
 | ProgressBar | `IsProcessing` true iken gorunur |
 | Gecen Sure + Durum | `ElapsedTime`, `StatusText` binding |
@@ -103,7 +104,8 @@ Arka plan `#232328`. Secili tasin detaylarini gosterir.
 | `OnKeyDown` | KeyDown | Ctrl+Z → Undo, Ctrl+Y → Redo |
 | `OnLoadImage` | Gorsel Yukle | `StorageProvider.OpenFilePickerAsync` → `_vm.LoadImage(path)` |
 | `OnRunMosaic` | Mos butonu | `await _vm.RunMosaicAsync()` → `FitToWindow` |
-| `OnExportImage` | Disa Aktar | `StorageProvider.SaveFilePickerAsync` → `_vm.ExportImage(path)` |
+| `OnExportImage` | Disa Aktar | Masaustu `mosairEXPORT` klasorune zaman damgali JPG → `await _vm.ExportImageAsync(path)` |
+| `OnExportAsImage` | Farkli Disa Aktar | `StorageProvider.SaveFilePickerAsync` → `await _vm.ExportImageAsync(path)` |
 | `OnWidthChanged` | Genislik TextBox LostFocus | `_vm.UpdateDimensions()` |
 | `OnWidthKeyDown` | Genislik TextBox Enter | `_vm.UpdateDimensions()` |
 | `OnResetSize` | Ekrana Sigdir | `_vm.FitToWindow(...)` |
@@ -128,6 +130,8 @@ Arka plan `#232328`. Secili tasin detaylarini gosterir.
 | `UpdateNav()` | Mini map viewport dikdortgenini gunceller |
 | `NavigateFromNav(pos)` | Mini map tiklamasini scroll pozisyonuna cevirir |
 | `SaveAsDialog()` | Proje kayit dialog penceresi |
+| `StartMosAnim()` / `StopMosAnim()` | `IsProcessing` degisince Mos butonundaki 4 kare animasyonunu baslatir/durdurur |
+| `StartExportAnim()` / `StopExportAnim()` | `IsExporting` degisince Disa Aktar ikonundaki ok animasyonunu baslatir/durdurur; buton `exporting` class'i ile devre disiyken de tam opak kalir |
 
 ## Diger Dosyalarla Iliskisi
 

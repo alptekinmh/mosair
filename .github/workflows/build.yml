@@ -99,6 +99,14 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - name: Find release notes
+        id: notes
+        run: |
+          f=".github/release-notes/${GITHUB_REF_NAME}.md"
+          if [ -f "$f" ]; then echo "path=$f" >> "$GITHUB_OUTPUT"; fi
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -108,6 +116,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           generate_release_notes: true
+          body_path: ${{ steps.notes.outputs.path }}
           files: |
             artifacts/**/*.zip
             artifacts/**/*.dmg

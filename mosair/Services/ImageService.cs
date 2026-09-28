@@ -326,7 +326,7 @@ namespace mosair.Services
         {
             using var image = SKImage.FromBitmap(bmp);
             using var data = image.Encode(format, quality);
-            using var stream = File.OpenWrite(path);
+            using var stream = File.Create(path);
             data.SaveTo(stream);
         }
     }

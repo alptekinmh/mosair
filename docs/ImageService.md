@@ -103,7 +103,7 @@ SKImage.FromBitmap(bmp)
 
 ### `ExportImage(SKBitmap bmp, string path, SKEncodedImageFormat format, int quality)`
 
-Bitmap'i dosyaya kaydeder. PNG veya JPEG formatini destekler. `quality` parametresi JPEG icin sikistrima kalitesini belirler (0-100).
+Bitmap'i dosyaya kaydeder. PNG veya JPEG formatini destekler. `quality` parametresi JPEG icin sikistrima kalitesini belirler (0-100). Dosya `File.Create` ile acilir; var olan dosyanin uzerine yazarken dosya once sifirlanir. Arka plan thread'inden cagrilabilir (`MainViewModel.ExportImageAsync`).
 
 ## Diger Dosyalarla Iliskisi
 

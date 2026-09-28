@@ -77,6 +77,9 @@
     <Style Selector="Button.icon-btn:disabled">
       <Setter Property="Opacity" Value="0.3"/>
     </Style>
+    <Style Selector="Button.icon-btn.exporting:disabled">
+      <Setter Property="Opacity" Value="1"/>
+    </Style>
     <Style Selector="MenuItem">
       <Setter Property="Foreground" Value="{DynamicResource FgMenu}"/>
       <Setter Property="FontSize" Value="12"/>
@@ -404,10 +407,24 @@
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="1"
                     HorizontalAlignment="Right">
           <Panel PointerPressed="OnExportPointerPressed">
-            <Button Classes="icon-btn" ToolTip.Tip="{Binding [TipExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage"
+            <Button x:Name="exportBtn" Classes="icon-btn" ToolTip.Tip="{Binding [TipExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage"
                     IsEnabled="{Binding CanExport}">
-              <PathIcon Width="18" Height="18" Foreground="{DynamicResource FgIcon}"
-                        Data="M19,9 L15,9 L15,3 L9,3 L9,9 L5,9 L12,16 Z M5,18 L5,20 L19,20 L19,18 Z"/>
+              <!-- Same geometry as the other export icons (bounds 5,3 → 19,20), split so the
+                   arrow can drop into the tray while exporting -->
+              <Viewbox Width="18" Height="18">
+                <Canvas Width="14" Height="17" ClipToBounds="True">
+                  <Path x:Name="exportArrow" Canvas.Left="-5" Canvas.Top="-3"
+                        Fill="{DynamicResource FgIcon}"
+                        Data="M19,9 L15,9 L15,3 L9,3 L9,9 L5,9 L12,16 Z">
+                    <Path.RenderTransform>
+                      <TranslateTransform/>
+                    </Path.RenderTransform>
+                  </Path>
+                  <Path Canvas.Left="-5" Canvas.Top="-3"
+                        Fill="{DynamicResource FgIcon}"
+                        Data="M5,18 L5,20 L19,20 L19,18 Z"/>
+                </Canvas>
+              </Viewbox>
             </Button>
           </Panel>
           <Button Classes="icon-btn" Width="16" Padding="2"

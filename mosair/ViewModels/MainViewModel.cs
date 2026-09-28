@@ -173,6 +173,7 @@ namespace mosair.ViewModels
 
         private int _progress;
         private bool _isProcessing;
+        private bool _isExporting;
         private string _dimensionInfo = "";
         private string _dimensionSize = "";
         private string _dimensionArea = "";
@@ -357,6 +358,12 @@ public bool UseLab
         {
             get => _isProcessing;
             set { _isProcessing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); }
+        }
+
+        public bool IsExporting
+        {
+            get => _isExporting;
+            set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); }
         }
 
         public string DimensionInfo
@@ -580,8 +587,8 @@ public bool UseLab
             set { _propStoneThumbs = value; OnPropertyChanged(); }
         }
 
-        public bool CanRunMosaic => ImageLoaded && !IsProcessing;
-        public bool CanExport => MosaicDone && !IsProcessing;
+        public bool CanRunMosaic => ImageLoaded && !IsProcessing && !IsExporting;
+        public bool CanExport => MosaicDone && !IsProcessing && !IsExporting;
 
         public ObservableCollection<ColorItem> CatalogColors { get; } = new();
         public ObservableCollection<PaletteItem> PaletteColors { get; } = new();
@@ -893,8 +900,10 @@ public bool UseLab
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
         }
 
-        public void ExportImage(string path)
+        public async Task ExportImageAsync(string path)
         {
+            if (IsExporting) return;
+
             SKBitmap? bmp = MosaicData.rsBitmap ?? MosaicData.exportBitmap;
             if (bmp == null)
             {
@@ -907,8 +916,24 @@ public bool UseLab
                 ? SKEncodedImageFormat.Jpeg
                 : SKEncodedImageFormat.Png;
 
-            ImageService.ExportImage(bmp, path, fmt);
-            StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(path));
+            // Encode a snapshot so pixel edits during export can't touch the bitmap being written
+            var snapshot = bmp.Copy();
+            IsExporting = true;
+            StatusText = Loc.Fmt("StatusExporting", System.IO.Path.GetFileName(path));
+            try
+            {
+                await Task.Run(() => ImageService.ExportImage(snapshot, path, fmt));
+                StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(path));
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+            }
+            finally
+            {
+                snapshot.Dispose();
+                IsExporting = false;
+            }
         }
 
         public void RefreshLocalized()

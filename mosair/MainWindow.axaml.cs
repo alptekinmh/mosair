@@ -20,6 +20,8 @@ public partial class MainWindow : Window
     private Avalonia.Vector _scrollStart;
     private DispatcherTimer? _mosAnimTimer;
     private int _mosAnimFrame;
+    private DispatcherTimer? _exportAnimTimer;
+    private int _exportAnimFrame;
 
     public MainWindow()
     {
@@ -61,6 +63,11 @@ public partial class MainWindow : Window
             {
                 if (_vm.IsProcessing) StartMosAnim();
                 else StopMosAnim();
+            }
+            else if (e.PropertyName == nameof(MainViewModel.IsExporting))
+            {
+                if (_vm.IsExporting) StartExportAnim();
+                else StopExportAnim();
             }
         };
     }
@@ -135,7 +142,7 @@ public partial class MainWindow : Window
         return exportDir;
     }
 
-    private void OnExportImage(object? sender, RoutedEventArgs e)
+    private async void OnExportImage(object? sender, RoutedEventArgs e)
     {
         string exportDir = GetExportDir();
 
@@ -146,7 +153,7 @@ public partial class MainWindow : Window
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
         string path = System.IO.Path.Combine(exportDir, $"{baseName}_{timestamp}.jpg");
 
-        _vm.ExportImage(path);
+        await _vm.ExportImageAsync(path);
     }
 
     private void OnExportPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -184,7 +191,7 @@ public partial class MainWindow : Window
         {
             var path = file.TryGetLocalPath();
             if (path != null)
-                _vm.ExportImage(path);
+                await _vm.ExportImageAsync(path);
         }
     }
 
@@ -554,5 +561,34 @@ public partial class MainWindow : Window
         for (int i = 0; i < 4; i++)
             borders[i].Opacity = i == _mosAnimFrame ? 1.0 : 0.15;
         _mosAnimFrame = (_mosAnimFrame + 1) % 4;
+    }
+
+    // Arrow offsets per frame: drops in from above the icon, then rests on the tray
+    private static readonly double[] ExportAnimOffsets = { -14, -11, -8, -5, -2, 0, 0, 0 };
+
+    private void StartExportAnim()
+    {
+        exportBtn.Classes.Add("exporting");
+        _exportAnimFrame = 0;
+        _exportAnimTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(90) };
+        _exportAnimTimer.Tick += OnExportAnimTick;
+        OnExportAnimTick(null, EventArgs.Empty);
+        _exportAnimTimer.Start();
+    }
+
+    private void StopExportAnim()
+    {
+        _exportAnimTimer?.Stop();
+        _exportAnimTimer = null;
+        exportBtn.Classes.Remove("exporting");
+        if (exportArrow.RenderTransform is Avalonia.Media.TranslateTransform t)
+            t.Y = 0;
+    }
+
+    private void OnExportAnimTick(object? sender, EventArgs e)
+    {
+        if (exportArrow.RenderTransform is Avalonia.Media.TranslateTransform t)
+            t.Y = ExportAnimOffsets[_exportAnimFrame];
+        _exportAnimFrame = (_exportAnimFrame + 1) % ExportAnimOffsets.Length;
     }
 }
