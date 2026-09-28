@@ -154,6 +154,7 @@ namespace mosair.ViewModels
 
         private Bitmap? _displayBitmap;
         private double _widthCm = 93.6;
+        private double _heightCm;
         private double _initialZoomLevel = 2;
         private double _minZoomLevel = 1.0;
         private double _lastViewportWidth;
@@ -235,6 +236,8 @@ namespace mosair.ViewModels
                 OnPropertyChanged();
             }
         }
+
+        public double HeightCm => _heightCm;
 
         public int TargetColors
         {
@@ -633,19 +636,6 @@ public bool UseLab
             _stoneRedoStack.Clear();
             StoneTextureService.Reset();
 
-            // Reset catalog to all selected (UI + data model)
-            for (int i = 0; i < MosaicData.arRGBAll.Count; i++)
-            {
-                MosaicData.arRGBAll[i].boolLeaveOut = false;
-                if (i < MosaicData.arcs.Count)
-                    MosaicData.arcs[i] = false;
-            }
-            RefreshCatalogList();
-
-            // Clear assigned/palette columns
-            AssignedColors.Clear();
-            PaletteColors.Clear();
-
             var bmp = MosaicEngine.LoadImage(path);
             if (bmp != null)
             {
@@ -711,6 +701,7 @@ public bool UseLab
             var dim = MosaicEngine.CalculateDimensions(WidthCm);
             if (dim == null) return;
 
+            _heightCm = dim.HeightCm;
             DimensionInfo = $"{dim.WidthCm:F1} cm x {dim.HeightCm:F1} cm = {dim.AreaM2:F2} m²";
             DimensionSize = $"{dim.WidthCm:F1} x {dim.HeightCm:F1} cm";
             DimensionArea = $"{dim.AreaM2:F2} m²";

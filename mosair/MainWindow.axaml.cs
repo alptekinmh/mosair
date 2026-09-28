@@ -150,8 +150,10 @@ public partial class MainWindow : Window
         if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
             baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
 
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
-        string path = System.IO.Path.Combine(exportDir, $"{baseName}_{timestamp}.jpg");
+        string timestamp = DateTime.Now.ToString("M.dd.yyyy_HH.mm.ss");
+        int w = (int)Math.Round(_vm.WidthCm);
+        int h = (int)Math.Round(_vm.HeightCm);
+        string path = System.IO.Path.Combine(exportDir, $"{timestamp}_{w}x{h}__{baseName}.jpeg");
 
         await _vm.ExportImageAsync(path);
     }
@@ -323,15 +325,23 @@ public partial class MainWindow : Window
         System.IO.Directory.CreateDirectory(projectDir);
 
         string baseName = "mosair_project";
-        if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
-            baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
+        string? srcImagePath = Services.ProjectService.CurrentPictureFileName;
+        if (!string.IsNullOrEmpty(srcImagePath))
+            baseName = System.IO.Path.GetFileNameWithoutExtension(srcImagePath);
 
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
-        string folderName = $"{baseName}_{timestamp}";
-        string folder = System.IO.Path.Combine(projectDir, folderName);
+        string folder = System.IO.Path.Combine(projectDir, baseName);
         System.IO.Directory.CreateDirectory(folder);
-        string fullPath = System.IO.Path.Combine(folder, folderName + ".mos");
-        _vm.SaveProject(fullPath);
+
+        string mosPath = System.IO.Path.Combine(folder, baseName + ".mos");
+        _vm.SaveProject(mosPath);
+
+        if (!string.IsNullOrEmpty(srcImagePath) && System.IO.File.Exists(srcImagePath))
+        {
+            string ext = System.IO.Path.GetExtension(srcImagePath);
+            string imgDest = System.IO.Path.Combine(folder, baseName + ext);
+            if (!System.IO.File.Exists(imgDest))
+                System.IO.File.Copy(srcImagePath, imgDest);
+        }
 
         saveIcon.IsVisible = false;
         saveCheckIcon.IsVisible = true;
