@@ -6,7 +6,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('Windows'))">app.manifest</ApplicationManifest>
     <AssemblyName>mosair</AssemblyName>
-    <Version>1.0.0</Version>
+    <Version>1.0.2</Version>
     <Company>ESCRobotics</Company>
     <Product>mosair</Product>
     <Copyright>© 2026 ESCRobotics</Copyright>

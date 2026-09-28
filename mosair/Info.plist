@@ -9,9 +9,9 @@
     <key>CFBundleIdentifier</key>
     <string>com.escrobotics.mosair</string>
     <key>CFBundleVersion</key>
-    <string>1.0.0</string>
+    <string>1.0.2</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.0</string>
+    <string>1.0.2</string>
     <key>CFBundleExecutable</key>
     <string>mosair</string>
     <key>CFBundleIconFile</key>
