@@ -30,7 +30,7 @@ namespace mosair.Models
         public static SKBitmap? rsBitmap;
 
         // Sabitler
-        public static int N = 20;
+        public static int N = 40;
         public static int[] arn = new int[3];
     }
 }

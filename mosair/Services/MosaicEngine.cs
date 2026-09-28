@@ -134,6 +134,7 @@ namespace mosair.Services
                     else minRGBInc = 1;
 
                     RemoveMinimalColors(reg);
+                    if (ar3.Count <= dr.rgbM) break;
 
                     ProcessM3(reg, R, C);
 
@@ -642,7 +643,19 @@ namespace mosair.Services
 
         private static void RemoveMinimalColors(int reg)
         {
-            MosaicData.arMA[reg].RemoveAll(c => c.numOfPixel < numOfMinRGB);
+            var ar = MosaicData.arMA[reg];
+            int target = drl.arar[reg].rgbM;
+            int wouldRemain = 0;
+            for (int i = 0; i < ar.Count; i++)
+                if (ar[i].numOfPixel >= numOfMinRGB) wouldRemain++;
+            if (wouldRemain >= target)
+                ar.RemoveAll(c => c.numOfPixel < numOfMinRGB);
+            else
+            {
+                ar.Sort((a, b) => b.numOfPixel.CompareTo(a.numOfPixel));
+                if (ar.Count > target)
+                    ar.RemoveRange(target, ar.Count - target);
+            }
         }
 
         private static void AssignColorNumbers(int R, int C, int reg)

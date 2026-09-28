@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <AvaloniaResource Include="Assets\mosair.ico"/>
+    <AvaloniaResource Include="Assets\mosair-icon.png"/>
   </ItemGroup>
 
   <ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">

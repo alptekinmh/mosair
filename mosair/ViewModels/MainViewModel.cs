@@ -680,7 +680,7 @@ public bool UseLab
         public void UpdateDimensions()
         {
             int numOfStones = Convert.ToInt32((WidthCm * 10.0) / 12.0);
-            if (numOfStones < 1) numOfStones = 1;
+            if (numOfStones < 2) numOfStones = 2;
             double roundedCm = numOfStones * 12 / 10.0;
             WidthCm = roundedCm;
 
@@ -739,9 +739,10 @@ public bool UseLab
             StatusText = Loc.Fmt("StatusActiveColors", activeCount, MosaicData.arRGBAll.Count);
 
             // pix3: Mos basıldığında rgbM hesapla
-            int size = (int)(0.1 * MosaicEngine.width * MosaicEngine.height);
+            int totalPixels = (int)(MosaicEngine.width * MosaicEngine.height);
+            int size = (int)(0.1 * totalPixels);
             int ew = Math.DivRem(size, 10, out _);
-            TargetColors = Math.Max(1, ew * 10);
+            TargetColors = Math.Clamp(Math.Max(2, ew * 10), 2, totalPixels);
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();

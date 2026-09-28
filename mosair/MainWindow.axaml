@@ -9,7 +9,7 @@
         mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="800"
         x:Class="mosair.MainWindow"
         x:DataType="vm:MainViewModel"
-        Icon="avares://mosair/Assets/mosair.ico"
+        Icon="avares://mosair/Assets/mosair-icon.png"
         Title=" " Width="1200" Height="800"
         MinWidth="900" MinHeight="600"
         WindowState="Maximized"
@@ -118,7 +118,8 @@
   <DockPanel>
     <!-- ===== TITLE BAR: green "mosair" + Menu ===== -->
     <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Height="32"
-            Padding="0,0,142,0" BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
+            Padding="0,0,142,0" BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1"
+            PointerPressed="OnTitleBarPointerPressed">
       <DockPanel>
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
                     VerticalAlignment="Center" Spacing="0">

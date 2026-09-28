@@ -6,6 +6,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using mosair.Services;
 using mosair.ViewModels;
 
@@ -150,12 +151,29 @@ public partial class MainWindow : Window
         if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
             baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
 
-        string timestamp = DateTime.Now.ToString("M.dd.yyyy_HH.mm.ss");
+        string date = DateTime.Now.ToString("M.dd.yyyy");
+        string time = DateTime.Now.ToString("HH.mm.ss");
         int w = (int)Math.Round(_vm.WidthCm);
         int h = (int)Math.Round(_vm.HeightCm);
-        string path = System.IO.Path.Combine(exportDir, $"{timestamp}_{w}x{h}__{baseName}.jpeg");
+        string path = System.IO.Path.Combine(exportDir, $"{date}_{time}__{baseName}__{w}x{h}.jpeg");
 
         await _vm.ExportImageAsync(path);
+    }
+
+    private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
+        var src = e.Source as Avalonia.Visual;
+        while (src != null && src != sender as Avalonia.Visual)
+        {
+            if (src is Avalonia.Controls.Button || src is Avalonia.Controls.MenuItem || src is Avalonia.Controls.Menu)
+                return;
+            src = src.GetVisualParent() as Avalonia.Visual;
+        }
+        if (e.ClickCount == 2)
+            WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+        else
+            BeginMoveDrag(e);
     }
 
     private void OnExportPointerPressed(object? sender, PointerPressedEventArgs e)

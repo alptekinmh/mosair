@@ -63,8 +63,8 @@ jobs:
           plutil -replace CFBundleVersion -string "$VERSION" "$APP/Contents/Info.plist"
           plutil -replace CFBundleShortVersionString -string "$VERSION" "$APP/Contents/Info.plist"
 
-          # .ico -> .icns
-          sips -s format png mosair/Assets/mosair.ico --out icon.png
+          # PNG -> .icns
+          cp mosair/Assets/mosair-icon.png icon.png
           mkdir mosair.iconset
           for s in 16 32 128 256 512; do
             sips -z $s $s icon.png --out mosair.iconset/icon_${s}x${s}.png
