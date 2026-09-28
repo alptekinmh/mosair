@@ -66,7 +66,7 @@ namespace mosair.Services
             double mouldNH = (actualWidth * rate) / (12.0 * 26.0);
             int h1 = Convert.ToInt32(Math.Floor(mouldNH));
             excessiveH = mouldNH - h1;
-            he = Convert.ToInt32(Math.Floor(mouldNH));
+            he = Convert.ToInt32(Math.Ceiling(mouldNH));
 
             double tem = width * rate;
             height = Convert.ToInt32(tem);

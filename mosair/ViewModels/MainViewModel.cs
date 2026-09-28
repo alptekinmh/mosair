@@ -710,7 +710,7 @@ public bool UseLab
             // pix3: Mos basıldığında rgbM hesapla
             int size = (int)(0.1 * MosaicEngine.width * MosaicEngine.height);
             int ew = Math.DivRem(size, 10, out _);
-            TargetColors = ew * 10;
+            TargetColors = Math.Max(1, ew * 10);
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();
@@ -915,11 +915,10 @@ public bool UseLab
         {
             OnPropertyChanged(nameof(SelectedStoneText));
             OnPropertyChanged(nameof(EditedPixelCountText));
-            if (MosaicDone)
-            {
+            if (ImageLoaded)
                 UpdateDimensions();
+            if (MosaicDone)
                 RecalcUsedColorInfo();
-            }
             StatusText = Loc.Get("StatusReady");
         }
 
