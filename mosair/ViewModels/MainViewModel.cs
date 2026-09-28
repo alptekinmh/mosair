@@ -847,13 +847,13 @@ public bool UseLab
 
             MosaicDone = true;
             ImageLoaded = true;
+            _stoneUndoStack.Clear();
+            _stoneRedoStack.Clear();
             EditedPixelCount = PixelEditService.EditedPixels.Count;
 
             RefreshCatalogList();
             FilterCatalogByUsedColors();
             UpdateDimensions();
-
-            ZoomLevel = data.ZoomLevel;
 
             // Show exportBitmap immediately while RS generates
             DisplayBitmap = ImageService.ToAvaloniaBitmap(MosaicData.exportBitmap);
@@ -881,12 +881,10 @@ public bool UseLab
                     {
                         MosaicData.rsBitmap?.Dispose();
                         MosaicData.rsBitmap = rsBmp;
-                        int oldW = _bitmapPixelWidth, oldH = _bitmapPixelHeight;
                         _bitmapPixelWidth = rsBmp.Width;
                         _bitmapPixelHeight = rsBmp.Height;
                         OnPropertyChanged(nameof(BitmapPixelWidth));
                         OnPropertyChanged(nameof(BitmapPixelHeight));
-                        AdjustZoomForBitmapChange(oldW, oldH);
                         RedrawOverlay();
                     }
                 }
@@ -897,6 +895,7 @@ public bool UseLab
                 IsProcessing = false;
             }
 
+            FitToWindow(_lastViewportWidth, _lastViewportHeight);
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
         }
 

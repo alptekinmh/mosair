@@ -146,11 +146,11 @@ public partial class MainWindow : Window
     {
         string exportDir = GetExportDir();
 
-        string baseName = "mosairEXPORT";
+        string baseName = "mosair";
         if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
-            baseName = "mosairEXPORT_" + System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
+            baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
 
-        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
         string path = System.IO.Path.Combine(exportDir, $"{baseName}_{timestamp}.jpg");
 
         await _vm.ExportImageAsync(path);
@@ -318,12 +318,26 @@ public partial class MainWindow : Window
 
     private async void OnSaveProject(object? sender, RoutedEventArgs e)
     {
-        if (!string.IsNullOrEmpty(Services.ProjectService.CurrentFileName))
-        {
-            _vm.SaveProject(Services.ProjectService.CurrentFileName);
-            return;
-        }
-        await SaveAsDialog();
+        string desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop);
+        string projectDir = System.IO.Path.Combine(desktop, "mosairPROJECT");
+        System.IO.Directory.CreateDirectory(projectDir);
+
+        string baseName = "mosair_project";
+        if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
+            baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
+
+        string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmm");
+        string folderName = $"{baseName}_{timestamp}";
+        string folder = System.IO.Path.Combine(projectDir, folderName);
+        System.IO.Directory.CreateDirectory(folder);
+        string fullPath = System.IO.Path.Combine(folder, folderName + ".mos");
+        _vm.SaveProject(fullPath);
+
+        saveIcon.IsVisible = false;
+        saveCheckIcon.IsVisible = true;
+        await Task.Delay(1200);
+        saveCheckIcon.IsVisible = false;
+        saveIcon.IsVisible = true;
     }
 
     private async void OnSaveAsProject(object? sender, RoutedEventArgs e)
