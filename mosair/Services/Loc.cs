@@ -176,6 +176,8 @@ namespace mosair.Services
             ["AlertErrorBody"] = "Beklenmeyen bir hata olustu:\n{0}",
             ["AlertImageTitle"] = "Gorsel Yukleme",
             ["AlertImageFailed"] = "Gorsel yuklenemedi.\nDosya formati desteklenmiyor veya dosya bozuk olabilir.",
+            ["AlertResolutionTitle"] = "Cozunurluk Yetersiz",
+            ["AlertResolutionBody"] = "Yuklenen gorselin cozunurlugu, istenen mozaik boyutu icin yeterli degildir.\nDaha yuksek cozunurluklu bir gorsel yukleyiniz.",
         };
 
         // ─── ENGLISH ───
@@ -302,6 +304,8 @@ namespace mosair.Services
             ["AlertErrorBody"] = "An unexpected error occurred:\n{0}",
             ["AlertImageTitle"] = "Image Loading",
             ["AlertImageFailed"] = "Could not load image.\nThe file format may be unsupported or the file may be corrupted.",
+            ["AlertResolutionTitle"] = "Insufficient Resolution",
+            ["AlertResolutionBody"] = "The resolution of the uploaded image is not sufficient for the requested mosaic size.\nPlease upload a higher resolution image.",
         };
     }
 }

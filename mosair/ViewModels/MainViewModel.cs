@@ -166,7 +166,7 @@ namespace mosair.ViewModels
         private bool _useAverage;
         private InterpolationMethod _interpolationMethod = InterpolationMethod.Area;
         private bool _showGrid = true;
-        private int _stonePixelSize = 20;
+        private int _stonePixelSize = 40;
         private bool _nWarningVisible;
         private bool _nWarningShown;
         private Color _gridColor = Color.FromRgb(128, 128, 128);
@@ -658,12 +658,33 @@ public bool UseLab
                 DisplayBitmap = ImageService.ToAvaloniaBitmap(bmp);
                 ImageLoaded = true;
                 UpdateDimensions();
+                AutoSelectGridColor(bmp);
                 StatusText = Loc.Get("StatusImageLoaded");
             }
             else
             {
                 Alert(Loc.Get("AlertImageTitle"), Loc.Get("AlertImageFailed"));
             }
+        }
+
+        private void AutoSelectGridColor(SKBitmap bmp)
+        {
+            int step = Math.Max(1, Math.Min(bmp.Width, bmp.Height) / 40);
+            long total = 0;
+            int count = 0;
+            for (int y = 0; y < bmp.Height; y += step)
+            {
+                for (int x = 0; x < bmp.Width; x += step)
+                {
+                    var px = bmp.GetPixel(x, y);
+                    total += (px.Red * 299 + px.Green * 587 + px.Blue * 114) / 1000;
+                    count++;
+                }
+            }
+            int avg = count > 0 ? (int)(total / count) : 128;
+            SelectMainColor(Colors.Gray);
+            int shadeIdx = avg < 100 ? 2 : avg > 155 ? 4 : 3;
+            GridColor = GridColorShades[shadeIdx];
         }
 
         public void UpdateDimensions()
@@ -674,6 +695,18 @@ public bool UseLab
             WidthCm = roundedCm;
 
             if (!ImageLoaded) return;
+
+            if (MosaicData.inputBitmap != null)
+            {
+                int maxStones = MosaicData.inputBitmap.Width;
+                double maxCm = maxStones * 12 / 10.0;
+                if (WidthCm > maxCm)
+                {
+                    WidthCm = maxCm;
+                    numOfStones = maxStones;
+                    Alert(Loc.Get("AlertResolutionTitle"), Loc.Get("AlertResolutionBody"));
+                }
+            }
 
             var dim = MosaicEngine.CalculateDimensions(WidthCm);
             if (dim == null) return;
