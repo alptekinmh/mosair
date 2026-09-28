@@ -7,9 +7,9 @@ Isletim sisteminize uygun dosyayi indirin, zipi acin ve calistirin.
 
 | Platform | Indir |
 |----------|-------|
-| **Windows (x64)** | [mosair - Windows](https://github.com/alptekinmh/mosair/releases/latest/download/mosairMac-win-x64.zip) |
-| **macOS Intel (x64)** | [mosair - macOS Intel](https://github.com/alptekinmh/mosair/releases/latest/download/mosairMac-osx-x64.zip) |
-| **macOS Apple Silicon (M1/M2/M3/M4)** | [mosair - macOS ARM](https://github.com/alptekinmh/mosair/releases/latest/download/mosairMac-osx-arm64.zip) |
+| **Windows (x64)** | [mosair - Windows](https://github.com/alptekinmh/mosair/releases/latest/download/mosair-win-x64.zip) |
+| **macOS Intel (x64)** | [mosair - macOS Intel](https://github.com/alptekinmh/mosair/releases/latest/download/mosair-osx-x64.zip) |
+| **macOS Apple Silicon (M1/M2/M3/M4)** | [mosair - macOS ARM](https://github.com/alptekinmh/mosair/releases/latest/download/mosair-osx-arm64.zip) |
 
 > Tum surumler icin [Releases](https://github.com/alptekinmh/mosair/releases) sayfasina bakin.
 
