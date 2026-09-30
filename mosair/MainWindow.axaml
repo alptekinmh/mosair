@@ -688,10 +688,10 @@
           </Border>
 
           <!-- Col 1: Katalog -->
-          <ListBox Grid.Column="0" ItemsSource="{Binding CatalogColors}"
+          <ListBox x:Name="catalogListBox" Grid.Column="0" ItemsSource="{Binding CatalogColors}"
                    SelectionMode="Single" Background="{DynamicResource BgBar}"
                    Padding="0" Margin="0,20,0,0" BorderThickness="0"
-                   ClipToBounds="True">
+                   ClipToBounds="True" SelectionChanged="OnCatalogSelectionChanged">
             <ListBox.Styles>
               <Style Selector="ListBoxItem">
                 <Setter Property="Padding" Value="2,0"/>

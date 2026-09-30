@@ -1404,6 +1404,22 @@ public bool UseLab
             IsTargetPixelMode = PixelEditService.IsTargetPixelMode;
         }
 
+        public void SetSourceFromCatalog(ColorItem item)
+        {
+            if (PixelEditService.Current == null)
+                PixelEditService.Current = new PixelEditRecord();
+            PixelEditService.Current.Source = new Models.rgb
+            {
+                r = item.R, g = item.G, b = item.B,
+                ID = item.ID, codeName = item.CodeName
+            };
+            PixelEditService.IsSourcePixelMode = false;
+            PixelEditService.IsTargetPixelMode = true;
+            IsSourcePixelMode = false;
+            IsTargetPixelMode = true;
+            StatusText = Loc.Fmt("StatusPixelEdit", $"source: {item.CodeName}");
+        }
+
         public void UndoPixelEdit()
         {
             if (!MosaicDone) return;

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -474,6 +474,8 @@ public partial class MainWindow : Window
         bool isLeft = props.IsLeftButtonPressed;
         bool isMiddle = props.IsMiddleButtonPressed;
         _vm.OnImagePressed(pos.X, pos.Y, img.Bounds.Width, img.Bounds.Height, isLeft, isMiddle);
+        if (isMiddle && !PixelEditService.IsPixelEditActive)
+            catalogListBox.SelectedIndex = -1;
         e.Handled = true;
     }
 
@@ -490,6 +492,15 @@ public partial class MainWindow : Window
     private void OnTogglePixelEdit(object? sender, RoutedEventArgs e)
     {
         _vm.TogglePixelEditMode();
+        if (!PixelEditService.IsPixelEditActive)
+            catalogListBox.SelectedIndex = -1;
+    }
+
+    private void OnCatalogSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (!PixelEditService.IsPixelEditActive) return;
+        if (sender is not ListBox lb || lb.SelectedItem is not ViewModels.ColorItem item) return;
+        _vm.SetSourceFromCatalog(item);
     }
 
     private void OnSelectStone(object? sender, RoutedEventArgs e)
@@ -634,3 +645,4 @@ public partial class MainWindow : Window
         _exportAnimFrame = (_exportAnimFrame + 1) % ExportAnimOffsets.Length;
     }
 }
+

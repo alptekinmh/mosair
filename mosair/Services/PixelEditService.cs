@@ -40,14 +40,6 @@ namespace mosair.Services
 
         public static void TogglePixelEditMode()
         {
-            if (IsPixelEditActive && IsTargetPixelMode)
-            {
-                IsSourcePixelMode = true;
-                IsTargetPixelMode = false;
-                Current = new PixelEditRecord();
-                return;
-            }
-
             IsPixelEditActive = !IsPixelEditActive;
             if (IsPixelEditActive)
             {
@@ -166,6 +158,8 @@ namespace mosair.Services
             if (baseY + N > rsH || baseX + N > rsW) return;
 
             var codeName = FindCodeNameForColor(color);
+            if (codeName == null && !string.IsNullOrEmpty(color.codeName))
+                codeName = color.codeName;
             SKBitmap? texBmp = null;
 
             if (codeName != null)
