@@ -742,7 +742,9 @@ public bool UseLab
             int totalPixels = (int)(MosaicEngine.width * MosaicEngine.height);
             int size = (int)(0.1 * totalPixels);
             int ew = Math.DivRem(size, 10, out _);
-            TargetColors = Math.Clamp(Math.Max(2, ew * 10), 2, totalPixels);
+            TargetColors = Math.Clamp(Math.Max(2, ew * 10), 2, Math.Max(2, totalPixels));
+            System.Diagnostics.Debug.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} RgbInc={RgbIncrement} activeColors={activeCount} inputBitmap={MosaicData.inputBitmap?.Width}x{MosaicData.inputBitmap?.Height}");
+            Console.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} RgbInc={RgbIncrement} activeColors={activeCount} inputBitmap={MosaicData.inputBitmap?.Width}x{MosaicData.inputBitmap?.Height}");
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();
@@ -753,6 +755,7 @@ public bool UseLab
                 SKBitmap? rsBmp = null;
                 await Task.Run(() =>
                 {
+                    Console.WriteLine($"[MOS-DIAG] RunM3 starting...");
                     result = MosaicEngine.RunM3(
                         TargetColors,
                         RgbIncrement,
@@ -770,6 +773,7 @@ public bool UseLab
                         StoneTextureService.ResizeTextures(N - gw);
                     var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
                     rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
+                    Console.WriteLine($"[MOS-DIAG] RunM3 done. result={result?.Width}x{result?.Height} rsBmp={rsBmp?.Width}x{rsBmp?.Height} arMB0={MosaicData.arMB.Count}>{(MosaicData.arMB.Count > 0 ? MosaicData.arMB[0].Count : 0)}");
                 });
 
                 sw.Stop();
@@ -815,6 +819,7 @@ public bool UseLab
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"[MOS-DIAG] EXCEPTION: {ex}");
                 StatusText = Loc.Fmt("StatusError", ex.Message);
                 Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
             }
