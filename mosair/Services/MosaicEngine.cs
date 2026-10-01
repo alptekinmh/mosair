@@ -267,6 +267,7 @@ namespace mosair.Services
                 }
             }
             MosaicData.arMB[0] = CloneList(arT);
+            MosaicData.arMB[0].RemoveAll(c => c.numOfPixel == 0);
 
             // --- Section 5: Update dat[,,3] with ID ---
             for (int i = 0; i < MosaicData.arMB.Count; i++)

@@ -1167,11 +1167,34 @@ public bool UseLab
             byte g = MosaicData.dataM3[y, x, 1];
             byte r = MosaicData.dataM3[y, x, 2];
 
-            int colorId = 0;
+            int colorId = drl.dat[y, x, 3];
             string codeName = "";
-            if (MosaicData.arMA.Count > 0)
+            if (colorId > 0)
+            {
+                foreach (var c in MosaicData.arRGB)
+                {
+                    if (c.ID == colorId)
+                    {
+                        codeName = c.codeName;
+                        break;
+                    }
+                }
+            }
+            if (colorId == 0 && MosaicData.arMA.Count > 0)
             {
                 foreach (var c in MosaicData.arMA[0])
+                {
+                    if (c.r == r && c.g == g && c.b == b)
+                    {
+                        colorId = c.ID;
+                        codeName = c.codeName;
+                        break;
+                    }
+                }
+            }
+            if (colorId == 0)
+            {
+                foreach (var c in MosaicData.arRGB)
                 {
                     if (c.r == r && c.g == g && c.b == b)
                     {
@@ -1203,13 +1226,13 @@ public bool UseLab
             {
                 if (PixelEditService.IsSourcePixelMode)
                 {
-                    PixelEditService.SetSourcePixel(y, x, r, g, b, colorId);
+                    PixelEditService.SetSourcePixel(y, x, r, g, b, colorId, codeName);
                     IsSourcePixelMode = false;
                     IsTargetPixelMode = true;
                 }
                 else if (PixelEditService.IsTargetPixelMode)
                 {
-                    string result = PixelEditService.EditPixel(y, x, r, g, b, colorId);
+                    string result = PixelEditService.EditPixel(y, x, r, g, b, colorId, codeName);
                     EditedPixelCount = PixelEditService.EditedPixels.Count;
                     StatusText = Loc.Fmt("StatusPixelEdit", result);
 

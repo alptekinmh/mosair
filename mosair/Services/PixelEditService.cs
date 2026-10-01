@@ -54,19 +54,19 @@ namespace mosair.Services
             }
         }
 
-        public static void SetSourcePixel(int y, int x, byte r, byte g, byte b, int id)
+        public static void SetSourcePixel(int y, int x, byte r, byte g, byte b, int id, string codeName = "")
         {
             if (Current == null) Current = new PixelEditRecord();
-            Current.Source = new rgb { r = r, g = g, b = b, ID = id };
+            Current.Source = new rgb { r = r, g = g, b = b, ID = id, codeName = codeName };
             IsSourcePixelMode = false;
             IsTargetPixelMode = true;
         }
 
-        public static string EditPixel(int y, int x, byte r, byte g, byte b, int id)
+        public static string EditPixel(int y, int x, byte r, byte g, byte b, int id, string codeName = "")
         {
             if (Current == null) return "no source selected";
 
-            Current.Target = new rgb { r = r, g = g, b = b, ID = id };
+            Current.Target = new rgb { r = r, g = g, b = b, ID = id, codeName = codeName };
             Current.Y = y;
             Current.X = x;
 
@@ -99,6 +99,7 @@ namespace mosair.Services
                 MosaicData.dataM3[y, x, 0] = (byte)Current.Source.b;
                 MosaicData.dataM3[y, x, 1] = (byte)Current.Source.g;
                 MosaicData.dataM3[y, x, 2] = (byte)Current.Source.r;
+                drl.dat[y, x, 3] = Current.Source.ID;
                 EditedPixels[existingIdx].Source = CloneRgb(Current.Source);
                 EditedPixels[existingIdx].Target = CloneRgb(Current.Target);
                 UpdateRSForPixel(EditedPixels[existingIdx]);
@@ -111,6 +112,7 @@ namespace mosair.Services
                 MosaicData.dataM3[y, x, 0] = (byte)existing.Original.b;
                 MosaicData.dataM3[y, x, 1] = (byte)existing.Original.g;
                 MosaicData.dataM3[y, x, 2] = (byte)existing.Original.r;
+                drl.dat[y, x, 3] = existing.Original.ID;
                 RestoreRSForPixel(existing);
                 EditedPixels.RemoveAt(existingIdx);
                 _redoStack.Clear();
@@ -129,6 +131,7 @@ namespace mosair.Services
                 MosaicData.dataM3[Current.Y, Current.X, 0] = (byte)Current.Source.b;
                 MosaicData.dataM3[Current.Y, Current.X, 1] = (byte)Current.Source.g;
                 MosaicData.dataM3[Current.Y, Current.X, 2] = (byte)Current.Source.r;
+                drl.dat[Current.Y, Current.X, 3] = Current.Source.ID;
 
                 var record = new PixelEditRecord
                 {
@@ -264,6 +267,7 @@ namespace mosair.Services
             MosaicData.dataM3[record.Y, record.X, 0] = (byte)record.Original.b;
             MosaicData.dataM3[record.Y, record.X, 1] = (byte)record.Original.g;
             MosaicData.dataM3[record.Y, record.X, 2] = (byte)record.Original.r;
+            drl.dat[record.Y, record.X, 3] = record.Original.ID;
             RestoreRSForPixel(record);
 
             for (int i = EditedPixels.Count - 1; i >= 0; i--)
@@ -288,6 +292,7 @@ namespace mosair.Services
             MosaicData.dataM3[record.Y, record.X, 0] = (byte)record.Source.b;
             MosaicData.dataM3[record.Y, record.X, 1] = (byte)record.Source.g;
             MosaicData.dataM3[record.Y, record.X, 2] = (byte)record.Source.r;
+            drl.dat[record.Y, record.X, 3] = record.Source.ID;
             UpdateRSForPixel(record);
 
             EditedPixels.Add(new PixelEditRecord

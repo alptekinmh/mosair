@@ -41,6 +41,7 @@ namespace mosair.Services
         public double WidthCm { get; set; }
         public string? PictureFileName { get; set; }
         public int[]? Arn { get; set; }
+        public string? Source { get; set; }
     }
 
     public class RgbData
@@ -165,6 +166,38 @@ namespace mosair.Services
                 });
             }
 
+            if (data.EditedPixels.Count > 0 && data.ArMA.Count > 0)
+            {
+                var armaIds = new HashSet<int>();
+                foreach (var c in data.ArMA[0]) armaIds.Add(c.ID);
+
+                foreach (var ep in data.EditedPixels)
+                {
+                    if (ep.Source.ID > 0 && !armaIds.Contains(ep.Source.ID))
+                    {
+                        foreach (var c in MosaicData.arRGBAll)
+                        {
+                            if (c.ID == ep.Source.ID)
+                            {
+                                var entry = RgbData.FromRgb(c);
+                                entry.BoolLeaveOut = false;
+                                if (entry.NumOfPixel < 1) entry.NumOfPixel = 1;
+                                data.ArMA[0].Add(entry);
+                                if (data.ArMB.Count > 0)
+                                {
+                                    var mbEntry = RgbData.FromRgb(c);
+                                    mbEntry.BoolLeaveOut = false;
+                                    if (mbEntry.NumOfPixel < 1) mbEntry.NumOfPixel = 1;
+                                    data.ArMB[0].Add(mbEntry);
+                                }
+                                armaIds.Add(ep.Source.ID);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
             foreach (var reg in drl.arar)
             {
                 data.Regions.Add(new RegionData
@@ -174,6 +207,7 @@ namespace mosair.Services
             }
 
             data.Arn = MosaicData.arn;
+            data.Source = "mosair";
 
             string dir = Path.GetDirectoryName(filePath)!;
             Directory.CreateDirectory(dir);
@@ -267,6 +301,15 @@ namespace mosair.Services
             if (data.Arn != null)
                 MosaicData.arn = data.Arn;
 
+            if (data.Source != "mosair")
+            {
+                FlipHorizontalInPlace(MosaicData.dataM1);
+                FlipHorizontalInPlace(MosaicData.dataM3);
+                FlipHorizontalInPlace(MosaicData.dataM3F);
+                FlipHorizontalInPlace(MosaicData.dataM3Backup);
+                FlipHorizontalIntInPlace(drl.dat);
+            }
+
             CurrentFileName = filePath;
 
             if (data.PictureFileName != null)
@@ -319,6 +362,30 @@ namespace mosair.Services
             var arr = new int[dims[0], dims[1], dims[2]];
             Buffer.BlockCopy(flat, 0, arr, 0, Math.Min(flat.Length * sizeof(int), dims[0] * dims[1] * dims[2] * sizeof(int)));
             return arr;
+        }
+
+        private static void FlipHorizontalInPlace(byte[,,] arr)
+        {
+            int rows = arr.GetLength(0), cols = arr.GetLength(1), ch = arr.GetLength(2);
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols / 2; c++)
+                {
+                    int mc = cols - 1 - c;
+                    for (int k = 0; k < ch; k++)
+                        (arr[r, c, k], arr[r, mc, k]) = (arr[r, mc, k], arr[r, c, k]);
+                }
+        }
+
+        private static void FlipHorizontalIntInPlace(int[,,] arr)
+        {
+            int rows = arr.GetLength(0), cols = arr.GetLength(1), ch = arr.GetLength(2);
+            for (int r = 0; r < rows; r++)
+                for (int c = 0; c < cols / 2; c++)
+                {
+                    int mc = cols - 1 - c;
+                    for (int k = 0; k < ch; k++)
+                        (arr[r, c, k], arr[r, mc, k]) = (arr[r, mc, k], arr[r, c, k]);
+                }
         }
     }
 }
