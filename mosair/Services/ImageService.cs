@@ -17,11 +17,68 @@ namespace mosair.Services
 
     public static class ImageService
     {
-        // CvInvoke.Imread → SKBitmap.Decode
         public static SKBitmap? LoadImage(string path)
         {
             if (!File.Exists(path)) return null;
-            return SKBitmap.Decode(path);
+            using var stream = File.OpenRead(path);
+            using var codec = SKCodec.Create(stream);
+            if (codec == null) return null;
+
+            var bitmap = SKBitmap.Decode(codec);
+            if (bitmap == null) return null;
+
+            var origin = codec.EncodedOrigin;
+            if (origin == SKEncodedOrigin.Default || origin == SKEncodedOrigin.TopLeft)
+                return bitmap;
+
+            var rotated = ApplyOrientation(bitmap, origin);
+            bitmap.Dispose();
+            return rotated;
+        }
+
+        private static SKBitmap ApplyOrientation(SKBitmap src, SKEncodedOrigin origin)
+        {
+            bool swap = origin >= SKEncodedOrigin.LeftTop;
+            int w = swap ? src.Height : src.Width;
+            int h = swap ? src.Width : src.Height;
+
+            var result = new SKBitmap(w, h, src.ColorType, src.AlphaType);
+            using var canvas = new SKCanvas(result);
+
+            switch (origin)
+            {
+                case SKEncodedOrigin.TopRight:
+                    canvas.Scale(-1, 1, w / 2f, 0);
+                    break;
+                case SKEncodedOrigin.BottomRight:
+                    canvas.RotateDegrees(180, w / 2f, h / 2f);
+                    break;
+                case SKEncodedOrigin.BottomLeft:
+                    canvas.Scale(1, -1, 0, h / 2f);
+                    break;
+                case SKEncodedOrigin.LeftTop:
+                    canvas.Translate(0, 0);
+                    canvas.RotateDegrees(90, 0, 0);
+                    canvas.Translate(0, -h);
+                    canvas.Scale(1, -1, 0, h / 2f);
+                    break;
+                case SKEncodedOrigin.RightTop:
+                    canvas.Translate(w, 0);
+                    canvas.RotateDegrees(90);
+                    break;
+                case SKEncodedOrigin.RightBottom:
+                    canvas.Translate(w, 0);
+                    canvas.RotateDegrees(90);
+                    canvas.Scale(1, -1, 0, h / 2f);
+                    break;
+                case SKEncodedOrigin.LeftBottom:
+                    canvas.Translate(0, h);
+                    canvas.RotateDegrees(-90);
+                    break;
+            }
+
+            canvas.DrawBitmap(src, 0, 0);
+            return result;
         }
 
         public static unsafe SKBitmap Resize(SKBitmap src, int dstW, int dstH,
