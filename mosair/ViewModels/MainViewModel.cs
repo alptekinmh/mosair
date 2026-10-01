@@ -742,9 +742,12 @@ public bool UseLab
             int totalPixels = (int)(MosaicEngine.width * MosaicEngine.height);
             int size = (int)(0.1 * totalPixels);
             int ew = Math.DivRem(size, 10, out _);
+            int steps = (int)Math.Ceiling(256.0 / RgbIncrement);
+            int paletteSize = steps * steps * steps;
             TargetColors = Math.Clamp(Math.Max(2, ew * 10), 2, Math.Max(2, totalPixels));
-            System.Diagnostics.Debug.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} RgbInc={RgbIncrement} activeColors={activeCount} inputBitmap={MosaicData.inputBitmap?.Width}x{MosaicData.inputBitmap?.Height}");
-            Console.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} RgbInc={RgbIncrement} activeColors={activeCount} inputBitmap={MosaicData.inputBitmap?.Width}x{MosaicData.inputBitmap?.Height}");
+            if (TargetColors >= paletteSize)
+                TargetColors = paletteSize - 1;
+            Console.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} paletteSize={paletteSize} RgbInc={RgbIncrement} activeColors={activeCount}");
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();
