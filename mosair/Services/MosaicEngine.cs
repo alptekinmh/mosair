@@ -88,8 +88,141 @@ namespace mosair.Services
             };
         }
 
+        public static OptimalPaletteResult? LastOptimalResult { get; private set; }
+
+        // Comparison only: reproduce WPF's color removal inside RunM3.
+        public static bool WpfStyleRemoval;
+
+        public static byte[,,] GetSourceStoneData()
+        {
+            using var bmp = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            return ImageService.ToByteArray(bmp);
+        }
+
+        public static GamutMapper? LastGamut { get; private set; }
+
+        public static SKBitmap RunOptimal(InterpolationMethod interpMethod = InterpolationMethod.Area,
+            Action<int>? onProgress = null, bool prepareTextures = true, bool useGamut = false)
+        {
+            interpolationMethod = interpMethod;
+            MosaicData.reducedBitmap = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            int R = MosaicData.reducedBitmap.Height;
+            int C = MosaicData.reducedBitmap.Width;
+            byte[,,] src = ImageService.ToByteArray(MosaicData.reducedBitmap);
+
+            var candidates = new List<rgb>(MosaicData.arRGB);
+            var gamut = useGamut ? GamutMapper.Build(src, R, C, candidates) : null;
+            LastGamut = gamut;
+            var result = OptimalPaletteService.Analyze(src, R, C, candidates, p => onProgress?.Invoke(p * 9 / 10), gamut);
+            LastOptimalResult = result;
+            _optSrc = src;
+            _optCandidates = candidates;
+            _optGamut = gamut;
+
+            var bmp = ApplyOptimalK(result.KOptimal, prepareTextures);
+            onProgress?.Invoke(100);
+            return bmp;
+        }
+
+        private static byte[,,]? _optSrc;
+        private static List<rgb>? _optCandidates;
+        private static GamutMapper? _optGamut;
+
+        // Rebuilds the mosaic from the last RunOptimal analysis using the k best stones (nested subsets).
+        public static SKBitmap ApplyOptimalK(int k, bool prepareTextures = true)
+        {
+            var result = LastOptimalResult!;
+            var src = _optSrc!;
+            var candidates = _optCandidates!;
+            var gamut = _optGamut;
+            int R = src.GetLength(0), C = src.GetLength(1);
+            int M = result.CandidateCount;
+            k = Math.Clamp(k, 1, M);
+
+            PixelEditService.Reset();
+            rgbM = k;
+            CreateSingleRegion(k, R, C);
+
+            var selected = new List<rgb>();
+            for (int i = M - k; i < M; i++) selected.Add(candidates[result.RemovalOrder[i]]);
+            int K = selected.Count;
+            double[] sL = new double[K], sA = new double[K], sB = new double[K];
+            for (int s = 0; s < K; s++)
+            {
+                var lab = ColorMatcher.RgbToLab(selected[s].r, selected[s].g, selected[s].b);
+                sL[s] = lab.L; sA[s] = lab.A; sB[s] = lab.B;
+            }
+
+            var assignCache = new Dictionary<int, int>();
+            int[] counts = new int[K];
+            MosaicData.dataM3 = new byte[R, C, 3];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                {
+                    byte b = src[i, j, 0], g = src[i, j, 1], r = src[i, j, 2];
+                    int key = (r << 16) | (g << 8) | b;
+                    if (!assignCache.TryGetValue(key, out int s))
+                    {
+                        var lab = ColorMatcher.RgbToLab(r, g, b);
+                        if (gamut != null) lab = gamut.Map(lab);
+                        double bestD = double.MaxValue;
+                        s = 0;
+                        for (int t = 0; t < K; t++)
+                        {
+                            double dl = (lab.L - sL[t]) * OptimalPaletteService.LightnessWeight;
+                            double da = lab.A - sA[t], db = lab.B - sB[t];
+                            double d = dl * dl + da * da + db * db;
+                            if (d < bestD) { bestD = d; s = t; }
+                        }
+                        assignCache[key] = s;
+                    }
+                    counts[s]++;
+                    MosaicData.dataM3[i, j, 0] = (byte)selected[s].b;
+                    MosaicData.dataM3[i, j, 1] = (byte)selected[s].g;
+                    MosaicData.dataM3[i, j, 2] = (byte)selected[s].r;
+                    drl.dat[i, j, 3] = selected[s].ID;
+                }
+
+            var palette = new List<rgb>();
+            for (int s = 0; s < K; s++)
+            {
+                if (counts[s] == 0) continue;
+                var c = CloneRgb(selected[s]);
+                c.numOfPixel = counts[s];
+                c.reg = 1;
+                c.boolLeaveOut = false;
+                palette.Add(c);
+            }
+            palette.Sort((a, b) => a.ID.CompareTo(b.ID));
+            for (int z = 0; z < palette.Count; z++)
+            {
+                palette[z].u = z + 1;
+                palette[z].uc = z + 1;
+                palette[z].ri = palette[z].r; palette[z].gi = palette[z].g; palette[z].bi = palette[z].b;
+                palette[z].dis = (palette[z].r + palette[z].g + palette[z].b) / 3.0;
+            }
+
+            MosaicData.dataM1 = (byte[,,])MosaicData.dataM3.Clone();
+            MosaicData.arMB = new List<List<rgb>> { palette };
+            MosaicData.arMA = CloneNestedList(MosaicData.arMB);
+            BackupM3(R, C);
+
+            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
+            MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
+
+            if (prepareTextures)
+            {
+                StoneTextureService.PopulateRandomIndices(R, C);
+                StoneTextureService.LoadTextures();
+                StoneTextureService.ResizeTextures(MosaicData.N);
+            }
+
+            return MosaicData.reducedBitmap;
+        }
+
         public static SKBitmap RunM3(int targetColors, int rgbIncrement, bool useLab, bool useAverage,
-            InterpolationMethod interpMethod = InterpolationMethod.Area, Action<int>? onProgress = null)
+            InterpolationMethod interpMethod = InterpolationMethod.Area, Action<int>? onProgress = null,
+            bool prepareTextures = true)
         {
             rgbM = targetColors;
             RGBInc = rgbIncrement;
@@ -330,9 +463,12 @@ namespace mosair.Services
             MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
 
             // Prepare stone textures (RS bitmap created by ViewModel with grid params)
-            StoneTextureService.PopulateRandomIndices(R, C);
-            StoneTextureService.LoadTextures();
-            StoneTextureService.ResizeTextures(MosaicData.N);
+            if (prepareTextures)
+            {
+                StoneTextureService.PopulateRandomIndices(R, C);
+                StoneTextureService.LoadTextures();
+                StoneTextureService.ResizeTextures(MosaicData.N);
+            }
 
             Console.WriteLine($"[MOS-DIAG] === RunM3 COMPLETE === reducedBitmap={MosaicData.reducedBitmap?.Width}x{MosaicData.reducedBitmap?.Height}");
             onProgress?.Invoke(100);
@@ -358,6 +494,10 @@ namespace mosair.Services
             MosaicData.rsBitmap = null;
             StoneTextureService.Reset();
             PixelEditService.Reset();
+            LastOptimalResult = null;
+            _optSrc = null;
+            _optCandidates = null;
+            _optGamut = null;
         }
 
         // --- Private pipeline methods ---
@@ -676,7 +816,9 @@ namespace mosair.Services
             int wouldRemain = 0;
             for (int i = 0; i < ar.Count; i++)
                 if (ar[i].numOfPixel >= numOfMinRGB) wouldRemain++;
-            if (wouldRemain >= target)
+            // WPF's removeMinimalM3 drops every color under the threshold with no lower bound;
+            // the fallback below is kept only to avoid an empty palette.
+            if (WpfStyleRemoval ? wouldRemain > 0 : wouldRemain >= target)
                 ar.RemoveAll(c => c.numOfPixel < numOfMinRGB);
             else
             {

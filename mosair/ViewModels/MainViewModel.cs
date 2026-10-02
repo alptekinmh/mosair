@@ -426,7 +426,189 @@ public bool UseLab
         public bool MosaicDone
         {
             get => _mosaicDone;
-            set { _mosaicDone = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); }
+            set
+            {
+                _mosaicDone = value;
+                OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(OptimalAvailable));
+            }
+        }
+
+        private bool _useOptimal = true;
+        private bool _lastRunOptimal;
+        private int _optimalK;
+        private int _optimalKMax = 1;
+        private int _optimalKSuggested;
+        private string _optimalInfo = "";
+        private bool _suppressOptimalApply;
+        private System.Threading.CancellationTokenSource? _optimalApplyCts;
+        // Catalog selection the user had before the last Optimum run, and the "used stones only" selection
+        // the app applied afterwards. If the user has not touched the checkboxes since, the next Optimum run
+        // starts again from the user's selection instead of the narrowed one.
+        private bool[]? _optimumUserSelection;
+        private bool[]? _optimumAutoSelection;
+
+        private bool[] CaptureCatalogSelection()
+        {
+            var sel = new bool[MosaicData.arRGBAll.Count];
+            for (int i = 0; i < sel.Length; i++) sel[i] = MosaicData.arRGBAll[i].boolLeaveOut;
+            return sel;
+        }
+
+        private void ApplyCatalogSelection(bool[] leaveOut)
+        {
+            if (leaveOut.Length != MosaicData.arRGBAll.Count) return;
+            for (int i = 0; i < leaveOut.Length; i++)
+            {
+                MosaicData.arRGBAll[i].boolLeaveOut = leaveOut[i];
+                if (i < MosaicData.arcs.Count) MosaicData.arcs[i] = leaveOut[i];
+            }
+            foreach (var item in CatalogColors)
+                if (item.Index >= 0 && item.Index < leaveOut.Length)
+                    item.IsExcluded = leaveOut[item.Index];
+        }
+
+        private void RestoreOptimumUserSelectionIfUntouched()
+        {
+            if (_optimumUserSelection == null || _optimumAutoSelection == null) return;
+            var current = CaptureCatalogSelection();
+            if (current.AsSpan().SequenceEqual(_optimumAutoSelection))
+                ApplyCatalogSelection(_optimumUserSelection);
+        }
+
+        public bool UseOptimal
+        {
+            get => _useOptimal;
+            set { _useOptimal = value; OnPropertyChanged(); }
+        }
+
+        public bool OptimalAvailable => MosaicDone && _lastRunOptimal;
+
+        public int OptimalKMax
+        {
+            get => _optimalKMax;
+            private set { _optimalKMax = value; OnPropertyChanged(); }
+        }
+
+        public int OptimalKSuggested
+        {
+            get => _optimalKSuggested;
+            private set { _optimalKSuggested = value; OnPropertyChanged(); }
+        }
+
+        public string OptimalInfo
+        {
+            get => _optimalInfo;
+            private set { _optimalInfo = value; OnPropertyChanged(); }
+        }
+
+        public int OptimalK
+        {
+            get => _optimalK;
+            set
+            {
+                if (_optimalK == value) return;
+                _optimalK = value;
+                OnPropertyChanged();
+                UpdateOptimalInfo();
+                if (!_suppressOptimalApply) ScheduleOptimalApply();
+            }
+        }
+
+        private void UpdateOptimalInfo()
+        {
+            var res = MosaicEngine.LastOptimalResult;
+            if (res == null || _optimalK < 1 || _optimalK > res.CandidateCount) { OptimalInfo = ""; return; }
+            OptimalInfo = $"öneri {res.KOptimal} · ΔE {res.MeanByK[_optimalK]:F1} · kenar %{res.EdgeKeptByK[_optimalK] * 100:F0}";
+        }
+
+        // Debounced so dragging the slider rebuilds the mosaic only once it settles.
+        private async void ScheduleOptimalApply()
+        {
+            _optimalApplyCts?.Cancel();
+            var cts = new System.Threading.CancellationTokenSource();
+            _optimalApplyCts = cts;
+            try { await Task.Delay(350, cts.Token); }
+            catch (TaskCanceledException) { return; }
+            if (cts.IsCancellationRequested || !OptimalAvailable || IsProcessing) return;
+            await ApplyOptimalKAsync(_optimalK);
+        }
+
+        private async Task ApplyOptimalKAsync(int k)
+        {
+            IsProcessing = true;
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                SKBitmap? result = null;
+                SKBitmap? rsBmp = null;
+                await Task.Run(() =>
+                {
+                    result = MosaicEngine.ApplyOptimalK(k);
+                    rsBmp = BuildRsBitmap();
+                });
+                sw.Stop();
+                FinishMosaic(result, rsBmp, sw.Elapsed);
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
+        }
+
+        private SKBitmap BuildRsBitmap()
+        {
+            int R = MosaicData.dataM3.GetLength(0);
+            int C = MosaicData.dataM3.GetLength(1);
+            int N = MosaicData.N;
+            int gw = _showGrid ? Math.Max(1, N / 11) : 0;
+            if (gw > 0)
+                StoneTextureService.ResizeTextures(N - gw);
+            var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
+            return StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
+        }
+
+        private void FinishMosaic(SKBitmap? result, SKBitmap? rsBmp, TimeSpan elapsed)
+        {
+            ElapsedTime = elapsed.ToString(@"m\:ss\.ff");
+
+            if (rsBmp != null)
+            {
+                MosaicData.rsBitmap?.Dispose();
+                MosaicData.rsBitmap = rsBmp;
+                _bitmapPixelWidth = rsBmp.Width;
+                _bitmapPixelHeight = rsBmp.Height;
+            }
+            else if (result != null)
+            {
+                _bitmapPixelWidth = result.Width;
+                _bitmapPixelHeight = result.Height;
+            }
+
+            if (result == null) return;
+
+            OnPropertyChanged(nameof(BitmapPixelWidth));
+            OnPropertyChanged(nameof(BitmapPixelHeight));
+            OnPropertyChanged(nameof(StoneColumns));
+            OnPropertyChanged(nameof(StoneRows));
+            MosaicDone = true;
+            FilterCatalogByUsedColors();
+            if (_lastRunOptimal)
+                _optimumAutoSelection = CaptureCatalogSelection();
+            RedrawOverlay();
+            int totalColors = MosaicData.arRGBAll.Count;
+            var uniqueCodes = new HashSet<string>();
+            foreach (var arList in MosaicData.arMB)
+                foreach (var c in arList)
+                    if (!string.IsNullOrEmpty(c.codeName))
+                        uniqueCodes.Add(c.codeName);
+            int usedColors = uniqueCodes.Count;
+            UsedColorInfo = Loc.Fmt("StatusUsedColors", totalColors, usedColors);
+            StatusText = Loc.Fmt("StatusCompleted", usedColors, elapsed.TotalSeconds.ToString("F1"));
         }
 
         public double ZoomLevel
@@ -725,6 +907,12 @@ public bool UseLab
             StatusText = Loc.Get("StatusStarting");
             ElapsedTime = "";
 
+            if (UseOptimal)
+            {
+                RestoreOptimumUserSelectionIfUntouched();
+                _optimumUserSelection = CaptureCatalogSelection();
+                _optimumAutoSelection = null;
+            }
             ColorCatalogService.SetActiveColors();
             int activeCount = MosaicData.arRGB.Count;
 
@@ -756,64 +944,42 @@ public bool UseLab
             {
                 SKBitmap? result = null;
                 SKBitmap? rsBmp = null;
+                bool optimal = UseOptimal;
+                _lastRunOptimal = false;
                 await Task.Run(() =>
                 {
-                    Console.WriteLine($"[MOS-DIAG] RunM3 starting...");
-                    result = MosaicEngine.RunM3(
-                        TargetColors,
-                        RgbIncrement,
-                        UseLab,
-                        UseAverage,
-                        SelectedInterpolation,
-                        progress => Dispatcher.UIThread.Post(() => Progress = progress)
-                    );
-
-                    int R = MosaicData.dataM3.GetLength(0);
-                    int C = MosaicData.dataM3.GetLength(1);
-                    int N = MosaicData.N;
-                    int gw = _showGrid ? Math.Max(1, N / 11) : 0;
-                    if (gw > 0)
-                        StoneTextureService.ResizeTextures(N - gw);
-                    var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
-                    rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
-                    Console.WriteLine($"[MOS-DIAG] RunM3 done. result={result?.Width}x{result?.Height} rsBmp={rsBmp?.Width}x{rsBmp?.Height} arMB0={MosaicData.arMB.Count}>{(MosaicData.arMB.Count > 0 ? MosaicData.arMB[0].Count : 0)}");
+                    if (optimal)
+                    {
+                        result = MosaicEngine.RunOptimal(SelectedInterpolation,
+                            progress => Dispatcher.UIThread.Post(() => Progress = progress));
+                    }
+                    else
+                    {
+                        result = MosaicEngine.RunM3(
+                            TargetColors,
+                            RgbIncrement,
+                            UseLab,
+                            UseAverage,
+                            SelectedInterpolation,
+                            progress => Dispatcher.UIThread.Post(() => Progress = progress)
+                        );
+                    }
+                    rsBmp = BuildRsBitmap();
                 });
 
                 sw.Stop();
-                ElapsedTime = sw.Elapsed.ToString(@"m\:ss\.ff");
-
-                if (rsBmp != null)
+                var res = MosaicEngine.LastOptimalResult;
+                if (optimal && res != null)
                 {
-                    MosaicData.rsBitmap?.Dispose();
-                    MosaicData.rsBitmap = rsBmp;
-                    _bitmapPixelWidth = rsBmp.Width;
-                    _bitmapPixelHeight = rsBmp.Height;
+                    _lastRunOptimal = true;
+                    _suppressOptimalApply = true;
+                    OptimalKMax = res.CandidateCount;
+                    OptimalKSuggested = res.KOptimal;
+                    OptimalK = res.KOptimal;
+                    _suppressOptimalApply = false;
+                    UpdateOptimalInfo();
                 }
-                else if (result != null)
-                {
-                    _bitmapPixelWidth = result.Width;
-                    _bitmapPixelHeight = result.Height;
-                }
-
-                if (result != null)
-                {
-                    OnPropertyChanged(nameof(BitmapPixelWidth));
-                    OnPropertyChanged(nameof(BitmapPixelHeight));
-                    OnPropertyChanged(nameof(StoneColumns));
-                    OnPropertyChanged(nameof(StoneRows));
-                    MosaicDone = true;
-                    FilterCatalogByUsedColors();
-                    RedrawOverlay();
-                    int totalColors = MosaicData.arRGBAll.Count;
-                    var uniqueCodes = new HashSet<string>();
-                    foreach (var arList in MosaicData.arMB)
-                        foreach (var c in arList)
-                            if (!string.IsNullOrEmpty(c.codeName))
-                                uniqueCodes.Add(c.codeName);
-                    int usedColors = uniqueCodes.Count;
-                    UsedColorInfo = Loc.Fmt("StatusUsedColors", totalColors, usedColors);
-                    StatusText = Loc.Fmt("StatusCompleted", usedColors, sw.Elapsed.TotalSeconds.ToString("F1"));
-                }
+                FinishMosaic(result, rsBmp, sw.Elapsed);
             }
             catch (OutOfMemoryException)
             {
@@ -1112,38 +1278,22 @@ public bool UseLab
                 if (catItem.IsExcluded) continue;
 
                 idx++;
-                if (mbByCode.TryGetValue(catItem.CodeName, out var c))
+                if (!mbByCode.TryGetValue(catItem.CodeName, out var c) || c.numOfPixel == 0)
+                    continue;
+
+                PaletteColors.Add(new PaletteItem
                 {
-                    PaletteColors.Add(new PaletteItem
-                    {
-                        Index = idx,
-                        R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
-                    });
-                    AssignedColors.Add(new AssignedItem
-                    {
-                        Num = idx,
-                        ID = c.ID,
-                        CodeName = c.codeName,
-                        PixelCount = c.numOfPixel,
-                        R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
-                    });
-                }
-                else
+                    Index = idx,
+                    R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
+                });
+                AssignedColors.Add(new AssignedItem
                 {
-                    PaletteColors.Add(new PaletteItem
-                    {
-                        Index = idx,
-                        R = catItem.R, G = catItem.G, B = catItem.B
-                    });
-                    AssignedColors.Add(new AssignedItem
-                    {
-                        Num = idx,
-                        ID = catItem.ID,
-                        CodeName = catItem.CodeName,
-                        PixelCount = 0,
-                        R = catItem.R, G = catItem.G, B = catItem.B
-                    });
-                }
+                    Num = idx,
+                    ID = c.ID,
+                    CodeName = c.codeName,
+                    PixelCount = c.numOfPixel,
+                    R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
+                });
             }
         }
 
