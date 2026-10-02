@@ -148,8 +148,9 @@ namespace mosair.Services
                     else minRGBInc = 1;
 
                     RemoveMinimalColors(reg);
-                    if (ar3.Count <= dr.rgbM) break;
 
+                    var reducedForIter = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+                    MosaicData.reducedBitmap = reducedForIter;
                     ProcessM3(reg, R, C);
 
                     numOfMinRGB += minRGBInc;
