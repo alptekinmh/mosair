@@ -230,35 +230,26 @@ namespace mosair.Services
             boolAv = useAverage;
             interpolationMethod = interpMethod;
 
-            Console.WriteLine($"[MOS-DIAG] === RunM3 START === targetColors={targetColors} rgbInc={rgbIncrement} width={width} height={height}");
 
             // Resize input to stone dimensions
-            Console.WriteLine($"[MOS-DIAG] Step 1: Resize inputBitmap={MosaicData.inputBitmap?.Width}x{MosaicData.inputBitmap?.Height} to {(int)width}x{(int)height}");
             MosaicData.reducedBitmap = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
             int R = MosaicData.reducedBitmap.Height;
             int C = MosaicData.reducedBitmap.Width;
-            Console.WriteLine($"[MOS-DIAG] Step 1 done: R={R} C={C}");
 
             // Create single region covering entire image
             CreateSingleRegion(targetColors, R, C);
-            Console.WriteLine($"[MOS-DIAG] Step 2: CreateSingleRegion done. dr.rgbM={drl.arar[0].rgbM}");
 
             // Init M3
             InitM3();
-            Console.WriteLine($"[MOS-DIAG] Step 3: InitM3 done");
 
             // Generate initial palette (all RGB combos with step)
             GenerateInitialPalette();
-            Console.WriteLine($"[MOS-DIAG] Step 4: GenerateInitialPalette done. arMA[0].Count={MosaicData.arMA[0].Count}");
 
             // Run M1 first pass
-            Console.WriteLine($"[MOS-DIAG] Step 5: RunM1 starting...");
             RunM1(R, C);
-            Console.WriteLine($"[MOS-DIAG] Step 5: RunM1 done");
 
             // Copy M1 results to M3
             CopyM1ToM3(R, C);
-            Console.WriteLine($"[MOS-DIAG] Step 6: CopyM1ToM3 done");
 
             // Iterative reduction per region
             for (int reg = 0; reg < drl.arar.Count; reg++)
@@ -267,15 +258,12 @@ namespace mosair.Services
                 numOfMinRGB = 0;
                 List<rgb> ar3 = MosaicData.arMA[reg];
 
-                Console.WriteLine($"[MOS-DIAG] Step 7: Region {reg} — ar3.Count={ar3.Count} dr.rgbM={dr.rgbM} willLoop={ar3.Count > dr.rgbM}");
 
                 var reducedForLoop = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
                 MosaicData.reducedBitmap = reducedForLoop;
 
-                int loopIter = 0;
                 while (ar3.Count > dr.rgbM)
                 {
-                    loopIter++;
                     if (ar3.Count >= 2000) minRGBInc = 5;
                     else if (ar3.Count > 1000) minRGBInc = 2;
                     else minRGBInc = 1;
@@ -290,15 +278,12 @@ namespace mosair.Services
 
                     onProgress?.Invoke(ar3.Count > 0 ? (int)((double)dr.rgbM / ar3.Count * 100.0) : 100);
                 }
-                Console.WriteLine($"[MOS-DIAG] Step 7: Region {reg} loop done after {loopIter} iterations, ar3.Count={ar3.Count}");
 
                 // Assign color numbers for this region
                 AssignColorNumbers(R, C, reg);
-                Console.WriteLine($"[MOS-DIAG] Step 8: AssignColorNumbers done for region {reg}");
             }
 
             // Deep copy arMA → arMB
-            Console.WriteLine($"[MOS-DIAG] Step 9: Section 2 — catalog assignment starting");
             MosaicData.arMB = CloneNestedList(MosaicData.arMA);
 
             // --- Section 2: Automatic catalog color assignment ---
@@ -337,7 +322,6 @@ namespace mosair.Services
                     }
             }
 
-            Console.WriteLine($"[MOS-DIAG] Step 9: Section 2 done. arMB[0].Count={MosaicData.arMB[0].Count}");
 
             // --- Section 3: Assign uc (combine identical colors) ---
             for (int i = 0; i < MosaicData.arMB.Count; i++)
@@ -389,7 +373,6 @@ namespace mosair.Services
                     ar[j].u = ar[j].uc;
             }
 
-            Console.WriteLine($"[MOS-DIAG] Step 10: Section 3 done (uc assignment)");
 
             // --- Section 4: Combine identical catalog colors ---
             var arT = new List<rgb>();
@@ -424,7 +407,6 @@ namespace mosair.Services
             MosaicData.arMB[0] = CloneList(arT);
             MosaicData.arMB[0].RemoveAll(c => c.numOfPixel == 0);
 
-            Console.WriteLine($"[MOS-DIAG] Step 11: Section 4 done. arMB[0].Count={MosaicData.arMB[0].Count} (after RemoveAll)");
 
             // --- Section 5: Update dat[,,3] with ID ---
             for (int i = 0; i < MosaicData.arMB.Count; i++)
@@ -452,7 +434,6 @@ namespace mosair.Services
                     ar[j].u = ++e;
             }
 
-            Console.WriteLine($"[MOS-DIAG] Step 12: Section 5 done (dat ID assignment)");
 
             // Backup
             MosaicData.arMA = CloneNestedList(MosaicData.arMB);
@@ -470,7 +451,6 @@ namespace mosair.Services
                 StoneTextureService.ResizeTextures(MosaicData.N);
             }
 
-            Console.WriteLine($"[MOS-DIAG] === RunM3 COMPLETE === reducedBitmap={MosaicData.reducedBitmap?.Width}x{MosaicData.reducedBitmap?.Height}");
             onProgress?.Invoke(100);
             return MosaicData.reducedBitmap;
         }

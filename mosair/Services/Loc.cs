@@ -102,6 +102,10 @@ namespace mosair.Services
             ["LblGridColor"] = "Grid Rengi",
             ["LblInterp"] = "Interp",
             ["LblDetail"] = "Detay",
+            ["LblOptimum"] = "Optimum",
+            ["TipOptimum"] = "Optimum taş sayısını otomatik bul",
+            ["LblStones"] = "Taş",
+            ["OptimumInfoFmt"] = "öneri {0} · ΔE {1:F1} · kenar %{2:F0}",
 
             // Properties
             ["PropTitle"] = "Properties",
@@ -230,6 +234,10 @@ namespace mosair.Services
             ["LblGridColor"] = "Grid Color",
             ["LblInterp"] = "Interp",
             ["LblDetail"] = "Detail",
+            ["LblOptimum"] = "Optimum",
+            ["TipOptimum"] = "Find the optimum stone count automatically",
+            ["LblStones"] = "Stones",
+            ["OptimumInfoFmt"] = "suggested {0} · ΔE {1:F1} · edges {2:F0}%",
 
             // Properties
             ["PropTitle"] = "Properties",

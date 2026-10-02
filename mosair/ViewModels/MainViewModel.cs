@@ -518,7 +518,7 @@ public bool UseLab
         {
             var res = MosaicEngine.LastOptimalResult;
             if (res == null || _optimalK < 1 || _optimalK > res.CandidateCount) { OptimalInfo = ""; return; }
-            OptimalInfo = $"öneri {res.KOptimal} · ΔE {res.MeanByK[_optimalK]:F1} · kenar %{res.EdgeKeptByK[_optimalK] * 100:F0}";
+            OptimalInfo = Loc.Fmt("OptimumInfoFmt", res.KOptimal, res.MeanByK[_optimalK], res.EdgeKeptByK[_optimalK] * 100);
         }
 
         // Debounced so dragging the slider rebuilds the mosaic only once it settles.
@@ -790,6 +790,11 @@ public bool UseLab
             {
                 StatusText = Loc.Fmt("StatusError", ex.Message);
             }
+
+            Loc.Instance.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(Loc.Lang)) UpdateOptimalInfo();
+            };
         }
 
         public void LoadImage(string path)
@@ -935,7 +940,6 @@ public bool UseLab
             TargetColors = Math.Clamp(Math.Max(2, ew * 10), 2, Math.Max(2, totalPixels));
             if (TargetColors >= paletteSize)
                 TargetColors = paletteSize - 1;
-            Console.WriteLine($"[MOS-DIAG] width={MosaicEngine.width} height={MosaicEngine.height} totalPixels={totalPixels} TargetColors={TargetColors} paletteSize={paletteSize} RgbInc={RgbIncrement} activeColors={activeCount}");
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();
@@ -988,7 +992,6 @@ public bool UseLab
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[MOS-DIAG] EXCEPTION: {ex}");
                 StatusText = Loc.Fmt("StatusError", ex.Message);
                 Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
             }

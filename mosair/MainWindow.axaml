@@ -430,15 +430,16 @@
             </StackPanel>
           </Button>
           <Border Width="1" Height="16" Background="{DynamicResource BrdrMain}" Margin="2,0"/>
-          <!-- Optimum stone count (experimental) -->
+          <!-- Optimum stone count -->
           <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="4,0,0,0"
-                    ToolTip.Tip="Optimum taş sayısını otomatik bul (deneysel)">
-            <TextBlock Text="Optimum" FontSize="11" Foreground="{DynamicResource FgSecondary}"
-                       VerticalAlignment="Center"/>
+                    ToolTip.Tip="{Binding [TipOptimum], Source={x:Static svc:Loc.Instance}}">
+            <TextBlock Text="{Binding [LblOptimum], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                       Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>
           </CheckBox>
           <StackPanel Orientation="Horizontal" Spacing="6" Margin="6,0,0,0" VerticalAlignment="Center"
                       IsVisible="{Binding OptimalAvailable}">
-            <TextBlock Text="Taş" FontSize="11" Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
+            <TextBlock Text="{Binding [LblStones], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                       Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
             <Slider Value="{Binding OptimalK}" Minimum="1" Maximum="{Binding OptimalKMax}"
                     TickFrequency="1" IsSnapToTickEnabled="True" Width="160" VerticalAlignment="Center"/>
             <TextBlock Text="{Binding OptimalK}" Foreground="#4ecb71" FontSize="13" FontWeight="Bold"
