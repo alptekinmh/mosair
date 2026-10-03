@@ -1,0 +1,41 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mosair.Controls.StockSettingsDialog"
+        Title=""
+        Width="520" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#2a2a30"
+        ExtendClientAreaToDecorationsHint="False">
+
+  <Border Padding="24" Background="#2a2a30">
+    <StackPanel Spacing="12">
+      <TextBlock x:Name="TitleText"
+                 FontSize="16" FontWeight="SemiBold"
+                 Foreground="#ffffff"/>
+
+      <TextBlock x:Name="SheetIdLabel" FontSize="12" Foreground="#cccccc"/>
+      <TextBox x:Name="SheetIdBox" FontSize="12" Height="32"/>
+
+      <TextBlock x:Name="ScriptUrlLabel" FontSize="12" Foreground="#cccccc"/>
+      <TextBox x:Name="ScriptUrlBox" FontSize="12" Height="32"/>
+
+      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="#999999"/>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+        <Button x:Name="CancelButton"
+                MinWidth="90" Height="34"
+                FontSize="13" FontWeight="Medium"
+                Background="#3a3a42" Foreground="#ffffff"
+                CornerRadius="4"
+                Click="OnCancelClick"/>
+        <Button x:Name="SaveButton"
+                MinWidth="90" Height="34"
+                FontSize="13" FontWeight="Medium"
+                Background="#3a7bfd" Foreground="#ffffff"
+                CornerRadius="4"
+                Click="OnSaveClick"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

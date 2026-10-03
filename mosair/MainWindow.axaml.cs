@@ -33,6 +33,15 @@ public partial class MainWindow : Window
             var dlg = new Controls.AlertDialog(title, message);
             await dlg.ShowDialog(this);
         };
+        _vm.ShowConfirm = (title, message) =>
+            new Controls.ConfirmDialog(title, message).ShowDialog<bool>(this);
+        _vm.ShowStockSettings = current =>
+            new Controls.StockSettingsDialog(current).ShowDialog<StockSheetService.Config?>(this);
+        _vm.OpenUrl = async url =>
+        {
+            var launcher = TopLevel.GetTopLevel(this)?.Launcher;
+            if (launcher != null) await launcher.LaunchUriAsync(new Uri(url));
+        };
         DataContext = _vm;
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
@@ -190,6 +199,20 @@ public partial class MainWindow : Window
     {
         if (item.Icon is Control icon) icon.IsVisible = on;
     }
+
+    private async void OnStockSheet(object? sender, RoutedEventArgs e) => await _vm.OpenStockSheetAsync();
+
+    private async void OnStockSettings(object? sender, RoutedEventArgs e) => await _vm.ConfigureStockAsync();
+
+    private async void OnStockFetch(object? sender, RoutedEventArgs e) => await _vm.FetchStockAsync();
+
+    private async void OnStockCheck(object? sender, RoutedEventArgs e) => await _vm.CheckStockAsync();
+
+    private async void OnStockClearOne(object? sender, RoutedEventArgs e) => await _vm.ClearStockOneAsync();
+
+    private async void OnStockClearAll(object? sender, RoutedEventArgs e) => await _vm.ClearStockAllAsync();
+
+    private async void OnStockAdd(object? sender, RoutedEventArgs e) => await _vm.AddStockAsync();
 
     private void OnToggleOptimum(object? sender, RoutedEventArgs e)
     {

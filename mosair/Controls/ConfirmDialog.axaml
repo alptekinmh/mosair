@@ -1,0 +1,38 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mosair.Controls.ConfirmDialog"
+        Title=""
+        Width="440" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="#2a2a30"
+        ExtendClientAreaToDecorationsHint="False">
+
+  <Border Padding="24" Background="#2a2a30">
+    <StackPanel Spacing="16">
+      <TextBlock x:Name="TitleText"
+                 FontSize="16" FontWeight="SemiBold"
+                 Foreground="#ffffff"/>
+
+      <TextBlock x:Name="MessageText"
+                 FontSize="13" TextWrapping="Wrap"
+                 Foreground="#cccccc"
+                 LineHeight="20"/>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+        <Button x:Name="NoButton"
+                MinWidth="90" Height="34"
+                FontSize="13" FontWeight="Medium"
+                Background="#3a3a42" Foreground="#ffffff"
+                CornerRadius="4"
+                Click="OnNoClick"/>
+        <Button x:Name="YesButton"
+                MinWidth="90" Height="34"
+                FontSize="13" FontWeight="Medium"
+                Background="#3a7bfd" Foreground="#ffffff"
+                CornerRadius="4"
+                Click="OnYesClick"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

@@ -41,6 +41,14 @@ namespace mosair.ViewModels
             set { IsExcluded = !value; }
         }
 
+        private bool _stockShort;
+        // Set by "stok kontrol" when the sheet's estimated remaining stock for this stone went negative.
+        public bool StockShort
+        {
+            get => _stockShort;
+            set { _stockShort = value; OnPropertyChanged(); }
+        }
+
 
         public string TooltipHeader => $"{CodeName}  {Name}  {R} {G} {B}";
         public IBrush ColorBrush => new SolidColorBrush(Color.FromRgb(R, G, B));
@@ -145,11 +153,188 @@ namespace mosair.ViewModels
     public class MainViewModel : INotifyPropertyChanged
     {
         public Func<string, string, Task>? ShowAlert { get; set; }
+        public Func<string, string, Task<bool>>? ShowConfirm { get; set; }
+        public Func<StockSheetService.Config, Task<StockSheetService.Config?>>? ShowStockSettings { get; set; }
+        public Func<string, Task>? OpenUrl { get; set; }
 
         private void Alert(string title, string message)
         {
             if (ShowAlert != null)
                 Avalonia.Threading.Dispatcher.UIThread.Post(async () => await ShowAlert(title, message));
+        }
+
+        // ===== Google Sheet stock (ported from WPF: 📊, stok çek, stok kontrol, stok temizle, stok ekle) =====
+
+        private bool _isStockBusy;
+        public bool IsStockBusy
+        {
+            get => _isStockBusy;
+            private set { _isStockBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanUseStock)); }
+        }
+        public bool CanUseStock => !_isStockBusy;
+
+        // Same column header the sheet uses for this mosaic: picture name first, then project file name.
+        private static string StockProjectName()
+        {
+            if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName))
+                return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
+            if (!string.IsNullOrEmpty(ProjectService.CurrentFileName))
+                return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentFileName);
+            return "";
+        }
+
+        private bool TryGetStockConfig(bool needScript, out StockSheetService.Config config)
+        {
+            config = StockSheetService.LoadConfig();
+            if (string.IsNullOrEmpty(config.SheetId) || (needScript && string.IsNullOrEmpty(config.ScriptUrl)))
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNotConfigured"));
+                return false;
+            }
+            return true;
+        }
+
+        private async Task<bool> Confirm(string title, string message) =>
+            ShowConfirm != null && await ShowConfirm(title, message);
+
+        private async Task RunStockAction(Func<Task> action, string doneMessage)
+        {
+            IsStockBusy = true;
+            try
+            {
+                await action();
+                StatusText = doneMessage;
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("StockTitle"), Loc.Fmt("StockErrFmt", ex.Message));
+            }
+            finally
+            {
+                IsStockBusy = false;
+            }
+        }
+
+        public async Task OpenStockSheetAsync()
+        {
+            if (!TryGetStockConfig(false, out var config)) return;
+            if (OpenUrl != null) await OpenUrl(StockSheetService.SheetUrl(config.SheetId));
+        }
+
+        public async Task ConfigureStockAsync()
+        {
+            if (ShowStockSettings == null) return;
+            var updated = await ShowStockSettings(StockSheetService.LoadConfig());
+            if (updated == null) return;
+            StockSheetService.SaveConfig(updated);
+            StatusText = Loc.Get("StockSettingsSaved");
+        }
+
+        public async Task FetchStockAsync()
+        {
+            if (!TryGetStockConfig(false, out var config)) return;
+            Dictionary<int, double>? stock = null;
+            await RunStockAction(async () =>
+            {
+                stock = await StockSheetService.FetchStockAsync(config.SheetId);
+                // Stones listed in the sheet are enabled when stock > 0 and disabled otherwise; others keep their state.
+                ApplyStockSelection(id => stock.TryGetValue(id, out double kg) ? kg <= 0 : null);
+            }, "");
+            if (stock != null)
+            {
+                int off = 0;
+                foreach (var c in MosaicData.arRGBAll) if (c.boolLeaveOut) off++;
+                StatusText = Loc.Fmt("StockFetched", stock.Count, off);
+            }
+        }
+
+        public async Task CheckStockAsync()
+        {
+            if (!TryGetStockConfig(true, out var config)) return;
+            string projectName = StockProjectName();
+            if (projectName.Length == 0)
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNoProject"));
+                return;
+            }
+            var counts = new Dictionary<int, int>();
+            if (MosaicDone && MosaicData.arMA.Count > 0)
+                foreach (var c in MosaicData.arMA[0])
+                    if (c.numOfPixel > 0)
+                        counts[c.ID] = counts.TryGetValue(c.ID, out int n) ? n + c.numOfPixel : c.numOfPixel;
+            if (counts.Count == 0)
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNoMosaic"));
+                return;
+            }
+            var stones = new List<(int Id, int Count)>();
+            foreach (var kv in counts) stones.Add((kv.Key, kv.Value));
+
+            HashSet<int>? shortIds = null;
+            await RunStockAction(async () =>
+            {
+                shortIds = await StockSheetService.CheckStockAsync(config.ScriptUrl, config.SheetId, projectName, stones);
+                foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = shortIds.Contains(c.ID);
+                foreach (var item in CatalogColors) item.StockShort = shortIds.Contains(item.ID);
+                ApplyStockSelection(id => shortIds.Contains(id) ? true : null);
+            }, "");
+            if (shortIds != null)
+                StatusText = shortIds.Count == 0
+                    ? Loc.Fmt("StockCheckOk", projectName)
+                    : Loc.Fmt("StockCheckShort", projectName, shortIds.Count);
+        }
+
+        public async Task ClearStockOneAsync()
+        {
+            if (!TryGetStockConfig(true, out var config)) return;
+            string projectName = StockProjectName();
+            if (projectName.Length == 0)
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNoProject"));
+                return;
+            }
+            if (!await Confirm(Loc.Get("StockClearTitle"), Loc.Fmt("StockClearOneConfirm", projectName))) return;
+            await RunStockAction(() => StockSheetService.ClearOneAsync(config.ScriptUrl, config.SheetId, projectName),
+                Loc.Fmt("StockClearedOne", projectName));
+        }
+
+        public async Task ClearStockAllAsync()
+        {
+            if (!TryGetStockConfig(true, out var config)) return;
+            if (!await Confirm(Loc.Get("StockClearAllTitle"), Loc.Get("StockClearAllConfirm"))) return;
+            await RunStockAction(() => StockSheetService.ClearAllAsync(config.ScriptUrl, config.SheetId),
+                Loc.Get("StockClearedAll"));
+        }
+
+        public async Task AddStockAsync()
+        {
+            if (!TryGetStockConfig(true, out var config)) return;
+            if (!await Confirm(Loc.Get("StockAddTitle"), Loc.Get("StockAddConfirm"))) return;
+            await RunStockAction(() => StockSheetService.AddStockAsync(config.ScriptUrl, config.SheetId),
+                Loc.Get("StockAdded"));
+        }
+
+        // Applies a stock-driven exclusion (true = exclude, false = include, null = leave as is) to the catalog.
+        // The same change goes into the remembered Optimum base selection, so stock filters narrow the full pool
+        // instead of the "used stones only" view shown after a Mos.
+        private void ApplyStockSelection(Func<int, bool?> leaveOutForId)
+        {
+            var before = CaptureCatalogSelection();
+            bool untouched = _optimumAutoSelection != null && before.AsSpan().SequenceEqual(_optimumAutoSelection);
+
+            var current = (bool[])before.Clone();
+            for (int i = 0; i < MosaicData.arRGBAll.Count; i++)
+            {
+                var decision = leaveOutForId(MosaicData.arRGBAll[i].ID);
+                if (decision == null) continue;
+                current[i] = decision.Value;
+                if (_optimumUserSelection != null && i < _optimumUserSelection.Length)
+                    _optimumUserSelection[i] = decision.Value;
+            }
+            ApplyCatalogSelection(current);
+            ColorCatalogService.SetActiveColors();
+            if (untouched) _optimumAutoSelection = current;
         }
 
         private Bitmap? _displayBitmap;
@@ -911,6 +1096,9 @@ public bool UseLab
             MosaicDone = false;
             StatusText = Loc.Get("StatusStarting");
             ElapsedTime = "";
+
+            foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = false;
+            foreach (var item in CatalogColors) item.StockShort = false;
 
             if (UseOptimal)
             {
