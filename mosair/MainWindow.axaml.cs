@@ -70,7 +70,148 @@ public partial class MainWindow : Window
                 if (_vm.IsExporting) StartExportAnim();
                 else StopExportAnim();
             }
+            else if (e.PropertyName == nameof(MainViewModel.GridColorShades))
+            {
+                RebuildGridShadeItems();
+                RefreshToolsMenuChecks();
+            }
+            else if (e.PropertyName is nameof(MainViewModel.SelectedInterpolation)
+                     or nameof(MainViewModel.StonePixelSize) or nameof(MainViewModel.GridColor))
+            {
+                RefreshToolsMenuChecks();
+            }
         };
+
+        BuildToolsMenu();
+    }
+
+    // ===== Tools menu: mirrors the toolbar controls through the same ViewModel properties =====
+
+    private const string CheckGeometry = "M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z";
+    private readonly System.Collections.Generic.List<(MenuItem Item, Services.InterpolationMethod Value)> _interpMenuItems = new();
+    private readonly System.Collections.Generic.List<(MenuItem Item, int Value)> _detailMenuItems = new();
+    private readonly System.Collections.Generic.List<(MenuItem Item, Avalonia.Media.Color Value)> _gridColorMenuItems = new();
+    private readonly System.Collections.Generic.List<MenuItem> _gridShadeMenuItems = new();
+    private Separator? _gridShadeSeparator;
+
+    private static PathIcon NewMenuCheck() => new()
+    {
+        Width = 12, Height = 12, IsVisible = false,
+        Data = Avalonia.Media.StreamGeometry.Parse(CheckGeometry)
+    };
+
+    private static Border ColorSwatch(Avalonia.Media.Color c) => new()
+    {
+        Width = 40, Height = 14, CornerRadius = new CornerRadius(3),
+        BorderThickness = new Thickness(1),
+        BorderBrush = Avalonia.Media.Brushes.Gray,
+        Background = new Avalonia.Media.SolidColorBrush(c)
+    };
+
+    private void BuildToolsMenu()
+    {
+        foreach (var method in MainViewModel.InterpolationMethods)
+        {
+            var item = new MenuItem { Header = method.ToString(), Icon = NewMenuCheck() };
+            item.Click += (_, _) => _vm.SelectedInterpolation = method;
+            menuInterp.Items.Add(item);
+            _interpMenuItems.Add((item, method));
+        }
+
+        // Same range and step as the toolbar detail slider.
+        for (int v = 10; v <= 100; v += 10)
+        {
+            int value = v;
+            var item = new MenuItem { Header = value.ToString(), Icon = NewMenuCheck() };
+            item.Click += (_, _) => _vm.StonePixelSize = value;
+            menuDetail.Items.Add(item);
+            _detailMenuItems.Add((item, value));
+        }
+
+        foreach (var color in MainViewModel.GridColorPresets)
+        {
+            var c = color;
+            var item = new MenuItem { Header = ColorSwatch(c), Icon = NewMenuCheck() };
+            item.Click += (_, _) =>
+            {
+                _vm.GridColor = c;
+                _vm.SelectMainColor(c);
+            };
+            menuGridColor.Items.Add(item);
+            _gridColorMenuItems.Add((item, c));
+        }
+        _gridShadeSeparator = new Separator();
+        menuGridColor.Items.Add(_gridShadeSeparator);
+
+        RebuildGridShadeItems();
+        RefreshToolsMenuChecks();
+    }
+
+    private void RebuildGridShadeItems()
+    {
+        foreach (var old in _gridShadeMenuItems)
+        {
+            menuGridColor.Items.Remove(old);
+            _gridColorMenuItems.RemoveAll(x => ReferenceEquals(x.Item, old));
+        }
+        _gridShadeMenuItems.Clear();
+
+        var shades = _vm.GridColorShades ?? Array.Empty<Avalonia.Media.Color>();
+        foreach (var shade in shades)
+        {
+            var c = shade;
+            var item = new MenuItem { Header = ColorSwatch(c), Icon = NewMenuCheck() };
+            item.Click += (_, _) => _vm.GridColor = c;
+            menuGridColor.Items.Add(item);
+            _gridShadeMenuItems.Add(item);
+            _gridColorMenuItems.Add((item, c));
+        }
+        if (_gridShadeSeparator != null)
+            _gridShadeSeparator.IsVisible = shades.Length > 0;
+    }
+
+    private void RefreshToolsMenuChecks()
+    {
+        foreach (var (item, value) in _interpMenuItems)
+            SetMenuCheck(item, value == _vm.SelectedInterpolation);
+        foreach (var (item, value) in _detailMenuItems)
+            SetMenuCheck(item, value == _vm.StonePixelSize);
+        bool marked = false;
+        foreach (var (item, value) in _gridColorMenuItems)
+        {
+            // Mark only the first match so a preset and an identical shade are not both ticked.
+            bool on = !marked && value == _vm.GridColor;
+            SetMenuCheck(item, on);
+            marked |= on;
+        }
+    }
+
+    private static void SetMenuCheck(MenuItem item, bool on)
+    {
+        if (item.Icon is Control icon) icon.IsVisible = on;
+    }
+
+    private void OnToggleOptimum(object? sender, RoutedEventArgs e)
+    {
+        _vm.UseOptimal = !_vm.UseOptimal;
+    }
+
+    private void OnStonesSuggested(object? sender, RoutedEventArgs e)
+    {
+        if (_vm.IsProcessing) return;
+        _vm.OptimalK = _vm.OptimalKSuggested;
+    }
+
+    private void OnStonesMore(object? sender, RoutedEventArgs e)
+    {
+        if (_vm.IsProcessing) return;
+        _vm.OptimalK = Math.Min(_vm.OptimalK + 1, _vm.OptimalKMax);
+    }
+
+    private void OnStonesLess(object? sender, RoutedEventArgs e)
+    {
+        if (_vm.IsProcessing) return;
+        _vm.OptimalK = Math.Max(_vm.OptimalK - 1, 1);
     }
 
     private void OnKeyDown(object? sender, KeyEventArgs e)

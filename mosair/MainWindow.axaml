@@ -153,6 +153,40 @@
             <MenuItem Header="{Binding [MenuTools], Source={x:Static svc:Loc.Instance}}">
               <MenuItem Header="{Binding [MenuMosaicize], Source={x:Static svc:Loc.Instance}}" Click="OnRunMosaic"
                         InputGesture="Ctrl+M"/>
+              <Separator/>
+              <MenuItem Header="{Binding [MenuPixelEdit], Source={x:Static svc:Loc.Instance}}"
+                        Click="OnTogglePixelEdit" IsEnabled="{Binding MosaicDone}">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding IsPixelEditActive}"
+                            Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
+              <Separator/>
+              <MenuItem Header="{Binding [MenuShowGrid], Source={x:Static svc:Loc.Instance}}" Click="OnToggleGrid">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding ShowGrid}"
+                            Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem x:Name="menuGridColor" Header="{Binding [MenuGridColor], Source={x:Static svc:Loc.Instance}}"/>
+              <MenuItem x:Name="menuInterp" Header="{Binding [MenuInterp], Source={x:Static svc:Loc.Instance}}"/>
+              <MenuItem x:Name="menuDetail" Header="{Binding [MenuDetail], Source={x:Static svc:Loc.Instance}}"/>
+              <Separator/>
+              <MenuItem Header="{Binding [MenuOptimum], Source={x:Static svc:Loc.Instance}}" Click="OnToggleOptimum">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding UseOptimal}"
+                            Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="{Binding [MenuStoneCount], Source={x:Static svc:Loc.Instance}}"
+                        IsEnabled="{Binding OptimalAvailable}">
+                <MenuItem Header="{Binding [MenuStonesSuggested], Source={x:Static svc:Loc.Instance}}"
+                          Click="OnStonesSuggested"/>
+                <MenuItem Header="{Binding [MenuStonesMore], Source={x:Static svc:Loc.Instance}}"
+                          Click="OnStonesMore"/>
+                <MenuItem Header="{Binding [MenuStonesLess], Source={x:Static svc:Loc.Instance}}"
+                          Click="OnStonesLess"/>
+              </MenuItem>
             </MenuItem>
             <MenuItem Header="{Binding [MenuHelp], Source={x:Static svc:Loc.Instance}}">
               <MenuItem Header="{Binding [MenuUserGuide], Source={x:Static svc:Loc.Instance}}" Click="OnShowHelp"
