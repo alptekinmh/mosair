@@ -92,6 +92,7 @@ public partial class MainWindow : Window
         };
 
         BuildToolsMenu();
+        SetMenuShortcutTexts();
     }
 
     // ===== Tools menu: mirrors the toolbar controls through the same ViewModel properties =====
@@ -237,28 +238,52 @@ public partial class MainWindow : Window
         _vm.OptimalK = Math.Max(_vm.OptimalK - 1, 1);
     }
 
+    // ⌘ on macOS, Ctrl elsewhere — the same modifier the user guide shows (Loc.KeyMod).
+    private static readonly KeyModifiers CmdKey = Loc.IsMac ? KeyModifiers.Meta : KeyModifiers.Control;
+
+    private void SetMenuShortcutTexts()
+    {
+        menuLoadImage.InputGesture = new KeyGesture(Key.I, CmdKey);
+        menuOpenProject.InputGesture = new KeyGesture(Key.O, CmdKey);
+        menuSave.InputGesture = new KeyGesture(Key.S, CmdKey);
+        menuSaveAs.InputGesture = new KeyGesture(Key.S, CmdKey | KeyModifiers.Shift);
+        menuExport.InputGesture = new KeyGesture(Key.E, CmdKey);
+        menuFitToScreen.InputGesture = new KeyGesture(Key.D0, CmdKey);
+        menuMosaicize.InputGesture = new KeyGesture(Key.M, CmdKey);
+    }
+
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
-        bool mod = e.KeyModifiers == KeyModifiers.Control ||
-                   e.KeyModifiers == KeyModifiers.Meta;
-        if (mod)
+        var mods = e.KeyModifiers;
+        bool cmd = mods == CmdKey;
+        bool cmdShift = mods == (CmdKey | KeyModifiers.Shift);
+        // Undo/redo keep accepting either Ctrl or ⌘, as before.
+        bool anyMod = mods == KeyModifiers.Control || mods == KeyModifiers.Meta;
+        bool anyModShift = mods == (KeyModifiers.Control | KeyModifiers.Shift) ||
+                           mods == (KeyModifiers.Meta | KeyModifiers.Shift);
+
+        if (anyMod && e.Key == Key.Z) { _vm.UndoPixelEdit(); e.Handled = true; }
+        else if ((anyMod && e.Key == Key.Y) || (anyModShift && e.Key == Key.Z)) { _vm.RedoPixelEdit(); e.Handled = true; }
+        else if (cmd && e.Key == Key.I) { OnLoadImage(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (cmd && e.Key == Key.O) { OnOpenProject(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (cmd && e.Key == Key.S)
         {
-            if (e.Key == Key.Z)
-            {
-                _vm.UndoPixelEdit();
-                e.Handled = true;
-            }
-            else if (e.Key == Key.Y)
-            {
-                _vm.RedoPixelEdit();
-                e.Handled = true;
-            }
-        }
-        else if (e.Key == Key.F1)
-        {
-            ShowHelp();
+            if (_vm.MosaicDone) OnSaveProject(this, new RoutedEventArgs());
             e.Handled = true;
         }
+        else if (cmdShift && e.Key == Key.S)
+        {
+            if (_vm.MosaicDone) OnSaveAsProject(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+        else if (cmd && e.Key == Key.E)
+        {
+            if (_vm.CanExport) OnExportImage(this, new RoutedEventArgs());
+            e.Handled = true;
+        }
+        else if (cmd && (e.Key == Key.D0 || e.Key == Key.NumPad0)) { OnResetSize(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (cmd && e.Key == Key.M) { OnRunMosaic(this, new RoutedEventArgs()); e.Handled = true; }
+        else if (mods == KeyModifiers.None && e.Key == Key.F1) { ShowHelp(); e.Handled = true; }
     }
 
     private void OnShowHelp(object? sender, RoutedEventArgs e)

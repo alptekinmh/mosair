@@ -128,18 +128,14 @@
                      Margin="12,0,10,0" IsHitTestVisible="False"/>
           <Menu Background="Transparent" VerticalAlignment="Center">
             <MenuItem Header="{Binding [MenuFile], Source={x:Static svc:Loc.Instance}}">
-              <MenuItem Header="{Binding [MenuLoadImage], Source={x:Static svc:Loc.Instance}}" Click="OnLoadImage"
-                        InputGesture="Ctrl+I"/>
-              <MenuItem Header="{Binding [MenuOpenProject], Source={x:Static svc:Loc.Instance}}" Click="OnOpenProject"
-                        InputGesture="Ctrl+O"/>
+              <!-- Shortcut texts (InputGesture) are set in code so they show ⌘ on macOS and Ctrl elsewhere. -->
+              <MenuItem x:Name="menuLoadImage" Header="{Binding [MenuLoadImage], Source={x:Static svc:Loc.Instance}}" Click="OnLoadImage"/>
+              <MenuItem x:Name="menuOpenProject" Header="{Binding [MenuOpenProject], Source={x:Static svc:Loc.Instance}}" Click="OnOpenProject"/>
               <Separator/>
-              <MenuItem Header="{Binding [MenuSave], Source={x:Static svc:Loc.Instance}}" Click="OnSaveProject"
-                        InputGesture="Ctrl+S"/>
-              <MenuItem Header="{Binding [MenuSaveAs], Source={x:Static svc:Loc.Instance}}" Click="OnSaveAsProject"
-                        InputGesture="Ctrl+Shift+S"/>
+              <MenuItem x:Name="menuSave" Header="{Binding [MenuSave], Source={x:Static svc:Loc.Instance}}" Click="OnSaveProject"/>
+              <MenuItem x:Name="menuSaveAs" Header="{Binding [MenuSaveAs], Source={x:Static svc:Loc.Instance}}" Click="OnSaveAsProject"/>
               <Separator/>
-              <MenuItem Header="{Binding [MenuExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage"
-                        InputGesture="Ctrl+E"/>
+              <MenuItem x:Name="menuExport" Header="{Binding [MenuExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage"/>
               <MenuItem Header="{Binding [MenuExportAs], Source={x:Static svc:Loc.Instance}}" Click="OnExportAsImage"/>
             </MenuItem>
             <MenuItem Header="{Binding [MenuEdit], Source={x:Static svc:Loc.Instance}}">
@@ -147,12 +143,10 @@
               <MenuItem Header="{Binding [MenuDeselectAll], Source={x:Static svc:Loc.Instance}}" Click="OnDeselectAll"/>
             </MenuItem>
             <MenuItem Header="{Binding [MenuView], Source={x:Static svc:Loc.Instance}}">
-              <MenuItem Header="{Binding [MenuFitToScreen], Source={x:Static svc:Loc.Instance}}" Click="OnResetSize"
-                        InputGesture="Ctrl+D0"/>
+              <MenuItem x:Name="menuFitToScreen" Header="{Binding [MenuFitToScreen], Source={x:Static svc:Loc.Instance}}" Click="OnResetSize"/>
             </MenuItem>
             <MenuItem Header="{Binding [MenuTools], Source={x:Static svc:Loc.Instance}}">
-              <MenuItem Header="{Binding [MenuMosaicize], Source={x:Static svc:Loc.Instance}}" Click="OnRunMosaic"
-                        InputGesture="Ctrl+M"/>
+              <MenuItem x:Name="menuMosaicize" Header="{Binding [MenuMosaicize], Source={x:Static svc:Loc.Instance}}" Click="OnRunMosaic"/>
               <Separator/>
               <MenuItem Header="{Binding [MenuPixelEdit], Source={x:Static svc:Loc.Instance}}"
                         Click="OnTogglePixelEdit" IsEnabled="{Binding MosaicDone}">
