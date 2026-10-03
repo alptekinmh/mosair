@@ -56,13 +56,20 @@ namespace mosair.Services
         public int NumOfPixel { get; set; }
         public double Dis { get; set; }
         public int Uc { get; set; } = 1;
+        // Same extra fields as WPF's JsonRgbData: WPF's middle palette column shows U on a Ri/Gi/Bi background.
+        public int U { get; set; }
+        public int Reg { get; set; }
+        public double Ri { get; set; }
+        public double Gi { get; set; }
+        public double Bi { get; set; }
 
         public static RgbData FromRgb(rgb c) => new()
         {
             R = c.r, G = c.g, B = c.b, ID = c.ID,
             CodeName = c.codeName, Name = c.name,
             BoolLeaveOut = c.boolLeaveOut, NumOfPixel = c.numOfPixel,
-            Dis = c.dis, Uc = c.uc
+            Dis = c.dis, Uc = c.uc,
+            U = c.u, Reg = c.reg, Ri = c.ri, Gi = c.gi, Bi = c.bi
         };
 
         public rgb ToRgb() => new()
@@ -70,7 +77,8 @@ namespace mosair.Services
             r = R, g = G, b = B, ID = ID,
             codeName = CodeName, name = Name,
             boolLeaveOut = BoolLeaveOut, numOfPixel = NumOfPixel,
-            dis = Dis, uc = Uc
+            dis = Dis, uc = Uc,
+            u = U, reg = Reg, ri = Ri, gi = Gi, bi = Bi
         };
     }
 
@@ -182,12 +190,14 @@ namespace mosair.Services
                                 var entry = RgbData.FromRgb(c);
                                 entry.BoolLeaveOut = false;
                                 if (entry.NumOfPixel < 1) entry.NumOfPixel = 1;
+                                MarkAsPaletteEntry(entry, data.ArMA[0].Count + 1);
                                 data.ArMA[0].Add(entry);
                                 if (data.ArMB.Count > 0)
                                 {
                                     var mbEntry = RgbData.FromRgb(c);
                                     mbEntry.BoolLeaveOut = false;
                                     if (mbEntry.NumOfPixel < 1) mbEntry.NumOfPixel = 1;
+                                    MarkAsPaletteEntry(mbEntry, data.ArMB[0].Count + 1);
                                     data.ArMB[0].Add(mbEntry);
                                 }
                                 armaIds.Add(ep.Source.ID);
@@ -324,6 +334,14 @@ namespace mosair.Services
             }
 
             return data;
+        }
+
+        // A catalog stone added to the palette on save has no palette number or pre-catalog color of its own.
+        private static void MarkAsPaletteEntry(RgbData entry, int u)
+        {
+            entry.U = u;
+            entry.Reg = 1;
+            entry.Ri = entry.R; entry.Gi = entry.G; entry.Bi = entry.B;
         }
 
         private static string? FindOriginalImagePath()
