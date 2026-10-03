@@ -532,9 +532,9 @@
                 <Path Stroke="{DynamicResource FgIcon}" StrokeThickness="1.6"
                       StrokeLineCap="Round" StrokeJoin="Round"
                       Data="M2.5,10 L10,6.25 L17.5,10 L10,13.75 Z M2.5,10 L2.5,18.25 L10,22 L17.5,18.25 L17.5,10 M10,13.75 L10,22"/>
-                <!-- Badge with × -->
+                <!-- Badge with − -->
                 <Path Fill="{DynamicResource FgIcon}"
-                      Data="M18,1.25 A4.75,4.75 0 1 1 18,10.75 A4.75,4.75 0 1 1 18,1.25 Z M15.9,4.96 L16.96,3.9 L18,4.94 L19.04,3.9 L20.1,4.96 L19.06,6 L20.1,7.04 L19.04,8.1 L18,7.06 L16.96,8.1 L15.9,7.04 L16.94,6 Z"/>
+                      Data="M18,1.25 A4.75,4.75 0 1 1 18,10.75 A4.75,4.75 0 1 1 18,1.25 Z M15.5,5.25 L20.5,5.25 L20.5,6.75 L15.5,6.75 Z"/>
               </Canvas>
             </Viewbox>
           </Button>
