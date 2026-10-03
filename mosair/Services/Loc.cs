@@ -80,6 +80,11 @@ namespace mosair.Services
             ["MenuStonesSuggested"] = "Onerilen Degere Don",
             ["MenuStonesMore"] = "Bir Tas Artir",
             ["MenuStonesLess"] = "Bir Tas Azalt",
+            ["MenuStock"] = "Stok",
+            ["MenuStockOpen"] = "Stok Tablosunu Ac",
+            ["MenuStockFetch"] = "Stok Cek",
+            ["MenuStockCheck"] = "Stok Kontrol",
+            ["MenuStockAdd"] = "Stok Ekle",
             ["MenuHelp"] = "Yardim",
             ["MenuUserGuide"] = "Kullanim Kilavuzu",
 
@@ -261,6 +266,11 @@ namespace mosair.Services
             ["MenuStonesSuggested"] = "Back to Suggested",
             ["MenuStonesMore"] = "One More Stone",
             ["MenuStonesLess"] = "One Fewer Stone",
+            ["MenuStock"] = "Stock",
+            ["MenuStockOpen"] = "Open Stock Sheet",
+            ["MenuStockFetch"] = "Fetch Stock",
+            ["MenuStockCheck"] = "Check Stock",
+            ["MenuStockAdd"] = "Add Stock",
             ["MenuHelp"] = "Help",
             ["MenuUserGuide"] = "User Guide",
 

@@ -187,6 +187,18 @@
                 <MenuItem Header="{Binding [MenuStonesLess], Source={x:Static svc:Loc.Instance}}"
                           Click="OnStonesLess"/>
               </MenuItem>
+              <Separator/>
+              <MenuItem Header="{Binding [MenuStock], Source={x:Static svc:Loc.Instance}}"
+                        IsEnabled="{Binding CanUseStock}">
+                <MenuItem Header="{Binding [MenuStockOpen], Source={x:Static svc:Loc.Instance}}" Click="OnStockSheet"/>
+                <MenuItem Header="{Binding [MenuStockSettings], Source={x:Static svc:Loc.Instance}}" Click="OnStockSettings"/>
+                <Separator/>
+                <MenuItem Header="{Binding [MenuStockFetch], Source={x:Static svc:Loc.Instance}}" Click="OnStockFetch"/>
+                <MenuItem Header="{Binding [MenuStockCheck], Source={x:Static svc:Loc.Instance}}" Click="OnStockCheck"/>
+                <MenuItem Header="{Binding [MenuStockClearOne], Source={x:Static svc:Loc.Instance}}" Click="OnStockClearOne"/>
+                <MenuItem Header="{Binding [MenuStockClearAll], Source={x:Static svc:Loc.Instance}}" Click="OnStockClearAll"/>
+                <MenuItem Header="{Binding [MenuStockAdd], Source={x:Static svc:Loc.Instance}}" Click="OnStockAdd"/>
+              </MenuItem>
             </MenuItem>
             <MenuItem Header="{Binding [MenuHelp], Source={x:Static svc:Loc.Instance}}">
               <MenuItem Header="{Binding [MenuUserGuide], Source={x:Static svc:Loc.Instance}}" Click="OnShowHelp"
