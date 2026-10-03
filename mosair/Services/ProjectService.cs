@@ -317,6 +317,11 @@ namespace mosair.Services
                 string dir = Path.GetDirectoryName(filePath)!;
                 CurrentPictureFileName = Path.Combine(dir, data.PictureFileName);
             }
+            else
+            {
+                // Don't carry over the previous image's name: the stock sheet column is keyed by it.
+                CurrentPictureFileName = "";
+            }
 
             return data;
         }
