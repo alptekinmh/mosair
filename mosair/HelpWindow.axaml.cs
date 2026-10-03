@@ -12,8 +12,8 @@ public partial class HelpWindow : Window
     public HelpWindow()
     {
         InitializeComponent();
-        _sectionsTr = new TextBlock[] { sec0, sec1, sec2, sec3, sec4, sec5, sec6 };
-        _sectionsEn = new TextBlock[] { sec0en, sec1en, sec2en, sec3en, sec4en, sec5en, sec6en };
+        _sectionsTr = new TextBlock[] { sec0, sec1, sec2, sec3, sec4, sec5, sec6, sec7, sec8 };
+        _sectionsEn = new TextBlock[] { sec0en, sec1en, sec2en, sec3en, sec4en, sec5en, sec6en, sec7en, sec8en };
     }
 
     private void OnNavClick(object? sender, RoutedEventArgs e)

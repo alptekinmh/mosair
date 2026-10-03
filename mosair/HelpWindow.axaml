@@ -107,6 +107,14 @@
                 Background="Transparent" Foreground="#b0b0b8" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
+        <Button Content="Optimum Tas Sayisi" Tag="7" Click="OnNavClick"
+                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                Padding="14,6" BorderThickness="0" CornerRadius="0"/>
+        <Button Content="Stok Yonetimi" Tag="8" Click="OnNavClick"
+                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Proje Yonetimi" Tag="5" Click="OnNavClick"
                 Background="Transparent" Foreground="#b0b0b8" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
@@ -135,6 +143,14 @@
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Pixel Editing" Tag="4" Click="OnNavClick"
+                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                Padding="14,6" BorderThickness="0" CornerRadius="0"/>
+        <Button Content="Optimum Stone Count" Tag="7" Click="OnNavClick"
+                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                Padding="14,6" BorderThickness="0" CornerRadius="0"/>
+        <Button Content="Stock Management" Tag="8" Click="OnNavClick"
                 Background="Transparent" Foreground="#b0b0b8" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
@@ -184,7 +200,7 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Mozaiklestir (Mos)" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Gorseli mozaik tas renklerine donusturun" Classes="body" FontSize="11"/>
+                  <TextBlock Text="Gorseli mozaik tas renklerine donusturun; Optimum aciksa tas sayisi otomatik bulunur" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -219,7 +235,19 @@
               <TextBlock Classes="h2" Text="Sol Panel — Renk Yonetimi" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Uc sutunlu yapi: Katalog (tum renk listesi), Palet (indeks sirasi) ve Atanan (kullanilan renkler + piksel sayisi). Her rengin yaninda kucuk doku onizlemesi ve tooltip'te buyuk onizleme gorulur."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Sol panelin ustunde genislik (cm) ayari bulunur. Toolbar'da: Grid gorunurlugu, grid rengi secimi, Interpolasyon yontemi ve Detay (N) slider'i yer alir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Katalogdaki isaretli taslar Mos'ta kullanilabilecek taslardir. Mos'tan sonra sadece kullanilan taslar isaretli kalir. Atanan sutununda sadece mozaikte gercekten kullanilan taslar listelenir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Bir tasin solundaki kirmizi nokta, Stok Kontrol sonrasi o tasin stogunun yetmedigini gosterir; bu taslar otomatik olarak devre disi birakilir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Sol panelin ustunde genislik (cm) ayari bulunur."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Border Width="10" Height="10" CornerRadius="2" Background="#AB47BC"/>
+              <TextBlock Classes="h2" Text="Ust — Menu ve Toolbar" Margin="0"/>
+            </StackPanel>
+            <TextBlock Classes="body" Text="Toolbar soldan saga: Gorsel Yukle, Proje Ac, Kaydet, Farkli Kaydet, Mos, Piksel Duzenle, Izgara (ve rengi), Interpolasyon, Detay (N), bes stok ikonu, Optimum kutusu ve Mos sonrasi gorunen Tas kaydiricisi. Sagda Disa Aktar bulunur."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Araclar menusu toolbar'daki tum araclari icerir: Piksel Duzenle, Izgara Goster, Izgara Rengi, Interpolasyon Yontemi, Detay Seviyesi, Optimum Tas Sayisi, Tas Sayisi ve Stok. Acik olan secenekler ✓ ile isaretlidir; menu ve toolbar her zaman ayni durumu gosterir."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -298,14 +326,14 @@
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Modu Ac" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Orta fare tusuna basin. Toolbar'da 'source' turuncu yanar." Classes="body" FontSize="11"/>
+                  <TextBlock Text="Orta fare tusuna, toolbar'daki kalem ikonuna veya Araclar > Piksel Duzenle'ye basin (once Mos yapilmis olmali). Toolbar'da 'source' turuncu yanar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Kaynak Rengi Sec" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Kullanmak istediginiz renkteki bir tasa sol tiklayin." Classes="body" FontSize="11"/>
+                  <TextBlock Text="Kullanmak istediginiz renkteki bir tasa sol tiklayin ya da soldaki katalogdan bir tas secin." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -319,11 +347,62 @@
           </StackPanel>
         </Border>
 
+        <TextBlock x:Name="sec7" Classes="h1" Text="Optimum Tas Sayisi"/>
+        <TextBlock Classes="body" Text="Optimum, gorsel icin kac cesit tas kullanilacagini otomatik bulur. Toolbar'daki 'Optimum' kutusu isaretliyken Mos'a bastiginizda calisir; isareti kaldirirsaniz klasik algoritma kullanilir."/>
+        <Border Classes="section-card" Margin="0,8,0,4">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Nasil Calisir?" Margin="0"/>
+            <TextBlock Classes="body" Text="Once katalogdaki tum isaretli taslarla en iyi sonuc hesaplanir. Sonra goruntuyu en az bozan taslar tek tek cikarilir. Renk farki, detay ve kenarlar ile acik-koyu yapisi gozle fark edilmeyecek kadar korunurken kullanilabilecek en az tas sayisi 'oneri' olarak secilir."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Tas Kaydiricisi" Margin="0"/>
+            <TextBlock Classes="body" Text="Mos'tan sonra toolbar'da 'Tas' kaydiricisi gorunur ve onerilen degerden baslar. Kaydiriciyi biraktiginizda mozaik secilen tas sayisiyla aninda yeniden kurulur; yaninda onerilen deger yazar."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Daha fazla tas daha zengin detay, daha az tas daha kolay uretim ve daha az stok demektir. Ayni ayar Araclar > Tas Sayisi menusundeki 'Onerilen Degere Don', 'Bir Tas Artir' ve 'Bir Tas Azalt' ile de yapilabilir."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Bilinmesi Gerekenler" Margin="0"/>
+            <TextBlock Classes="body" Text="• Kaydirici her birakildiginda yapilmis piksel duzenlemeleri sifirlanir."/>
+            <TextBlock Classes="body" Text="• Mos'tan sonra katalogda sadece kullanilan taslar isaretli kalir. Katalogda elle degisiklik yapmadiysaniz bir sonraki Optimum Mos, onceki seciminizin tamamindan yeniden baslar."/>
+            <TextBlock Classes="body" Text="• Stok islemleriyle devre disi kalan taslar Optimum'un tas havuzundan da cikar."/>
+          </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="sec8" Classes="h1" Text="Stok Yonetimi (Google Sheet)"/>
+        <TextBlock Classes="body" Text="Toolbar'daki bes stok ikonu (Detay ile Optimum arasinda) Google Sheets'teki stok tablosuyla calisir. Ayni islemler Araclar > Stok menusunde de bulunur."/>
+        <Border Classes="section-card" Margin="0,8,0,4">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Ilk Kurulum" Margin="0"/>
+            <TextBlock Classes="body" Text="Yesil tablo ikonuna sag tiklayin (veya Araclar > Stok > Stok Ayarlari) ve Google Sheet ID ile Apps Script URL'yi girin. Bu bilgiler sadece o bilgisayarda saklanir; her bilgisayarda bir kez girilmesi gerekir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Script URL'yi bilen herkes tabloya yazabilir; bu adresi sadece guvendiginiz kisilerle paylasin."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="h2" Text="Butonlar" Margin="0"/>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Tablo"/><TextBlock Classes="shortcut-desc" Text="Stok tablosunu tarayicida acar. Tabloyu degistirmez."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Cek"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Bizdeki (kg)' degeri 0 veya altinda olan taslarin isaretini kaldirir, stogu olanlari isaretler. Tabloyu degistirmez."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Kontrol"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Mozaigin tas adetlerini tablodaki proje sutununa yazar; 'Tahmini Kalan' eksiye dusen taslari kirmizi noktayla isaretleyip devre disi birakir. Tabloyu degistirir."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Sil"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Bu mozaigin sutununu temizler ve basligini mozaikX yapar. Sag tik: tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Ekle"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Tahmini Kalan' degerlerini 'Bizdeki' sutununa tasir ve tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Ornek Akis" Margin="0"/>
+            <TextBlock Classes="body" Text="1. Stok Cek ile stogu biten taslari devre disi birakin.  2. Mos yapin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Kirmizi noktali taslar varsa tekrar Mos yapin ve kontrolu tekrarlayin.  5. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Tablodaki sutun adi gorsel dosyasinin adidir; ornegin 7.jpg icin '7'."/>
+          </StackPanel>
+        </Border>
+
         <TextBlock x:Name="sec5" Classes="h1" Text="Proje Yonetimi"/>
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text=".mos Proje Dosyasi" Margin="0"/>
-            <TextBlock Classes="body" Text="Mozaiklestirme sonucu, renk atamalari, piksel duzenlemeleri ve tum ayarlariniz .mos formatinda kaydedilir."/>
+            <TextBlock Classes="body" Text="Mozaiklestirme sonucu, renk atamalari, piksel duzenlemeleri ve tum ayarlariniz .mos formatinda kaydedilir. mosair'de kaydedilen projeler WPF uygulamasinda da acilabilir."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
               <TextBlock FontSize="12" Foreground="#686870" Text="Kaydetme: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
               <TextBlock FontSize="12" Foreground="#686870" Text=" | Farkli Kaydet: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
@@ -334,7 +413,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Disa Aktarma" Margin="0"/>
-            <TextBlock Classes="body" Text="Mozaik sonucunu Masaustu/export klasorune JPEG olarak kaydeder. Grid aciksa gridli olarak kaydedilir."/>
+            <TextBlock Classes="body" Text="Mozaik sonucunu Masaustu/mosairEXPORT klasorune JPEG olarak kaydeder. Grid aciksa gridli olarak kaydedilir."/>
           </StackPanel>
         </Border>
 
@@ -348,6 +427,10 @@
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Gorseli dogrudan dosya yoneticisinden surukleyip uygulamaya birakin."/></StackPanel>
             <Border Height="1" Background="#2a2a30"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Mini haritayi kullanarak buyuk mozaiklerde hizlica gezinin."/></StackPanel>
+            <Border Height="1" Background="#2a2a30"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Renkli bir gorselde Optimum'un sonucu fazla sade geldiyse Tas kaydiricisini birkac adim artirin; detay ve renk cesitliligi artar."/></StackPanel>
+            <Border Height="1" Background="#2a2a30"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Belirli bir tasi hic kullanmak istemiyorsaniz katalogda isaretini kaldirip Mos yapin; Optimum sadece isaretli taslar arasindan secer."/></StackPanel>
           </StackPanel>
         </Border>
         <Border Height="20"/>
@@ -376,7 +459,7 @@
                 <Border Classes="icon-badge" Background="#43A047"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Mosaicize (Mos)" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Convert the image to mosaic stone colors" Classes="body" FontSize="11"/>
+                  <TextBlock Text="Convert the image to mosaic stone colors; with Optimum on, the stone count is found automatically" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -405,7 +488,19 @@
               <TextBlock Classes="h2" Text="Left Panel — Color Management" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Three-column layout: Catalog (full color list), Palette (index order), and Assigned (used colors + pixel count). Each color shows a small texture preview with a larger tooltip preview."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Left panel top has width (cm) setting. Toolbar contains: Grid visibility, grid color picker, Interpolation method, and Detail (N) slider."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Checked catalog stones are the ones Mos may use. After a Mos, only the stones actually used stay checked. The Assigned column lists only stones that appear in the mosaic."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="A red dot to the left of a stone means Check Stock found its stock insufficient; such stones are disabled automatically."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Left panel top has the width (cm) setting."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <Border Width="10" Height="10" CornerRadius="2" Background="#AB47BC"/>
+              <TextBlock Classes="h2" Text="Top — Menu and Toolbar" Margin="0"/>
+            </StackPanel>
+            <TextBlock Classes="body" Text="Toolbar from left to right: Load Image, Open Project, Save, Save As, Mos, Pixel Edit, Grid (and its color), Interpolation, Detail (N), five stock icons, the Optimum box and the Stones slider that appears after a Mos. Export is on the right."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="The Tools menu contains every toolbar tool: Pixel Edit, Show Grid, Grid Color, Interpolation Method, Detail Level, Optimum Stone Count, Stone Count and Stock. Active options are marked with ✓; the menu and toolbar always show the same state."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -484,14 +579,14 @@
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Activate Mode" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Press the middle mouse button. 'source' lights up orange in the toolbar." Classes="body" FontSize="11"/>
+                  <TextBlock Text="Press the middle mouse button, the pencil icon in the toolbar, or Tools > Pixel Edit (a Mos must have run first). 'source' lights up orange in the toolbar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Select Source Color" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
-                  <TextBlock Text="Left-click on a stone with the color you want to use." Classes="body" FontSize="11"/>
+                  <TextBlock Text="Left-click on a stone with the color you want to use, or pick a stone from the catalog on the left." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -505,11 +600,62 @@
           </StackPanel>
         </Border>
 
+        <TextBlock x:Name="sec7en" Classes="h1" Text="Optimum Stone Count"/>
+        <TextBlock Classes="body" Text="Optimum finds how many kinds of stone the image needs. It runs when you press Mos with the 'Optimum' box in the toolbar checked; uncheck it to use the classic algorithm."/>
+        <Border Classes="section-card" Margin="0,8,0,4">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="How It Works" Margin="0"/>
+            <TextBlock Classes="body" Text="First the best result is computed with every checked catalog stone. Then the stones whose removal hurts the image least are removed one at a time. The smallest stone count that keeps color accuracy, detail and edges, and light/dark structure visually unchanged is chosen as the suggestion."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Stones Slider" Margin="0"/>
+            <TextBlock Classes="body" Text="After a Mos, a 'Stones' slider appears in the toolbar, starting at the suggested value. When you release it, the mosaic is rebuilt right away with the chosen stone count; the suggested value is shown next to it."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="More stones means richer detail; fewer stones means easier production and less stock. The same adjustment is available under Tools > Stone Count: 'Back to Suggested', 'One More Stone' and 'One Fewer Stone'."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Good to Know" Margin="0"/>
+            <TextBlock Classes="body" Text="• Each time the slider is released, pixel edits are reset."/>
+            <TextBlock Classes="body" Text="• After a Mos only the used stones stay checked in the catalog. If you have not changed the catalog by hand, the next Optimum Mos starts again from your full previous selection."/>
+            <TextBlock Classes="body" Text="• Stones disabled by stock actions are also removed from Optimum's stone pool."/>
+          </StackPanel>
+        </Border>
+
+        <TextBlock x:Name="sec8en" Classes="h1" Text="Stock Management (Google Sheet)"/>
+        <TextBlock Classes="body" Text="The five stock icons in the toolbar (between Detail and Optimum) work with the stock spreadsheet in Google Sheets. The same actions are under Tools > Stock."/>
+        <Border Classes="section-card" Margin="0,8,0,4">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="First-Time Setup" Margin="0"/>
+            <TextBlock Classes="body" Text="Right-click the green sheet icon (or Tools > Stock > Stock Settings) and enter the Google Sheet ID and the Apps Script URL. They are stored only on that computer and must be entered once per computer."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Anyone with the Script URL can write to the sheet; share it only with people you trust."/>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="6">
+            <TextBlock Classes="h2" Text="Buttons" Margin="0"/>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sheet"/><TextBlock Classes="shortcut-desc" Text="Opens the stock sheet in the browser. Does not change the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Fetch Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Unchecks stones whose 'Bizdeki (kg)' is 0 or less and checks stones that have stock. Does not change the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Check Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Writes the mosaic's stone counts to the project column in the sheet; stones whose 'Tahmini Kalan' goes negative get a red dot and are disabled. Changes the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Clear Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Clears this mosaic's column and resets its header to mozaikX. Right-click: clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Add Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Moves 'Tahmini Kalan' values into the 'Bizdeki' column and clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>
+          </StackPanel>
+        </Border>
+        <Border Classes="section-card">
+          <StackPanel Spacing="4">
+            <TextBlock Classes="h2" Text="Example Flow" Margin="0"/>
+            <TextBlock Classes="body" Text="1. Fetch Stock to disable stones that ran out.  2. Run Mos.  3. Check Stock to write the counts to the sheet.  4. If stones get a red dot, run Mos again and repeat the check.  5. After production, Add Stock to record the remaining stock in the sheet."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="The column name in the sheet is the image file name; for example '7' for 7.jpg."/>
+          </StackPanel>
+        </Border>
+
         <TextBlock x:Name="sec5en" Classes="h1" Text="Project Management"/>
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text=".mos Project File" Margin="0"/>
-            <TextBlock Classes="body" Text="Mosaicization results, color assignments, pixel edits, and all your settings are saved in .mos format."/>
+            <TextBlock Classes="body" Text="Mosaicization results, color assignments, pixel edits, and all your settings are saved in .mos format. Projects saved in mosair can also be opened in the WPF application."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
               <TextBlock FontSize="12" Foreground="#686870" Text="Save: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
               <TextBlock FontSize="12" Foreground="#686870" Text=" | Save As: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
@@ -520,7 +666,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Export" Margin="0"/>
-            <TextBlock Classes="body" Text="Saves the mosaic result as JPEG to the Desktop/export folder. If the grid is enabled, the export includes grid lines."/>
+            <TextBlock Classes="body" Text="Saves the mosaic result as JPEG to the Desktop/mosairEXPORT folder. If the grid is enabled, the export includes grid lines."/>
           </StackPanel>
         </Border>
 
@@ -534,6 +680,10 @@
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Drag and drop images directly from your file manager into the application."/></StackPanel>
             <Border Height="1" Background="#2a2a30"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Use the mini map to quickly navigate large mosaics."/></StackPanel>
+            <Border Height="1" Background="#2a2a30"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="If Optimum's result looks too plain for a colorful image, raise the Stones slider a few steps for more detail and color variety."/></StackPanel>
+            <Border Height="1" Background="#2a2a30"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="To keep a stone out entirely, uncheck it in the catalog and run Mos; Optimum chooses only among checked stones."/></StackPanel>
           </StackPanel>
         </Border>
         <Border Height="20"/>
