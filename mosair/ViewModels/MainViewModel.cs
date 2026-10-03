@@ -518,7 +518,7 @@ public bool UseLab
         {
             var res = MosaicEngine.LastOptimalResult;
             if (res == null || _optimalK < 1 || _optimalK > res.CandidateCount) { OptimalInfo = ""; return; }
-            OptimalInfo = Loc.Fmt("OptimumInfoFmt", res.KOptimal, res.MeanByK[_optimalK], res.EdgeKeptByK[_optimalK] * 100);
+            OptimalInfo = Loc.Fmt("OptimumInfoFmt", res.KOptimal);
         }
 
         // Debounced so dragging the slider rebuilds the mosaic only once it settles.
