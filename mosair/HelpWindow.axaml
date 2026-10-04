@@ -246,7 +246,8 @@
               <Border Width="10" Height="10" CornerRadius="2" Background="#AB47BC"/>
               <TextBlock Classes="h2" Text="Ust — Menu ve Toolbar" Margin="0"/>
             </StackPanel>
-            <TextBlock Classes="body" Text="Toolbar soldan saga: Gorsel Yukle, Proje Ac, Kaydet, Farkli Kaydet, Mos, Piksel Duzenle, Izgara (ve rengi), Interpolasyon, Detay (N), bes stok ikonu, Optimum kutusu ve Mos sonrasi gorunen Tas kaydiricisi. Sagda Disa Aktar bulunur."/>
+            <TextBlock Classes="body" Text="Toolbar soldan saga: Gorsel Yukle, Proje Ac, Kaydet, Farkli Kaydet, Mos, Piksel Duzenle, Izgara (ve rengi), Interpolasyon, Detay (N), bes stok ikonu, Optimum kutusu ve Mos sonrasi gorunen Tas kaydiricisi. Sagda Disa Aktar, tema (koyu/acik) ve dil (TR/EN) dugmeleri bulunur."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Paneller arasindaki ayiricilari surukleyerek genisliklerini degistirebilirsiniz. Baslik cubuguna cift tiklamak pencereyi buyutur veya eski boyutuna dondurur."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Araclar menusu toolbar'daki tum araclari icerir: Piksel Duzenle, Izgara Goster, Izgara Rengi, Interpolasyon Yontemi, Detay Seviyesi, Optimum Tas Sayisi, Tas Sayisi ve Stok. Acik olan secenekler ✓ ile isaretlidir; menu ve toolbar her zaman ayni durumu gosterir."/>
           </StackPanel>
         </Border>
@@ -267,6 +268,7 @@
               <TextBlock Classes="h2" Text="Sag Panel — Properties" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Secili tasin detaylarini gosterir: renk swatch'u, tas kodu, doku onizlemesi, RGB degerleri, piksel ve kalip koordinatlari."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Varyantlar bolumunde bir doku resmine tiklarsaniz o pikseldeki tasin dokusu degisir; bu degisiklik de Geri Al / Yinele ile geri alinabilir."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -402,7 +404,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text=".mos Proje Dosyasi" Margin="0"/>
-            <TextBlock Classes="body" Text="Mozaiklestirme sonucu, renk atamalari, piksel duzenlemeleri ve tum ayarlariniz .mos formatinda kaydedilir. mosair'de kaydedilen projeler WPF uygulamasinda da acilabilir."/>
+            <TextBlock Classes="body" Text="Mozaiklestirme sonucu, renk atamalari, piksel duzenlemeleri ve tum ayarlariniz .mos formatinda kaydedilir. mosair'de kaydedilen projeler WPF uygulamasinda da acilabilir; WPF'te JSON olarak kaydedilen projeler de mosair'de acilir. Eski WPF surumlerinin binary .mos dosyalari once guncel WPF'te acilip yeniden kaydedilmelidir."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
               <TextBlock FontSize="12" Foreground="#686870" Text="Kaydetme: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
               <TextBlock FontSize="12" Foreground="#686870" Text=" | Farkli Kaydet: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
@@ -414,6 +416,7 @@
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Disa Aktarma" Margin="0"/>
             <TextBlock Classes="body" Text="Mozaik sonucunu Masaustu/mosairEXPORT klasorune JPEG olarak kaydeder. Grid aciksa gridli olarak kaydedilir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Disa aktar ikonunun yanindaki ok menusunden 'mosairEXPORT As' ile konum ve bicim (JPEG/PNG) secebilirsiniz. Disa aktar ikonuna sag tiklamak mosairEXPORT klasorunu acar."/>
           </StackPanel>
         </Border>
 
@@ -499,7 +502,8 @@
               <Border Width="10" Height="10" CornerRadius="2" Background="#AB47BC"/>
               <TextBlock Classes="h2" Text="Top — Menu and Toolbar" Margin="0"/>
             </StackPanel>
-            <TextBlock Classes="body" Text="Toolbar from left to right: Load Image, Open Project, Save, Save As, Mos, Pixel Edit, Grid (and its color), Interpolation, Detail (N), five stock icons, the Optimum box and the Stones slider that appears after a Mos. Export is on the right."/>
+            <TextBlock Classes="body" Text="Toolbar from left to right: Load Image, Open Project, Save, Save As, Mos, Pixel Edit, Grid (and its color), Interpolation, Detail (N), five stock icons, the Optimum box and the Stones slider that appears after a Mos. Export, theme (dark/light) and language (TR/EN) buttons are on the right."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Drag the splitters between panels to resize them. Double-click the title bar to maximize or restore the window."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The Tools menu contains every toolbar tool: Pixel Edit, Show Grid, Grid Color, Interpolation Method, Detail Level, Optimum Stone Count, Stone Count and Stock. Active options are marked with ✓; the menu and toolbar always show the same state."/>
           </StackPanel>
         </Border>
@@ -520,6 +524,7 @@
               <TextBlock Classes="h2" Text="Right Panel — Properties" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Shows details of the selected stone: color swatch, stone code, texture preview, RGB values, pixel and mold coordinates."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Click a texture in Variants to change the stone texture at that pixel; this can also be undone and redone."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -655,7 +660,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text=".mos Project File" Margin="0"/>
-            <TextBlock Classes="body" Text="Mosaicization results, color assignments, pixel edits, and all your settings are saved in .mos format. Projects saved in mosair can also be opened in the WPF application."/>
+            <TextBlock Classes="body" Text="Mosaicization results, color assignments, pixel edits, and all your settings are saved in .mos format. Projects saved in mosair can also be opened in the WPF application, and projects the WPF app saves as JSON open in mosair. Binary .mos files from older WPF versions must first be opened and saved again in the current WPF."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
               <TextBlock FontSize="12" Foreground="#686870" Text="Save: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
               <TextBlock FontSize="12" Foreground="#686870" Text=" | Save As: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
@@ -667,6 +672,7 @@
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Export" Margin="0"/>
             <TextBlock Classes="body" Text="Saves the mosaic result as JPEG to the Desktop/mosairEXPORT folder. If the grid is enabled, the export includes grid lines."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Use 'mosairEXPORT As' in the arrow menu next to the export icon to choose the location and format (JPEG/PNG). Right-click the export icon to open the mosairEXPORT folder."/>
           </StackPanel>
         </Border>
 

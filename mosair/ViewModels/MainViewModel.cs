@@ -830,6 +830,12 @@ public bool UseLab
 
             if (result == null) return;
 
+            // The mosaic was rebuilt (new Mos or new Optimum stone count): earlier stone-variant undo entries
+            // point into the old mosaic, and the engine has already cleared the pixel edits.
+            _stoneUndoStack.Clear();
+            _stoneRedoStack.Clear();
+            EditedPixelCount = PixelEditService.EditedPixels.Count;
+
             OnPropertyChanged(nameof(BitmapPixelWidth));
             OnPropertyChanged(nameof(BitmapPixelHeight));
             OnPropertyChanged(nameof(StoneColumns));
@@ -1292,11 +1298,17 @@ public bool UseLab
             OnPropertyChanged(nameof(StoneColumns));
             OnPropertyChanged(nameof(StoneRows));
 
+            // An opened project has no Optimum analysis; hide the stone slider left from an earlier Optimum Mos.
+            _lastRunOptimal = false;
             MosaicDone = true;
             ImageLoaded = true;
             _stoneUndoStack.Clear();
             _stoneRedoStack.Clear();
             EditedPixelCount = PixelEditService.EditedPixels.Count;
+            // ProjectService.Open left pixel-edit mode; keep the toolbar in step.
+            IsPixelEditActive = PixelEditService.IsPixelEditActive;
+            IsSourcePixelMode = PixelEditService.IsSourcePixelMode;
+            IsTargetPixelMode = PixelEditService.IsTargetPixelMode;
 
             RefreshCatalogList();
             FilterCatalogByUsedColors();

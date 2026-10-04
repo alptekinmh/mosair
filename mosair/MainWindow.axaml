@@ -132,11 +132,11 @@
               <MenuItem x:Name="menuLoadImage" Header="{Binding [MenuLoadImage], Source={x:Static svc:Loc.Instance}}" Click="OnLoadImage"/>
               <MenuItem x:Name="menuOpenProject" Header="{Binding [MenuOpenProject], Source={x:Static svc:Loc.Instance}}" Click="OnOpenProject"/>
               <Separator/>
-              <MenuItem x:Name="menuSave" Header="{Binding [MenuSave], Source={x:Static svc:Loc.Instance}}" Click="OnSaveProject"/>
-              <MenuItem x:Name="menuSaveAs" Header="{Binding [MenuSaveAs], Source={x:Static svc:Loc.Instance}}" Click="OnSaveAsProject"/>
+              <MenuItem x:Name="menuSave" Header="{Binding [MenuSave], Source={x:Static svc:Loc.Instance}}" Click="OnSaveProject" IsEnabled="{Binding MosaicDone}"/>
+              <MenuItem x:Name="menuSaveAs" Header="{Binding [MenuSaveAs], Source={x:Static svc:Loc.Instance}}" Click="OnSaveAsProject" IsEnabled="{Binding MosaicDone}"/>
               <Separator/>
-              <MenuItem x:Name="menuExport" Header="{Binding [MenuExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage"/>
-              <MenuItem Header="{Binding [MenuExportAs], Source={x:Static svc:Loc.Instance}}" Click="OnExportAsImage"/>
+              <MenuItem x:Name="menuExport" Header="{Binding [MenuExport], Source={x:Static svc:Loc.Instance}}" Click="OnExportImage" IsEnabled="{Binding CanExport}"/>
+              <MenuItem Header="{Binding [MenuExportAs], Source={x:Static svc:Loc.Instance}}" Click="OnExportAsImage" IsEnabled="{Binding CanExport}"/>
             </MenuItem>
             <MenuItem Header="{Binding [MenuEdit], Source={x:Static svc:Loc.Instance}}">
               <MenuItem Header="{Binding [MenuSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll"/>

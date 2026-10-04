@@ -256,7 +256,16 @@ namespace mosair.Services
             if (!File.Exists(filePath)) return null;
 
             byte[] json = File.ReadAllBytes(filePath);
-            var data = JsonSerializer.Deserialize<ProjectData>(json, JsonOpts);
+            ProjectData? data;
+            try
+            {
+                data = JsonSerializer.Deserialize<ProjectData>(json, JsonOpts);
+            }
+            catch (JsonException)
+            {
+                // Not a JSON project, e.g. an old WPF binary .mos; the caller shows "could not open".
+                return null;
+            }
             if (data == null) return null;
             _wpfExtra = data.WpfExtra;
 
@@ -297,7 +306,8 @@ namespace mosair.Services
             foreach (var c in MosaicData.arRGBAll)
                 MosaicData.arcs.Add(c.boolLeaveOut);
 
-            PixelEditService.EditedPixels.Clear();
+            // Also drops the previous project's undo/redo history and leaves pixel-edit mode.
+            PixelEditService.Reset();
             foreach (var ep in data.EditedPixels)
             {
                 PixelEditService.EditedPixels.Add(new PixelEditRecord
@@ -320,8 +330,13 @@ namespace mosair.Services
             MosaicEngine.rgbM = data.RgbM;
             MosaicData.N = data.N;
 
-            if (data.Arn != null)
+            // Texture variants must match this mosaic's size; otherwise (missing, or a leftover of another
+            // project) pick new random variants as after a Mos.
+            int rows = MosaicData.dataM3.GetLength(0), columns = MosaicData.dataM3.GetLength(1);
+            if (data.Arn != null && data.Arn.Length == rows * columns)
                 MosaicData.arn = data.Arn;
+            else
+                StoneTextureService.PopulateRandomIndices(rows, columns);
 
             if (data.Source != "mosair")
             {
@@ -336,6 +351,8 @@ namespace mosair.Services
                     ep.X = cols - 1 - ep.X;
                 foreach (var reg in drl.arar)
                     (reg.x1, reg.x2) = (cols - reg.x2, cols - reg.x1);
+                // Stone texture variants are stored per pixel, row by row.
+                FlipRowsInPlace(MosaicData.arn, MosaicData.dataM3.GetLength(0), cols);
             }
 
             CurrentFileName = filePath;
@@ -415,6 +432,13 @@ namespace mosair.Services
                     for (int k = 0; k < ch; k++)
                         (arr[r, c, k], arr[r, mc, k]) = (arr[r, mc, k], arr[r, c, k]);
                 }
+        }
+
+        private static void FlipRowsInPlace(int[]? arr, int rows, int cols)
+        {
+            if (arr == null || arr.Length != rows * cols) return;
+            for (int r = 0; r < rows; r++)
+                Array.Reverse(arr, r * cols, cols);
         }
 
         private static void FlipHorizontalIntInPlace(int[,,] arr)
