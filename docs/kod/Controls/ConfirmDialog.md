@@ -21,7 +21,7 @@ ViewModel, Google Sheet tablosunu değiştiren geri dönüşsüz stok işlemleri
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| (pencere) | `Window` | `Width=440`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `#2a2a30`. |
+| (pencere) | `Window` | `Width=440`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `BgCard` (tema rengi). |
 | `TitleText` | `TextBlock` | — | 16 pt başlık. |
 | `MessageText` | `TextBlock` | — | 13 pt, sarmalı gövde metni. |
 | `NoButton` | `Button` | — | Gri (`#3a3a42`), `Click="OnNoClick"`. |
@@ -43,7 +43,7 @@ ViewModel, Google Sheet tablosunu değiştiren geri dönüşsüz stok işlemleri
 
 ## Dikkat / bilinen sınırlamalar
 
-- Renkler sabit kodlu; açık temada da koyu görünür.
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
 - Klavye kısayolu (Enter = Evet, Esc = Hayır) tanımlı değildir.
 
 ## İlgili dosyalar

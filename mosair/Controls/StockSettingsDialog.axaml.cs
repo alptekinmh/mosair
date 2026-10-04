@@ -9,7 +9,7 @@ namespace mosair.Controls;
 
 public partial class StockSettingsDialog : Window
 {
-    private static readonly IBrush HighlightBrush = new SolidColorBrush(Color.FromRgb(0x6e, 0xa8, 0xff));
+    private static readonly IBrush HighlightBrush = new SolidColorBrush(Color.FromRgb(0x3a, 0x7b, 0xfd));
 
     public StockSettingsDialog()
     {

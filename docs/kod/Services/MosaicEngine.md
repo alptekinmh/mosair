@@ -121,7 +121,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 - Bölüm 2'deki katalog eşleme `boolLab` seçeneğine bakmaz ve her zaman RGB kare mesafesi kullanır.
 - Bölge desteği altyapıda var (`drl.arar`, `reg`), ancak her zaman tek bölge kurulur. Bölüm 4 yalnızca `arMB[0]`'ı işler.
 - `GenerateInitialPalette` döngü sınırı `< 255`'tir, MainViewModel ise palet boyutunu `RgbIncrement` için ceil(256/adım)³ olarak hesaplar. Bazı adımlarda bu iki değer farklı çıkar.
-- `RunM3` döngüsünde her iterasyonda `ImageService.Resize` iki kez çağrılır ve önceki `SKBitmap` `Dispose` edilmez. Aynı durum `RunM1`, `ProcessM3` ve `RunOptimal` içinde `reducedBitmap` yeniden atanırken de var. Bu bellek sızıntısı riski demektir.
+- `RunM3` döngüsünde her iterasyonda yeni bir `reducedBitmap` oluşturulur. Bütün atamalar `Swap(old, replacement)` üzerinden yapılır; önceki bitmap hemen `Dispose` edilir, böylece döngü yerel bellek biriktirmez. `exportBitmap` ise ekranda okunabildiği için motor tarafından değil, iş bittikten sonra UI iş parçacığında `MainViewModel.DisposeIfReplaced` ile serbest bırakılır.
 - Katalogda RGB'si aynı ama `codeName`'i farklı iki taş varsa Bölüm 3–5'teki `(b,g,r,reg,u)` anahtarları çakışır.
 - `ProcessM1` private'tır ve hiçbir yerden çağrılmaz (ölü kod). `penW`, `excessiveW`, `excessiveH` ve `LastGamut` da hiçbir yerde okunmaz.
 - Statik global durum nedeniyle aynı anda iki mozaik işlenemez.

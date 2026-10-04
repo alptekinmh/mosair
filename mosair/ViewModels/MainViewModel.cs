@@ -780,6 +780,7 @@ public bool UseLab
             {
                 SKBitmap? result = null;
                 SKBitmap? rsBmp = null;
+                var oldExport = MosaicData.exportBitmap;
                 await Task.Run(() =>
                 {
                     result = MosaicEngine.ApplyOptimalK(k);
@@ -787,6 +788,7 @@ public bool UseLab
                 });
                 sw.Stop();
                 FinishMosaic(result, rsBmp, sw.Elapsed);
+                DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
             }
             catch (Exception ex)
             {
@@ -797,6 +799,13 @@ public bool UseLab
             {
                 IsProcessing = false;
             }
+        }
+
+        // The engine replaces exportBitmap on its worker thread; the old one is freed here, on the UI thread,
+        // once nothing on screen can still be drawing from it.
+        private static void DisposeIfReplaced(SKBitmap? old, SKBitmap? current)
+        {
+            if (old != null && !ReferenceEquals(old, current)) old.Dispose();
         }
 
         private SKBitmap BuildRsBitmap()
@@ -1030,6 +1039,8 @@ public bool UseLab
             {
                 ColorCatalogService.LoadDefaultCatalog();
                 RefreshCatalogList();
+                if (ColorCatalogService.SkippedLines.Count > 0)
+                    StatusText = Loc.Fmt("StatusCatalogSkipped", string.Join(", ", ColorCatalogService.SkippedLines));
             }
             catch (Exception ex)
             {
@@ -1201,6 +1212,7 @@ public bool UseLab
                 SKBitmap? rsBmp = null;
                 bool optimal = UseOptimal;
                 _lastRunOptimal = false;
+                var oldExport = MosaicData.exportBitmap;
                 await Task.Run(() =>
                 {
                     if (optimal)
@@ -1235,6 +1247,7 @@ public bool UseLab
                     UpdateOptimalInfo();
                 }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
+                DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
             }
             catch (OutOfMemoryException)
             {
@@ -1253,13 +1266,29 @@ public bool UseLab
             }
         }
 
-        public void SaveProject(string filePath)
+        // Returns false (after telling the user) when the file could not be written, e.g. disk full or no access.
+        public bool SaveProject(string filePath)
         {
-            ProjectService.Save(filePath, WidthCm, ZoomLevel,
-                ShowGrid, false,
-                _gridColor.R, _gridColor.G, _gridColor.B,
-                (int)SelectedInterpolation);
+            try
+            {
+                ProjectService.Save(filePath, WidthCm, ZoomLevel,
+                    ShowGrid, false,
+                    _gridColor.R, _gridColor.G, _gridColor.B,
+                    (int)SelectedInterpolation);
+            }
+            catch (Exception ex)
+            {
+                ReportSaveFailed(ex);
+                return false;
+            }
             StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(filePath));
+            return true;
+        }
+
+        public void ReportSaveFailed(Exception ex)
+        {
+            StatusText = Loc.Fmt("StatusError", ex.Message);
+            Alert(Loc.Get("AlertProjectTitle"), Loc.Fmt("AlertSaveFailed", ex.Message));
         }
 
         public async void OpenProject(string filePath)

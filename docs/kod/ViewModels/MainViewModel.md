@@ -169,7 +169,8 @@ Katalog listesindeki bir taş rengi.
 | `LoadImage(path)` | Yeni görsel: `ProjectService` dosya adlarını ayarlar, `ForgetWpfState`, `MosaicEngine.Reset`, mozaik/düzenleme/undo durumunu ve `StoneTextureService`'i sıfırlar, görseli yükler, zoom = 2, `UpdateDimensions`, `AutoSelectGridColor`. | MainWindow (menü, sürükle-bırak) |
 | `UpdateDimensions()` | Genişliği 1.2 cm katına yuvarlar (en az 2 taş), görsel genişliğinden (1 px = 1 taş) büyükse kırpar ve `AlertResolutionTitle` uyarısı verir; boyut/taş/kalıp metinlerini günceller. | MainWindow, `LoadImage`, `OpenProject`, `RefreshLocalized` |
 | `RunMosaicAsync()` | Mos: stok işaretlerini temizler, Optimum taban seçimini hazırlar, `SetActiveColors`, `TargetColors` hesaplar, arka planda `RunOptimal` veya `RunM3` + `BuildRsBitmap`, sonra Optimum kaydırıcısını kurar ve `FinishMosaic`. | MainWindow |
-| `SaveProject(filePath)` | `ProjectService.Save` (genişlik, zoom, ızgara, derz rengi, interpolasyon). | MainWindow |
+| `SaveProject(filePath)` → `bool` | `ProjectService.Save` (genişlik, zoom, ızgara, derz rengi, interpolasyon). Hata olursa `ReportSaveFailed` çağırır ve `false` döner. | MainWindow |
+| `ReportSaveFailed(ex)` | Durum çubuğuna hata yazar, `AlertSaveFailed` uyarısını gösterir. | `SaveProject`, MainWindow |
 | `OpenProject(filePath)` (`async void`) | `ProjectService.Open`, kaynak görseli varsa yükler, ayarları uygular, `dataM3`'ten export bitmap üretir, kataloğu kullanılan taşlara filtreler, ardından RS bitmap'i arka planda üretir ve `FitToWindow`. | MainWindow |
 | `ExportImageAsync(path)` | RS (yoksa export) bitmap'in kopyasını `.jpg/.jpeg` → JPEG, diğerleri PNG olarak arka planda yazar. | MainWindow |
 | `RefreshLocalized()` | Dil değişiminden sonra yerelleştirilmiş metinleri yeniler, `StatusText` = `StatusReady`. | MainWindow |
@@ -203,6 +204,7 @@ Katalog listesindeki bir taş rengi.
 | `CaptureCatalogSelection()` / `ApplyCatalogSelection(leaveOut)` | `boolLeaveOut` + `MosaicData.arcs` + `ColorItem.IsExcluded` senkronu. |
 | `RestoreOptimumUserSelectionIfUntouched()` | Seçim hâlâ otomatik seçimse kullanıcının Optimum öncesi seçimini geri yükler. |
 | `ScheduleOptimalApply()` / `ApplyOptimalKAsync(k)` | 350 ms debounce sonra `MosaicEngine.ApplyOptimalK(k)` + `BuildRsBitmap` + `FinishMosaic`. |
+| `DisposeIfReplaced(old, current)` | Mos / Optimum taş sayısı değişiminden sonra motorun değiştirdiği eski `exportBitmap`'i UI iş parçacığında serbest bırakır. |
 | `BuildRsBitmap()` | Derz genişliği `max(1, N/11)` (ızgara açıksa), dokuları `N - gw`'ye boyutlar, `StoneTextureService.GenerateRSBitmap`. |
 | `FinishMosaic(result, rsBmp, elapsed)` | RS bitmap'i `MosaicData.rsBitmap`'e koyar; mozaik yeniden kurulduğu için `_stoneUndoStack`/`_stoneRedoStack`'i temizler ve `EditedPixelCount`'u günceller; `MosaicDone`, `FilterCatalogByUsedColors`, Optimum ise `_optimumAutoSelection` yakalar, `UsedColorInfo` ve `StatusCompleted`. |
 | `RegenerateRS()` (`async void`) | N/ızgara/renk/varyant değişince RS bitmap'i 300 ms debounce, `SemaphoreSlim` kilidi ve iptal ile yeniden üretir; `AdjustZoomForBitmapChange`. |
@@ -226,6 +228,7 @@ Katalog listesindeki bir taş rengi.
 - **Optimum kaydırıcısı**: `OptimalK` değişimi 350 ms debounce ile `ApplyOptimalKAsync` tetikler; `IsProcessing` veya `!OptimalAvailable` ise atlanır. `RunMosaicAsync` önerilen K'yı atarken `_suppressOptimalApply` ile gereksiz yeniden uygulamayı engeller.
 - **`TargetColors` her Mos'ta yeniden hesaplanır**: toplam taşın %10'u (10'a yuvarlanmış), en az 2, en fazla `ceil(256/RgbIncrement)^3 - 1`. Kullanıcı değeri korunmaz.
 - Aktif renk yoksa (`MosaicData.arRGB.Count == 0`) `AlertMosaicNoColors` uyarısı, işlem yapılmaz.
+- **Katalog uyarısı**: Açılışta `ColorCatalogService.SkippedLines` doluysa okunamayan katalog satırları `StatusCatalogSkipped` ile durum çubuğunda gösterilir.
 - **N > 40 uyarısı** (`NWarningVisible`) oturumda yalnız bir kez gösterilir (`_nWarningShown`).
 - **800M piksel sınırı**: `RegenerateRS`, `R·N·C·N > 800_000_000` ise RS üretmez; `StatusNTooLarge` ve `AlertNTooLargeTitle` gösterir. `OutOfMemoryException` → `AlertMemoryTitle`.
 - `RegenerateRS` 300 ms debounce, önceki çağrıyı iptal eder ve `_rsLock` ile aynı anda tek üretim yapar; mozaik yoksa hiçbir şey yapmaz.

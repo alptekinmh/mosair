@@ -4,6 +4,52 @@
              RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
+    <!-- Theme colours shared by every window (main window, dialogs, user guide). -->
+    <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Dark">
+          <Color x:Key="BgMain">#1a1a1e</Color>
+          <Color x:Key="BgBar">#1e1e22</Color>
+          <Color x:Key="BgPanel">#232328</Color>
+          <Color x:Key="BgInput">#18181c</Color>
+          <Color x:Key="BgCanvas">#2e2e34</Color>
+          <Color x:Key="BgCard">#2a2a30</Color>
+          <Color x:Key="BgHover">#3a3a42</Color>
+          <Color x:Key="BrdrMain">#333338</Color>
+          <Color x:Key="BrdrSec">#444444</Color>
+          <Color x:Key="BrdrTer">#555555</Color>
+          <Color x:Key="FgPrimary">#e8e8ec</Color>
+          <Color x:Key="FgSecondary">#9898a0</Color>
+          <Color x:Key="FgMuted">#686870</Color>
+          <Color x:Key="FgIcon">#b0b0b8</Color>
+          <Color x:Key="FgMenu">#c8c8cc</Color>
+          <Color x:Key="NavBg">#cc1a1a1e</Color>
+          <Color x:Key="FgWarn">#e0a050</Color>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Light">
+          <Color x:Key="BgMain">#f0f1f3</Color>
+          <Color x:Key="BgBar">#e4e5e8</Color>
+          <Color x:Key="BgPanel">#dddee2</Color>
+          <Color x:Key="BgInput">#ffffff</Color>
+          <Color x:Key="BgCanvas">#eaebef</Color>
+          <Color x:Key="BgCard">#e8e9ed</Color>
+          <Color x:Key="BgHover">#d0d1d6</Color>
+          <Color x:Key="BrdrMain">#c8c9ce</Color>
+          <Color x:Key="BrdrSec">#b0b1b6</Color>
+          <Color x:Key="BrdrTer">#a0a1a6</Color>
+          <Color x:Key="FgPrimary">#1a1a1e</Color>
+          <Color x:Key="FgSecondary">#505058</Color>
+          <Color x:Key="FgMuted">#707078</Color>
+          <Color x:Key="FgIcon">#505058</Color>
+          <Color x:Key="FgMenu">#2a2a30</Color>
+          <Color x:Key="NavBg">#ccf0f1f3</Color>
+          <Color x:Key="FgWarn">#a8640f</Color>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+    </ResourceDictionary>
+    </Application.Resources>
+
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

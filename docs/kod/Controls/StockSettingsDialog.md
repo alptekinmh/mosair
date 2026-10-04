@@ -26,7 +26,7 @@ Akış: Araçlar → Stok → Stok Ayarları menüsü veya toolbar'daki stok tab
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| (pencere) | `Window` | `Width=560`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `#2a2a30`. |
+| (pencere) | `Window` | `Width=560`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `BgCard` (tema rengi). |
 | `TitleText` | `TextBlock` | — | `StockSettingsTitle`. |
 | `SheetIdLabel`, `SheetIdHint` | `TextBlock` | — | `StockSheetIdLabel`, `StockSheetIdHint`. |
 | `SheetIdExample` | `TextBlock` (`Classes="example"`) | — | Tablo bağlantısı örneği; ID kısmı vurgulu. |
@@ -62,7 +62,7 @@ Stiller: `TextBlock.hint` (11 pt, gri, sarmalı) ve `TextBlock.example` (11 pt, 
 ## Dikkat / bilinen sınırlamalar
 
 - Pencere başlık çubuğundan kapatılırsa `ShowDialog<Config?>` `null` döner (iptal ile aynı).
-- Renkler sabit kodlu; açık temada da koyu görünür.
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
 - Boş değerler de kaydedilebilir; bu durumda stok komutları `MainViewModel.TryGetStockConfig` içinde `StockNotConfigured` uyarısı verir (Sheet ID her komut için, Script URL yalnızca tabloya yazan komutlar için zorunludur).
 
 ## İlgili dosyalar

@@ -5,20 +5,20 @@
         Width="420" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#2a2a30"
+        Background="{DynamicResource BgCard}"
         ExtendClientAreaToDecorationsHint="False">
 
-  <Border Padding="24" Background="#2a2a30">
+  <Border Padding="24" Background="{DynamicResource BgCard}">
     <StackPanel Spacing="16">
       <!-- Title -->
       <TextBlock x:Name="TitleText"
                  FontSize="16" FontWeight="SemiBold"
-                 Foreground="#ffffff"/>
+                 Foreground="{DynamicResource FgPrimary}"/>
 
       <!-- Message -->
       <TextBlock x:Name="MessageText"
                  FontSize="13" TextWrapping="Wrap"
-                 Foreground="#cccccc"
+                 Foreground="{DynamicResource FgMenu}"
                  LineHeight="20"/>
 
       <!-- OK Button -->

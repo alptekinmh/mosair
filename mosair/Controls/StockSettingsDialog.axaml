@@ -5,57 +5,57 @@
         Width="560" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#2a2a30"
+        Background="{DynamicResource BgCard}"
         ExtendClientAreaToDecorationsHint="False">
 
   <Window.Styles>
     <Style Selector="TextBlock.hint">
       <Setter Property="FontSize" Value="11"/>
-      <Setter Property="Foreground" Value="#999999"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
     <Style Selector="TextBlock.example">
       <Setter Property="FontSize" Value="11"/>
-      <Setter Property="Foreground" Value="#888888"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
       <Setter Property="FontFamily" Value="JetBrains Mono,Consolas,Menlo,monospace"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
     </Style>
   </Window.Styles>
 
-  <Border Padding="24" Background="#2a2a30">
+  <Border Padding="24" Background="{DynamicResource BgCard}">
     <StackPanel Spacing="12">
       <TextBlock x:Name="TitleText"
                  FontSize="16" FontWeight="SemiBold"
-                 Foreground="#ffffff"/>
+                 Foreground="{DynamicResource FgPrimary}"/>
 
       <StackPanel Spacing="4">
-        <TextBlock x:Name="SheetIdLabel" FontSize="12" FontWeight="SemiBold" Foreground="#cccccc"/>
+        <TextBlock x:Name="SheetIdLabel" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
         <TextBlock x:Name="SheetIdHint" Classes="hint"/>
         <TextBlock x:Name="SheetIdExample" Classes="example"/>
         <TextBox x:Name="SheetIdBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
       </StackPanel>
 
       <StackPanel Spacing="4">
-        <TextBlock x:Name="ScriptUrlLabel" FontSize="12" FontWeight="SemiBold" Foreground="#cccccc"/>
+        <TextBlock x:Name="ScriptUrlLabel" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
         <TextBlock x:Name="ScriptUrlHint" Classes="hint"/>
         <TextBlock x:Name="ScriptUrlExample" Classes="example"/>
         <TextBox x:Name="ScriptUrlBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
       </StackPanel>
 
-      <Border Background="#323239" CornerRadius="4" Padding="10,8">
+      <Border Background="{DynamicResource BgPanel}" CornerRadius="4" Padding="10,8">
         <StackPanel Spacing="4">
-          <TextBlock x:Name="RequirementsTitle" FontSize="11" FontWeight="SemiBold" Foreground="#cccccc"/>
+          <TextBlock x:Name="RequirementsTitle" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
           <TextBlock x:Name="RequirementsText" Classes="hint"/>
         </StackPanel>
       </Border>
 
-      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="#e0a050"/>
+      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource FgWarn}"/>
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
         <Button x:Name="CancelButton"
                 MinWidth="90" Height="34"
                 FontSize="13" FontWeight="Medium"
-                Background="#3a3a42" Foreground="#ffffff"
+                Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}"
                 CornerRadius="4"
                 Click="OnCancelClick"/>
         <Button x:Name="SaveButton"

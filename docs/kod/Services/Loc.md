@@ -44,15 +44,15 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **161** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **163** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Menu*` | 34 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…) |
 | `Stock*` | 30 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu |
-| `Status*` | 21 | Durum çubuğu metinleri (çoğu biçim dizesi) |
+| `Status*` | 22 | Durum çubuğu metinleri (çoğu biçim dizesi) |
 | `Tip*` | 19 | Araç çubuğu ve stok düğmesi ipuçları |
-| `Alert*` | 17 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
+| `Alert*` | 18 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
 | `Lbl*` | 6 | Sol panel etiketleri |

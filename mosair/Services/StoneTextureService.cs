@@ -26,9 +26,6 @@ namespace mosair.Services
             string path3 = Path.Combine(exeDir, "02_RS");
             if (Directory.Exists(path3)) return path3;
 
-            string path4 = @"D:\dev\mosairWPF\ourRobotWpf\bin\x64\Debug\mosaicFiles\02_RS";
-            if (Directory.Exists(path4)) return path4;
-
             return null;
         }
 

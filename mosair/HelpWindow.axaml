@@ -5,7 +5,7 @@
         Title="{Binding [MenuUserGuide], Source={x:Static svc:Loc.Instance}}"
         Width="720" Height="680"
         MinWidth="500" MinHeight="400"
-        Background="#1a1a1e"
+        Background="{DynamicResource BgMain}"
         WindowStartupLocation="CenterOwner"
         CanResize="True">
 
@@ -19,12 +19,12 @@
     <Style Selector="TextBlock.h2">
       <Setter Property="FontSize" Value="14"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="#e8e8ec"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
       <Setter Property="Margin" Value="0,14,0,4"/>
     </Style>
     <Style Selector="TextBlock.body">
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="#b0b0b8"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgIcon}"/>
       <Setter Property="TextWrapping" Value="Wrap"/>
       <Setter Property="LineHeight" Value="20"/>
     </Style>
@@ -38,15 +38,15 @@
     </Style>
     <Style Selector="TextBlock.shortcut-desc">
       <Setter Property="FontSize" Value="12"/>
-      <Setter Property="Foreground" Value="#b0b0b8"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgIcon}"/>
       <Setter Property="VerticalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Border.section-card">
-      <Setter Property="Background" Value="#232328"/>
+      <Setter Property="Background" Value="{DynamicResource BgPanel}"/>
       <Setter Property="CornerRadius" Value="8"/>
       <Setter Property="Padding" Value="14,10"/>
       <Setter Property="Margin" Value="0,4,0,4"/>
-      <Setter Property="BorderBrush" Value="#333338"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BrdrMain}"/>
       <Setter Property="BorderThickness" Value="1"/>
     </Style>
     <Style Selector="Border.icon-badge">
@@ -59,8 +59,8 @@
 
   <DockPanel>
     <!-- Header -->
-    <Border DockPanel.Dock="Top" Background="#232328" Padding="20,14"
-            BorderBrush="#333338" BorderThickness="0,0,0,1">
+    <Border DockPanel.Dock="Top" Background="{DynamicResource BgPanel}" Padding="20,14"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
       <StackPanel Orientation="Horizontal" Spacing="12">
         <Border Width="36" Height="36" CornerRadius="8" Background="#4ecb71" Padding="6">
           <PathIcon Width="24" Height="24" Foreground="#1a1a1e"
@@ -68,98 +68,98 @@
         </Border>
         <StackPanel VerticalAlignment="Center">
           <!-- TR Header -->
-          <TextBlock Text="mosair Kullanim Kilavuzu" FontSize="16" FontWeight="Bold" Foreground="#e8e8ec"
+          <TextBlock Text="mosair Kullanim Kilavuzu" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource FgPrimary}"
                      IsVisible="{Binding IsTr, Source={x:Static svc:Loc.Instance}}"/>
-          <TextBlock Text="Mozaik Tas Uretim Sistemi — Musteri Uygulamasi" FontSize="11" Foreground="#686870"
+          <TextBlock Text="Mozaik Tas Uretim Sistemi — Musteri Uygulamasi" FontSize="11" Foreground="{DynamicResource FgMuted}"
                      IsVisible="{Binding IsTr, Source={x:Static svc:Loc.Instance}}"/>
           <!-- EN Header -->
-          <TextBlock Text="mosair User Guide" FontSize="16" FontWeight="Bold" Foreground="#e8e8ec"
+          <TextBlock Text="mosair User Guide" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource FgPrimary}"
                      IsVisible="{Binding IsEn, Source={x:Static svc:Loc.Instance}}"/>
-          <TextBlock Text="Mosaic Stone Production System — Client Application" FontSize="11" Foreground="#686870"
+          <TextBlock Text="Mosaic Stone Production System — Client Application" FontSize="11" Foreground="{DynamicResource FgMuted}"
                      IsVisible="{Binding IsEn, Source={x:Static svc:Loc.Instance}}"/>
         </StackPanel>
       </StackPanel>
     </Border>
 
     <!-- Sidebar navigation - TR -->
-    <Border DockPanel.Dock="Left" Width="160" Background="#1e1e22"
-            BorderBrush="#333338" BorderThickness="0,0,1,0">
+    <Border DockPanel.Dock="Left" Width="160" Background="{DynamicResource BgBar}"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,1,0">
       <Panel>
       <!-- TR Nav -->
       <StackPanel Margin="0,8" IsVisible="{Binding IsTr, Source={x:Static svc:Loc.Instance}}">
         <Button Content="Genel Bakis" Tag="0" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Arayuz Yapisi" Tag="1" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Klavye Kisayollari" Tag="2" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Fare Kontrolleri" Tag="3" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Piksel Duzenleme" Tag="4" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Optimum Tas Sayisi" Tag="7" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Stok Yonetimi" Tag="8" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Proje Yonetimi" Tag="5" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Ipuclari" Tag="6" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
       </StackPanel>
       <!-- EN Nav -->
       <StackPanel Margin="0,8" IsVisible="{Binding IsEn, Source={x:Static svc:Loc.Instance}}">
         <Button Content="Overview" Tag="0" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Interface Layout" Tag="1" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Keyboard Shortcuts" Tag="2" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Mouse Controls" Tag="3" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Pixel Editing" Tag="4" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Optimum Stone Count" Tag="7" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Stock Management" Tag="8" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Project Management" Tag="5" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
         <Button Content="Tips" Tag="6" Click="OnNavClick"
-                Background="Transparent" Foreground="#b0b0b8" FontSize="11"
+                Background="Transparent" Foreground="{DynamicResource FgIcon}" FontSize="11"
                 HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
                 Padding="14,6" BorderThickness="0" CornerRadius="0"/>
       </StackPanel>
@@ -189,7 +189,7 @@
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Gorsel Yukle" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Gorsel Yukle" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="PNG, JPG, BMP veya TIFF formatinda gorsel secin" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -199,7 +199,7 @@
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Mozaiklestir (Mos)" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Mozaiklestir (Mos)" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Gorseli mozaik tas renklerine donusturun; Optimum aciksa tas sayisi otomatik bulunur" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -209,7 +209,7 @@
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Incele ve Duzenle" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Incele ve Duzenle" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Sonucu zoom yapin, piksel bazinda renk degistirin" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -219,7 +219,7 @@
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Kaydet / Disa Aktar" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Kaydet / Disa Aktar" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Projeyi .mos olarak kaydedin veya PNG/JPEG olarak disari aktarin" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -274,7 +274,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#9898a0"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="{DynamicResource FgSecondary}"/>
               <TextBlock Classes="h2" Text="Alt — Durum Cubugu" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Solda: kullanilan renk sayisi. Ortada: islem durumu ve sure. Sagda: zoom seviyesi ve Ekrana Sigdir butonu."/>
@@ -284,22 +284,22 @@
         <TextBlock x:Name="sec2" Classes="h1" Text="Klavye Kisayollari"/>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
-            <TextBlock Text="Dosya" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <TextBlock Text="Dosya" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModI, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Gorsel yukle"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Proje ac (.mos)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Projeyi kaydet"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Farkli kaydet"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModE, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Gorseli disa aktar (JPEG)"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Araclar" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Araclar" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModM, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Mozaiklestir"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyMod0, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Ekrana sigdir"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Duzenleme" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Duzenleme" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModZ, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Geri al (Undo)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModY, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Yinele (Redo)"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Yardim" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Yardim" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F1"/><TextBlock Classes="shortcut-desc" Text="Kullanim kilavuzunu ac"/></StackPanel>
           </StackPanel>
         </Border>
@@ -307,13 +307,13 @@
         <TextBlock x:Name="sec3" Classes="h1" Text="Fare Kontrolleri"/>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
-            <TextBlock Text="Canvas Uzerinde" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <TextBlock Text="Canvas Uzerinde" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Tekerlek"/><TextBlock Classes="shortcut-desc" Text="Zoom (yukari: yakinlastir, asagi: uzaklastir)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sag Tus + Surukle"/><TextBlock Classes="shortcut-desc" Text="Pan (gorselde gezinme)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sol Tus"/><TextBlock Classes="shortcut-desc" Text="Piksel sec / duzenleme"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Orta Tus"/><TextBlock Classes="shortcut-desc" Text="Piksel duzenleme modunu ac/kapa"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Mini Harita" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Mini Harita" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sol Tus"/><TextBlock Classes="shortcut-desc" Text="Tikla veya surukle — o bolgeye git"/></StackPanel>
           </StackPanel>
         </Border>
@@ -327,21 +327,21 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Modu Ac" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Modu Ac" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Orta fare tusuna, toolbar'daki kalem ikonuna veya Araclar > Piksel Duzenle'ye basin (once Mos yapilmis olmali). Toolbar'da 'source' turuncu yanar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Kaynak Rengi Sec" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Kaynak Rengi Sec" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Kullanmak istediginiz renkteki bir tasa sol tiklayin ya da soldaki katalogdan bir tas secin." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Hedef Piksele Uygula" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Hedef Piksele Uygula" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Degistirmek istediginiz tasa sol tiklayin. Renk aninda degisir." Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -406,9 +406,9 @@
             <TextBlock Classes="h2" Text=".mos Proje Dosyasi" Margin="0"/>
             <TextBlock Classes="body" Text="Mozaiklestirme sonucu, renk atamalari, piksel duzenlemeleri ve tum ayarlariniz .mos formatinda kaydedilir. mosair'de kaydedilen projeler WPF uygulamasinda da acilabilir; WPF'te JSON olarak kaydedilen projeler de mosair'de acilir. Eski WPF surumlerinin binary .mos dosyalari once guncel WPF'te acilip yeniden kaydedilmelidir."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
-              <TextBlock FontSize="12" Foreground="#686870" Text="Kaydetme: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
-              <TextBlock FontSize="12" Foreground="#686870" Text=" | Farkli Kaydet: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
-              <TextBlock FontSize="12" Foreground="#686870" Text=" | Acma: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="Kaydetme: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text=" | Farkli Kaydet: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text=" | Acma: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/>
             </StackPanel>
           </StackPanel>
         </Border>
@@ -424,15 +424,15 @@
         <Border Classes="section-card">
           <StackPanel Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Genislik (cm) degerini degistirdikten sonra Enter'a basin — boyut bilgileri otomatik guncellenir."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Detay slider'ini artirarak daha detayli tas dokusu elde edin. Yuksek degerler daha fazla bellek kullanir."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Gorseli dogrudan dosya yoneticisinden surukleyip uygulamaya birakin."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Mini haritayi kullanarak buyuk mozaiklerde hizlica gezinin."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Renkli bir gorselde Optimum'un sonucu fazla sade geldiyse Tas kaydiricisini birkac adim artirin; detay ve renk cesitliligi artar."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Belirli bir tasi hic kullanmak istemiyorsaniz katalogda isaretini kaldirip Mos yapin; Optimum sadece isaretli taslar arasindan secer."/></StackPanel>
           </StackPanel>
         </Border>
@@ -454,28 +454,28 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#5C6BC0"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Load Image" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Load Image" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Select an image in PNG, JPG, BMP, or TIFF format" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#43A047"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Mosaicize (Mos)" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Mosaicize (Mos)" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Convert the image to mosaic stone colors; with Optimum on, the stone count is found automatically" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF8F00"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Review and Edit" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Review and Edit" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Zoom into the result, change colors at pixel level" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#E53935"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Save / Export" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Save / Export" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Save as .mos project or export as PNG/JPEG" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -530,7 +530,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#9898a0"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="{DynamicResource FgSecondary}"/>
               <TextBlock Classes="h2" Text="Bottom — Status Bar" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Left: used color count. Center: process status and duration. Right: zoom level and Fit to Screen button."/>
@@ -540,22 +540,22 @@
         <TextBlock x:Name="sec2en" Classes="h1" Text="Keyboard Shortcuts"/>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
-            <TextBlock Text="File" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <TextBlock Text="File" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModI, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Load image"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Open project (.mos)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Save project"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Save as"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModE, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Export image (JPEG)"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Tools" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Tools" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModM, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Mosaicize"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyMod0, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Fit to screen"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Editing" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Editing" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModZ, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Undo"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="{Binding KeyModY, Source={x:Static svc:Loc.Instance}}"/><TextBlock Classes="shortcut-desc" Text="Redo"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Help" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Help" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F1"/><TextBlock Classes="shortcut-desc" Text="Open user guide"/></StackPanel>
           </StackPanel>
         </Border>
@@ -563,13 +563,13 @@
         <TextBlock x:Name="sec3en" Classes="h1" Text="Mouse Controls"/>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
-            <TextBlock Text="On Canvas" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <TextBlock Text="On Canvas" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Wheel"/><TextBlock Classes="shortcut-desc" Text="Zoom (up: zoom in, down: zoom out)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Right + Drag"/><TextBlock Classes="shortcut-desc" Text="Pan (navigate the image)"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Left Click"/><TextBlock Classes="shortcut-desc" Text="Select pixel / editing operations"/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Middle Click"/><TextBlock Classes="shortcut-desc" Text="Toggle pixel editing mode"/></StackPanel>
-            <Border Height="1" Background="#333338" Margin="0,4"/>
-            <TextBlock Text="Mini Map" FontWeight="Bold" FontSize="11" Foreground="#686870" Margin="0,0,0,2"/>
+            <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
+            <TextBlock Text="Mini Map" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Left Click"/><TextBlock Classes="shortcut-desc" Text="Click or drag — navigate to that area"/></StackPanel>
           </StackPanel>
         </Border>
@@ -583,21 +583,21 @@
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Activate Mode" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Activate Mode" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Press the middle mouse button, the pencil icon in the toolbar, or Tools > Pixel Edit (a Mos must have run first). 'source' lights up orange in the toolbar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Select Source Color" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Select Source Color" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Left-click on a stone with the color you want to use, or pick a stone from the catalog on the left." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
-                  <TextBlock Text="Apply to Target Pixel" FontWeight="Bold" FontSize="12" Foreground="#e8e8ec"/>
+                  <TextBlock Text="Apply to Target Pixel" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Left-click on the stone you want to change. The color changes instantly." Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
@@ -662,9 +662,9 @@
             <TextBlock Classes="h2" Text=".mos Project File" Margin="0"/>
             <TextBlock Classes="body" Text="Mosaicization results, color assignments, pixel edits, and all your settings are saved in .mos format. Projects saved in mosair can also be opened in the WPF application, and projects the WPF app saves as JSON open in mosair. Binary .mos files from older WPF versions must first be opened and saved again in the current WPF."/>
             <StackPanel Orientation="Horizontal" Spacing="2" Margin="0,6,0,0">
-              <TextBlock FontSize="12" Foreground="#686870" Text="Save: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
-              <TextBlock FontSize="12" Foreground="#686870" Text=" | Save As: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
-              <TextBlock FontSize="12" Foreground="#686870" Text=" | Open: "/><TextBlock FontSize="12" Foreground="#686870" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="Save: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModS, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text=" | Save As: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModShiftS, Source={x:Static svc:Loc.Instance}}"/>
+              <TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text=" | Open: "/><TextBlock FontSize="12" Foreground="{DynamicResource FgMuted}" Text="{Binding KeyModO, Source={x:Static svc:Loc.Instance}}"/>
             </StackPanel>
           </StackPanel>
         </Border>
@@ -680,15 +680,15 @@
         <Border Classes="section-card">
           <StackPanel Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Press Enter after changing the width (cm) value — dimensions update automatically."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Increase the Detail slider for more detailed stone textures. Higher values use more memory."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Drag and drop images directly from your file manager into the application."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Use the mini map to quickly navigate large mosaics."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="If Optimum's result looks too plain for a colorful image, raise the Stones slider a few steps for more detail and color variety."/></StackPanel>
-            <Border Height="1" Background="#2a2a30"/>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="To keep a stone out entirely, uncheck it in the catalog and run Mos; Optimum chooses only among checked stones."/></StackPanel>
           </StackPanel>
         </Border>

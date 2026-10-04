@@ -5,25 +5,25 @@
         Width="440" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
-        Background="#2a2a30"
+        Background="{DynamicResource BgCard}"
         ExtendClientAreaToDecorationsHint="False">
 
-  <Border Padding="24" Background="#2a2a30">
+  <Border Padding="24" Background="{DynamicResource BgCard}">
     <StackPanel Spacing="16">
       <TextBlock x:Name="TitleText"
                  FontSize="16" FontWeight="SemiBold"
-                 Foreground="#ffffff"/>
+                 Foreground="{DynamicResource FgPrimary}"/>
 
       <TextBlock x:Name="MessageText"
                  FontSize="13" TextWrapping="Wrap"
-                 Foreground="#cccccc"
+                 Foreground="{DynamicResource FgMenu}"
                  LineHeight="20"/>
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
         <Button x:Name="NoButton"
                 MinWidth="90" Height="34"
                 FontSize="13" FontWeight="Medium"
-                Background="#3a3a42" Foreground="#ffffff"
+                Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}"
                 CornerRadius="4"
                 Click="OnNoClick"/>
         <Button x:Name="YesButton"

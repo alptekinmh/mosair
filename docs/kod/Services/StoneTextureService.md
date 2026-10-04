@@ -37,7 +37,6 @@ Static sınıf, özel durum alanları:
 1. `Assets/02_RS`
 2. `mosaicFiles/02_RS`
 3. `02_RS`
-4. Sabit geliştirici yolu `D:\dev\mosairWPF\ourRobotWpf\bin\x64\Debug\mosaicFiles\02_RS`
 
 ## Public API
 
@@ -64,7 +63,6 @@ Static sınıf, özel durum alanları:
 
 ## Dikkat / bilinen sınırlamalar
 
-- `FindRSPath` içindeki 4. yol geliştirici makinesine özgü sabit bir Windows yoludur.
 - Klasör eşleşmesi alt dize araması olduğundan bir kod adı başka bir kod adını içeriyorsa (ör. `A1` / `A10`) yanlış klasör seçilebilir; ayrıca kod adı klasör adının en başındaysa (`pos == 0`) eşleşme sayılmaz.
 - `arn` değerleri `1..15` olduğu için her taşın ilk dokusu (`1.jpg`, indeks 0) RS görünümünde hiç kullanılmaz.
 - Düz renk yedek dokusu 3×3'tür; `ResizeTextures` ile `N×N`'e büyütülür.

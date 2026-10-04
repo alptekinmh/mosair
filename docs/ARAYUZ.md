@@ -327,7 +327,7 @@ Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntüdür. Izga
 
 | Kontrol | Ne yapar |
 |---|---|
-| ☾ / ☀ | Koyu ve açık tema arasında geçiş yapar (varsayılan koyu) |
+| ☾ / ☀ | Koyu ve açık tema arasında geçiş yapar (varsayılan koyu); iletişim kutuları ve kullanım kılavuzu da temaya uyar |
 | 🌐 | Arayüz dilini **Türkçe** veya **English** yapar; menüler, ipuçları, mesajlar ve kullanım kılavuzu anında değişir |
 
 Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Türkçe ile açılır.
@@ -377,6 +377,8 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 | Mozaikleştirme | Görsel yok / hiç taş seçili değil | Görsel yükleyin / katalogda taş işaretleyin |
 | Değer Çok Büyük, Bellek Yetersiz | Detay (N) veya cm çok büyük, bellek yetmiyor | N veya cm değerini küçültün |
 | Proje | Proje dosyası açılamadı (bozuk, uyumsuz ya da eski binary) | Binary dosyayı güncel WPF'te açıp yeniden kaydedin |
+| Proje | Proje kaydedilemedi (disk dolu, klasöre yazma izni yok, dosya başka programda açık…) | Sorunu giderip tekrar kaydedin; uygulama açık kalır, çalışma kaybolmaz |
+| (durum çubuğu) | "Renk kataloğunda okunamayan satırlar atlandı" | `colorsBas.txt` içinde belirtilen satırları düzeltin; diğer taşlar normal yüklenir |
 | Dışa Aktarma | Dışa aktarılacak mozaik yok | Önce Mos yapın |
 | Stok | Ayar eksik, sütun bulunamadı, Script URL/yayın hatası, proje adı ya da Mos yok | Mesajdaki adımı uygulayın; [§11](#11-stok-yönetimi-google-sheets) |
 

@@ -26,14 +26,13 @@ Avalonia `Application` sınıfı. Uygulama genelindeki temayı (Fluent, koyu) y�
 
 ## Önemli davranışlar ve iş kuralları
 
-- Uygulamaya özel renkler burada değil, `MainWindow.axaml` içindeki `ResourceDictionary.ThemeDictionaries` (`Dark`/`Light`) altında tanımlıdır (`BgMain`, `BgBar`, `FgPrimary` …). `App` yalnızca temel temayı seçer.
+- Uygulamaya özel renkler `App.axaml` içindeki `Application.Resources` → `ResourceDictionary.ThemeDictionaries` (`Dark`/`Light`) altında tanımlıdır (`BgMain`, `BgBar`, `BgPanel`, `BgCard`, `BgHover`, `FgPrimary`, `FgSecondary`, `FgMuted`, `FgMenu`, `FgWarn` …). Uygulama düzeyinde oldukları için ana pencere, iletişim kutuları ve kullanım kılavuzu aynı renkleri `DynamicResource` ile kullanır ve tema değişince birlikte değişir.
 - Tema değişimi `MainWindow.OnToggleTheme` içinde `Application.Current!.RequestedThemeVariant` atanarak yapılır; seçim kalıcı değildir, her açılışta koyu tema ile başlanır.
 - Tek pencereli masaüstü uygulaması: mobil/tarayıcı yaşam döngüsü desteklenmez.
 
 ## Dikkat / bilinen sınırlamalar
 
 - `App.axaml`'daki yorum `"Default"` değerinin sistem temasını izleyeceğini belirtir; şu an bilinçli olarak `Dark` sabitlenmiştir.
-- `AlertDialog`, `ConfirmDialog`, `StockSettingsDialog` ve `HelpWindow` renkleri sabit kodlu olduğundan açık temadan etkilenmez.
 
 ## İlgili dosyalar
 

@@ -105,7 +105,7 @@ namespace mosair.Services
             Action<int>? onProgress = null, bool prepareTextures = true, bool useGamut = false)
         {
             interpolationMethod = interpMethod;
-            MosaicData.reducedBitmap = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
             int R = MosaicData.reducedBitmap.Height;
             int C = MosaicData.reducedBitmap.Width;
             byte[,,] src = ImageService.ToByteArray(MosaicData.reducedBitmap);
@@ -207,7 +207,7 @@ namespace mosair.Services
             MosaicData.arMA = CloneNestedList(MosaicData.arMB);
             BackupM3(R, C);
 
-            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
             MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
 
             if (prepareTextures)
@@ -232,7 +232,7 @@ namespace mosair.Services
 
 
             // Resize input to stone dimensions
-            MosaicData.reducedBitmap = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
             int R = MosaicData.reducedBitmap.Height;
             int C = MosaicData.reducedBitmap.Width;
 
@@ -260,7 +260,7 @@ namespace mosair.Services
 
 
                 var reducedForLoop = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
-                MosaicData.reducedBitmap = reducedForLoop;
+                MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, reducedForLoop);
 
                 while (ar3.Count > dr.rgbM)
                 {
@@ -271,7 +271,7 @@ namespace mosair.Services
                     RemoveMinimalColors(reg);
 
                     var reducedForIter = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
-                    MosaicData.reducedBitmap = reducedForIter;
+                    MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, reducedForIter);
                     ProcessM3(reg, R, C);
 
                     numOfMinRGB += minRGBInc;
@@ -440,7 +440,7 @@ namespace mosair.Services
             BackupM3(R, C);
 
             // Final bitmap from dataM3
-            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
             MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
 
             // Prepare stone textures (RS bitmap created by ViewModel with grid params)
@@ -453,6 +453,14 @@ namespace mosair.Services
 
             onProgress?.Invoke(100);
             return MosaicData.reducedBitmap;
+        }
+
+        // Replaces a working bitmap and frees the previous one. The loops above create a new reduced bitmap on
+        // every pass; without this each one stayed in native memory until the garbage collector ran.
+        private static SKBitmap Swap(SKBitmap? old, SKBitmap replacement)
+        {
+            if (old != null && !ReferenceEquals(old, replacement)) old.Dispose();
+            return replacement;
         }
 
         public static void Reset()
@@ -539,7 +547,7 @@ namespace mosair.Services
 
         private static void RunM1(int R, int C)
         {
-            MosaicData.reducedBitmap = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
             byte[,,] data = ImageService.ToByteArray(MosaicData.reducedBitmap);
 
             int arCount = MosaicData.arRGB.Count;
@@ -617,7 +625,7 @@ namespace mosair.Services
                     MosaicData.arRGB[n].n = n;
                 }
 
-            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM1, R, C);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM1, R, C));
         }
 
         private static void ProcessM1(int R, int C)
@@ -677,7 +685,7 @@ namespace mosair.Services
                 }
             }
 
-            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM1, R, C);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM1, R, C));
         }
 
         private static void CopyM1ToM3(int R, int C)
@@ -786,7 +794,7 @@ namespace mosair.Services
                 }
             }
 
-            MosaicData.reducedBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
         }
 
         private static void RemoveMinimalColors(int reg)

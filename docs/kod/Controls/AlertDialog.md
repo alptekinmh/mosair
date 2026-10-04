@@ -24,7 +24,7 @@ ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonu
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| (pencere) | `Window` | `Width=420`, `SizeToContent="Height"`, `CanResize="False"` | `WindowStartupLocation="CenterOwner"`, arka plan `#2a2a30`. |
+| (pencere) | `Window` | `Width=420`, `SizeToContent="Height"`, `CanResize="False"` | `WindowStartupLocation="CenterOwner"`, arka plan `BgCard` (tema rengi). |
 | `TitleText` | `TextBlock` | — | 16 pt, SemiBold başlık. |
 | `MessageText` | `TextBlock` | — | 13 pt, `TextWrapping="Wrap"` gövde metni. |
 | `OkButton` | `Button` | `Content="Tamam"` | Sağa yaslı mavi (`#3a7bfd`) düğme; `Click="OnOkClick"`. |
@@ -44,7 +44,7 @@ ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonu
 
 ## Dikkat / bilinen sınırlamalar
 
-- Renkler (`#2a2a30`, `#ffffff`, `#cccccc`) sabit kodludur; açık temaya geçildiğinde diyalog koyu kalır (`MainWindow`'daki `DynamicResource` tema anahtarlarını kullanmaz).
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
 - Escape/Enter tuşlarına özel bağlama yoktur.
 
 ## İlgili dosyalar

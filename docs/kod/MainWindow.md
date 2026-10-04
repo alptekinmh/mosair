@@ -22,7 +22,7 @@ Bu belge **kablolamayı** anlatır. Kullanıcı gözünden kullanım için [ARAY
 | `ExtendClientAreaToDecorationsHint` | `True` | Sistem başlık çubuğu yerine özel başlık çubuğu; `ExtendClientAreaTitleBarHeightHint="32"`. |
 | `Title` | `" "` | Başlık metni boş; marka adı başlık çubuğunda yeşil "mosair" olarak çizilir. |
 | `Icon` | `avares://mosair/Assets/mosair-icon.png` | — |
-| `Window.Resources` | `InvDouble` + `ThemeDictionaries` (`Dark`, `Light`) | `BgMain`, `BgBar`, `BgPanel`, `BgInput`, `BgCanvas`, `BgCard`, `BgHover`, `BrdrMain`, `BrdrSec`, `BrdrTer`, `FgPrimary`, `FgSecondary`, `FgMuted`, `FgIcon`, `FgMenu`, `NavBg`. Kontroller bunlara `DynamicResource` ile bağlanır; tema değişince otomatik güncellenir. |
+| `Window.Resources` | `InvDouble` | Tema renkleri (`BgMain`, `FgPrimary` …) `App.axaml`'da, uygulama düzeyinde tanımlıdır; bkz. [App](App.md). |
 
 ### Yerleşim ağacı
 
@@ -227,7 +227,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 ## Dikkat / bilinen sınırlamalar
 
 - Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve mosairEXPORT As öğesi `CanExport`'a bağlıdır; toolbar ve klavye yoluyla aynı koşullar geçerlidir.
-- `OnSaveProject` ve `SaveAsDialog` içinde `try/catch` yoktur; disk/izin hatası `async void` işleyicide işlenmemiş istisnaya dönüşür.
+- `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez.
 - Kayıt (`SpecialFolder.Desktop`) ve dışa aktarma (`SpecialFolder.DesktopDirectory`) farklı özel klasör sabitleri kullanır; çoğu sistemde aynı yeri gösterir ama tutarsızdır.
 - `OnRunMosaic`, `RunMosaicAsync` hiçbir şey yapmadan dönse bile `FitToWindow` çağırır.
 - `ShowHelp` her çağrıda yeni bir modal `HelpWindow` açar ve beklemez.

@@ -7,27 +7,38 @@ namespace mosair.Services
 {
     public static class ColorCatalogService
     {
+        // Line numbers (1-based) of catalog lines that could not be read in the last LoadCatalog.
+        public static List<int> SkippedLines { get; } = new();
+
         public static void LoadCatalog(string path)
         {
             MosaicData.arRGBAll.Clear();
+            SkippedLines.Clear();
 
             using var reader = new StreamReader(path);
             string? s;
-            int id = 0;
+            int id = 0, lineNo = 0;
 
             while ((s = reader.ReadLine()) != null)
             {
+                lineNo++;
                 if (string.IsNullOrWhiteSpace(s)) continue;
+                // The ID is the stone's position in the file, as in WPF and the stock sheet, so a bad line
+                // still uses up its ID and the stones after it keep their numbers.
                 id++;
 
-                string[] u = s.Split(' ');
-                byte r = Convert.ToByte(u[0]);
-                byte g = Convert.ToByte(u[1]);
-                byte b = Convert.ToByte(u[2]);
+                // "R G B code name words..."; extra spaces are tolerated.
+                string[] u = s.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                if (u.Length < 4 ||
+                    !byte.TryParse(u[0], out byte r) ||
+                    !byte.TryParse(u[1], out byte g) ||
+                    !byte.TryParse(u[2], out byte b))
+                {
+                    SkippedLines.Add(lineNo);
+                    continue;
+                }
                 string codeName = u[3];
-                string name = u[4] + " " + u[5];
-                if (u.Length >= 7)
-                    name += " " + u[6];
+                string name = string.Join(" ", u, 4, u.Length - 4);
 
                 var re = new rgb(r, g, b, (r + g + b) / 3.0, id, codeName, name);
                 MosaicData.arRGBAll.Add(re);

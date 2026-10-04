@@ -527,27 +527,36 @@ public partial class MainWindow : Window
 
     private async void OnSaveProject(object? sender, RoutedEventArgs e)
     {
-        string desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop);
-        string projectDir = System.IO.Path.Combine(desktop, "mosairPROJECT");
-        System.IO.Directory.CreateDirectory(projectDir);
-
-        string baseName = "mosair_project";
-        string? srcImagePath = Services.ProjectService.CurrentPictureFileName;
-        if (!string.IsNullOrEmpty(srcImagePath))
-            baseName = System.IO.Path.GetFileNameWithoutExtension(srcImagePath);
-
-        string folder = System.IO.Path.Combine(projectDir, baseName);
-        System.IO.Directory.CreateDirectory(folder);
-
-        string mosPath = System.IO.Path.Combine(folder, baseName + ".mos");
-        _vm.SaveProject(mosPath);
-
-        if (!string.IsNullOrEmpty(srcImagePath) && System.IO.File.Exists(srcImagePath))
+        try
         {
-            string ext = System.IO.Path.GetExtension(srcImagePath);
-            string imgDest = System.IO.Path.Combine(folder, baseName + ext);
-            if (!System.IO.File.Exists(imgDest))
-                System.IO.File.Copy(srcImagePath, imgDest);
+            string desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop);
+            string projectDir = System.IO.Path.Combine(desktop, "mosairPROJECT");
+            System.IO.Directory.CreateDirectory(projectDir);
+
+            string baseName = "mosair_project";
+            string? srcImagePath = Services.ProjectService.CurrentPictureFileName;
+            if (!string.IsNullOrEmpty(srcImagePath))
+                baseName = System.IO.Path.GetFileNameWithoutExtension(srcImagePath);
+
+            string folder = System.IO.Path.Combine(projectDir, baseName);
+            System.IO.Directory.CreateDirectory(folder);
+
+            string mosPath = System.IO.Path.Combine(folder, baseName + ".mos");
+            if (!_vm.SaveProject(mosPath)) return;
+
+            if (!string.IsNullOrEmpty(srcImagePath) && System.IO.File.Exists(srcImagePath))
+            {
+                string ext = System.IO.Path.GetExtension(srcImagePath);
+                string imgDest = System.IO.Path.Combine(folder, baseName + ext);
+                if (!System.IO.File.Exists(imgDest))
+                    System.IO.File.Copy(srcImagePath, imgDest);
+            }
+        }
+        catch (Exception ex)
+        {
+            // Folder could not be created or the image could not be copied (disk full, no access, ...).
+            _vm.ReportSaveFailed(ex);
+            return;
         }
 
         saveIcon.IsVisible = false;
@@ -583,12 +592,19 @@ public partial class MainWindow : Window
             var path = file.TryGetLocalPath();
             if (path != null)
             {
-                string dir = System.IO.Path.GetDirectoryName(path)!;
-                string name = System.IO.Path.GetFileNameWithoutExtension(path);
-                string folder = System.IO.Path.Combine(dir, name);
-                System.IO.Directory.CreateDirectory(folder);
-                string fullPath = System.IO.Path.Combine(folder, name + ".mos");
-                _vm.SaveProject(fullPath);
+                try
+                {
+                    string dir = System.IO.Path.GetDirectoryName(path)!;
+                    string name = System.IO.Path.GetFileNameWithoutExtension(path);
+                    string folder = System.IO.Path.Combine(dir, name);
+                    System.IO.Directory.CreateDirectory(folder);
+                    string fullPath = System.IO.Path.Combine(folder, name + ".mos");
+                    _vm.SaveProject(fullPath);
+                }
+                catch (Exception ex)
+                {
+                    _vm.ReportSaveFailed(ex);
+                }
             }
         }
     }

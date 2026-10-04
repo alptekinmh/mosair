@@ -85,7 +85,7 @@ Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` 
 - **Tutarlılık:** Bu pencere ile [ARAYUZ.md](../ARAYUZ.md) aynı kullanıcı bilgisini taşır. Kısayol, menü veya stok davranışı değiştiğinde üç yer birlikte güncellenmelidir: TR paneli, EN paneli ve `ARAYUZ.md`. Kısayolların gerçek davranışı için kaynak `MainWindow.OnKeyDown`'dur.
 - Türkçe metinler kaynakta Türkçe karakter kullanmadan yazılmıştır (`Genel Bakis`, `Ipuclari` …). Düzeltilecekse tüm panel birlikte ele alınmalıdır.
 - `Tag` ↔ dizi indeksi eşlemesi elle tutulur; bir `TextBlock` yeniden adlandırılır ya da dizi sırası bozulursa düğme yanlış bölüme kaydırır (derleme hatası vermez).
-- Renkler sabit kodlu; açık temada pencere koyu kalır.
+- Renkler tema anahtarlarına (`DynamicResource`) bağlıdır; açık temada kılavuz da açık görünür. Bölüm rozetleri, başlık yeşili ve kısayol rozeti bilerek sabit renklidir.
 
 ## İlgili dosyalar
 

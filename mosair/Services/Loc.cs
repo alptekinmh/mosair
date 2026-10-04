@@ -205,6 +205,8 @@ namespace mosair.Services
             ["StatusStoneRedo"] = "Tas degisikligi yeniden uygulandi",
             ["StatusPixelEdit"] = "Pixel edit: {0}",
             ["StatusRsBitmapTooLarge"] = "RS bitmap cok buyuk: {0}x{1}",
+            ["StatusCatalogSkipped"] = "Renk katalogunda okunamayan satirlar atlandi (colorsBas.txt satir: {0})",
+            ["AlertSaveFailed"] = "Proje kaydedilemedi:\n{0}",
 
             // Dialog titles
             ["DlgSelectImage"] = "Gorsel Sec",
@@ -396,6 +398,8 @@ namespace mosair.Services
             ["StatusStoneRedo"] = "Stone change reapplied",
             ["StatusPixelEdit"] = "Pixel edit: {0}",
             ["StatusRsBitmapTooLarge"] = "RS bitmap too large: {0}x{1}",
+            ["StatusCatalogSkipped"] = "Unreadable color catalog lines were skipped (colorsBas.txt line: {0})",
+            ["AlertSaveFailed"] = "The project could not be saved:\n{0}",
 
             // Dialog titles
             ["DlgSelectImage"] = "Select Image",
