@@ -1,0 +1,33 @@
+name: Docs check
+
+# Fails when a source file under mosair/ has no matching page under docs/kod/.
+# Mapping: mosair/<dir>/<Name>.cs|.axaml|.axaml.cs -> docs/kod/<dir>/<Name>.md
+on:
+  push:
+    branches: ['**']
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Every source file has a doc page
+        shell: bash
+        run: |
+          missing=0
+          while IFS= read -r f; do
+            rel="${f#mosair/}"
+            base="${rel%.axaml.cs}"
+            base="${base%.axaml}"
+            base="${base%.cs}"
+            doc="docs/kod/${base}.md"
+            if [ ! -f "$doc" ]; then
+              echo "::error file=$f::No documentation page: expected $doc"
+              missing=1
+            fi
+          done < <(find mosair -type f \( -name '*.cs' -o -name '*.axaml' \) -not -path '*/bin/*' -not -path '*/obj/*' | sort)
+          [ -f docs/ARAYUZ.md ] || { echo "::error::docs/ARAYUZ.md is missing"; missing=1; }
+          [ -f docs/kod/mosair.csproj.md ] || { echo "::error::docs/kod/mosair.csproj.md is missing"; missing=1; }
+          exit $missing

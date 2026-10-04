@@ -1,46 +1,92 @@
-# mosairMac - Dokumantasyon
+# mosair — Belgeler
 
-## Proje Hakkinda
+**mosair**, doğal taş mozaik üretimi için bir masaüstü uygulamasıdır. Bir görseli katalogdaki gerçek taş renklerine dönüştürür ve sonucu gerçek taş dokularıyla gösterir. Piksel ve taş düzenlemeye izin verir, Google Sheets stok tablosuyla çalışır. Projeleri robot tarafındaki WPF uygulamasıyla ortak JSON biçiminde kaydeder.
 
-**mosairMac**, dogal tas mozaik uretim surecinde kullanilan musteri odakli bir masaustu uygulamadir. Gorsel yukleme, mozaiklestirme ve gercek tas dokulu cikti uretmeye odaklanir.
+| | |
+|---|---|
+| Platform | Avalonia UI 12 · .NET 10 |
+| Görüntü işleme | SkiaSharp 3 |
+| Hedefler | Windows x64, macOS x64, macOS ARM64 |
+| Güncelleme | 2026-10-04 |
 
-**Platform:** Avalonia UI (.NET 10)
-**Goruntu Isleme:** SkiaSharp 3.119.4
-**Hedef:** macOS (ARM64, x64), Windows x64
+## Nereden başlamalı?
 
----
+| Kim için | Belge |
+|---|---|
+| Uygulamayı kullanan herkes | **[ARAYUZ.md](ARAYUZ.md)**: arayüzde yapılabilecek her şey tek dosyada |
+| Kodu geliştiren | Aşağıdaki **kod belgeleri** ve [mimari özet](#mimari-özet) |
+| Sürüm çıkaran | [kod/build-workflow.md](kod/build-workflow.md) |
 
-## Dokumantasyon Haritasi
+## Kod belgeleri (`docs/kod/`)
 
-| Dosya | Icerik |
-|-------|--------|
-| [App.md](App.md) | Avalonia uygulama giris noktasi ve tema yapisi |
-| [Program.md](Program.md) | Program.cs giris noktasi |
-| [MainWindow.md](MainWindow.md) | Ana pencere AXAML yapisi ve event handler'lar |
-| [MainViewModel.md](MainViewModel.md) | MVVM ViewModel, property'ler ve komutlar |
-| [MosaicEngine.md](MosaicEngine.md) | M3 mozaiklestirme algoritmasi |
-| [ColorMatcher.md](ColorMatcher.md) | Renk uzakligi hesaplama ve katalog eslestirme |
-| [ColorCatalogService.md](ColorCatalogService.md) | colorsBas.txt renk katalogu yonetimi |
-| [ImageService.md](ImageService.md) | SkiaSharp gorsel islemleri (resize, overlay, export) |
-| [StoneTextureService.md](StoneTextureService.md) | Gercek tas doku yukleme ve RS bitmap render |
-| [PixelEditService.md](PixelEditService.md) | Piksel duzenleme, undo/redo servisi |
-| [ProjectService.md](ProjectService.md) | .mos proje kaydet/yukle servisi |
-| [MosaicData.md](MosaicData.md) | Statik veri yapilari (dataM1, dataM3, arMA, bitmap'ler) |
-| [Rgb.md](Rgb.md) | rgb, cooo renk sinif tanimlari |
-| [Region.md](Region.md) | dr, drl bolge sinif tanimlari |
-| [mosairMac_csproj.md](mosairMac_csproj.md) | Proje dosyasi ve bagimliliklar |
+Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıdır.
 
----
+### Uygulama kabuğu
 
-## Klasor Yapisi
+| Belge | Kaynak | İçerik |
+|---|---|---|
+| [App.md](kod/App.md) | `App.axaml(.cs)` | Uygulama, tema kaynakları, ana pencereyi açma |
+| [Program.md](kod/Program.md) | `Program.cs` | Giriş noktası, `--compare` modu |
+| [MainWindow.md](kod/MainWindow.md) | `MainWindow.axaml(.cs)` | Pencere yerleşimi, bütün olay işleyiciler, kısayollar, kaydet/dışa aktar klasörleri |
+| [HelpWindow.md](kod/HelpWindow.md) | `HelpWindow.axaml(.cs)` | Uygulama içi kullanım kılavuzu (TR/EN) |
+| [CompareRunner.md](kod/CompareRunner.md) | `CompareRunner.cs` | Algoritma karşılaştırma aracı (geliştirici) |
+| [mosair.csproj.md](kod/mosair.csproj.md) | `mosair.csproj` | Paketler, varlıklar (renk kataloğu, taş dokuları) |
+| [build-workflow.md](kod/build-workflow.md) | `.github/workflows/build.yml` | Etiketle sürüm derleme ve yayınlama |
+
+### ViewModel
+
+| Belge | İçerik |
+|---|---|
+| [MainViewModel.md](kod/ViewModels/MainViewModel.md) | Arayüz durumu ve komutlar: görsel, Mos, Optimum, katalog, stok, piksel düzenleme, özellikler paneli |
+
+### Servisler
+
+| Belge | İçerik |
+|---|---|
+| [MosaicEngine.md](kod/Services/MosaicEngine.md) | Mozaikleştirme algoritması (M1/M3), ölçü hesabı |
+| [OptimalPaletteService.md](kod/Services/OptimalPaletteService.md) | Optimum taş sayısını bulma |
+| [MosaicMetrics.md](kod/Services/MosaicMetrics.md) | Mozaik kalite ölçütleri |
+| [ColorMatcher.md](kod/Services/ColorMatcher.md) | Renk uzaklığı ve katalog eşleştirme |
+| [ColorCatalogService.md](kod/Services/ColorCatalogService.md) | `colorsBas.txt` renk kataloğu |
+| [GamutMapper.md](kod/Services/GamutMapper.md) | Gamut eşleme yardımcıları |
+| [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
+| [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokuları ve RS görüntüsü |
+| [PixelEditService.md](kod/Services/PixelEditService.md) | Piksel düzenleme, geri al/yinele |
+| [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
+| [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
+| [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
+
+### Modeller, kontroller, dönüştürücüler
+
+| Belge | İçerik |
+|---|---|
+| [Models/Rgb.md](kod/Models/Rgb.md) | Taş/renk modeli |
+| [Models/Region.md](kod/Models/Region.md) | Bölge modelleri |
+| [Models/MosaicData.md](kod/Models/MosaicData.md) | Paylaşılan mozaik verisi |
+| [Controls/AlertDialog.md](kod/Controls/AlertDialog.md) | Bilgi iletişim kutusu |
+| [Controls/ConfirmDialog.md](kod/Controls/ConfirmDialog.md) | Evet/Hayır iletişim kutusu |
+| [Controls/StockSettingsDialog.md](kod/Controls/StockSettingsDialog.md) | Stok ayarları penceresi |
+| [Controls/GridOverlay.md](kod/Controls/GridOverlay.md) | Izgara çizimi |
+| [Converters/InvariantDoubleConverter.md](kod/Converters/InvariantDoubleConverter.md) | cm kutusu için sayı dönüştürücü |
+
+## Mimari özet
 
 ```
-mosairMac/                    # Solution root
-├── mosairMac.sln
-├── docs/                     # Bu klasor
-└── mosairMac/                # Proje klasoru
-    ├── Models/               # Veri modelleri
-    ├── Services/             # Is mantigi servisleri
-    ├── ViewModels/           # MVVM ViewModel
-    └── Assets/               # Renk katalogu ve tas dokulari
+MainWindow (görünüm, olaylar) ──bağlama──► MainViewModel (durum, komutlar)
+                                              │
+     ┌───────────────┬───────────────┬────────┴───────┬─────────────────┬────────────────┐
+ MosaicEngine   OptimalPalette    PixelEdit      ProjectService   StockSheetService  StoneTexture
+ (+ColorMatcher, Service           Service        (.mos JSON,      (Google Sheets)    Service
+  ImageService)  (+MosaicMetrics)                  WPF uyumu)                         (RS görüntü)
+     └───────────────┴───────────────┴────────────────┴──────────── MosaicData (paylaşılan veri)
 ```
+
+- **Veri** statik `MosaicData` ve `drl` yapılarında tutulur; servisler bunları doğrudan okur ve yazar.
+- **Yön:** mosair görüntü dizilerini çevirmeden tutar. WPF ise yatay aynalı tutar. Dosyadaki `Source = "mosair"` işareti dosyanın hangi yönde olduğunu belirtir ([ProjectService.md](kod/Services/ProjectService.md)).
+- **Metinler** `Loc` üzerinden gelir; dil değiştirilince anında güncellenir.
+
+## Belgeler nasıl güncel kalır?
+
+- **Kural:** Kökteki [`CLAUDE.md`](../CLAUDE.md) dosyasında yazılıdır. Kodda veya arayüzde yapılan her değişiklik, ilgili `docs/kod/` sayfasını, `ARAYUZ.md`'yi ve uygulama içi kılavuzu **aynı commit'te** günceller.
+- **Otomatik kontrol:** [`docs-check`](../.github/workflows/docs-check.yml) iş akışı her push'ta çalışır ve belge sayfası olmayan kaynak dosyaları hata olarak bildirir.
+- **İçerik doğruluğu:** Belgelerin içeriğinin doğru olup olmadığını otomatik kontrol denetlemez; bu, gözden geçirme ile sağlanır.

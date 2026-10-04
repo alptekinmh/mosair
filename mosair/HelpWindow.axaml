@@ -360,7 +360,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Tas Kaydiricisi" Margin="0"/>
-            <TextBlock Classes="body" Text="Mos'tan sonra toolbar'da 'Tas' kaydiricisi gorunur ve onerilen degerden baslar. Kaydiriciyi biraktiginizda mozaik secilen tas sayisiyla aninda yeniden kurulur; yaninda onerilen deger yazar."/>
+            <TextBlock Classes="body" Text="Mos'tan sonra toolbar'da 'Tas' kaydiricisi gorunur ve onerilen degerden baslar. Kaydiricinin degeri kisa bir sure sabit kalinca mozaik secilen tas sayisiyla yeniden kurulur; yaninda onerilen deger yazar."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Daha fazla tas daha zengin detay, daha az tas daha kolay uretim ve daha az stok demektir. Ayni ayar Araclar > Tas Sayisi menusundeki 'Onerilen Degere Don', 'Bir Tas Artir' ve 'Bir Tas Azalt' ile de yapilabilir."/>
           </StackPanel>
         </Border>
@@ -616,7 +616,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Stones Slider" Margin="0"/>
-            <TextBlock Classes="body" Text="After a Mos, a 'Stones' slider appears in the toolbar, starting at the suggested value. When you release it, the mosaic is rebuilt right away with the chosen stone count; the suggested value is shown next to it."/>
+            <TextBlock Classes="body" Text="After a Mos, a 'Stones' slider appears in the toolbar, starting at the suggested value. Once its value stays put for a moment, the mosaic is rebuilt with the chosen stone count; the suggested value is shown next to it."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="More stones means richer detail; fewer stones means easier production and less stock. The same adjustment is available under Tools > Stone Count: 'Back to Suggested', 'One More Stone' and 'One Fewer Stone'."/>
           </StackPanel>
         </Border>

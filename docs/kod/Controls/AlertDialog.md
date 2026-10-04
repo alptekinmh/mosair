@@ -1,0 +1,56 @@
+# AlertDialog
+
+> Kaynak: `mosair/Controls/AlertDialog.axaml`, `mosair/Controls/AlertDialog.axaml.cs` · Güncelleme: 2026-10-04
+
+## Amaç
+
+Başlık + mesaj + tek "Tamam" düğmesinden oluşan modal bilgi/uyarı penceresi. Sonuç döndürmez.
+
+## Nerede kullanılır
+
+`MainWindow` yapıcısında `MainViewModel.ShowAlert` geri çağrısına bağlanır:
+
+```csharp
+_vm.ShowAlert = async (title, message) =>
+{
+    var dlg = new Controls.AlertDialog(title, message);
+    await dlg.ShowDialog(this);
+};
+```
+
+ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonuçları vb.) bu geri çağrı üzerinden gösterir; ViewModel pencere tipini bilmez.
+
+## Yapı
+
+| Ad | Tip | Varsayılan | Açıklama |
+|---|---|---|---|
+| (pencere) | `Window` | `Width=420`, `SizeToContent="Height"`, `CanResize="False"` | `WindowStartupLocation="CenterOwner"`, arka plan `#2a2a30`. |
+| `TitleText` | `TextBlock` | — | 16 pt, SemiBold başlık. |
+| `MessageText` | `TextBlock` | — | 13 pt, `TextWrapping="Wrap"` gövde metni. |
+| `OkButton` | `Button` | `Content="Tamam"` | Sağa yaslı mavi (`#3a7bfd`) düğme; `Click="OnOkClick"`. |
+
+## Public API
+
+| Metot | Ne yapar | Kimden çağrılır |
+|---|---|---|
+| `AlertDialog()` | Yalnızca `InitializeComponent`. Avalonia tasarımcısı/XAML yükleyici için. | Avalonia |
+| `AlertDialog(string title, string message)` | Pencere başlığını ve `TitleText`'i `title`, `MessageText`'i `message` yapar; düğme metnini `Loc.Get("WarnOk")` ile yerelleştirir. | `MainWindow` (`ShowAlert`) |
+| `OnOkClick` (private) | `Close()`. | `OkButton` |
+
+## Önemli davranışlar ve iş kuralları
+
+- Düğme metni XAML'de `Tamam` olarak sabit, ancak parametreli yapıcı her zaman `Loc` ile üzerine yazar; dil İngilizce ise `WarnOk` karşılığı görünür.
+- `ShowDialog(owner)` ile açıldığı için ana pencereyi kilitler. Ancak ViewModel'deki özel `Alert` yardımcı metodu `ShowAlert`'i `Dispatcher.UIThread.Post` ile "ateşle ve unut" biçiminde çağırır; yani ViewModel kodu diyaloğun kapanmasını beklemez.
+
+## Dikkat / bilinen sınırlamalar
+
+- Renkler (`#2a2a30`, `#ffffff`, `#cccccc`) sabit kodludur; açık temaya geçildiğinde diyalog koyu kalır (`MainWindow`'daki `DynamicResource` tema anahtarlarını kullanmaz).
+- Escape/Enter tuşlarına özel bağlama yoktur.
+
+## İlgili dosyalar
+
+- [ConfirmDialog](ConfirmDialog.md)
+- [StockSettingsDialog](StockSettingsDialog.md)
+- [MainWindow](../MainWindow.md)
+- [MainViewModel](../ViewModels/MainViewModel.md)
+- [Loc](../Services/Loc.md)

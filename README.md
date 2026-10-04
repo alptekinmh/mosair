@@ -15,6 +15,19 @@ Isletim sisteminize uygun dosyayi indirin ve calistirin.
 
 ---
 
+## Neler yapabilir?
+
+- Görseli katalogdaki gerçek taş renkleriyle mozaikleştirir, sonucu gerçek taş dokularıyla gösterir
+- **Optimum:** görsel için gereken en az taş çeşidini otomatik bulur, taş sayısı kaydırıcıyla ayarlanır
+- Piksel bazında renk ve taş dokusu düzenleme, geri al / yinele
+- Google Sheets stok tablosu: stok çek, stok kontrol (kg ipucu), stok sil, stok ekle
+- `.mos` projeleri robot tarafındaki WPF uygulamasıyla ortak JSON biçiminde kaydeder ve açar
+- JPEG/PNG dışa aktarma, ızgara, koyu/açık tema, Türkçe/English
+
+Arayüzün tam rehberi: **[docs/ARAYUZ.md](docs/ARAYUZ.md)** · Geliştirici belgeleri: **[docs/README.md](docs/README.md)**
+
+---
+
 ## Kurulum
 
 ### Windows
