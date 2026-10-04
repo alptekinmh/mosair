@@ -846,7 +846,18 @@
                   <Panel Width="16" Height="14" VerticalAlignment="Center" Margin="2,0,1,0">
                     <ToolTip.Tip>
                       <StackPanel Spacing="4">
-                        <TextBlock Text="{Binding TooltipHeader}" FontWeight="Bold" FontSize="12"/>
+                        <DockPanel>
+                          <!-- Stock from the sheet, as in WPF: on hand → remaining kg -->
+                          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Margin="8,0,0,0"
+                                      VerticalAlignment="Center">
+                            <TextBlock Text="{Binding StockKgText}" Foreground="{Binding StockKgBrush}" FontSize="10"
+                                       IsVisible="{Binding StockKgVisible}"/>
+                            <TextBlock Text=" → " FontSize="10" IsVisible="{Binding StockArrowVisible}"/>
+                            <TextBlock Text="{Binding RemainingText}" Foreground="{Binding RemainingBrush}" FontSize="10"
+                                       IsVisible="{Binding RemainingVisible}"/>
+                          </StackPanel>
+                          <TextBlock Text="{Binding TooltipHeader}" FontWeight="Bold" FontSize="12"/>
+                        </DockPanel>
                         <Image Source="{Binding TooltipBitmap}" Stretch="None"
                                IsVisible="{Binding TooltipBitmap, Converter={x:Static ObjectConverters.IsNotNull}}"/>
                       </StackPanel>

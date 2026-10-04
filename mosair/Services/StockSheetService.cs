@@ -71,9 +71,9 @@ namespace mosair.Services
             return stock;
         }
 
-        // "stok kontrol": write this mosaic's stone counts into its column, then return the stone IDs whose
-        // "Tahmini Kalan" (estimated remaining) went negative.
-        public static async Task<HashSet<int>> CheckStockAsync(string scriptUrl, string sheetId, string projectName,
+        // "stok kontrol": write this mosaic's stone counts into its column, then read back each stone's
+        // "Tahmini Kalan" (estimated remaining) and "Bizdeki (kg)"; stones whose remaining went negative are short.
+        public static async Task<CheckResult> CheckStockAsync(string scriptUrl, string sheetId, string projectName,
             List<(int Id, int Count)> stones)
         {
             var payload = new Dictionary<string, object>
@@ -88,20 +88,36 @@ namespace mosair.Services
             await Task.Delay(100);
             var rows = await FetchCsvAsync(sheetId);
             var headers = rows[0];
-            int mosCol = -1, kalanCol = -1;
+            int mosCol = -1, kalanCol = -1, bizdekiCol = -1;
             for (int i = 0; i < headers.Length; i++)
             {
                 string h = headers[i].Trim().ToLowerInvariant();
                 if (h == "mos") mosCol = i;
                 else if (h.Contains("tahmini") && h.Contains("kalan")) kalanCol = i;
+                else if (bizdekiCol < 0 && h.Contains("bizdeki") && h.Contains("(kg)")) bizdekiCol = i;
             }
             if (mosCol < 0 || kalanCol < 0)
                 throw new Exception(Loc.Fmt("StockErrColumns", "mos / Tahmini Kalan", string.Join(", ", headers)));
 
-            var shortIds = new HashSet<int>();
+            var result = new CheckResult();
             foreach (var (mos, kalan) in ReadNumberColumn(rows, mosCol, kalanCol))
-                if (kalan < 0) shortIds.Add(mos);
-            return shortIds;
+            {
+                result.Remaining[mos] = kalan;
+                if (kalan < 0) result.ShortIds.Add(mos);
+            }
+            // As in WPF, "Bizdeki (kg)" is only taken from rows that have a remaining amount.
+            if (bizdekiCol >= 0)
+                foreach (var (mos, kg) in ReadNumberColumn(rows, mosCol, bizdekiCol))
+                    if (result.Remaining.ContainsKey(mos)) result.OnHand[mos] = kg;
+            return result;
+        }
+
+        public sealed class CheckResult
+        {
+            public HashSet<int> ShortIds { get; } = new();
+            // "Tahmini Kalan" (stock left after the mosaics in the sheet) and "Bizdeki (kg)" (stock on hand), by stone ID.
+            public Dictionary<int, double> Remaining { get; } = new();
+            public Dictionary<int, double> OnHand { get; } = new();
         }
 
         // "stok temizle" (one column / all mosaic columns) and "stok ekle".

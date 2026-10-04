@@ -49,6 +49,52 @@ namespace mosair.ViewModels
             set { _stockShort = value; OnPropertyChanged(); }
         }
 
+        // Tooltip stock line, as in WPF: "on hand → remaining kg". On hand ("Bizdeki (kg)") comes from Fetch Stock
+        // and Check Stock, remaining ("Tahmini Kalan") from Check Stock. Each number is red at 0 or below, else green.
+        private double? _stockKg;
+        private double? _remainingKg;
+        private static readonly IBrush KgOkBrush = new SolidColorBrush(Color.FromRgb(0x4e, 0xcb, 0x71));
+        private static readonly IBrush KgShortBrush = new SolidColorBrush(Color.FromRgb(0xE5, 0x39, 0x35));
+
+        public double? StockKg
+        {
+            get => _stockKg;
+            set { _stockKg = value; NotifyStockText(); }
+        }
+
+        public double? RemainingKg
+        {
+            get => _remainingKg;
+            set { _remainingKg = value; NotifyStockText(); }
+        }
+
+        public bool StockKgVisible => _stockKg.HasValue;
+        public bool RemainingVisible => _remainingKg.HasValue;
+        public bool StockArrowVisible => _stockKg.HasValue && _remainingKg.HasValue;
+        public string StockKgText => _stockKg.HasValue
+            ? FormatKg(_stockKg.Value) + (_remainingKg.HasValue ? "" : " kg")
+            : "";
+        public string RemainingText => _remainingKg.HasValue
+            ? FormatKg(_remainingKg.Value) + " kg" + (_stockKg.HasValue ? "" : " " + Loc.Get("StockKgLeft"))
+            : "";
+        public IBrush StockKgBrush => _stockKg <= 0 ? KgShortBrush : KgOkBrush;
+        public IBrush RemainingBrush => _remainingKg <= 0 ? KgShortBrush : KgOkBrush;
+
+        private static string FormatKg(double v) => v.ToString("0.##", System.Globalization.CultureInfo.CurrentCulture);
+
+        private void NotifyStockText()
+        {
+            OnPropertyChanged(nameof(StockKg));
+            OnPropertyChanged(nameof(RemainingKg));
+            OnPropertyChanged(nameof(StockKgVisible));
+            OnPropertyChanged(nameof(RemainingVisible));
+            OnPropertyChanged(nameof(StockArrowVisible));
+            OnPropertyChanged(nameof(StockKgText));
+            OnPropertyChanged(nameof(RemainingText));
+            OnPropertyChanged(nameof(StockKgBrush));
+            OnPropertyChanged(nameof(RemainingBrush));
+        }
+
 
         public string TooltipHeader => $"{CodeName}  {Name}  {R} {G} {B}";
         public IBrush ColorBrush => new SolidColorBrush(Color.FromRgb(R, G, B));
@@ -238,6 +284,8 @@ namespace mosair.ViewModels
             await RunStockAction(async () =>
             {
                 stock = await StockSheetService.FetchStockAsync(config.SheetId);
+                foreach (var item in CatalogColors)
+                    if (stock.TryGetValue(item.ID, out double onHand)) item.StockKg = onHand;
                 // Stones listed in the sheet are enabled when stock > 0 and disabled otherwise; others keep their state.
                 ApplyStockSelection(id => stock.TryGetValue(id, out double kg) ? kg <= 0 : null);
             }, "");
@@ -274,10 +322,16 @@ namespace mosair.ViewModels
             HashSet<int>? shortIds = null;
             await RunStockAction(async () =>
             {
-                shortIds = await StockSheetService.CheckStockAsync(config.ScriptUrl, config.SheetId, projectName, stones);
+                var check = await StockSheetService.CheckStockAsync(config.ScriptUrl, config.SheetId, projectName, stones);
+                shortIds = check.ShortIds;
+                // Like WPF, short stones are only marked (red dot, red remaining kg); the selection is left as is.
                 foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = shortIds.Contains(c.ID);
-                foreach (var item in CatalogColors) item.StockShort = shortIds.Contains(item.ID);
-                ApplyStockSelection(id => shortIds.Contains(id) ? true : null);
+                foreach (var item in CatalogColors)
+                {
+                    item.StockShort = shortIds.Contains(item.ID);
+                    item.RemainingKg = check.Remaining.TryGetValue(item.ID, out double left) ? left : null;
+                    if (check.OnHand.TryGetValue(item.ID, out double onHand)) item.StockKg = onHand;
+                }
             }, "");
             if (shortIds != null)
                 StatusText = shortIds.Count == 0
@@ -986,6 +1040,7 @@ public bool UseLab
         {
             ProjectService.CurrentPictureFileName = path;
             ProjectService.CurrentFileName = "";
+            ProjectService.ForgetWpfState();
             MosaicEngine.Reset();
             MosaicDone = false;
 
@@ -1096,9 +1151,11 @@ public bool UseLab
             MosaicDone = false;
             StatusText = Loc.Get("StatusStarting");
             ElapsedTime = "";
+            ProjectService.ForgetWpfState();
 
             foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = false;
-            foreach (var item in CatalogColors) item.StockShort = false;
+            // As in WPF, a new mosaic drops the stock marks and kg values; fetch or check stock again to see them.
+            foreach (var item in CatalogColors) { item.StockShort = false; item.StockKg = null; item.RemainingKg = null; }
 
             if (UseOptimal)
             {

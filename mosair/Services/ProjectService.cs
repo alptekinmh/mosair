@@ -42,6 +42,11 @@ namespace mosair.Services
         public string? PictureFileName { get; set; }
         public int[]? Arn { get; set; }
         public string? Source { get; set; }
+
+        // Fields only WPF uses (robot production position colorID/mouldID/cn, view rectangle, numOfMinRGB, ...).
+        // Kept as read so saving a WPF project here does not lose them.
+        [JsonExtensionData]
+        public Dictionary<string, JsonElement>? WpfExtra { get; set; }
     }
 
     public class RgbData
@@ -104,6 +109,11 @@ namespace mosair.Services
     {
         public static string CurrentFileName { get; set; } = "";
         public static string CurrentPictureFileName { get; set; } = "";
+
+        private static Dictionary<string, JsonElement>? _wpfExtra;
+
+        // A new image or mosaic makes WPF's saved production position and view meaningless.
+        public static void ForgetWpfState() => _wpfExtra = null;
 
         private static readonly JsonSerializerOptions JsonOpts = new()
         {
@@ -218,6 +228,7 @@ namespace mosair.Services
 
             data.Arn = MosaicData.arn;
             data.Source = "mosair";
+            data.WpfExtra = _wpfExtra;
 
             string dir = Path.GetDirectoryName(filePath)!;
             Directory.CreateDirectory(dir);
@@ -247,8 +258,9 @@ namespace mosair.Services
             byte[] json = File.ReadAllBytes(filePath);
             var data = JsonSerializer.Deserialize<ProjectData>(json, JsonOpts);
             if (data == null) return null;
+            _wpfExtra = data.WpfExtra;
 
-            MosaicData.dataM1 = Unflatten3D(data.DataM1Flat, data.DataM1Dims);
+            MosaicData.dataM1 =Unflatten3D(data.DataM1Flat, data.DataM1Dims);
             MosaicData.dataM3 = Unflatten3D(data.DataM3Flat, data.DataM3Dims);
             MosaicData.dataM3F = Unflatten3D(data.DataM3FFLat, data.DataM3FDims);
             MosaicData.dataM3Backup = Unflatten3D(data.DataM3BackupFlat, data.DataM3BackupDims);
@@ -318,6 +330,12 @@ namespace mosair.Services
                 FlipHorizontalInPlace(MosaicData.dataM3F);
                 FlipHorizontalInPlace(MosaicData.dataM3Backup);
                 FlipHorizontalIntInPlace(drl.dat);
+                // Edited pixels and regions are in the same mirrored columns as the arrays (regions span [x1, x2)).
+                int cols = MosaicData.dataM3.GetLength(1);
+                foreach (var ep in PixelEditService.EditedPixels)
+                    ep.X = cols - 1 - ep.X;
+                foreach (var reg in drl.arar)
+                    (reg.x1, reg.x2) = (cols - reg.x2, cols - reg.x1);
             }
 
             CurrentFileName = filePath;

@@ -236,7 +236,7 @@
             </StackPanel>
             <TextBlock Classes="body" Text="Uc sutunlu yapi: Katalog (tum renk listesi), Palet (indeks sirasi) ve Atanan (kullanilan renkler + piksel sayisi). Her rengin yaninda kucuk doku onizlemesi ve tooltip'te buyuk onizleme gorulur."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Katalogdaki isaretli taslar Mos'ta kullanilabilecek taslardir. Mos'tan sonra sadece kullanilan taslar isaretli kalir. Atanan sutununda sadece mozaikte gercekten kullanilan taslar listelenir."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Bir tasin solundaki kirmizi nokta, Stok Kontrol sonrasi o tasin stogunun yetmedigini gosterir; bu taslar otomatik olarak devre disi birakilir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Bir tasin solundaki kirmizi nokta, Stok Kontrol sonrasi o tasin stogunun yetmedigini gosterir. Taslarin uzerine gelince ipucunda stok gorunur: okun solunda elimizdeki kg (Bizdeki), saginda mozaikten sonra kalacak kg (Tahmini Kalan); 0 veya alti kirmizi, ustu yesil."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Sol panelin ustunde genislik (cm) ayari bulunur."/>
           </StackPanel>
         </Border>
@@ -385,7 +385,7 @@
             <TextBlock Classes="h2" Text="Butonlar" Margin="0"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Tablo"/><TextBlock Classes="shortcut-desc" Text="Stok tablosunu tarayicida acar. Tabloyu degistirmez."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Cek"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Bizdeki (kg)' degeri 0 veya altinda olan taslarin isaretini kaldirir, stogu olanlari isaretler. Tabloyu degistirmez."/></StackPanel>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Kontrol"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Mozaigin tas adetlerini tablodaki proje sutununa yazar; 'Tahmini Kalan' eksiye dusen taslari kirmizi noktayla isaretleyip devre disi birakir. Tabloyu degistirir."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Kontrol"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Mozaigin tas adetlerini tablodaki proje sutununa yazar; 'Tahmini Kalan' eksiye dusen taslari kirmizi noktayla isaretler (secimi degistirmez). Ipucunda elimizdeki ve kalacak kg gorunur. Tabloyu degistirir."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Sil"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Bu mozaigin sutununu temizler ve basligini mozaikX yapar. Sag tik: tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Ekle"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Tahmini Kalan' degerlerini 'Bizdeki' sutununa tasir ve tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
           </StackPanel>
@@ -393,7 +393,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Ornek Akis" Margin="0"/>
-            <TextBlock Classes="body" Text="1. Stok Cek ile stogu biten taslari devre disi birakin.  2. Mos yapin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Kirmizi noktali taslar varsa tekrar Mos yapin ve kontrolu tekrarlayin.  5. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
+            <TextBlock Classes="body" Text="1. Stok Cek ile stogu biten taslari devre disi birakin.  2. Mos yapin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Kirmizi noktali taslar varsa onlari devre disi birakip tekrar Mos yapin ve kontrolu tekrarlayin.  5. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Tablodaki sutun adi gorsel dosyasinin adidir; ornegin 7.jpg icin '7'."/>
           </StackPanel>
         </Border>
@@ -489,7 +489,7 @@
             </StackPanel>
             <TextBlock Classes="body" Text="Three-column layout: Catalog (full color list), Palette (index order), and Assigned (used colors + pixel count). Each color shows a small texture preview with a larger tooltip preview."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Checked catalog stones are the ones Mos may use. After a Mos, only the stones actually used stay checked. The Assigned column lists only stones that appear in the mosaic."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="A red dot to the left of a stone means Check Stock found its stock insufficient; such stones are disabled automatically."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="A red dot to the left of a stone means Check Stock found its stock insufficient. Hovering a stone shows its stock in the tooltip: kg on hand (Bizdeki) left of the arrow, kg left after the mosaic (Tahmini Kalan) on the right; 0 or less is red, above is green."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Left panel top has the width (cm) setting."/>
           </StackPanel>
         </Border>
@@ -638,7 +638,7 @@
             <TextBlock Classes="h2" Text="Buttons" Margin="0"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sheet"/><TextBlock Classes="shortcut-desc" Text="Opens the stock sheet in the browser. Does not change the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Fetch Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Unchecks stones whose 'Bizdeki (kg)' is 0 or less and checks stones that have stock. Does not change the sheet."/></StackPanel>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Check Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Writes the mosaic's stone counts to the project column in the sheet; stones whose 'Tahmini Kalan' goes negative get a red dot and are disabled. Changes the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Check Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Writes the mosaic's stone counts to the project column in the sheet; stones whose 'Tahmini Kalan' goes negative get a red dot (the selection is not changed). The tooltip shows kg on hand and kg left. Changes the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Clear Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Clears this mosaic's column and resets its header to mozaikX. Right-click: clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Add Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Moves 'Tahmini Kalan' values into the 'Bizdeki' column and clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>
           </StackPanel>
@@ -646,7 +646,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Example Flow" Margin="0"/>
-            <TextBlock Classes="body" Text="1. Fetch Stock to disable stones that ran out.  2. Run Mos.  3. Check Stock to write the counts to the sheet.  4. If stones get a red dot, run Mos again and repeat the check.  5. After production, Add Stock to record the remaining stock in the sheet."/>
+            <TextBlock Classes="body" Text="1. Fetch Stock to disable stones that ran out.  2. Run Mos.  3. Check Stock to write the counts to the sheet.  4. If stones get a red dot, disable them and run Mos again and repeat the check.  5. After production, Add Stock to record the remaining stock in the sheet."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The column name in the sheet is the image file name; for example '7' for 7.jpg."/>
           </StackPanel>
         </Border>
