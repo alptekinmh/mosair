@@ -2,11 +2,25 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="mosair.Controls.StockSettingsDialog"
         Title=""
-        Width="520" SizeToContent="Height"
+        Width="560" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"
         Background="#2a2a30"
         ExtendClientAreaToDecorationsHint="False">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="#999999"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBlock.example">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="#888888"/>
+      <Setter Property="FontFamily" Value="JetBrains Mono,Consolas,Menlo,monospace"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+  </Window.Styles>
 
   <Border Padding="24" Background="#2a2a30">
     <StackPanel Spacing="12">
@@ -14,13 +28,28 @@
                  FontSize="16" FontWeight="SemiBold"
                  Foreground="#ffffff"/>
 
-      <TextBlock x:Name="SheetIdLabel" FontSize="12" Foreground="#cccccc"/>
-      <TextBox x:Name="SheetIdBox" FontSize="12" Height="32"/>
+      <StackPanel Spacing="4">
+        <TextBlock x:Name="SheetIdLabel" FontSize="12" FontWeight="SemiBold" Foreground="#cccccc"/>
+        <TextBlock x:Name="SheetIdHint" Classes="hint"/>
+        <TextBlock x:Name="SheetIdExample" Classes="example"/>
+        <TextBox x:Name="SheetIdBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
+      </StackPanel>
 
-      <TextBlock x:Name="ScriptUrlLabel" FontSize="12" Foreground="#cccccc"/>
-      <TextBox x:Name="ScriptUrlBox" FontSize="12" Height="32"/>
+      <StackPanel Spacing="4">
+        <TextBlock x:Name="ScriptUrlLabel" FontSize="12" FontWeight="SemiBold" Foreground="#cccccc"/>
+        <TextBlock x:Name="ScriptUrlHint" Classes="hint"/>
+        <TextBlock x:Name="ScriptUrlExample" Classes="example"/>
+        <TextBox x:Name="ScriptUrlBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
+      </StackPanel>
 
-      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="#999999"/>
+      <Border Background="#323239" CornerRadius="4" Padding="10,8">
+        <StackPanel Spacing="4">
+          <TextBlock x:Name="RequirementsTitle" FontSize="11" FontWeight="SemiBold" Foreground="#cccccc"/>
+          <TextBlock x:Name="RequirementsText" Classes="hint"/>
+        </StackPanel>
+      </Border>
+
+      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="#e0a050"/>
 
       <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
         <Button x:Name="CancelButton"
