@@ -150,35 +150,53 @@ namespace mosair.Services
             public string Code = "";  // "Kod", e.g. C125
             public string Name = "";  // "Öğe adı", e.g. Teos1 Yeşil; the same stone in other finishes shares it
             public double OnHandKg;   // "Bizdeki (kg)"
-            public int Capacity => OnHandKg <= 0 ? 0 : (int)Math.Floor(OnHandKg / StoneWeightKg + 1e-9);
+            // Stock already set aside by the sheet's other mosaic columns (counts × 3.3 g).
+            public double OtherMosaicsKg;
+            // What this mosaic may use: on hand minus the other mosaics' share.
+            public double AvailableKg => OnHandKg - OtherMosaicsKg;
+            public int Capacity => AvailableKg <= 0 ? 0 : (int)Math.Floor(AvailableKg / StoneWeightKg + 1e-9);
         }
 
         // Stones that have a row in the sheet (a "mos" number and a "Kod"). Stones without a row have no stock data.
-        public static async Task<Dictionary<int, StoneStock>> FetchOnHandAsync(string sheetId) =>
-            ParseOnHand(await FetchCsvAsync(sheetId));
+        // projectName: this mosaic's own column, left out of the other mosaics' share (null = count every column).
+        public static async Task<Dictionary<int, StoneStock>> FetchOnHandAsync(string sheetId, string? projectName = null) =>
+            ParseOnHand(await FetchCsvAsync(sheetId), projectName);
 
-        public static Dictionary<int, StoneStock> ParseOnHandCsv(string csv)
+        public static Dictionary<int, StoneStock> ParseOnHandCsv(string csv, string? projectName = null)
         {
             var rows = new List<string[]>();
             foreach (var line in csv.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
                 rows.Add(ParseCsvLine(line));
-            return ParseOnHand(rows);
+            return ParseOnHand(rows, projectName);
         }
 
-        private static Dictionary<int, StoneStock> ParseOnHand(List<string[]> rows)
+        private static Dictionary<int, StoneStock> ParseOnHand(List<string[]> rows, string? projectName)
         {
             var headers = rows[0];
-            int mosCol = -1, kodCol = -1, nameCol = -1, bizdekiCol = -1;
+            int mosCol = -1, kodCol = -1, nameCol = -1, bizdekiCol = -1, zoneStart = -1, zoneEnd = -1;
             for (int i = 0; i < headers.Length; i++)
             {
                 string h = headers[i].Trim().ToLowerInvariant();
                 if (h == "mos") mosCol = i;
                 else if (h == "kod") kodCol = i;
                 else if (nameCol < 0 && h.Contains("adı")) nameCol = i;
-                else if (bizdekiCol < 0 && h.Contains("bizdeki") && h.Contains("(kg)")) bizdekiCol = i;
+                if (bizdekiCol < 0 && h.Contains("bizdeki") && h.Contains("(kg)")) bizdekiCol = i;
+                // Mosaic columns: same rule as the sheet's Apps Script (findMozaikZone) — after the last
+                // "bizdeki" header up to the "13." header, skipping "#" and empty headers.
+                if (h.Contains("bizdeki")) zoneStart = i + 1;
+                if (h.Contains("13.")) zoneEnd = i;
             }
             if (mosCol < 0 || bizdekiCol < 0)
                 throw new Exception(Loc.Fmt("StockErrColumns", "mos / Bizdeki (kg)", string.Join(", ", headers)));
+            if (zoneStart > 0 && zoneEnd < 0) zoneEnd = zoneStart + 9;
+            var zone = new List<int>();
+            for (int c = Math.Max(zoneStart, 0); c < zoneEnd && c < headers.Length; c++)
+            {
+                string h = headers[c].Trim();
+                if (h.Length == 0 || h == "#") continue;
+                if (projectName != null && h == projectName.Trim()) continue;
+                zone.Add(c);
+            }
 
             var stock = new Dictionary<int, StoneStock>();
             for (int r = 1; r < rows.Count; r++)
@@ -188,14 +206,27 @@ namespace mosair.Services
                 if (!int.TryParse(Col(mosCol), out int mos)) continue;
                 string kod = Col(kodCol);
                 if (kodCol >= 0 && kod.Length == 0) continue; // filler row without a stone
+                double others = 0;
+                foreach (int c in zone) others += ParseTrNumber(Col(c)) ?? 0;
                 stock[mos] = new StoneStock
                 {
                     Id = mos, Code = kod, Name = Col(nameCol),
-                    OnHandKg = ParseTrNumber(Col(bizdekiCol)) ?? 0
+                    OnHandKg = ParseTrNumber(Col(bizdekiCol)) ?? 0,
+                    OtherMosaicsKg = Math.Max(0, others) * StoneWeightKg
                 };
             }
             return stock;
         }
+
+        // Writes this mosaic's stone counts into its project column, without reading anything back
+        // (used after the stock-aware fix, whose result is already known).
+        public static Task WriteCountsAsync(string scriptUrl, string sheetId, string projectName, List<(int Id, int Count)> stones) =>
+            PostAsync(scriptUrl, new Dictionary<string, object>
+            {
+                ["projectName"] = projectName,
+                ["sheetId"] = sheetId,
+                ["stones"] = stones.ConvertAll(s => new Dictionary<string, int> { ["mos"] = s.Id, ["count"] = s.Count })
+            }, treatNotFoundAsError: false);
 
         // Sheet numbers use Turkish format: "1.027,00" = 1027.00, "15,00" = 15.0. Empty → null.
         public static double? ParseTrNumber(string s)

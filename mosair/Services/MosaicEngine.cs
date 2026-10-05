@@ -145,7 +145,7 @@ namespace mosair.Services
                 for (int j = 0; j < C; j++)
                     assign[i * C + j] = poolIndexOfId[drl.dat[i, j, 3]];
 
-            var result = StockAwareAssigner.Solve(src, R, C, assign, pool, capacityOfId, familyOfId, options, _optGamut);
+            var result = StockAwareAssigner.SolveWithMinimum(src, R, C, assign, pool, capacityOfId, familyOfId, options, _optGamut);
             LastStockResult = result;
             if (result.Changed)
             {

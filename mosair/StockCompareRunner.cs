@@ -26,7 +26,9 @@ public static class StockCompareRunner
         var inv = CultureInfo.InvariantCulture;
         string outDir = args[1];
         double widthCm = double.Parse(args[2], inv);
-        var stock = StockSheetService.ParseOnHandCsv(File.ReadAllText(args[3]));
+        // MOSAIR_PROJECT: this mosaic's own sheet column, left out of the other mosaics' share (as after Stok Kontrol).
+        string? project = Environment.GetEnvironmentVariable("MOSAIR_PROJECT");
+        var stock = StockSheetService.ParseOnHandCsv(File.ReadAllText(args[3]), project);
         double scale = double.Parse(args[4], inv);
         Directory.CreateDirectory(outDir);
         ColorCatalogService.LoadDefaultCatalog();
@@ -39,14 +41,15 @@ public static class StockCompareRunner
         Log("");
         LogSimilarity(Log, stock);
 
-        int? Cap(int id) => stock.TryGetValue(id, out var s) ? Math.Max(0, (int)Math.Floor(s.OnHandKg * scale / StockSheetService.StoneWeightKg + 1e-9)) : null;
+        int? Cap(int id) => stock.TryGetValue(id, out var s)
+            ? Math.Max(0, (int)Math.Floor((s.OnHandKg * scale - s.OtherMosaicsKg) / StockSheetService.StoneWeightKg + 1e-9)) : null;
         int? Unlimited(int id) => stock.ContainsKey(id) ? int.MaxValue / 4 : null;
         string? Family(int id) => stock.TryGetValue(id, out var s) ? s.Name : null;
         string Label(int id) => stock.TryGetValue(id, out var s) ? $"#{id} {s.Code} {s.Name}" : $"#{id} (stok kaydı yok)";
         string Kg(int pieces) => (pieces * StockSheetService.StoneWeightKg).ToString("0.00", inv);
 
         var summary = new StringBuilder();
-        summary.AppendLine("image\tstones O/S\tmeanΔE O/S\tedgesKept O/S\tLcorr O/S\tover before/after\tmoved\tadded\tidentical");
+        summary.AppendLine("image\tstones O/S\tmeanΔE O/S\tedgesKept O/S\tLcorr O/S\tover before/after\tsmall before/after\tmoved\tadded\tidentical\tchecks");
 
         for (int a = 5; a < args.Length; a++)
         {
@@ -65,8 +68,11 @@ public static class StockCompareRunner
             string optPalette = PaletteKey();
             var qOpt = MosaicMetrics.Evaluate(src, optData, R, C);
 
-            // Acceptance test: with enough stock the step must not change anything.
-            MosaicEngine.ApplyOptimalKWithStock(k, Unlimited, Family, options, prepareTextures: false);
+            options.MinUsage = StockAwareOptions.MinUsageFor(R * C);
+            int smallBefore = MosaicData.arMB.SelectMany(l => l).Count(c => c.numOfPixel > 0 && c.numOfPixel < options.MinUsage);
+
+            // Acceptance test: with enough stock and no minimum rule the step must not change anything.
+            MosaicEngine.ApplyOptimalKWithStock(k, Unlimited, Family, new StockAwareOptions { MinUsage = 0 }, prepareTextures: false);
             bool identical = Same(optData, MosaicData.dataM3) && Same(optIds, CopyIds(R, C)) && optPalette == PaletteKey()
                              && !MosaicEngine.LastStockResult!.Changed;
 
@@ -77,11 +83,16 @@ public static class StockCompareRunner
             var stData = (byte[,,])MosaicData.dataM3.Clone();
             var qSt = MosaicMetrics.Evaluate(src, stData, R, C);
             int overBefore = res.CountBefore.Count(kv => res.Capacity.TryGetValue(kv.Key, out int c) && kv.Value > c);
+            int smallAfter = res.CountAfter.Count(kv => kv.Value < options.MinUsage);
+            bool checks = res.ShortIds.Count == 0 && smallAfter == 0;
 
             Log($"[{name}] {C}x{R} = {R * C} taş, Optimum k={k}");
             Log($"  Optimum      {qOpt}");
             Log($"  Stoğa göre   {qSt}  süre={sw.Elapsed.TotalMilliseconds:F0}ms");
-            Log($"  stok yeterli olunca birebir aynı: {(identical ? "EVET" : "HAYIR")}");
+            Log($"  stok yeterli olunca birebir aynı: {(identical ? "EVET" : "HAYIR")}; en az kullanım {options.MinUsage}: " +
+                $"Optimum'da sınır altı taş {smallBefore}, sonra {smallAfter}; kontroller {(checks ? "GEÇTİ" : "KALDI")}");
+            if (res.SmallRemovedIds.Count > 0)
+                Log($"  az kullanıldığı için çıkarılan: {string.Join(", ", res.SmallRemovedIds.Select(id => $"{Label(id)} ({(res.CountBefore.TryGetValue(id, out int b) ? b : 0)})"))}");
             Log($"  stoğu aşan taş: önce {overBefore}, sonra {res.ShortIds.Count}; taşınan {res.MovedPixels} taş, " +
                 $"taşınanların ortalama renk değişimi {res.MeanShift.ToString("F2", inv)}; arama seviyesi {res.Level} ({LevelText(res.Level)}); yeni taş türü: {(res.AddedIds.Count == 0 ? "yok" : string.Join(", ", res.AddedIds.Select(Label)))}");
             Log("  taş                                    | Optimum adet (kg) | stok kg (adet) | sonra adet (kg)");
@@ -105,7 +116,7 @@ public static class StockCompareRunner
             Log("");
 
             summary.AppendLine(string.Create(inv,
-                $"{name}\t{qOpt.Stones}/{qSt.Stones}\t{qOpt.MeanDeltaE:F2}/{qSt.MeanDeltaE:F2}\t{qOpt.EdgeKept * 100:F1}/{qSt.EdgeKept * 100:F1}\t{qOpt.LightnessCorr:F3}/{qSt.LightnessCorr:F3}\t{overBefore}/{res.ShortIds.Count}\t{res.MovedPixels}\t{res.AddedIds.Count}\t{(identical ? "yes" : "NO")}"));
+                $"{name}\t{qOpt.Stones}/{qSt.Stones}\t{qOpt.MeanDeltaE:F2}/{qSt.MeanDeltaE:F2}\t{qOpt.EdgeKept * 100:F1}/{qSt.EdgeKept * 100:F1}\t{qOpt.LightnessCorr:F3}/{qSt.LightnessCorr:F3}\t{overBefore}/{res.ShortIds.Count}\t{smallBefore}/{smallAfter}\t{res.MovedPixels}\t{res.AddedIds.Count}\t{(identical ? "yes" : "NO")}\t{(checks ? "ok" : "FAIL")}"));
 
             SavePanels(Path.Combine(outDir, $"{name}_stok.png"), R, C, optData, stData,
                 ("Orijinal", src), ($"Optimum · {qOpt.Stones} taş", optData),

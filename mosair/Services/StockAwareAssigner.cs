@@ -26,6 +26,13 @@ namespace mosair.Services
         // Stones this close (ΔE) to an over-used stone are practically the same colour ("twins", like the 48/49
         // case): they may always be brought in, without the NewStoneGain test.
         public double TwinTolerance = 3.0;
+        // Stones used fewer times than this in the result are dropped (their pixels go to similar stones):
+        // a handful of stones is not worth a colour change for the robot. 0 or 1 = off.
+        public int MinUsage = 0;
+
+        // Default minimum for a mosaic of the given size: 10 stones, or 0.05% of all stones on large mosaics
+        // (78×78 → 10, 16 m² ≈ 111,000 stones → 56).
+        public static int MinUsageFor(int totalStones) => Math.Max(10, (int)Math.Ceiling(totalStones * 0.0005));
     }
 
     public sealed class StockMove
@@ -45,6 +52,9 @@ namespace mosair.Services
         public List<int> ShortIds = new();
         // Stones the mosaic uses that have no row in the stock sheet, so their stock could not be checked.
         public List<int> UnknownIds = new();
+        // Stones dropped because they were used fewer than MinUsage times, and ones that could not be dropped.
+        public List<int> SmallRemovedIds = new(), SmallKeptIds = new();
+        public int MinUsage;
         public List<StockMove> Moves = new();
         public int MovedPixels;
         // Average extra colour distance of the moved pixels (Optimum metric).
@@ -61,6 +71,86 @@ namespace mosair.Services
     public static class StockAwareAssigner
     {
         private const int Unknown = -1;
+
+        // Stock limits plus the minimum-usage rule. A min-cost flow cannot price "using a stone at all", so the
+        // rule is applied in rounds: every stone left with 0 < count < MinUsage gets capacity 0 and its pixels
+        // are moved like any other excess; repeated until no new small stone appears. With no stone over its
+        // stock and none under the minimum, the mosaic is returned unchanged.
+        public static StockAwareResult SolveWithMinimum(byte[,,] src, int R, int C, int[] assign, List<rgb> pool,
+            Func<int, int?> capacityOfId, Func<int, string?> familyOfId, StockAwareOptions opt, GamutMapper? gamut)
+        {
+            int N = R * C, M = pool.Count;
+            var forced = new HashSet<int>(); // stone IDs that must give up all their pixels
+            int[] current = assign;
+            int level = 0;
+            for (int round = 0; round < 64; round++)
+            {
+                var r = Solve(src, R, C, current, pool, id => forced.Contains(id) ? 0 : capacityOfId(id),
+                    familyOfId, opt, gamut);
+                level = Math.Max(level, r.Level);
+                current = r.Assignment;
+                if (opt.MinUsage <= 1) break;
+                var counts = new int[M];
+                for (int p = 0; p < N; p++) counts[current[p]]++;
+                bool added = false;
+                for (int m = 0; m < M; m++)
+                    if (counts[m] > 0 && counts[m] < opt.MinUsage && forced.Add(pool[m].ID)) added = true;
+                if (!added) break;
+            }
+
+            // Report the overall change (original assignment → final), however many rounds it took.
+            var res = new StockAwareResult { Assignment = current, Level = level, MinUsage = opt.MinUsage };
+            int[] before = new int[M], after = new int[M];
+            for (int p = 0; p < N; p++) { before[assign[p]]++; after[current[p]]++; }
+            var labCache = new Dictionary<int, (double L, double A, double B)>();
+            var poolLab = new (double L, double A, double B)[M];
+            for (int m = 0; m < M; m++) poolLab[m] = ColorMatcher.RgbToLab(pool[m].r, pool[m].g, pool[m].b);
+            double Dist((double L, double A, double B) x, (double L, double A, double B) s)
+            {
+                double dl = (x.L - s.L) * opt.LightnessWeight, da = x.A - s.A, db = x.B - s.B;
+                return Math.Sqrt(dl * dl + da * da + db * db);
+            }
+            var moves = new Dictionary<(int s, int t), int>();
+            double shift = 0;
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                {
+                    int p = i * C + j, s = assign[p], t = current[p];
+                    if (s == t) continue;
+                    byte b = src[i, j, 0], g = src[i, j, 1], rr = src[i, j, 2];
+                    int key = (rr << 16) | (g << 8) | b;
+                    if (!labCache.TryGetValue(key, out var lab))
+                    {
+                        lab = ColorMatcher.RgbToLab(rr, g, b);
+                        if (gamut != null) lab = gamut.Map(lab);
+                        labCache[key] = lab;
+                    }
+                    shift += Dist(lab, poolLab[t]) - Dist(lab, poolLab[s]);
+                    moves[(s, t)] = (moves.TryGetValue((s, t), out int n) ? n : 0) + 1;
+                    res.MovedPixels++;
+                }
+            res.Changed = res.MovedPixels > 0;
+            res.MeanShift = res.MovedPixels > 0 ? shift / res.MovedPixels : 0;
+            foreach (var kv in moves)
+                res.Moves.Add(new StockMove { FromId = pool[kv.Key.s].ID, ToId = pool[kv.Key.t].ID, Count = kv.Value });
+            res.Moves.Sort((x, y) => x.FromId != y.FromId ? x.FromId.CompareTo(y.FromId) : y.Count.CompareTo(x.Count));
+            for (int m = 0; m < M; m++)
+            {
+                int id = pool[m].ID;
+                int? cap = capacityOfId(id);
+                if (cap != null) res.Capacity[id] = Math.Max(0, cap.Value);
+                if (before[m] > 0) res.CountBefore[id] = before[m];
+                if (after[m] > 0) res.CountAfter[id] = after[m];
+                if (after[m] > 0 && before[m] == 0) res.AddedIds.Add(id);
+                if (cap != null && after[m] > Math.Max(0, cap.Value)) res.ShortIds.Add(id);
+                if (cap == null && after[m] > 0) res.UnknownIds.Add(id);
+                // Only stones the original mosaic used; a substitute that briefly appeared and was dropped again
+                // is not worth reporting.
+                if (forced.Contains(id) && before[m] > 0 && !(cap != null && after[m] > Math.Max(0, cap.Value)))
+                    (after[m] == 0 ? res.SmallRemovedIds : res.SmallKeptIds).Add(id);
+            }
+            return res;
+        }
 
         // capacityOfId: stones available (pieces) for a stone ID, or null when the stone has no stock data;
         // such stones keep their pixels and are never used as substitutes.
