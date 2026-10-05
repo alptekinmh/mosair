@@ -30,6 +30,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [MainWindow.md](kod/MainWindow.md) | `MainWindow.axaml(.cs)` | Pencere yerleşimi, bütün olay işleyiciler, kısayollar, kaydet/dışa aktar klasörleri |
 | [HelpWindow.md](kod/HelpWindow.md) | `HelpWindow.axaml(.cs)` | Uygulama içi kullanım kılavuzu (TR/EN) |
 | [CompareRunner.md](kod/CompareRunner.md) | `CompareRunner.cs` | Algoritma karşılaştırma aracı (geliştirici) |
+| [StockCompareRunner.md](kod/StockCompareRunner.md) | `StockCompareRunner.cs` | Stoğa göre düzeltme karşılaştırma aracı (deneme) |
 | [mosair.csproj.md](kod/mosair.csproj.md) | `mosair.csproj` | Paketler, varlıklar (renk kataloğu, taş dokuları) |
 | [build-workflow.md](kod/build-workflow.md) | `.github/workflows/build.yml` | Etiketle sürüm derleme ve yayınlama |
 
@@ -55,6 +56,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
 | [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
+| [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (deneme) |
 
 ### Modeller, kontroller, dönüştürücüler
 
