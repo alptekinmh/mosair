@@ -139,6 +139,73 @@ namespace mosair.Services
                 ["action"] = "stokEkle", ["sheetId"] = sheetId
             }, treatNotFoundAsError: true);
 
+        // ===== Stock-aware mosaic: stock on hand per stone =====
+
+        // Weight of one mosaic stone. The sheet's "Kullanılacaklar (kg)" is exactly count × 3.3 g.
+        public const double StoneWeightKg = 0.0033;
+
+        public sealed class StoneStock
+        {
+            public int Id;            // "mos" column = catalog stone ID
+            public string Code = "";  // "Kod", e.g. C125
+            public string Name = "";  // "Öğe adı", e.g. Teos1 Yeşil; the same stone in other finishes shares it
+            public double OnHandKg;   // "Bizdeki (kg)"
+            public int Capacity => OnHandKg <= 0 ? 0 : (int)Math.Floor(OnHandKg / StoneWeightKg + 1e-9);
+        }
+
+        // Stones that have a row in the sheet (a "mos" number and a "Kod"). Stones without a row have no stock data.
+        public static async Task<Dictionary<int, StoneStock>> FetchOnHandAsync(string sheetId) =>
+            ParseOnHand(await FetchCsvAsync(sheetId));
+
+        public static Dictionary<int, StoneStock> ParseOnHandCsv(string csv)
+        {
+            var rows = new List<string[]>();
+            foreach (var line in csv.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                rows.Add(ParseCsvLine(line));
+            return ParseOnHand(rows);
+        }
+
+        private static Dictionary<int, StoneStock> ParseOnHand(List<string[]> rows)
+        {
+            var headers = rows[0];
+            int mosCol = -1, kodCol = -1, nameCol = -1, bizdekiCol = -1;
+            for (int i = 0; i < headers.Length; i++)
+            {
+                string h = headers[i].Trim().ToLowerInvariant();
+                if (h == "mos") mosCol = i;
+                else if (h == "kod") kodCol = i;
+                else if (nameCol < 0 && h.Contains("adı")) nameCol = i;
+                else if (bizdekiCol < 0 && h.Contains("bizdeki") && h.Contains("(kg)")) bizdekiCol = i;
+            }
+            if (mosCol < 0 || bizdekiCol < 0)
+                throw new Exception(Loc.Fmt("StockErrColumns", "mos / Bizdeki (kg)", string.Join(", ", headers)));
+
+            var stock = new Dictionary<int, StoneStock>();
+            for (int r = 1; r < rows.Count; r++)
+            {
+                var cols = rows[r];
+                string Col(int c) => c >= 0 && c < cols.Length ? cols[c].Trim() : "";
+                if (!int.TryParse(Col(mosCol), out int mos)) continue;
+                string kod = Col(kodCol);
+                if (kodCol >= 0 && kod.Length == 0) continue; // filler row without a stone
+                stock[mos] = new StoneStock
+                {
+                    Id = mos, Code = kod, Name = Col(nameCol),
+                    OnHandKg = ParseTrNumber(Col(bizdekiCol)) ?? 0
+                };
+            }
+            return stock;
+        }
+
+        // Sheet numbers use Turkish format: "1.027,00" = 1027.00, "15,00" = 15.0. Empty → null.
+        public static double? ParseTrNumber(string s)
+        {
+            s = s.Trim();
+            if (s.Length == 0) return null;
+            string v = s.Replace(".", "").Replace(",", ".");
+            return double.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out double d) ? d : null;
+        }
+
         private static async Task<List<string[]>> FetchCsvAsync(string sheetId)
         {
             string url = $"https://docs.google.com/spreadsheets/d/{Uri.EscapeDataString(sheetId)}/gviz/tq?tqx=out:csv";

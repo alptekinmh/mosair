@@ -124,6 +124,93 @@ namespace mosair.Services
             return bmp;
         }
 
+        // ===== Stock-aware step (runs after Optimum; Optimum itself is unchanged) =====
+
+        public static StockAwareResult? LastStockResult { get; private set; }
+
+        // Same as ApplyOptimalK, then rearranges stones that are used beyond their stock (StockAwareAssigner).
+        // When every stone fits its stock the mosaic is left exactly as ApplyOptimalK built it.
+        public static SKBitmap ApplyOptimalKWithStock(int k, Func<int, int?> capacityOfId, Func<int, string?> familyOfId,
+            StockAwareOptions options, bool prepareTextures = true)
+        {
+            var bmp = ApplyOptimalK(k, prepareTextures: false);
+            var src = _optSrc!;
+            var pool = _optCandidates!;
+            int R = src.GetLength(0), C = src.GetLength(1);
+
+            var poolIndexOfId = new Dictionary<int, int>();
+            for (int m = 0; m < pool.Count; m++) poolIndexOfId[pool[m].ID] = m;
+            var assign = new int[R * C];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                    assign[i * C + j] = poolIndexOfId[drl.dat[i, j, 3]];
+
+            var result = StockAwareAssigner.Solve(src, R, C, assign, pool, capacityOfId, familyOfId, options, _optGamut);
+            LastStockResult = result;
+            if (result.Changed)
+            {
+                RebuildFromAssignment(result.Assignment, pool, R, C);
+                bmp = MosaicData.reducedBitmap!;
+            }
+
+            if (prepareTextures)
+            {
+                StoneTextureService.PopulateRandomIndices(R, C);
+                StoneTextureService.LoadTextures();
+                StoneTextureService.ResizeTextures(MosaicData.N);
+            }
+            return bmp;
+        }
+
+        // Writes a per-pixel stone choice into the mosaic data the same way ApplyOptimalK does.
+        private static void RebuildFromAssignment(int[] assign, List<rgb> pool, int R, int C)
+        {
+            int M = pool.Count;
+            int[] counts = new int[M];
+            MosaicData.dataM3 = new byte[R, C, 3];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                {
+                    int m = assign[i * C + j];
+                    counts[m]++;
+                    MosaicData.dataM3[i, j, 0] = (byte)pool[m].b;
+                    MosaicData.dataM3[i, j, 1] = (byte)pool[m].g;
+                    MosaicData.dataM3[i, j, 2] = (byte)pool[m].r;
+                    drl.dat[i, j, 3] = pool[m].ID;
+                }
+
+            var palette = new List<rgb>();
+            for (int m = 0; m < M; m++)
+            {
+                if (counts[m] == 0) continue;
+                var c = CloneRgb(pool[m]);
+                c.numOfPixel = counts[m];
+                c.reg = 1;
+                c.boolLeaveOut = false;
+                palette.Add(c);
+            }
+            palette.Sort((a, b) => a.ID.CompareTo(b.ID));
+            for (int z = 0; z < palette.Count; z++)
+            {
+                palette[z].u = z + 1;
+                palette[z].uc = z + 1;
+                palette[z].ri = palette[z].r; palette[z].gi = palette[z].g; palette[z].bi = palette[z].b;
+                palette[z].dis = (palette[z].r + palette[z].g + palette[z].b) / 3.0;
+            }
+            rgbM = palette.Count;
+            if (drl.arar.Count > 0) drl.arar[0].rgbM = palette.Count;
+
+            MosaicData.dataM1 = (byte[,,])MosaicData.dataM3.Clone();
+            MosaicData.arMB = new List<List<rgb>> { palette };
+            MosaicData.arMA = CloneNestedList(MosaicData.arMB);
+            BackupM3(R, C);
+
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
+            // The export bitmap ApplyOptimalK just made may already be on screen, so it is left to the finalizer
+            // instead of being disposed here on the worker thread.
+            MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
+        }
+
         private static byte[,,]? _optSrc;
         private static List<rgb>? _optCandidates;
         private static GamutMapper? _optGamut;

@@ -220,6 +220,11 @@ public partial class MainWindow : Window
         _vm.UseOptimal = !_vm.UseOptimal;
     }
 
+    private void OnToggleStockAware(object? sender, RoutedEventArgs e)
+    {
+        _vm.UseStockAware = !_vm.UseStockAware;
+    }
+
     private void OnStonesSuggested(object? sender, RoutedEventArgs e)
     {
         if (_vm.IsProcessing) return;

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media;
@@ -720,6 +721,107 @@ public bool UseLab
             set { _useOptimal = value; OnPropertyChanged(); }
         }
 
+        // ===== Stock-aware Optimum: keep every stone within its "Bizdeki (kg)" stock =====
+
+        private bool _useStockAware = true;
+        // Stock read when Mos started; the stone-count slider reuses it instead of reading the sheet again.
+        private Dictionary<int, StockSheetService.StoneStock>? _stockOnHand;
+        private string _stockAwareReport = "";
+
+        public bool UseStockAware
+        {
+            get => _useStockAware;
+            set { _useStockAware = value; OnPropertyChanged(); OnPropertyChanged(nameof(StockAwareTip)); }
+        }
+
+        public string StockAwareTip => _stockAwareReport.Length == 0
+            ? Loc.Get("TipStockAware")
+            : Loc.Get("TipStockAware") + "\n\n" + _stockAwareReport;
+
+        private void SetStockAwareReport(string text)
+        {
+            _stockAwareReport = text;
+            OnPropertyChanged(nameof(StockAwareTip));
+        }
+
+        private async Task<Dictionary<int, StockSheetService.StoneStock>?> ReadStockForMosaicAsync()
+        {
+            var config = StockSheetService.LoadConfig();
+            if (string.IsNullOrEmpty(config.SheetId))
+            {
+                SetStockAwareReport(Loc.Get("StockAwareNoConfig"));
+                return null;
+            }
+            try
+            {
+                StatusText = Loc.Get("StockAwareReading");
+                return await StockSheetService.FetchOnHandAsync(config.SheetId);
+            }
+            catch (Exception ex)
+            {
+                SetStockAwareReport(Loc.Fmt("StockAwareReadFailed", ex.Message));
+                return null;
+            }
+        }
+
+        // Runs on the worker thread.
+        private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
+            stock == null
+                ? MosaicEngine.ApplyOptimalK(k)
+                : MosaicEngine.ApplyOptimalKWithStock(k,
+                    id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
+                    id => stock.TryGetValue(id, out var s) ? s.Name : null,
+                    new StockAwareOptions());
+
+        // After a stock-aware run: kg values and red dots in the catalog, a short status note and the full report.
+        private void ShowStockAwareResult(Dictionary<int, StockSheetService.StoneStock> stock)
+        {
+            var res = MosaicEngine.LastStockResult;
+            if (res == null) return;
+            string Label(int id) => stock.TryGetValue(id, out var s) ? $"#{id} {s.Code} {s.Name.Trim()}" : $"#{id}";
+
+            foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = res.ShortIds.Contains(c.ID);
+            foreach (var item in CatalogColors)
+            {
+                item.StockShort = res.ShortIds.Contains(item.ID);
+                if (stock.TryGetValue(item.ID, out var s))
+                {
+                    res.CountAfter.TryGetValue(item.ID, out int used);
+                    item.StockKg = s.OnHandKg;
+                    // What stays on hand after this mosaic (Check Stock later shows the sheet's own estimate).
+                    item.RemainingKg = used > 0 ? s.OnHandKg - used * StockSheetService.StoneWeightKg : null;
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            string summary;
+            if (!res.Changed && res.ShortIds.Count == 0)
+            {
+                summary = Loc.Get("StockAwareOk");
+                sb.Append(summary);
+            }
+            else
+            {
+                summary = Loc.Fmt("StockAwareChanged", res.Moves.Select(m => m.FromId).Distinct().Count(), res.MovedPixels);
+                sb.AppendLine(summary);
+                foreach (var m in res.Moves)
+                    sb.AppendLine(Loc.Fmt("StockAwareMove", Label(m.FromId), Label(m.ToId), m.Count,
+                        (m.Count * StockSheetService.StoneWeightKg).ToString("0.00")));
+                if (res.AddedIds.Count > 0)
+                    sb.AppendLine(Loc.Fmt("StockAwareAdded", string.Join(", ", res.AddedIds.Select(Label))));
+                if (res.Level > 0)
+                    sb.AppendLine(Loc.Get("StockAwareLevel" + Math.Min(res.Level, 4)));
+                if (res.ShortIds.Count > 0)
+                {
+                    string shortList = string.Join(", ", res.ShortIds.Select(Label));
+                    sb.AppendLine(Loc.Fmt("StockAwareShort", shortList));
+                    summary += " · " + Loc.Fmt("StockAwareShort", shortList);
+                }
+            }
+            SetStockAwareReport(sb.ToString().TrimEnd());
+            StatusText = StatusText + " · " + summary;
+        }
+
         public bool OptimalAvailable => MosaicDone && _lastRunOptimal;
 
         public int OptimalKMax
@@ -781,14 +883,16 @@ public bool UseLab
                 SKBitmap? result = null;
                 SKBitmap? rsBmp = null;
                 var oldExport = MosaicData.exportBitmap;
+                var stock = UseStockAware ? _stockOnHand : null;
                 await Task.Run(() =>
                 {
-                    result = MosaicEngine.ApplyOptimalK(k);
+                    result = ApplyOptimalKFor(k, stock);
                     rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                if (stock != null) ShowStockAwareResult(stock);
             }
             catch (Exception ex)
             {
@@ -1213,12 +1317,20 @@ public bool UseLab
                 bool optimal = UseOptimal;
                 _lastRunOptimal = false;
                 var oldExport = MosaicData.exportBitmap;
+                // Stock-aware works on Optimum's result; the sheet is read once here.
+                _stockOnHand = null;
+                SetStockAwareReport(UseStockAware && !optimal ? Loc.Get("StockAwareNeedsOptimum") : "");
+                var stock = optimal && UseStockAware ? await ReadStockForMosaicAsync() : null;
+                _stockOnHand = stock;
                 await Task.Run(() =>
                 {
                     if (optimal)
                     {
                         result = MosaicEngine.RunOptimal(SelectedInterpolation,
-                            progress => Dispatcher.UIThread.Post(() => Progress = progress));
+                            progress => Dispatcher.UIThread.Post(() => Progress = progress),
+                            prepareTextures: stock == null);
+                        if (stock != null)
+                            result = ApplyOptimalKFor(MosaicEngine.LastOptimalResult!.KOptimal, stock);
                     }
                     else
                     {
@@ -1248,6 +1360,7 @@ public bool UseLab
                 }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                if (stock != null) ShowStockAwareResult(stock);
             }
             catch (OutOfMemoryException)
             {
