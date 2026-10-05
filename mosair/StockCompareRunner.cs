@@ -98,6 +98,9 @@ public static class StockCompareRunner
             }
             foreach (var mv in res.Moves)
                 Log($"    {Label(mv.FromId)} → {Label(mv.ToId)}: {mv.Count} taş");
+            if (Environment.GetEnvironmentVariable("MOSAIR_USAGE") == "1")
+                foreach (var kv in res.CountBefore.OrderByDescending(x => x.Value))
+                    Log($"  USAGE\t{name}\t{kv.Key}\t{kv.Value}");
             Log($"  stok kaydı olmayan kullanılan taşlar: {(res.UnknownIds.Count == 0 ? "yok" : string.Join(", ", res.UnknownIds.Select(Label)))}");
             Log("");
 
