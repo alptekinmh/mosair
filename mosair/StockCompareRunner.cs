@@ -98,6 +98,7 @@ public static class StockCompareRunner
             }
             foreach (var mv in res.Moves)
                 Log($"    {Label(mv.FromId)} → {Label(mv.ToId)}: {mv.Count} taş");
+            Log($"  stok kaydı olmayan kullanılan taşlar: {(res.UnknownIds.Count == 0 ? "yok" : string.Join(", ", res.UnknownIds.Select(Label)))}");
             Log("");
 
             summary.AppendLine(string.Create(inv,

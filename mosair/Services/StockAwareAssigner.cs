@@ -43,6 +43,8 @@ namespace mosair.Services
         public List<int> AddedIds = new();
         // Stones still used beyond their stock after the best possible rearrangement.
         public List<int> ShortIds = new();
+        // Stones the mosaic uses that have no row in the stock sheet, so their stock could not be checked.
+        public List<int> UnknownIds = new();
         public List<StockMove> Moves = new();
         public int MovedPixels;
         // Average extra colour distance of the moved pixels (Optimum metric).
@@ -85,6 +87,8 @@ namespace mosair.Services
             var over = new List<int>();
             for (int m = 0; m < M; m++)
                 if (cap[m] != Unknown && count[m] > cap[m]) over.Add(m);
+            for (int m = 0; m < M; m++)
+                if (count[m] > 0 && cap[m] == Unknown) res.UnknownIds.Add(pool[m].ID);
             if (over.Count == 0)
             {
                 res.Assignment = assign;
@@ -239,8 +243,10 @@ namespace mosair.Services
                     allowedB.Remove(weakest);
                     planB = SolveWith(allowedB, tol);
                 }
-                return planB.Unmet < planA.Unmet ||
-                       (planB.Unmet == planA.Unmet && planB.Cost < opt.NewStoneGain * planA.Cost) ? planB : planA;
+                // "Clearly better" must also hold when costs are negative (a substitute closer than Optimum's
+                // stone), so the margin is measured on the absolute cost.
+                bool clearlyCheaper = planB.Cost < planA.Cost - (1 - opt.NewStoneGain) * Math.Abs(planA.Cost);
+                return planB.Unmet < planA.Unmet || (planB.Unmet == planA.Unmet && clearlyCheaper) ? planB : planA;
             }
 
             // Stock is a hard limit: when similar stones cannot take all the excess, the search widens step by

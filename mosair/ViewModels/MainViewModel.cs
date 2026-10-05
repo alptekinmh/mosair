@@ -818,6 +818,13 @@ public bool UseLab
                     summary += " · " + Loc.Fmt("StockAwareShort", shortList);
                 }
             }
+            if (res.UnknownIds.Count > 0)
+            {
+                // Without a sheet row these stones could not be checked against stock.
+                string unknown = Loc.Fmt("StockAwareUnknown", string.Join(", ", res.UnknownIds.Select(Label)));
+                sb.AppendLine().Append(unknown);
+                summary += " · " + unknown;
+            }
             SetStockAwareReport(sb.ToString().TrimEnd());
             StatusText = StatusText + " · " + summary;
         }
