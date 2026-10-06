@@ -469,6 +469,7 @@ namespace mosair.ViewModels
                 !await Confirm(Loc.Get("StockAwareTitle"), Loc.Fmt("StockAwareEditsConfirm", EditedPixelCount)))
                 return null;
 
+            int version = StartNewContent();
             IsProcessing = true;
             var sw = Stopwatch.StartNew();
             try
@@ -491,6 +492,7 @@ namespace mosair.ViewModels
                     if (fixedOk) rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
+                if (version != _contentVersion) { rsBmp?.Dispose(); return null; } // a new image or project was opened meanwhile
                 if (!fixedOk)
                 {
                     Fail(Loc.Get("StockAwareCannotFix"));
