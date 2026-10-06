@@ -378,15 +378,15 @@
         <Border Classes="section-card" Margin="0,8,0,4">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Ilk Kurulum" Margin="0"/>
-            <TextBlock Classes="body" Text="Yesil tablo ikonuna sag tiklayin (veya Araclar > Stok > Stok Ayarlari) ve Google Sheet ID ile Apps Script URL'yi girin. Bu bilgiler sadece o bilgisayarda saklanir; her bilgisayarda bir kez girilmesi gerekir."/>
+            <TextBlock Classes="body" Text="Yesil tablo ikonunun yanindaki oka basip Stok Ayarlari'ni secin (ikona sag tiklamak veya Araclar > Stok > Stok Ayarlari da olur) ve Google Sheet ID ile Apps Script URL'yi girin. Bu bilgiler sadece o bilgisayarda saklanir; her bilgisayarda bir kez girilmesi gerekir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Script URL'yi bilen herkes tabloya yazabilir; bu adresi sadece guvendiginiz kisilerle paylasin."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
             <TextBlock Classes="h2" Text="Butonlar" Margin="0"/>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Tablo"/><TextBlock Classes="shortcut-desc" Text="Stok tablosunu tarayicida acar. Tabloyu degistirmez."/></StackPanel>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Cek"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Bizdeki (kg)' degeri 0 veya altinda olan taslarin isaretini kaldirir, stogu olanlari isaretler. Tabloyu degistirmez."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Tablo"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Stok tablosunu tarayicida acar. Yanindaki ok: tabloyu ac / stok ayarlari. Tabloyu degistirmez."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Cek"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Bizdeki (kg)' degeri 0 veya altinda olan taslarin isaretini kaldirir, stogu olanlari isaretler. Yanindaki oktan 'Stogu olmayanlari kirmiziyla isaretle' secilirse secim degismez, stogu olmayan taslar yalnizca kirmizi noktayla gosterilir. Tabloyu degistirmez."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Kontrol"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Mozaigin tas adetlerini tablodaki proje sutununa yazar; 'Tahmini Kalan' eksiye dusen taslari kirmizi noktayla isaretler (secimi degistirmez). Ipucunda elimizdeki ve kalacak kg gorunur. Tabloyu degistirir."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Sil"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Bu mozaigin sutununu temizler ve basligini mozaikX yapar. Sag tik: tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Stok Ekle"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="'Tahmini Kalan' degerlerini 'Bizdeki' sutununa tasir ve tum mozaik sutunlarini temizler. Onay ister, tabloyu degistirir."/></StackPanel>
@@ -634,15 +634,15 @@
         <Border Classes="section-card" Margin="0,8,0,4">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="First-Time Setup" Margin="0"/>
-            <TextBlock Classes="body" Text="Right-click the green sheet icon (or Tools > Stock > Stock Settings) and enter the Google Sheet ID and the Apps Script URL. They are stored only on that computer and must be entered once per computer."/>
+            <TextBlock Classes="body" Text="Click the arrow next to the green sheet icon and choose Stock Settings (right-clicking the icon or Tools > Stock > Stock Settings also works) and enter the Google Sheet ID and the Apps Script URL. They are stored only on that computer and must be entered once per computer."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Anyone with the Script URL can write to the sheet; share it only with people you trust."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
           <StackPanel Spacing="6">
             <TextBlock Classes="h2" Text="Buttons" Margin="0"/>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sheet"/><TextBlock Classes="shortcut-desc" Text="Opens the stock sheet in the browser. Does not change the sheet."/></StackPanel>
-            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Fetch Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Unchecks stones whose 'Bizdeki (kg)' is 0 or less and checks stones that have stock. Does not change the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Sheet"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Opens the stock sheet in the browser. Arrow next to it: open sheet / stock settings. Does not change the sheet."/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Fetch Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Unchecks stones whose 'Bizdeki (kg)' is 0 or less and checks stones that have stock. With 'Mark stones with no stock in red' from the arrow next to it, the selection stays as it is and stones without stock only get a red dot. Does not change the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Check Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Writes the mosaic's stone counts to the project column in the sheet; stones whose 'Tahmini Kalan' goes negative get a red dot (the selection is not changed). The tooltip shows kg on hand and kg left. Changes the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Clear Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Clears this mosaic's column and resets its header to mozaikX. Right-click: clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="Add Stock"/><TextBlock Classes="shortcut-desc" TextWrapping="Wrap" MaxWidth="380" Text="Moves 'Tahmini Kalan' values into the 'Bizdeki' column and clears all mosaic columns. Asks for confirmation, changes the sheet."/></StackPanel>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Avalonia.Media;
@@ -277,7 +278,9 @@ namespace mosair.ViewModels
             StatusText = Loc.Get("StockSettingsSaved");
         }
 
-        public async Task FetchStockAsync()
+        // markOnly = false: stones listed with no stock are unchecked, the others checked (as in WPF).
+        // markOnly = true: the selection is left alone; stones with no stock only get a red dot.
+        public async Task FetchStockAsync(bool markOnly = false)
         {
             if (!TryGetStockConfig(false, out var config)) return;
             Dictionary<int, double>? stock = null;
@@ -286,14 +289,32 @@ namespace mosair.ViewModels
                 stock = await StockSheetService.FetchStockAsync(config.SheetId);
                 foreach (var item in CatalogColors)
                     if (stock.TryGetValue(item.ID, out double onHand)) item.StockKg = onHand;
-                // Stones listed in the sheet are enabled when stock > 0 and disabled otherwise; others keep their state.
-                ApplyStockSelection(id => stock.TryGetValue(id, out double kg) ? kg <= 0 : null);
+                if (markOnly)
+                {
+                    foreach (var c in MosaicData.arRGBAll)
+                        c.stokYetersiz = stock.TryGetValue(c.ID, out double kg) && kg <= 0;
+                    foreach (var item in CatalogColors)
+                        item.StockShort = stock.TryGetValue(item.ID, out double kg) && kg <= 0;
+                }
+                else
+                {
+                    // Stones listed in the sheet are enabled when stock > 0 and disabled otherwise; others keep their state.
+                    ApplyStockSelection(id => stock.TryGetValue(id, out double kg) ? kg <= 0 : null);
+                }
             }, "");
             if (stock != null)
             {
-                int off = 0;
-                foreach (var c in MosaicData.arRGBAll) if (c.boolLeaveOut) off++;
-                StatusText = Loc.Fmt("StockFetched", stock.Count, off);
+                if (markOnly)
+                {
+                    int empty = stock.Count(kv => kv.Value <= 0 && MosaicData.arRGBAll.Any(c => c.ID == kv.Key));
+                    StatusText = Loc.Fmt("StockFetchedMarked", stock.Count, empty);
+                }
+                else
+                {
+                    int off = 0;
+                    foreach (var c in MosaicData.arRGBAll) if (c.boolLeaveOut) off++;
+                    StatusText = Loc.Fmt("StockFetched", stock.Count, off);
+                }
             }
         }
 

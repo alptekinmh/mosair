@@ -149,7 +149,10 @@
                 <MenuItem Header="{Binding [MenuStockOpen], Source={x:Static svc:Loc.Instance}}" Click="OnStockSheet"/>
                 <MenuItem Header="{Binding [MenuStockSettings], Source={x:Static svc:Loc.Instance}}" Click="OnStockSettings"/>
                 <Separator/>
-                <MenuItem Header="{Binding [MenuStockFetch], Source={x:Static svc:Loc.Instance}}" Click="OnStockFetch"/>
+                <MenuItem Header="{Binding [MenuStockFetch], Source={x:Static svc:Loc.Instance}}">
+                  <MenuItem Header="{Binding [MenuStockFetchDisable], Source={x:Static svc:Loc.Instance}}" Click="OnStockFetch"/>
+                  <MenuItem Header="{Binding [MenuStockFetchMark], Source={x:Static svc:Loc.Instance}}" Click="OnStockFetchMark"/>
+                </MenuItem>
                 <MenuItem Header="{Binding [MenuStockCheck], Source={x:Static svc:Loc.Instance}}" Click="OnStockCheck"/>
                 <MenuItem Header="{Binding [MenuStockClearOne], Source={x:Static svc:Loc.Instance}}" Click="OnStockClearOne"/>
                 <MenuItem Header="{Binding [MenuStockClearAll], Source={x:Static svc:Loc.Instance}}" Click="OnStockClearAll"/>
@@ -442,6 +445,38 @@
               </Canvas>
             </Viewbox>
           </Button>
+          <!-- Sheet options: open the sheet / stock sheet settings -->
+          <Button Classes="icon-btn" Width="14" Padding="1" IsEnabled="{Binding CanUseStock}"
+                  ToolTip.Tip="{Binding [TipStockSheetMenu], Source={x:Static svc:Loc.Instance}}">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <Border Background="{DynamicResource BgPanel}" CornerRadius="6" Padding="4"
+                        BorderBrush="{DynamicResource BrdrSec}" BorderThickness="1">
+                  <StackPanel Spacing="2">
+                    <Button Click="OnStockSheet" Padding="8,5" MinWidth="180"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand"
+                            HorizontalContentAlignment="Left">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Width="14" Height="14" Foreground="#0F9D58"
+                                  Data="M6,2 L14.5,2 L20,7.5 L20,20.5 C20,21.33 19.33,22 18.5,22 L6,22 C5.17,22 4.5,21.33 4.5,20.5 L4.5,3.5 C4.5,2.67 5.17,2 6,2 Z"/>
+                        <TextBlock Text="{Binding [MenuStockOpen], Source={x:Static svc:Loc.Instance}}" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
+                      </StackPanel>
+                    </Button>
+                    <Button Click="OnStockSettings" Padding="8,5" MinWidth="180"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand"
+                            HorizontalContentAlignment="Left">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Width="14" Height="14" Foreground="{DynamicResource FgIcon}"
+                                  Data="M19.14,12.94 C19.18,12.64 19.2,12.33 19.2,12 C19.2,11.68 19.18,11.36 19.13,11.06 L21.16,9.48 C21.34,9.34 21.39,9.07 21.28,8.87 L19.36,5.55 C19.24,5.33 18.99,5.26 18.77,5.33 L16.38,6.29 C15.88,5.91 15.35,5.59 14.76,5.35 L14.4,2.81 C14.36,2.57 14.16,2.4 13.92,2.4 L10.08,2.4 C9.84,2.4 9.65,2.57 9.61,2.81 L9.25,5.35 C8.66,5.59 8.12,5.92 7.63,6.29 L5.24,5.33 C5.02,5.25 4.77,5.33 4.65,5.55 L2.74,8.87 C2.62,9.08 2.66,9.34 2.86,9.48 L4.89,11.06 C4.84,11.36 4.8,11.69 4.8,12 C4.8,12.31 4.82,12.64 4.87,12.94 L2.84,14.52 C2.66,14.66 2.61,14.93 2.72,15.13 L4.64,18.45 C4.76,18.67 5.01,18.74 5.23,18.67 L7.62,17.71 C8.12,18.09 8.65,18.41 9.24,18.65 L9.6,21.19 C9.65,21.43 9.84,21.6 10.08,21.6 L13.92,21.6 C14.16,21.6 14.36,21.43 14.39,21.19 L14.75,18.65 C15.34,18.41 15.88,18.09 16.37,17.71 L18.76,18.67 C18.98,18.75 19.23,18.67 19.35,18.45 L21.27,15.13 C21.39,14.91 21.34,14.66 21.15,14.52 Z M12,15.6 C10.02,15.6 8.4,13.98 8.4,12 C8.4,10.02 10.02,8.4 12,8.4 C13.98,8.4 15.6,10.02 15.6,12 C15.6,13.98 13.98,15.6 12,15.6 Z"/>
+                        <TextBlock Text="{Binding [MenuStockSettings], Source={x:Static svc:Loc.Instance}}" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+            <PathIcon Width="8" Height="8" Foreground="{DynamicResource FgIcon}" Data="M2,4 L6,8 L10,4"/>
+          </Button>
           <Button Classes="icon-btn" Click="OnStockFetch" IsEnabled="{Binding CanUseStock}"
                   ToolTip.Tip="{Binding [TipStockFetch], Source={x:Static svc:Loc.Instance}}">
             <Viewbox Width="18" Height="18">
@@ -456,6 +491,39 @@
                       Data="M5.5,2.5 L5.5,10 M3.5,8 L5.5,10.2 L7.5,8 M2.5,12.5 L8.5,12.5 L8.5,21 L2.5,21 Z M2.5,16.75 L8.5,16.75"/>
               </Canvas>
             </Viewbox>
+          </Button>
+          <!-- Fetch options: disable stones without stock / only mark them red -->
+          <Button Classes="icon-btn" Width="14" Padding="1" IsEnabled="{Binding CanUseStock}"
+                  ToolTip.Tip="{Binding [TipStockFetchMenu], Source={x:Static svc:Loc.Instance}}">
+            <Button.Flyout>
+              <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
+                <Border Background="{DynamicResource BgPanel}" CornerRadius="6" Padding="4"
+                        BorderBrush="{DynamicResource BrdrSec}" BorderThickness="1">
+                  <StackPanel Spacing="2">
+                    <Button Click="OnStockFetch" Padding="8,5" MinWidth="230"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand"
+                            HorizontalContentAlignment="Left">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Width="14" Height="14" Foreground="{DynamicResource FgIcon}"
+                                  Data="M19,6.41 L17.59,5 L12,10.59 L6.41,5 L5,6.41 L10.59,12 L5,17.59 L6.41,19 L12,13.41 L17.59,19 L19,17.59 L13.41,12 Z"/>
+                        <TextBlock Text="{Binding [MenuStockFetchDisable], Source={x:Static svc:Loc.Instance}}" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
+                      </StackPanel>
+                    </Button>
+                    <Button Click="OnStockFetchMark" Padding="8,5" MinWidth="230"
+                            Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand"
+                            HorizontalContentAlignment="Left">
+                      <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Panel Width="14" Height="14">
+                          <Ellipse Width="8" Height="8" Fill="#E53935" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Panel>
+                        <TextBlock Text="{Binding [MenuStockFetchMark], Source={x:Static svc:Loc.Instance}}" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
+                      </StackPanel>
+                    </Button>
+                  </StackPanel>
+                </Border>
+              </Flyout>
+            </Button.Flyout>
+            <PathIcon Width="8" Height="8" Foreground="{DynamicResource FgIcon}" Data="M2,4 L6,8 L10,4"/>
           </Button>
           <Button Classes="icon-btn" Click="OnStockCheck" IsEnabled="{Binding CanUseStock}"
                   ToolTip.Tip="{Binding [TipStockCheck], Source={x:Static svc:Loc.Instance}}">

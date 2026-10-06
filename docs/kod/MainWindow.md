@@ -43,7 +43,7 @@ Window
    │   │       Mos düğmesi (mosAnimGrid: mosQ0..mosQ3), Piksel Düzenle + source/target göstergesi,
    │   │       Izgara (Flyout: aç/kapa, GridColorPresets, GridColorShades), İnterpolasyon (Flyout),
    │   │       Detay (Flyout: StonePixelSize kaydırıcısı 10–100, adım 10),
-   │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu), Optimum onay kutusu + Taş kaydırıcısı (OptimalAvailable)
+   │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u), Optimum onay kutusu + Taş kaydırıcısı (OptimalAvailable)
    │   └─ Sağ: exportBtn (exportArrow animasyonu; sağ tık = klasörü aç) + açılır ok (Flyout: Dışa Aktar / Farklı Dışa Aktar),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
    ├─ [Bottom] Durum çubuğu: Grid "*,Auto,*"
@@ -131,9 +131,10 @@ Window
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |
 | `OnStonesLess` | Araçlar → Taş Sayısı → Azalt | `OptimalK - 1` (en az 1). |
-| `OnStockSheet` | Araçlar → Stok → Aç, toolbar stok tablosu düğmesi (`CanUseStock`) | `_vm.OpenStockSheetAsync()`. |
-| `OnStockSettings` | Araçlar → Stok → Ayarlar, stok tablosu düğmesinin `ContextMenu`'sü | `_vm.ConfigureStockAsync()`. |
-| `OnStockFetch` | Araçlar → Stok, toolbar Stok Çek | `_vm.FetchStockAsync()`. |
+| `OnStockSheet` | Araçlar → Stok → Aç, toolbar stok tablosu düğmesi ve yanındaki ok Flyout'u (`CanUseStock`) | `_vm.OpenStockSheetAsync()`. |
+| `OnStockSettings` | Araçlar → Stok → Ayarlar, stok tablosu düğmesinin `ContextMenu`'sü ve ok Flyout'u | `_vm.ConfigureStockAsync()`. |
+| `OnStockFetch` | Araçlar → Stok → Stok Çek → Devre dışı bırak, toolbar Stok Çek ve ok Flyout'u | `_vm.FetchStockAsync()` (stoğu olmayanlar devre dışı). |
+| `OnStockFetchMark` | Araçlar → Stok → Stok Çek → Kırmızıyla işaretle, Stok Çek ok Flyout'u | `_vm.FetchStockAsync(markOnly: true)` (seçim değişmez, yalnızca kırmızı nokta). |
 | `OnStockCheck` | Araçlar → Stok, toolbar Stok Kontrol | `_vm.CheckStockAsync()`. |
 | `OnStockClearOne` | Araçlar → Stok, toolbar Stok Sil (sol tık ve `ContextMenu`) | `_vm.ClearStockOneAsync()`. |
 | `OnStockClearAll` | Araçlar → Stok, Stok Sil düğmesinin `ContextMenu`'sü | `_vm.ClearStockAllAsync()`. |

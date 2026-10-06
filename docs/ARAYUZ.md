@@ -106,7 +106,7 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | Detay Seviyesi ▸ | — | 10–100 arası (10'ar adım) taş başına piksel (N) |
 | Optimum Taş Sayısı | — | Optimum modunu açar/kapatır ([§10](#10-optimum-taş-sayısı)) |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir |
-| Stok ▸ | — | Stok Tablosunu Aç, Stok Ayarları..., Stok Çek, Stok Kontrol, Bu mozaiğin sütununu temizle, Tüm mozaik sütunlarını temizle, Stok Ekle ([§11](#11-stok-yönetimi-google-sheets)) |
+| Stok ▸ | — | Stok Tablosunu Aç, Stok Ayarları..., Stok Çek ▸ (Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle), Stok Kontrol, Bu mozaiğin sütununu temizle, Tüm mozaik sütunlarını temizle, Stok Ekle ([§11](#11-stok-yönetimi-google-sheets)) |
 
 ### Yardım
 
@@ -129,8 +129,8 @@ Soldan sağa:
 | Izgara | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + 7 ton) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır |
 | İnterpolasyon | Açılır liste (7 yöntem) | — | Varsayılan **Area** |
 | Detay (N) | Açılır kaydırıcı 10–100 | — | Varsayılan **40**; 40'ın üstü ilk seferde performans uyarısı gösterir |
-| Stok Tablosu (yeşil tablo) | Tabloyu tarayıcıda açar | **Stok Ayarları...** | |
-| Stok Çek | Bizdeki (kg) okunur | — | Tabloyu değiştirmez |
+| Stok Tablosu (yeşil tablo) | Tabloyu tarayıcıda açar | Yanındaki **▾**: Stok Tablosunu Aç / Stok Ayarları... (sağ tık: Stok Ayarları...) | |
+| Stok Çek | Bizdeki (kg) okunur, stoğu olmayan taşlar devre dışı bırakılır | Yanındaki **▾**: Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle | Tabloyu değiştirmez |
 | Stok Kontrol | Adetler tabloya yazılır, kalan okunur | — | Tabloyu değiştirir |
 | Stok Sil (küp −) | Bu mozaiğin sütununu temizler | **Bu mozaiğin sütununu temizle / Tüm mozaik sütunlarını temizle** | Onay ister |
 | Stok Ekle (küp +) | Tahmini Kalan → Bizdeki | — | Onay ister |
@@ -254,7 +254,7 @@ Araç çubuğunda Detay ile Optimum arasında beş ikon vardır; aynı işlemler
 
 ### İlk kurulum
 
-Yeşil tablo ikonuna **sağ tıklayın** (veya **Araçlar → Stok → Stok Ayarları...**). Açılan pencerede her alanın altında açıklama ve vurgulu bir örnek bağlantı vardır.
+Yeşil tablo ikonunun yanındaki **▾** okuna basıp **Stok Ayarları...**'nı seçin (ikona sağ tıklamak veya **Araçlar → Stok → Stok Ayarları...** da olur). Açılan pencerede her alanın altında açıklama ve vurgulu bir örnek bağlantı vardır.
 
 | Alan | Nereden alınır |
 |---|---|
@@ -274,8 +274,8 @@ Yeşil tablo ikonuna **sağ tıklayın** (veya **Araçlar → Stok → Stok Ayar
 
 | Düğme | Ne yapar | Tabloyu değiştirir mi? |
 |---|---|---|
-| Stok Tablosu | Tabloyu tarayıcıda açar | Hayır |
-| Stok Çek | Her taşın **Bizdeki (kg)** değerini okur. Değeri 0 veya altında olan taşların işaretini kaldırır, stoğu olanları işaretler; tabloda olmayan taşlara dokunmaz. İpucunda Bizdeki kg görünür. | Hayır |
+| Stok Tablosu | Tabloyu tarayıcıda açar. Yanındaki **▾** okunda "Stok Tablosunu Aç" ve "Stok Ayarları..." vardır. | Hayır |
+| Stok Çek | Her taşın **Bizdeki (kg)** değerini okur; ipucunda Bizdeki kg görünür. İkona tıklamak veya **▾** okundaki **"Stoğu olmayanları devre dışı bırak"**: değeri 0 veya altında olan taşların işaretini kaldırır, stoğu olanları işaretler; tabloda olmayan taşlara dokunmaz. **"Stoğu olmayanları kırmızıyla işaretle"**: seçimi değiştirmez, stoğu olmayan taşlara yalnızca **kırmızı nokta** koyar (yeni bir Mos noktaları temizler). | Hayır |
 | Stok Kontrol | Mozaiğin taş adetlerini tablodaki proje sütununa yazar, sonra **Tahmini Kalan** ve **Bizdeki** değerlerini okur. Kalanı eksiye düşen taşlara **kırmızı nokta** koyar; **seçimi değiştirmez**. İpucunda `Bizdeki → Kalan` görünür. | Evet |
 | Stok Sil | Bu mozaiğin sütununu temizler ve başlığını `mozaikX` yapar. Sağ tık menüsünde tüm mozaik sütunlarını temizleme seçeneği vardır. Onay ister. | Evet |
 | Stok Ekle | **Tahmini Kalan** değerlerini **Bizdeki** sütununa taşır ve bütün mozaik sütunlarını temizler. Onay ister. | Evet |

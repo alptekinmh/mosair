@@ -188,7 +188,7 @@ Katalog listesindeki bir taş rengi.
 | `UndoPixelEdit()` / `RedoPixelEdit()` | Önce taş varyantı yığını, boşsa `PixelEditService.UndoLastEdit` / `RedoLastEdit`. | MainWindow (kısayollar) |
 | `OpenStockSheetAsync()` | Ayarlı Sheet'i `StockSheetService.SheetUrl` ile tarayıcıda açar. | MainWindow |
 | `ConfigureStockAsync()` | Stok ayar diyaloğunu açar, `StockSheetService.SaveConfig`. | MainWindow |
-| `FetchStockAsync()` | Eldeki stoğu çeker, `StockKg` yazar, stok ≤ 0 olan taşları hariç tutar (`ApplyStockSelection`), `StockFetched` durumu. | MainWindow |
+| `FetchStockAsync(markOnly = false)` | Eldeki stoğu çeker, `StockKg` yazar. `markOnly` false: stok ≤ 0 olan taşları hariç tutar (`ApplyStockSelection`), `StockFetched` durumu. `markOnly` true: seçime dokunmaz, stok ≤ 0 olan taşlarda `StockShort`/`stokYetersiz` (kırmızı nokta), `StockFetchedMarked` durumu. | MainWindow |
 | `CheckStockAsync()` | Mozaikteki taş sayılarını (`arMA[0]`) proje adıyla Sheet'e gönderir; yetersiz taşları işaretler, `RemainingKg`/`StockKg` yazar. | MainWindow |
 | `ClearStockOneAsync()` / `ClearStockAllAsync()` | Onaydan sonra bu projenin / tüm projelerin sütununu temizler. | MainWindow |
 | `AddStockAsync()` | Onaydan sonra `StockSheetService.AddStockAsync`. | MainWindow |
@@ -219,7 +219,7 @@ Katalog listesindeki bir taş rengi.
 
 ## Önemli davranışlar ve iş kuralları
 - **Stok kontrol yalnız işaretler**: `CheckStockAsync` yetersiz taşlarda `rgb.stokYetersiz` ve `ColorItem.StockShort`'u true yapar (kırmızı nokta, kırmızı kalan kg); katalog seçimine dokunmaz.
-- **Stok çek seçimi değiştirir**: `FetchStockAsync`, Sheet'te bulunan taşlardan stok ≤ 0 olanları hariç, > 0 olanları dahil eder; Sheet'te olmayan taşlar olduğu gibi kalır.
+- **Stok çek seçimi değiştirir** (varsayılan): `FetchStockAsync`, Sheet'te bulunan taşlardan stok ≤ 0 olanları hariç, > 0 olanları dahil eder; Sheet'te olmayan taşlar olduğu gibi kalır. `markOnly: true` ile seçim değişmez, yalnızca kırmızı nokta konur; `RunMosaicAsync` bu noktaları temizler.
 - **Stok işlemleri tek seferde bir tane**: `RunStockAction` `IsStockBusy` ile `CanUseStock`'u kapatır. `ClearStock*`/`AddStockAsync` onay ister; `ShowConfirm` yoksa işlem yapılmaz. Check/Clear/Add için `ScriptUrl` de gerekir, Fetch/Open için yalnız `SheetId`.
 - **Stok kontrol için mozaik şart**: Proje adı yoksa `StockNoProject`, `arMA[0]`'da piksel sayısı > 0 taş yoksa `StockNoMosaic` uyarısı.
 - **Yeni Mos stok verisini siler**: `RunMosaicAsync` tüm `stokYetersiz`, `StockShort`, `StockKg`, `RemainingKg` değerlerini temizler ve `ProjectService.ForgetWpfState()` çağırır (WPF projesinden okunan ek veri artık geçersiz). `LoadImage` da `ForgetWpfState` çağırır.
