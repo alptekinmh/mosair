@@ -1,6 +1,6 @@
 # ColorCatalogService
 
-> Kaynak: `mosair/Services/ColorCatalogService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/ColorCatalogService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 Taş renk kataloğunu metin dosyasından yükler. Tüm katalog `MosaicData.arRGBAll`'da, mozaikte kullanılabilecek aktif taşlar `MosaicData.arRGB`'de tutulur. Taşları hariç tutma işlemini yönetir ve arayüz için katalog listesini `CatalogColorInfo` nesneleri olarak sunar.
@@ -10,6 +10,7 @@ Taş renk kataloğunu metin dosyasından yükler. Tüm katalog `MosaicData.arRGB
 |---|---|
 | [MainViewModel](../ViewModels/MainViewModel.md) | `LoadDefaultCatalog` (başlangıçta), `SetActiveColors` (mozaik öncesi ve seçim değişince), `SetLeaveOut` (kullanıcı taş hariç tutunca), `GetCatalogList` (katalog listesi) |
 | [CompareRunner](../CompareRunner.md) | `LoadDefaultCatalog` |
+| [StockCompareRunner](../StockCompareRunner.md) | `LoadDefaultCatalog`, `SetActiveColors` (harness için aktif listeyi yeniden kurar) |
 
 `LoadCatalog` dışarıdan doğrudan çağrılmaz, yalnızca `LoadDefaultCatalog` üzerinden kullanılır.
 
@@ -37,9 +38,9 @@ Taş renk kataloğunu metin dosyasından yükler. Tüm katalog `MosaicData.arRGB
 |---|---|---|
 | `LoadCatalog(path)` | Dosyayı okur, `arRGBAll`'u doldurur, okunamayan satırları `SkippedLines`'a yazar, ardından `InitArcs` ve `SetActiveColors` çağırır | `LoadDefaultCatalog` |
 | `SkippedLines` | Son yüklemede atlanan satır numaraları (1'den başlar) | `MainViewModel` |
-| `LoadDefaultCatalog()` | `AppContext.BaseDirectory/Assets/colorsBas.txt` dosyası varsa yükler. Dosya yoksa sessizce hiçbir şey yapmaz. | MainViewModel, CompareRunner |
+| `LoadDefaultCatalog()` | `AppContext.BaseDirectory/Assets/colorsBas.txt` dosyası varsa yükler. Dosya yoksa sessizce hiçbir şey yapmaz. | MainViewModel, CompareRunner, StockCompareRunner |
 | `SetLeaveOut(index, leaveOut)` | Taşın `boolLeaveOut` ve `arcs` değerini günceller, sonra aktif listeyi yeniler | MainViewModel |
-| `SetActiveColors()` | `arRGB` listesini `boolLeaveOut` false olan taşlardan yeniden kurar | MainViewModel, dahili |
+| `SetActiveColors()` | `arRGB` listesini `boolLeaveOut` false olan taşlardan yeniden kurar | MainViewModel, StockCompareRunner, dahili |
 | `GetCatalogList()` | Tüm katalog için `CatalogColorInfo` listesi döndürür | MainViewModel |
 
 ## Algoritma / akış
@@ -50,7 +51,7 @@ Her satır boşlukla ayrılır: R G B KOD AD... Örnek: `196 179 160 B101 stone1
 1. `arRGBAll` ve `SkippedLines` temizlenir. Boş satırlar atlanır, dolu her satırda `id` bir artırılır.
 2. Satır `StringSplitOptions.RemoveEmptyEntries` ile bölünür. En az 4 parça yoksa ya da R, G, B 0–255 arası sayı değilse satır **atlanır**: satır numarası `SkippedLines`'a eklenir, `id` yine de harcanır (sonraki taşların numarası değişmez). Aksi halde `codeName = u[3]`, `name` ise 5. parçadan sonuna kadar olan kelimelerdir.
 3. Taş `new rgb(r, g, b, (r+g+b)/3.0, id, codeName, name)` ile oluşturulur. `dis` alanına parlaklık ortalaması yazılır.
-4. `InitArcs` çalışır. `arcs` boşsa veya uzunluğu katalogla uyuşmuyorsa tamamen false değerlerle yeniden kurulur. Uzunluk uyuşuyorsa `arcs` içindeki bayraklar taşların `boolLeaveOut` alanına geri yazılır, böylece önceki seçim korunur.
+4. `InitArcs` (özel) çalışır. `arcs` boşsa veya uzunluğu katalogla uyuşmuyorsa tamamen false değerlerle yeniden kurulur. Uzunluk uyuşuyorsa `arcs` içindeki bayraklar taşların `boolLeaveOut` alanına geri yazılır, böylece önceki seçim korunur.
 5. `SetActiveColors` çalışır.
 
 ## Önemli davranışlar ve iş kuralları

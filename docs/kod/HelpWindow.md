@@ -1,6 +1,6 @@
 # HelpWindow
 
-> Kaynak: `mosair/HelpWindow.axaml`, `mosair/HelpWindow.axaml.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/HelpWindow.axaml`, `mosair/HelpWindow.axaml.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -17,7 +17,7 @@ Uygulama içi kullanım kılavuzu penceresi. Türkçe ve İngilizce içeriği ay
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
 | `Title` | bağlama | `{Binding [MenuUserGuide], Source={x:Static svc:Loc.Instance}}` | Dile göre başlık. |
-| Boyut | — | 720 × 680 (`MinWidth` 500, `MinHeight` 400) | `CanResize="True"`, `CenterOwner`, arka plan `#1a1a1e`. |
+| Boyut | — | 720 × 680 (`MinWidth` 500, `MinHeight` 400) | `CanResize="True"`, `CenterOwner`, arka plan `{DynamicResource BgMain}`. |
 | Stiller | `TextBlock.h1`, `h2`, `body`, `shortcut-key`, `shortcut-desc`; `Border.section-card`, `icon-badge` | — | Bölüm başlığı, gövde, kısayol satırı ve kart görünümleri. |
 
 ### Yerleşim
@@ -69,6 +69,7 @@ Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` 
 ## Önemli davranışlar ve iş kuralları
 
 - Dil değişimi canlıdır: paneller `IsTr`/`IsEn` bağlamasıyla gizlenip gösterilir, pencere yeniden açılmaz.
+- Stok Yönetimi bölümü (`sec8` / `sec8en`) araç çubuğundaki açılır okları (Tablo: tabloyu aç / stok ayarları; Stok Çek: stoğu olmayanları kırmızıyla işaretle) ve Optimum'un yanındaki "Stoğa göre" kutusunu da anlatır.
 - Metinlerin tamamı XAML'a gömülüdür (`Loc` sözlüğünde değildir); yalnızca pencere başlığı ve kısayol tuşları `Loc`'tan gelir.
 
 ### Yeni bölüm ekleme

@@ -1,17 +1,18 @@
 # GamutMapper
 
-> Kaynak: `mosair/Services/GamutMapper.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/GamutMapper.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 Resmin Lab açıklık aralığını ve kroma değerini taş kataloğunun üretebildiği aralığa sıkıştırır. Ton (hue) korunur. Böylece katalog dışında kalan farklı kaynak renkleri aynı sınır taşına yığılmaz ve birbirinden ayrı kalır. Dönüşüm yalnızca sıkıştırma yönündedir. Zaten katalog gamı içinde kalan bir resim değişmeden geçer.
 
-> **Durum: şu an etkin değil.** Sınıfa tek giriş yolu `MosaicEngine.RunOptimal(..., useGamut: true)` çağrısıdır. Ancak hiçbir çağıran `useGamut` için true vermez: MainViewModel ve CompareRunner varsayılan false değeriyle çağırır. `MosaicEngine.LastGamut` da hiçbir yerde okunmaz. Kod deneysel olarak duruyor.
+> **Durum: şu an etkin değil.** Sınıfa tek giriş yolu `MosaicEngine.RunOptimal(..., useGamut: true)` çağrısıdır. Ancak hiçbir çağıran `useGamut` için true vermez: MainViewModel, CompareRunner ve StockCompareRunner varsayılan false değeriyle çağırır. `MosaicEngine.LastGamut` da hiçbir yerde okunmaz. Kod deneysel olarak duruyor.
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
 |---|---|
-| [MosaicEngine](./MosaicEngine.md) | `RunOptimal` içinde `useGamut` true ise `GamutMapper.Build` çağrılır. Sonuç `Analyze` ve `ApplyOptimalK` fonksiyonlarına `gamut` olarak geçer. |
+| [MosaicEngine](./MosaicEngine.md) | `RunOptimal` içinde `useGamut` true ise `GamutMapper.Build` çağrılır. Sonuç `_optGamut` olarak saklanır; `Analyze`, `ApplyOptimalK` ve `ApplyOptimalKWithStock` (stoğa göre düzeltme) bu eşleyiciyi kullanır. `FixCurrentMosaicToStock` her zaman `null` geçer. |
 | [OptimalPaletteService](./OptimalPaletteService.md) | `Analyze` içinde her benzersiz pikselin Lab değeri `gamut.Map` ile dönüştürülür |
+| [StockAwareAssigner](./StockAwareAssigner.md) | `SolveWithMinimum` / `Solve` içinde kaynak piksel Lab değerleri `gamut.Map` ile dönüştürülür (Optimum ile aynı) |
 
 ## Yapı
 `GamutMapper` sealed bir sınıftır. Kurucusu private'tır, örnekler yalnızca `Build` ile oluşturulur.
@@ -22,11 +23,13 @@ Resmin Lab açıklık aralığını ve kroma değerini taş kataloğunun üreteb
 | `_dstL0`, `_dstL1` | double | Hedef L aralığı |
 | `_chromaScale` | double | a ve b kanallarının çarpanı (≤ 1) |
 
+Özel yardımcı `Pct(list, q)` listeyi kopyalayıp sıralar ve q persentilini döndürür.
+
 ## Public API
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
 | `Build(src, R, C, catalog)` | BGR resim ve katalogdan eşleyiciyi kurar | `MosaicEngine.RunOptimal` (yalnızca `useGamut` true ise) |
-| `Map(lab)` | Lab değerini sıkıştırılmış Lab değerine çevirir | `OptimalPaletteService.Analyze`, `MosaicEngine.ApplyOptimalK` |
+| `Map(lab)` | Lab değerini sıkıştırılmış Lab değerine çevirir | `OptimalPaletteService.Analyze`, `MosaicEngine.ApplyOptimalK`, `StockAwareAssigner` |
 | `ToString()` | Tanı amaçlı özet döndürür (`L[..]->[..] chroma×..`) | Çağıran yok |
 
 ## Algoritma / akış
@@ -49,4 +52,4 @@ Resmin Lab açıklık aralığını ve kroma değerini taş kataloğunun üreteb
 - `Build` her piksel için Lab dönüşümünü önbelleksiz yapar.
 
 ## İlgili dosyalar
-- [MosaicEngine](./MosaicEngine.md), [OptimalPaletteService](./OptimalPaletteService.md), [ColorMatcher](./ColorMatcher.md), [Rgb](../Models/Rgb.md)
+- [MosaicEngine](./MosaicEngine.md), [OptimalPaletteService](./OptimalPaletteService.md), [StockAwareAssigner](./StockAwareAssigner.md), [ColorMatcher](./ColorMatcher.md), [Rgb](../Models/Rgb.md)

@@ -1,6 +1,6 @@
 # ProjectService
 
-> Kaynak: `mosair/Services/ProjectService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/ProjectService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -14,8 +14,8 @@ Dosya ayrıca serileştirme için kullanılan DTO sınıflarını (`ProjectData`
 |---|---|
 | `MainViewModel.SaveProject` | `ProjectService.Save(...)` |
 | `MainViewModel.OpenProject` | `ProjectService.Open(...)`; `null` dönerse `StatusOpenFailed` / `AlertProjectOpenFailed` gösterilir |
-| `MainViewModel.LoadImage` ve mozaikleştirme başlangıcı | `ProjectService.ForgetWpfState()` |
-| `MainViewModel` (`StockProjectName`), `MainWindow.axaml.cs` | `CurrentPictureFileName` / `CurrentFileName` okunur (stok sütun adı, dışa aktarma dosya adı) |
+| `MainViewModel.LoadImage` ve mozaikleştirme başlangıcı (`RunMosaicAsync`) | `ProjectService.ForgetWpfState()`; `LoadImage` ayrıca `CurrentPictureFileName = path`, `CurrentFileName = ""` yapar |
+| `MainViewModel` (`StockProjectName`, `OpenProject`), `MainWindow.axaml.cs` | `CurrentPictureFileName` / `CurrentFileName` okunur (stok sütun adı, açılışta kaynak görselin yüklenmesi, dışa aktarma dosya adı) |
 
 ## Yapı
 
@@ -89,6 +89,8 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `CurrentPictureFileName` | `string` | `""` | Kaynak görselin tam yolu |
 | `_wpfExtra` | `Dictionary<string, JsonElement>?` | `null` | Açılan dosyadan alınan WPF alanları (özel) |
 | `JsonOpts` | `JsonSerializerOptions` | | `WriteIndented = false`, `WhenWritingNull` (özel) |
+
+Özel yardımcılar: `MarkAsPaletteEntry` (palet enjeksiyonu), `FindOriginalImagePath` (`CurrentPictureFileName` diskte varsa onu döndürür), `Flatten3D` / `Unflatten3D`, `FlattenInt3D` / `UnflattenInt3D`, `FlipHorizontalInPlace`, `FlipHorizontalIntInPlace`, `FlipRowsInPlace`.
 
 ## Public API
 

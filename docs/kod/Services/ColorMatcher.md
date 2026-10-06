@@ -1,6 +1,6 @@
 # ColorMatcher
 
-> Kaynak: `mosair/Services/ColorMatcher.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/ColorMatcher.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 Renk uzayı dönüşümü ve katalog eşleme için küçük yardımcı fonksiyonlar sunan statik bir sınıf. sRGB'den CIE Lab'a dönüşüm (D65) yapar. Bir rengi aktif katalogdaki en yakın taşa RGB mesafesiyle eşler.
@@ -12,6 +12,7 @@ Renk uzayı dönüşümü ve katalog eşleme için küçük yardımcı fonksiyon
 | [OptimalPaletteService](./OptimalPaletteService.md) | `RgbToLab` |
 | [MosaicMetrics](./MosaicMetrics.md) | `RgbToLab` |
 | [GamutMapper](./GamutMapper.md) | `RgbToLab` |
+| [StockAwareAssigner](./StockAwareAssigner.md), [StockCompareRunner](../StockCompareRunner.md) | `RgbToLab` (stoğa göre düzeltmede piksel ve taş renkleri) |
 
 ## Yapı
 Statik sınıftır ve alanı yoktur. Mesafe sonuçları `cooo` modeliyle taşınır: `av` alanı mesafeyi, `n` alanı katalog indeksini tutar (bkz. [Rgb](../Models/Rgb.md)).
@@ -19,7 +20,7 @@ Statik sınıftır ve alanı yoktur. Mesafe sonuçları `cooo` modeliyle taşın
 ## Public API
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `RgbToLab(r, g, b)` | 0–255 aralığındaki RGB değerini `(L, A, B)` tuple'ına çevirir | MosaicEngine, OptimalPaletteService, MosaicMetrics, GamutMapper |
+| `RgbToLab(r, g, b)` | 0–255 aralığındaki RGB değerini `(L, A, B)` tuple'ına çevirir | MosaicEngine, OptimalPaletteService, MosaicMetrics, GamutMapper, StockAwareAssigner, StockCompareRunner |
 | `CalculateDistance(ra, raa, k)` | İki `rgb` arasındaki RGB kare mesafesini `cooo(av, k)` olarak döndürür | `FindCatalogDistances` |
 | `FindCatalogDistances(ra)` | `MosaicData.arRGB` içinde `boolUseOnce` false olan her taşa olan mesafeyi listeler | `MosaicEngine.RunM3` |
 | `SelectNearest(aro)` | Listeden en küçük `av` değerine sahip girdinin katalog indeksini döndürür | `MosaicEngine.RunM3` |
@@ -48,5 +49,5 @@ Statik sınıftır ve alanı yoktur. Mesafe sonuçları `cooo` modeliyle taşın
 - `RgbToLab` her çağrıda iki küçük dizi ayırır. Sık çağrılan yerler sonucu kendileri önbellekler.
 
 ## İlgili dosyalar
-- [MosaicEngine](./MosaicEngine.md), [OptimalPaletteService](./OptimalPaletteService.md), [MosaicMetrics](./MosaicMetrics.md), [GamutMapper](./GamutMapper.md), [ColorCatalogService](./ColorCatalogService.md)
+- [MosaicEngine](./MosaicEngine.md), [StockAwareAssigner](./StockAwareAssigner.md), [OptimalPaletteService](./OptimalPaletteService.md), [MosaicMetrics](./MosaicMetrics.md), [GamutMapper](./GamutMapper.md), [ColorCatalogService](./ColorCatalogService.md)
 - [Rgb](../Models/Rgb.md), [MosaicData](../Models/MosaicData.md)

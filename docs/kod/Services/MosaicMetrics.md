@@ -1,14 +1,15 @@
 # MosaicMetrics
 
-> Kaynak: `mosair/Services/MosaicMetrics.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/MosaicMetrics.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
-Üretilen mozaiğin kaynak resme ne kadar benzediğini sayısal olarak ölçer. Farklı algoritma varyantlarını (M3, WPF tarzı M3, Optimum) aynı ölçütlerle karşılaştırmak için yazılmıştır. Arayüzde kullanılmaz, yalnızca komut satırındaki karşılaştırma modunda çalışır.
+Üretilen mozaiğin kaynak resme ne kadar benzediğini sayısal olarak ölçer. Farklı algoritma varyantlarını (M3, WPF tarzı M3, Optimum) ve stoğa göre düzeltilmiş mozaiği aynı ölçütlerle karşılaştırmak için yazılmıştır. Arayüzde kullanılmaz, yalnızca komut satırındaki karşılaştırma modlarında çalışır.
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
 |---|---|
 | [CompareRunner](../CompareRunner.md) | Her varyant için `MosaicMetrics.Evaluate(src, data, R, C)` çağrılır ve `MosaicQuality` raporlanır |
+| [StockCompareRunner](../StockCompareRunner.md) | Stoğa göre düzeltmenin öncesi ve sonrası (Optimum ile stoklu sonuç) için `Evaluate` çağrılır |
 
 Uygulamanın arayüzü (MainViewModel) bu sınıfı kullanmaz.
 
@@ -31,7 +32,7 @@ Uygulamanın arayüzü (MainViewModel) bu sınıfı kullanmaz.
 ## Public API
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `Evaluate(src, mosaic, R, C)` | BGR kaynak ve mozaik dizilerini karşılaştırır ve `MosaicQuality` döndürür | CompareRunner |
+| `Evaluate(src, mosaic, R, C)` | BGR kaynak ve mozaik dizilerini karşılaştırır ve `MosaicQuality` döndürür | CompareRunner, StockCompareRunner |
 
 ## Algoritma / akış
 1. Her pikselin kaynak ve mozaik rengi `ColorMatcher.RgbToLab` ile Lab'a çevrilir. Dönüşümler renk anahtarına göre önbelleklenir.
@@ -41,7 +42,7 @@ Uygulamanın arayüzü (MainViewModel) bu sınıfı kullanmaz.
 5. **Kroma**: Kaynakta `sqrt(a² + b²) > 30` olan piksellerin ΔE ortalaması hesaplanır ve bu piksellerin sayısı tutulur.
 6. **Kenar ΔE**: Kaynağın L kanalında merkezi fark ile gradyan hesaplanır: `gx = L[j+1] − L[j−1]`, `gy = L[i+1] − L[i−1]`. Sınırlarda kenar pikseli tekrarlanır. Gradyanı en yüksek %10'a giren ve sıfırdan büyük olan piksellerin ΔE ortalaması alınır.
 7. **Kenar korunumu**: Yatay ve dikey komşu çiftlerden kaynakta Lab farkı `OptimalPaletteService.EdgeContrast` (12) ve üzeri olanlar sayılır. Bunlardan mozaikte iki yanı farklı renk olanların oranı hesaplanır.
-8. **Açıklık korelasyonu**: Kaynak L ve mozaik L dizileri arasında Pearson korelasyonu hesaplanır. Varyanslardan biri sıfırsa sonuç 1 olur.
+8. **Açıklık korelasyonu**: Kaynak L ve mozaik L dizileri arasında Pearson korelasyonu hesaplanır (özel `Pearson` yardımcısı). Varyanslardan biri sıfırsa sonuç 1 olur.
 9. **Taş sayısı**: Mozaikteki benzersiz renklerin sayısıdır.
 
 ## Önemli davranışlar ve iş kuralları
@@ -54,4 +55,4 @@ Uygulamanın arayüzü (MainViewModel) bu sınıfı kullanmaz.
 - Dizilerin `R×C` boyutunda olduğu varsayılır ve boyut kontrolü yapılmaz.
 
 ## İlgili dosyalar
-- [CompareRunner](../CompareRunner.md), [OptimalPaletteService](./OptimalPaletteService.md), [ColorMatcher](./ColorMatcher.md), [MosaicEngine](./MosaicEngine.md)
+- [CompareRunner](../CompareRunner.md), [StockCompareRunner](../StockCompareRunner.md), [OptimalPaletteService](./OptimalPaletteService.md), [ColorMatcher](./ColorMatcher.md), [MosaicEngine](./MosaicEngine.md)

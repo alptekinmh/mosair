@@ -1,6 +1,6 @@
 # PixelEditService
 
-> Kaynak: `mosair/Services/PixelEditService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/PixelEditService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -12,8 +12,8 @@ Mozaik üzerinde tek tek taş (hücre) değiştirmeyi yönetir: kaynak renk seç
 |---|---|
 | `MainViewModel` | Mod değiştirme, kaynak/hedef seçimi, `EditPixel`, `UndoLastEdit`, `RedoLastEdit`, `CanUndo`/`CanRedo`, `EditedPixels` sayısı |
 | `MainWindow.axaml.cs` | `IsPixelEditActive` (fare/imleç davranışı) |
-| `ProjectService` | `EditedPixels` kaydedilir/geri yüklenir |
-| `MosaicEngine` | Yeni görsel/mozaikte `Reset()` |
+| `ProjectService` | `EditedPixels` kaydedilir; açılışta `Reset()` sonrası dosyadan geri yüklenir |
+| `MosaicEngine` | `Reset()`: `MosaicEngine.Reset`, `ApplyOptimalK` ve stoğa göre düzeltme (`FixToStock`) mozaiği gerçekten değiştirdiğinde |
 
 ## Yapı
 
@@ -38,6 +38,8 @@ Mozaik üzerinde tek tek taş (hücre) değiştirmeyi yönetir: kaynak renk seç
 | `CanUndo` / `CanRedo` | `bool` | | Yığınlarda kayıt var mı |
 | `_undoStack` / `_redoStack` | `Stack<PixelEditRecord>` | boş | Geri al / yinele yığınları (özel) |
 
+Özel yardımcılar: `PatchRSRegion`, `UpdateRSForPixel`, `RestoreRSForPixel`, `FindCodeNameForColor` (aşağıda) ve `CloneRgb` (yalnızca `r/g/b/ID/codeName` alanlarını kopyalar).
+
 ## Public API
 
 | Metot | Ne yapar | Kimden çağrılır |
@@ -46,8 +48,8 @@ Mozaik üzerinde tek tek taş (hücre) değiştirmeyi yönetir: kaynak renk seç
 | `TogglePixelEditMode()` | Modu açar/kapar; açılınca kaynak seçim moduna geçer ve yeni `Current` oluşturur | `MainViewModel` |
 | `SetSourcePixel(y, x, r, g, b, id, codeName = "")` | `Current.Source`'u ayarlar, hedef moduna geçer | `MainViewModel` |
 | `EditPixel(y, x, r, g, b, id, codeName = "")` → `string` | Hedef hücreye kaynak rengi uygular (aşağıdaki kurallar); sonucu açıklayan kısa İngilizce metin döner | `MainViewModel` |
-| `UndoLastEdit()` → `string` | Son kaydı geri alır: hücreye `Original` yazılır, kayıt `EditedPixels`'ten çıkar, redo yığınına gider | `MainViewModel` |
-| `RedoLastEdit()` → `string` | Son geri alınanı yeniden uygular ve `EditedPixels`'e kopyasını ekler | `MainViewModel` |
+| `UndoLastEdit()` → `string` | Son kaydı geri alır: hücreye `Original` yazılır, kayıt `EditedPixels`'ten çıkar, redo yığınına gider. Yığın boşsa `nothing to undo` | `MainViewModel` |
+| `RedoLastEdit()` → `string` | Son geri alınanı yeniden uygular ve `EditedPixels`'e kopyasını ekler. Yığın boşsa `nothing to redo` | `MainViewModel` |
 
 ## Önemli davranışlar ve iş kuralları
 
@@ -81,7 +83,7 @@ Her başarılı değişiklikte redo yığını temizlenir.
 - "restored to original" dalı undo yığınına eklenmez; daha önce aynı hücre için yığında kalan kayıt geri alındığında hücreye yine `Original` yazılır.
 - "replaced" dalı aynı kayıt nesnesini yeniden undo'ya iter; geri alındığında önceki kaynağa değil `Original`'e dönülür.
 - Dönüş metinleri yerelleştirilmemiştir (İngilizce sabitler).
-- `ProjectService.Open` yalnızca `EditedPixels`'i temizler; undo/redo yığınları önceki projeden kalabilir.
+- Stoğa göre düzeltme mozaiği değiştirirse `Reset()` çağrılır; elle yapılmış piksel düzenlemeleri ve geri al/yinele geçmişi silinir.
 
 ## İlgili dosyalar
 

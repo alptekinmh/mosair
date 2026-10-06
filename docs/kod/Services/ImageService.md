@@ -1,6 +1,6 @@
 # ImageService
 
-> Kaynak: `mosair/Services/ImageService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/ImageService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -12,11 +12,10 @@ Dosya ayrıca `InterpolationMethod` enum'unu tanımlar.
 
 | Çağıran | Kullanım |
 |---|---|
-| `MosaicEngine` | `LoadImage`, `Resize`, `ToByteArray`, `FromByteArray` |
-| `OptimalPaletteService` | `ToByteArray` |
+| `MosaicEngine` | `LoadImage`, `Resize`, `ToByteArray`, `FromByteArray`; `ToByteArray` çıktısı (BGR) `OptimalPaletteService.Analyze` ve `StockAwareAssigner`'a girdi olarak verilir |
 | `StoneTextureService` | `ToByteArray`, `FromByteArray`, `Resize` |
 | `MainViewModel` | `LoadImage` (proje açılışında), `FromByteArray`, `ToAvaloniaBitmap`, `ExportImage` |
-| `MainViewModel`, `MosaicEngine`, `CompareRunner` | `InterpolationMethod` enum'u |
+| `MainViewModel`, `MainWindow.axaml.cs`, `MosaicEngine`, `ProjectService`, `CompareRunner`, `StockCompareRunner` | `InterpolationMethod` enum'u |
 
 ## Yapı
 
@@ -36,7 +35,7 @@ Dosya ayrıca `InterpolationMethod` enum'unu tanımlar.
 
 ### `ImageService` (static)
 
-Durum tutmaz.
+Durum tutmaz. Özel yardımcılar: `ApplyOrientation` (EXIF yönü) ve `ResizeWithSampling` (`Area` dışındaki yöntemler için `SKBitmap.Resize` + `SKSamplingOptions`; tanınmayan değer `Nearest` olur).
 
 ## Public API
 
@@ -60,7 +59,7 @@ Durum tutmaz.
 
 ## Dikkat / bilinen sınırlamalar
 
-- `Resize` (Area dalı), `FromByteArray` ve `ToByteArray` piksel başına 4 bayt ve boşluksuz satır (`RowBytes == Width * 4`) varsayar; `ToByteArray` `RowBytes`'ı dikkate almaz. 8888 dışı renk tipleri yanlış okunur.
+- `Resize` (Area dalı), `FromByteArray` ve `ToByteArray` piksel başına 4 bayt varsayar. Area dalı kaynak satır uzunluğu için `RowBytes`'ı kullanır; `FromByteArray` ve `ToByteArray` ise boşluksuz satır (`RowBytes == Width * 4`) varsayar ve `RowBytes`'ı dikkate almaz. 8888 dışı renk tipleri yanlış okunur.
 - Area dalında `Bgra8888` dışındaki her tip RGBA kabul edilir.
 - `ApplyOrientation`'daki `LeftTop` ve `RightBottom` (aynalı + döndürülmüş) dönüşümleri karmaşık ve test edilmemiş görünmektedir; bu EXIF yönlerine sahip fotoğraflarda sonuç kontrol edilmelidir.
 - `DrawOverlay` kullanılmıyor; ızgara artık `GridOverlay` kontrolüyle çiziliyor.

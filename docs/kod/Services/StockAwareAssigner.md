@@ -1,15 +1,16 @@
 # StockAwareAssigner
 
-> Kaynak: `mosair/Services/StockAwareAssigner.cs` · Güncelleme: 2026-10-06 · Durum: deneme (`stok_deneme` dalı)
+> Kaynak: `mosair/Services/StockAwareAssigner.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
-Bitmiş bir mozaiği (Optimum ya da klasik Mos), hiçbir taş stoğunu aşmayacak şekilde en az görünür değişiklikle yeniden düzenler. Stoğu yetmeyen taşın fazlası, renkçe en yakın ve stoğu olan taşlara aktarılır. İsteğe bağlı olarak çok az kullanılan taşlar (`MinUsage` altı) da çıkarılabilir; uygulamada bu kural **kapalıdır** (`MinUsage = 0`). Stoğu aşan taş yoksa mozaik değişmez. Ayrıntılı tasarım ve test sonuçları için [STOGA_GORE_RAPOR.md](../../STOGA_GORE_RAPOR.md).
+"Stoğa göre" özelliğinin çözücüsü (v1.3.1). Bitmiş bir mozaiği (Optimum ya da klasik Mos), hiçbir taş stoğunu aşmayacak şekilde en az görünür değişiklikle yeniden düzenler. Stoğu yetmeyen taşın fazlası, renkçe en yakın ve stoğu olan taşlara aktarılır. İsteğe bağlı olarak çok az kullanılan taşlar (`MinUsage` altı) da çıkarılabilir; uygulamada bu kural **kapalıdır** (`MinUsage = 0`). Stoğu aşan taş yoksa mozaik değişmez. Ayrıntılı tasarım ve test sonuçları için [STOGA_GORE_RAPOR.md](../../STOGA_GORE_RAPOR.md).
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
 |---|---|
-| [MosaicEngine](./MosaicEngine.md) | `ApplyOptimalKWithStock` → `SolveWithMinimum` |
-| [StockCompareRunner](../StockCompareRunner.md) | Çevrimdışı karşılaştırma |
+| [MosaicEngine](./MosaicEngine.md) | `ApplyOptimalKWithStock` (Optimum) ve `FixCurrentMosaicToStock` (klasik Mos, Stok Kontrol öncesi düzeltme), ikisi de `FixToStock` → `SolveWithMinimum` |
+| [MainViewModel](../ViewModels/MainViewModel.md) | `StockOptions()` → `new StockAwareOptions()` (`MinUsage = 0`); sonucu `MosaicEngine.LastStockResult` üzerinden raporlar |
+| [StockCompareRunner](../StockCompareRunner.md) | Çevrimdışı karşılaştırma; en az kullanım kuralını yalnızca `MOSAIR_MINUSAGE=1` ile açar |
 
 ## Yapı
 ### `StockAwareOptions`
@@ -23,8 +24,8 @@ Bitmiş bir mozaiği (Optimum ya da klasik Mos), hiçbir taş stoğunu aşmayaca
 | `MaxCandidates` | int | 8 | Taş başına değerlendirilen en yakın aday sayısı |
 | `GroupStep` | double | 2.0 | Birlikte taşınan renk grubunun Lab adımı |
 | `TwinTolerance` | double | 3.0 | "İkiz" sayılan en büyük ΔE; en yakın tek ikiz her zaman kullanılabilir |
-| `MinUsage` | int | 0 | Bu sayının altında kullanılan taşlar çıkarılır (0/1 = kapalı; uygulama 0 kullanır) |
-| `MinUsageFor(total)` | static | — | max(10, ⌈toplam × 0,0005⌉) |
+| `MinUsage` | int | 0 | Bu sayının altında kullanılan taşlar çıkarılır (0/1 = kapalı). Uygulamada kapalıdır (0); yalnızca karşılaştırma aracı `MOSAIR_MINUSAGE=1` ile açar |
+| `MinUsageFor(total)` | static | — | max(10, ⌈toplam × 0,0005⌉) (78×78 → 10, ~111.000 taş → 56); yalnızca `StockCompareRunner` kullanır |
 
 ### `StockAwareResult`
 `Changed`, `Assignment` (piksel başına havuz indeksi), `CountBefore` / `CountAfter` / `Capacity` (taş ID'sine göre), `AddedIds`, `ShortIds` (hâlâ yetmeyen), `UnknownIds` (stok kaydı olmayan), `SmallRemovedIds` / `SmallKeptIds`, `Moves` (`StockMove`: `FromId`, `ToId`, `Count`), `MovedPixels`, `MeanShift`, `Level` (0–4 arama genişliği), `MinUsage`.
@@ -53,7 +54,7 @@ Bitmiş bir mozaiği (Optimum ya da klasik Mos), hiçbir taş stoğunu aşmayaca
 ## Önemli davranışlar ve iş kuralları
 - Stok sert sınırdır; ancak hiç stoklu taş kalmazsa `ShortIds` dolar.
 - Eksi kapasite 0 sayılır.
-- Hız: 300 cm genişlikte 125.000 taşlık bir test görselinde (10 taş stoğu aşıyor, 87.000 taş taşınıyor) düzeltme 86 sn'den 9 sn'ye indi. Sonuç birebir aynı kaldı (karşılaştırma aracıyla doğrulandı).
+- Hız (paralel seviyeler, `skipHopeless`, sink'te duran Dijkstra, düz dizili ağ): 300 cm genişlikte 125.000 taşlık bir test görselinde (st1.jpg; 10 taş stoğu aşıyor, 87.000 taş taşınıyor) düzeltme 86 sn'den 9 sn'ye, 7.jpg'de 249 sn'den yaklaşık 26–44 sn'ye indi. Sonuçlar bayt bayt aynı kaldı (karşılaştırma aracıyla doğrulandı).
 - Stoğu aşan ve az kullanılan taş yoksa `Assignment` girdinin aynısıdır (birebir aynılık).
 
 ## Dikkat / bilinen sınırlamalar

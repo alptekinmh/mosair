@@ -1,6 +1,6 @@
 # StoneTextureService
 
-> Kaynak: `mosair/Services/StoneTextureService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/StoneTextureService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -10,9 +10,10 @@ Gerçek taş fotoğraflarını (`02_RS` klasörü) yükler, mozaik taş boyutuna
 
 | Çağıran | Kullanım |
 |---|---|
-| `MosaicEngine` (`RunOptimal`, `RunM3` sonu) | `PopulateRandomIndices`, `LoadTextures`, `ResizeTextures`; `Reset` |
+| `MosaicEngine` (`ApplyOptimalK`, `RunM3` sonu, stoğa göre düzeltme `FixToStock`) | `PopulateRandomIndices`, `LoadTextures`, `ResizeTextures` (yalnızca `prepareTextures` açıksa; `FixToStock` ayrıca mozaik değiştiyse veya `texturesAlways` ise); `MosaicEngine.Reset` içinde `Reset` |
 | `MainViewModel.BuildRsBitmap`, `OpenProject`, `RegenerateRS` | `ResizeTextures`, `GenerateRSBitmap`, `LoadTextures` |
 | `MainViewModel.LoadImage` | `Reset` |
+| `ProjectService.Open` | Dosyada geçerli `Arn` yoksa `PopulateRandomIndices` |
 | `MainViewModel.UpdatePropTexture`, `SelectStone` | `FindFolderForCode` |
 | `ColorItem.ThumbnailBitmap`, `ColorItem.BuildTooltipBitmap` (`MainViewModel.cs`) | `LoadSingleThumbnail`, `LoadTooltipImages` |
 | `PixelEditService.PatchRSRegion` | `FindFolderForCode` |
@@ -27,6 +28,8 @@ Static sınıf, özel durum alanları:
 | `_resizedTextures` | `Dictionary<string, List<byte[,,]>>` | boş | Kod adı → `N×N`'e küçültülmüş dokular |
 | `_rsDirNames` | `string[]?` | `null` | `02_RS` altındaki klasörler (önbellek) |
 | `_rsBasePath` | `string?` | `null` | Bulunan `02_RS` yolu |
+
+Özel yardımcılar: `FindFolder(codeName)` (önbellekteki klasör listesinde arar) ve `CreateSolidTexture(color, size)` (doku dosyası yoksa kullanılan BGR düz renk doku).
 
 ### Doku klasörü yapısı
 
@@ -43,7 +46,7 @@ Static sınıf, özel durum alanları:
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
 | `FindRSPath()` → `string?` | `02_RS` klasörünü bulur | `LoadTextures`, `FindFolderForCode` |
-| `PopulateRandomIndices(R, C)` | `MosaicData.arn`'ı `R*C` uzunlukta, `1..15` arası rastgele doku indeksiyle doldurur | `MosaicEngine` |
+| `PopulateRandomIndices(R, C)` | `MosaicData.arn`'ı `R*C` uzunlukta, `1..15` arası rastgele doku indeksiyle doldurur | `MosaicEngine`, `ProjectService.Open` |
 | `LoadTextures()` | `MosaicData.arMA`'daki her benzersiz kod adı için 16 doku yükler (paralel); dosya yoksa 3×3 düz renk doku koyar | `MosaicEngine`, `MainViewModel.OpenProject` |
 | `FindFolderForCode(codeName)` → `string?` | Gerekirse yolu/klasör listesini hazırlayıp kod adının klasörünü döndürür | `PixelEditService`, `MainViewModel` |
 | `LoadSingleThumbnail(codeName, width, height)` → `SKBitmap?` | `1.jpg`'yi verilen boyuta küçültür | `ColorItem.ThumbnailBitmap` |

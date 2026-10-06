@@ -1,6 +1,6 @@
 # OptimalPaletteService
 
-> Kaynak: `mosair/Services/OptimalPaletteService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/OptimalPaletteService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Analiz tüm aktif katalogla başlar ve her adımda en az zarar veren taşı paletten çıkarır (açgözlü geriye eleme). Her k için kalite eğrileri kaydedilir. Ardından kalitenin tam katalogdan belirgin biçimde kötüleşmediği en küçük k seçilir. Taşların çıkarılma sırası da sonuçla birlikte döner, böylece her k için palet iç içe bir alt küme olur.
@@ -11,6 +11,7 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 | [MosaicEngine](./MosaicEngine.md) | `RunOptimal` içinde `Analyze` çağrılır. `ApplyOptimalK` içinde `LightnessWeight` ile taş eşlemesi yapılır. |
 | [MosaicMetrics](./MosaicMetrics.md) | `EdgeContrast` eşiğini kullanır |
 | [CompareRunner](../CompareRunner.md) | `MOSAIR_LW` ortam değişkeniyle `LightnessWeight`'i değiştirir. `KKnee` ve `KThreshold` değerlerini loglar. |
+| [StockAwareAssigner](./StockAwareAssigner.md) | Stoğa göre düzeltmede piksel ağırlığı için `SobelMagnitude`, `Percentile` (%98) ve `EdgeWeight` kullanılır; böylece kenar ağırlığı bu servisle aynı hesaplanır. |
 | [MainViewModel](../ViewModels/MainViewModel.md) | `MosaicEngine.LastOptimalResult` üzerinden `KOptimal` ve `CandidateCount` değerlerini okur (slider aralığı ve önerilen k) |
 
 ## Yapı
@@ -44,6 +45,14 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 | `EdgeLambda` | const double | 1.0 | Kenar cezası katsayısı (`EdgeLambda·d²`) |
 | `EdgeLossTolerance` | const double | 0.02 | Korunan kenar oranında izin verilen kayıp |
 | `HistBins` / `HistStep` | private const | 2000 / 0.1 | Persentil histogramı. Aralığı 0–200, adımı 0,1. |
+
+### Yardımcı metotlar
+| Metot | Erişim | Açıklama |
+|---|---|---|
+| `SobelMagnitude(L, R, C)` → `double[]` | internal static | L kanalında 3×3 Sobel kenar büyüklüğü; resim kenarında komşu indeksleri sınıra kenetlenir (clamp). `StockAwareAssigner` de kullanır. |
+| `Percentile(values, q)` → `double` | internal static | Diziyi kopyalayıp sıralar ve q persentilini döndürür. `StockAwareAssigner` de kullanır. |
+| `HistPercentile(hist, totalCount, q)` | private static | P95/P99 değerini histogramdan okur (kutu üst sınırı). |
+| `RecordCurve`, `EdgeKept`, `AdvanceAlive`, `SelectK` | private static | Aşağıdaki akışta anlatılan adımlar. |
 
 ## Public API
 | Metot | Ne yapar | Kimden çağrılır |
@@ -80,7 +89,7 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 
 ## Önemli davranışlar ve iş kuralları
 - Mesafeler ve tolerans eşikleri **saf CIE76 ΔE değildir**. ΔL `LightnessWeight` (3.0) ile çarpılır ve ortalama kenar ağırlıklıdır. Bu yüzden tolerans sayıları bu ölçeğe göre ayarlanmıştır. [MosaicMetrics](./MosaicMetrics.md)'teki ΔE ile doğrudan karşılaştırılamaz.
-- `LightnessWeight` static ve yazılabilirdir. Değeri `MosaicEngine.ApplyOptimalK` içindeki eşlemeyi de etkiler. CompareRunner bu değeri `MOSAIR_LW` ortam değişkeniyle değiştirebilir.
+- `LightnessWeight` static ve yazılabilirdir. Değeri `MosaicEngine.ApplyOptimalK` içindeki eşlemeyi de etkiler. `StockAwareAssigner` bunu kullanmaz; kendi `StockAwareOptions.LightnessWeight` (varsayılan 1.0) değeriyle çalışır. CompareRunner bu değeri `MOSAIR_LW` ortam değişkeniyle değiştirebilir.
 - `KKnee` önerilen k'yı etkilemez. Yalnızca CompareRunner loglarında görünür.
 - Eleme sırası sabit olduğu için kullanıcı slider ile k'yı değiştirdiğinde analiz yeniden çalıştırılmaz.
 - İlerleme, eleme adımlarının oranı olarak bildirilir.
@@ -90,7 +99,8 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 - Eleme döngüsü her adımda tüm benzersiz renkleri ve kenarları dolaşır. Karmaşıklık yaklaşık O(M·(U+E+M))'dir.
 - Histogram 200'de doyar. Bu değerin üzerindeki mesafeler son kutuya düşer.
 - `Percentile` tüm kenar dizisini kopyalayıp sıralar.
+- `SobelMagnitude` ve `Percentile` `internal` olduğundan imzaları değişirse `StockAwareAssigner` da güncellenmelidir.
 
 ## İlgili dosyalar
-- [MosaicEngine](./MosaicEngine.md), [ColorMatcher](./ColorMatcher.md) (`RgbToLab`), [GamutMapper](./GamutMapper.md), [MosaicMetrics](./MosaicMetrics.md)
+- [MosaicEngine](./MosaicEngine.md), [StockAwareAssigner](./StockAwareAssigner.md), [ColorMatcher](./ColorMatcher.md) (`RgbToLab`), [GamutMapper](./GamutMapper.md), [MosaicMetrics](./MosaicMetrics.md)
 - [Rgb](../Models/Rgb.md), [CompareRunner](../CompareRunner.md), [MainViewModel](../ViewModels/MainViewModel.md), [Arayüz kılavuzu](../../ARAYUZ.md)

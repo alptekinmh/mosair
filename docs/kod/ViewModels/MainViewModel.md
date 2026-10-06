@@ -1,8 +1,8 @@
 # MainViewModel
-> Kaynak: `mosair/ViewModels/MainViewModel.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/ViewModels/MainViewModel.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
-Ana pencerenin tek view model'idir: görsel yükleme, mozaikleme (klasik M3 ve Optimum), RS (taş dokulu) bitmap üretimi, zoom/navigator, renk kataloğu seçimi, piksel düzenleme, taş varyantı seçimi, proje aç/kaydet, dışa aktarma ve Google Sheet stok işlemlerinin UI tarafındaki durumunu tutar. Ağır işi servislere (`MosaicEngine`, `StoneTextureService`, `ProjectService`, `StockSheetService`, `PixelEditService`) devreder; kendisi durum, iş sırası ve kullanıcıya gösterilen metinlerden sorumludur. Dosyada ayrıca katalog/palet/atama listelerinin satır modelleri (`ColorItem`, `PaletteItem`, `AssignedItem`, `StoneThumbItem`) bulunur.
+Ana pencerenin tek view model'idir: görsel yükleme, mozaikleme (klasik M3 ve Optimum), RS (taş dokulu) bitmap üretimi, zoom/navigator, renk kataloğu seçimi, piksel düzenleme, taş varyantı seçimi, proje aç/kaydet, dışa aktarma ve Google Sheet stok işlemlerinin (stoğa göre mozaik, "Stoğa göre" dahil) UI tarafındaki durumunu tutar. Ağır işi servislere (`MosaicEngine`, `StoneTextureService`, `ProjectService`, `StockSheetService`, `PixelEditService`) devreder; kendisi durum, iş sırası ve kullanıcıya gösterilen metinlerden sorumludur. Dosyada ayrıca katalog/palet/atama listelerinin satır modelleri (`ColorItem`, `PaletteItem`, `AssignedItem`, `StoneThumbItem`) bulunur.
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
@@ -127,6 +127,12 @@ Katalog listesindeki bir taş rengi.
 | `AssignedColors` | `ObservableCollection<AssignedItem>` | Kullanılan taşlar ve piksel sayıları. |
 | `IsStockBusy` | `bool` | Stok işlemi sürerken true (private set). |
 | `CanUseStock` | `bool` | `!IsStockBusy`; stok menü/butonlarını kilitler. |
+| `UseStockAware` | `bool` | Varsayılan `true` ("Stoğa göre" onay kutusu). Kalıcı saklanmaz; her açılışta açık başlar. Değişince `StockAwareTip` de bildirilir. |
+| `StockAwareTip` | `string` | `TipStockAware` metni; son stoğa göre çalışmanın raporu (`_stockAwareReport`) varsa altına eklenir. |
+| `_loadedStock` | `Dictionary<int, StockSheetService.StoneStock>?` | Açılışta ve her görsel/proje yüklemesinde `RefreshStockAsync` ile okunan stok; stoğa göre Mos bunu kullanır. Görsel/proje yüklenince önce null yapılır. |
+| `_stockOnHand` | `Dictionary<int, StockSheetService.StoneStock>?` | Son stoğa göre Mos'un veya Stok Kontrol düzeltmesinin kullandığı stok; taş sayısı kaydırıcısı aynı stoğa uyar. Yeni Mos, yeni görsel ve proje açma temizler. |
+| `_stockAwareReport` | `string` | Son stoğa göre çalışmanın tam raporu (taşınan taşlar, eklenenler, yetersizler); `SetStockAwareReport` yazar. |
+| `_mosaicMadeThisSession` | `bool` | Ekrandaki mozaik bu oturumda Mos (Optimum veya klasik) ile üretildiyse true; görsel yükleme ve proje açma false yapar. `FixToStockAsync` bunu ister. |
 
 **Piksel düzenleme**
 
@@ -166,12 +172,12 @@ Katalog listesindeki bir taş rengi.
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
 | `MainViewModel()` | `ColorCatalogService.LoadDefaultCatalog` + `RefreshCatalogList`; hata `StatusText`'e yazılır. Dil aboneliği. | MainWindow |
-| `LoadImage(path)` | Yeni görsel: `ProjectService` dosya adlarını ayarlar, `ForgetWpfState`, `MosaicEngine.Reset`, mozaik/düzenleme/undo durumunu ve `StoneTextureService`'i sıfırlar, görseli yükler, zoom = 2, `UpdateDimensions`, `AutoSelectGridColor`. | MainWindow (menü, sürükle-bırak) |
+| `LoadImage(path)` | Yeni görsel: `StartNewContent()`, `ProjectService` dosya adlarını ayarlar, `ForgetWpfState`, `_stockOnHand`/`_mosaicMadeThisSession`/stok raporunu sıfırlar, `MosaicEngine.Reset`, mozaik/düzenleme/undo durumunu ve `StoneTextureService`'i sıfırlar, görseli yükler, zoom = 2, `UpdateDimensions`, `AutoSelectGridColor`; başarılıysa `_loadedStock = null` ve arka planda `RefreshStockAsync()`. | MainWindow (menü, sürükle-bırak) |
 | `UpdateDimensions()` | Genişliği 1.2 cm katına yuvarlar (en az 2 taş), görsel genişliğinden (1 px = 1 taş) büyükse kırpar ve `AlertResolutionTitle` uyarısı verir; boyut/taş/kalıp metinlerini günceller. | MainWindow, `LoadImage`, `OpenProject`, `RefreshLocalized` |
-| `RunMosaicAsync()` | Mos: stok işaretlerini temizler, Optimum taban seçimini hazırlar, `SetActiveColors`, `TargetColors` hesaplar, arka planda `RunOptimal` veya `RunM3` + `BuildRsBitmap`, sonra Optimum kaydırıcısını kurar ve `FinishMosaic`. `UseStockAware` açıksa `_loadedStock` (yoksa önce `RefreshStockAsync`) ile sonucu stoğa göre düzeltir: Optimum → `ApplyOptimalKFor`, klasik → `FixClassicMosaicToStock`; stok okunamazsa `StockAwareNoStock`, düzeltilemezse `StockAwareCannotFix`. | MainWindow |
+| `RunMosaicAsync()` | Mos: `StartNewContent()`, stok işaretlerini temizler, Optimum taban seçimini hazırlar, `SetActiveColors`, `TargetColors` hesaplar, arka planda `RunOptimal` veya `RunM3` + `BuildRsBitmap`, sonra Optimum kaydırıcısını kurar ve `FinishMosaic`. `UseStockAware` açıksa ve stok ayarında Sheet ID varsa sonuç Mos içinde stoğa uydurulur (Sheet ID yoksa düz Mos, not gösterilmez): `_loadedStock` yoksa önce `RefreshStockAsync()` beklenir; Optimum'da `RunOptimal(prepareTextures: stock == null)` ardından `ApplyOptimalKFor(KOptimal, stock)`, klasikte `RunM3` ardından `FixClassicMosaicToStock(stock)`. Başarılıysa `_stockOnHand = stock` ve `ShowStockAwareResult`; stok okunamadıysa düz Mos + `StockAwareNoStock` notu, klasik düzeltme yapılamadıysa `StockAwareCannotFix` uyarısı. Bitince sürüm değişmişse sonuç atılır; değişmemişse `_mosaicMadeThisSession = result != null`. | MainWindow |
 | `SaveProject(filePath)` → `bool` | `ProjectService.Save` (genişlik, zoom, ızgara, derz rengi, interpolasyon). Hata olursa `ReportSaveFailed` çağırır ve `false` döner. | MainWindow |
 | `ReportSaveFailed(ex)` | Durum çubuğuna hata yazar, `AlertSaveFailed` uyarısını gösterir. | `SaveProject`, MainWindow |
-| `OpenProject(filePath)` (`async void`) | `ProjectService.Open`, kaynak görseli varsa yükler, ayarları uygular, `dataM3`'ten export bitmap üretir, kataloğu kullanılan taşlara filtreler, ardından RS bitmap'i arka planda üretir ve `FitToWindow`. | MainWindow |
+| `OpenProject(filePath)` (`async void`) | `StartNewContent()`, `ProjectService.Open`, kaynak görseli varsa yükler, ayarları uygular, `dataM3`'ten export bitmap üretir, kataloğu kullanılan taşlara filtreler, ardından RS bitmap'i arka planda üretir ve `FitToWindow`. `_stockOnHand`, `_mosaicMadeThisSession` ve stok raporu sıfırlanır; sonunda `_loadedStock = null` ve `RefreshStockAsync()`. | MainWindow |
 | `ExportImageAsync(path)` | RS (yoksa export) bitmap'in kopyasını `.jpg/.jpeg` → JPEG, diğerleri PNG olarak arka planda yazar. | MainWindow |
 | `RefreshLocalized()` | Dil değişiminden sonra yerelleştirilmiş metinleri yeniler, `StatusText` = `StatusReady`. | MainWindow |
 | `FitToWindow(w, h)` | Viewport'u hatırlar, sığdırma zoom'unu hesaplar (kenar payı 16 px), `MinZoomLevel` ve `ZoomLevel`'i ayarlar (en fazla 10). | MainWindow, `OpenProject` |
@@ -189,9 +195,9 @@ Katalog listesindeki bir taş rengi.
 | `OpenStockSheetAsync()` | Ayarlı Sheet'i `StockSheetService.SheetUrl` ile tarayıcıda açar. | MainWindow |
 | `ConfigureStockAsync()` | Stok ayar diyaloğunu açar, `StockSheetService.SaveConfig`. | MainWindow |
 | `LoadStockOnStartupAsync()` | `RefreshStockAsync()` çağırır. | MainWindow (`Opened`) |
-| `RefreshStockAsync()` | Stok ayarındaki tablodan proje adıyla stoğu okur (`FetchOnHandAsync`), `_loadedStock`'a ve `StockKg`'ya yazar; seçim ve kırmızı noktalar değişmez. Bu sırada görsel değiştiyse sonucu atar. Hata durum çubuğuna not olarak düşer. | `LoadStockOnStartupAsync`, `LoadImage`, `OpenProject`, `RunMosaicAsync` |
-| `FetchStockAsync(markOnly = false)` | Eldeki stoğu çeker, `StockKg` yazar. `markOnly` false: stok ≤ 0 olan taşları hariç tutar (`ApplyStockSelection`), `StockFetched`. `markOnly` true: seçime dokunmaz, yalnızca kırmızı nokta, `StockFetchedMarked`. | MainWindow |
-| `CheckStockAsync()` | Mozaikteki taş sayılarını (`arMA[0]`) proje adıyla Sheet'e gönderir; yetersiz taşları işaretler, `RemainingKg`/`StockKg` yazar. | MainWindow |
+| `RefreshStockAsync()` | `SheetId` ayarlı değilse hiçbir şey yapmaz. Ayarlı tablodan proje adıyla stoğu okur (`FetchOnHandAsync`; bu mozaiğin kendi sütunu diğer mozaiklerin payına katılmaz), `_loadedStock`'a ve eşleşen `ColorItem.StockKg`'ya yazar; seçim ve kırmızı noktalar değişmez. Okuma sürerken başka görsel yüklendiyse (`StockProjectName()` değiştiyse) sonucu atar. Sonuç (`StockLoadedOnStart`) veya hata (`StockLoadOnStartFailed`) `AppendStartupStatus` ile durum çubuğuna not olarak eklenir. | `LoadStockOnStartupAsync`, `LoadImage`, `OpenProject`, `RunMosaicAsync` |
+| `FetchStockAsync(markOnly = false)` | Eldeki stoğu çeker (`StockSheetService.FetchStockAsync`), `StockKg` yazar. `markOnly` false ("Stok Çek"): Sheet'te stok ≤ 0 olan taşları hariç tutar, > 0 olanları dahil eder (`ApplyStockSelection`), durum `StockFetched`. `markOnly` true (yalnız işaretle): seçime dokunmaz, stok ≤ 0 olan taşlara yalnızca kırmızı nokta (`stokYetersiz`/`StockShort`), durum `StockFetchedMarked`. | MainWindow (`OnStockFetch`, `OnStockFetchMark`) |
+| `CheckStockAsync()` | `UseStockAware` açıksa önce `FixToStockAsync` ile mozaiği stoğa uydurur; sonra mozaikteki taş sayılarını (`arMA[0]`) proje adıyla Sheet'e tek seferde gönderir, yetersiz taşları işaretler, `RemainingKg`/`StockKg` yazar. Düzeltme çalıştıysa kırmızı noktalar ve kalan kg, Sheet'ten geri okunan "Tahmini Kalan" (Google henüz yeniden hesaplamamış olabilir) yerine düzeltmede okunan stoktan (`ShowStockMarks`) gelir ve durum `StockAwareWritten` / `StockCountsWritten` ile biter. Düzeltme çalışamadıysa (neden diyalogda gösterilir) normal kontrol yine yapılır (`StockCheckOk` / `StockCheckShort`). | MainWindow |
 | `ClearStockOneAsync()` / `ClearStockAllAsync()` | Onaydan sonra bu projenin / tüm projelerin sütununu temizler. | MainWindow |
 | `AddStockAsync()` | Onaydan sonra `StockSheetService.AddStockAsync`. | MainWindow |
 
@@ -205,10 +211,19 @@ Katalog listesindeki bir taş rengi.
 | `ApplyStockSelection(leaveOutForId)` | Stok kararını (true/false/null) kataloğa ve `_optimumUserSelection`'a uygular; seçim önceden "otomatik" seçimle aynıysa `_optimumAutoSelection`'ı da günceller. |
 | `CaptureCatalogSelection()` / `ApplyCatalogSelection(leaveOut)` | `boolLeaveOut` + `MosaicData.arcs` + `ColorItem.IsExcluded` senkronu. |
 | `RestoreOptimumUserSelectionIfUntouched()` | Seçim hâlâ otomatik seçimse kullanıcının Optimum öncesi seçimini geri yükler. |
-| `ScheduleOptimalApply()` / `ApplyOptimalKAsync(k)` | 350 ms debounce sonra `MosaicEngine.ApplyOptimalK(k)` + `BuildRsBitmap` + `FinishMosaic`. |
+| `ScheduleOptimalApply()` / `ApplyOptimalKAsync(k)` | 350 ms debounce sonra `ApplyOptimalKFor(k, stock)` + `BuildRsBitmap` + `FinishMosaic`. `UseStockAware` açık ve `_stockOnHand` doluysa yeni taş sayısı da aynı stoğa uydurulur; `ShowStockAwareResult` ve `StockAwareRecheck` notu (Sheet sütunu hâlâ son Stok Kontrol sayılarını tutar). |
 | `DisposeIfReplaced(old, current)` | Mos / Optimum taş sayısı değişiminden sonra motorun değiştirdiği eski `exportBitmap`'i UI iş parçacığında serbest bırakır. |
 | `BuildRsBitmap()` | Derz genişliği `max(1, N/11)` (ızgara açıksa), dokuları `N - gw`'ye boyutlar, `StoneTextureService.GenerateRSBitmap`. |
-| `FinishMosaic(result, rsBmp, elapsed)` | RS bitmap'i `MosaicData.rsBitmap`'e koyar (RS üretilemediyse eskisini siler ki önceki mozaik görünmesin); mozaik yeniden kurulduğu için `_stoneUndoStack`/`_stoneRedoStack`'i temizler ve `EditedPixelCount`'u günceller; `MosaicDone`, `FilterCatalogByUsedColors`, Optimum ise `_optimumAutoSelection` yakalar, `UsedColorInfo` ve `StatusCompleted`. |
+| `FinishMosaic(result, rsBmp, elapsed)` | RS bitmap'i `MosaicData.rsBitmap`'e koyar; RS üretilemediyse ve `result` varsa eski `rsBitmap`'i dispose edip null yapar (önceki mozaik görünmesin) ve piksel boyutunu `result`'tan alır; mozaik yeniden kurulduğu için `_stoneUndoStack`/`_stoneRedoStack`'i temizler ve `EditedPixelCount`'u günceller; `MosaicDone`, `FilterCatalogByUsedColors`, Optimum ise `_optimumAutoSelection` yakalar, `UsedColorInfo` ve `StatusCompleted`. |
+| `StartNewContent()` → `int` | Bekleyen/süren `RegenerateRS`'i (`_rsRegenerateCts`) ve bekleyen kaydırıcı uygulamasını (`_optimalApplyCts`) iptal eder, `_contentVersion`'ı artırıp döndürür. |
+| `FixToStockAsync(config, projectName)` → stok veya null | Stok Kontrol öncesi düzeltme. Mozaik bu oturumda Mos ile üretilmemişse (`_mosaicMadeThisSession` false veya `MosaicEngine.LastRunPool` null) `StockAwareNeedsMos`; stok okunamazsa `StockAwareReadFailed` (diyalog, null döner). Kapasiteyi aşan taş yoksa `StockAwareOk` ile stoğu döndürür. Varsa (piksel düzenlemesi varsa `StockAwareEditsConfirm` onayından sonra) `StartNewContent()`, arka planda Optimum için `ApplyOptimalKFor(OptimalK, stock)`, klasik için `FixClassicMosaicToStock`, ardından `BuildRsBitmap`; sürüm değiştiyse sonucu atar; klasik düzeltme olmazsa `StockAwareCannotFix`. Başarıda `FinishMosaic` + `ShowStockAwareResult`. `_stockOnHand` okunan stoğa ayarlanır. |
+| `StockOptions()` | `new StockAwareOptions()`; `MinUsage = 0`, yani az kullanılan taşları düşürme kuralı uygulamada **kapalıdır**. |
+| `ApplyOptimalKFor(k, stock)` | İşçi iş parçacığında: `stock` null ise `MosaicEngine.ApplyOptimalK(k)`, değilse `ApplyOptimalKWithStock(k, kapasite, aile adı, StockOptions())`. |
+| `FixClassicMosaicToStock(stock)` → `bool` | İşçi iş parçacığında klasik Mos sonucunu yerinde `MosaicEngine.FixCurrentMosaicToStock` ile stoğa uydurur. |
+| `ShowStockAwareResult(stock)` | `MosaicEngine.LastStockResult`'tan katalogda `StockKg`, `RemainingKg` (= `AvailableKg − kullanılan × StoneWeightKg`) ve kırmızı noktaları yazar; tam rapor (`StockAwareChanged`, `StockAwareMove`, `StockAwareAdded`, `StockAwareSmall`, `StockAwareLevel1..4`, `StockAwareShort`, `StockAwareUnknown`) `SetStockAwareReport`'a, kısa özet durum çubuğuna. |
+| `ShowStockMarks(stock, counts)` | Okunan stoktan kırmızı nokta (kullanım > `Capacity`) ve kalan kg hesaplar. |
+| `SetStockAwareReport(text)` | `_stockAwareReport` yazar ve `StockAwareTip`'i bildirir. |
+| `AppendStartupStatus(message)` | Durum çubuğu `StatusReady` ise mesajı yazar, değilse mevcut uyarının (ör. atlanan katalog satırları) sonuna `" · "` ile ekler. |
 | `RegenerateRS()` (`async void`) | N/ızgara/renk/varyant değişince RS bitmap'i 300 ms debounce, `SemaphoreSlim` kilidi ve iptal ile yeniden üretir; `AdjustZoomForBitmapChange`. |
 | `FilterCatalogByUsedColors()` | Kataloğu yalnız `arMB[0]`'da kullanılan kodlara indirger, `PopulatePaletteAndAssigned`. |
 | `PopulatePaletteAndAssigned()` | Seçili katalog sırasıyla `PaletteColors` ve `AssignedColors`'ı doldurur (piksel sayısı 0 olanlar atlanır, ama numara sayacı ilerler). |
@@ -234,6 +249,9 @@ Katalog listesindeki bir taş rengi.
 - **N > 40 uyarısı** (`NWarningVisible`) oturumda yalnız bir kez gösterilir (`_nWarningShown`).
 - **800M piksel sınırı**: `RegenerateRS`, `R·N·C·N > 800_000_000` ise RS üretmez; `StatusNTooLarge` ve `AlertNTooLargeTitle` gösterir. `OutOfMemoryException` → `AlertMemoryTitle`.
 - `RegenerateRS` 300 ms debounce, önceki çağrıyı iptal eder ve `_rsLock` ile aynı anda tek üretim yapar; mozaik yoksa hiçbir şey yapmaz.
+- **Stoğa göre (`UseStockAware`, varsayılan açık)**: Mos sonucu, Sheet'ten okunan stoğa (Bizdeki eksi diğer mozaik sütunları) göre `StockAwareAssigner` ile düzeltilir; stoğu yetmeyen taşın fazlası benzer taşlara taşınır. Aynı düzeltme taş sayısı kaydırıcısında (`_stockOnHand`) ve Stok Kontrol'den önce (`FixToStockAsync`) de uygulanır; Sheet'e son sayılar tek yazımda gider. Stok okunamazsa Mos düz çalışır.
+- **En az kullanım kuralı kapalı**: `StockOptions()` `MinUsage = 0` döndürür; çok az kullanılan taşlar düşürülmez. Kural yalnız `StockCompareRunner` test aracında `MOSAIR_MINUSAGE=1` ile açılır.
+- **Stok yükleme**: Açılışta (`LoadStockOnStartupAsync`) ve her görsel/proje yüklemesinde stok arka planda okunur; tooltip'lerde kg görünür, seçim değişmez.
 - **Geç biten arka plan işleri**: `LoadImage`, `OpenProject`, `RunMosaicAsync` ve `FixToStockAsync` `StartNewContent()` çağırır: bekleyen/süren `RegenerateRS` ve bekleyen kaydırıcı uygulaması iptal edilir, `_contentVersion` artar. `RegenerateRS`, `ApplyOptimalKAsync`, `RunMosaicAsync`, `FixToStockAsync` ve `OpenProject`'in RS üretimi başlarken sürümü alır; bittiğinde sürüm değişmişse sonucu atar (bitmap dispose edilir), ekrana yazmaz. Böylece başka bir görsel açıldıktan sonra eski mozaik geri gelmez.
 - **Undo/redo sırası**: Önce taş varyantı yığını (`_stoneUndoStack`/`_stoneRedoStack`) boşaltılır, o boşsa `PixelEditService` piksel düzenlemeleri geri alınır/yinelenir. Yeni `SelectStone` redo yığınını temizler.
 - **Genişlik 1.2 cm katı**: `UpdateDimensions` `WidthCm`'yi `round(WidthCm·10/12)·1.2`'ye (en az 2 taş = 2.4 cm) çeker; bir taş = 1 kaynak piksel olduğundan görsel genişliğini aşamaz.
@@ -248,6 +266,8 @@ Katalog listesindeki bir taş rengi.
 - `OpenProject` içinde `GridColor` ve `ShowGrid` atamaları (önceki `MosaicDone` true ise) debounced `RegenerateRS` tetikleyebilir; aynı anda `OpenProject` kendi RS'ini üretir → çift üretim ve `IsProcessing`'in erken false olması mümkün.
 - `RegenerateRS`'in `finally` bloğu, 800M kontrolünde erken dönse bile `IsProcessing = false` yapar; başka bir işlem sürerken bayrağı düşürebilir.
 - `OpenProject` `async void`; `ProjectService.Open` sonrası oluşan istisnalar (RS üretimi hariç) yakalanmaz. RS üretim hatası sessizce yutulur.
+- `FixToStockAsync` başındaki kod yorumu hâlâ "çok az kullanılan taşlar düşürülür" der; en az kullanım kuralı kapalı olduğundan bu olmaz (`StockAwareSmall` satırı raporda çıkmaz).
+- `FixToStockAsync` açılmış bir projede çalışmaz (`StockAwareNeedsMos`): taş çözünürlüğünde kaynak görsel verisi yoktur; önce Mos gerekir.
 - `RedrawOverlay`'deki `"Bitmap too large for display"` ve `SetSourceFromCatalog`'daki `"source: "` metinleri yerelleştirilmemiş.
 - `ReorderCatalogList` ve `OnImagePointerMoved` boş; `PixelCoordInfo`, `PixelDetailInfo`, `PixelColorInfo`, `PixelScaleInfo`, `DimensionInfo` XAML'e bağlı değil.
 - `OnImagePressed` x ve y için aynı ölçeği (`imageControlWidth / MosaicEngine.width`) kullanır; kare taş varsayar.
@@ -262,4 +282,5 @@ Katalog listesindeki bir taş rengi.
 - [ColorCatalogService](../Services/ColorCatalogService.md), [StockSheetService](../Services/StockSheetService.md)
 - [ProjectService](../Services/ProjectService.md), [PixelEditService](../Services/PixelEditService.md), [Loc](../Services/Loc.md)
 - [MosaicData](../Models/MosaicData.md), [Rgb](../Models/Rgb.md), [Region](../Models/Region.md)
+- [StockAwareAssigner](../Services/StockAwareAssigner.md), [Stoğa göre raporu](../../STOGA_GORE_RAPOR.md)
 - [GridOverlay](../Controls/GridOverlay.md), [StockSettingsDialog](../Controls/StockSettingsDialog.md), [AlertDialog](../Controls/AlertDialog.md), [ConfirmDialog](../Controls/ConfirmDialog.md)

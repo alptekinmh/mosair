@@ -1,6 +1,6 @@
 # Loc
 
-> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -44,18 +44,18 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **168** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **193** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
-| `Menu*` | 36 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…) |
-| `Stock*` | 31 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu |
+| `Stock*` | 53 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
+| `Menu*` | 37 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware` dahil) |
 | `Status*` | 22 | Durum çubuğu metinleri (çoğu biçim dizesi) |
-| `Tip*` | 21 | Araç çubuğu ve stok düğmesi ipuçları |
+| `Tip*` | 22 | Araç çubuğu, stok düğmesi ve "Stoğa göre" kutusu (`TipStockAware`) ipuçları |
 | `Alert*` | 18 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
-| `Lbl*` | 6 | Sol panel etiketleri |
+| `Lbl*` | 7 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
 | `Info*` | 3 | Boyut bilgisi biçimleri |
 | `Warn*` | 3 | Performans uyarısı |
@@ -92,6 +92,7 @@ Her iki sözlükte de **168** anahtar vardır ve anahtar kümeleri birebir aynı
 - Türkçe metinlerin bir kısmı Türkçe karakter içermeden yazılmıştır (ör. `AlertExportTitle` = "Disa Aktarma").
 - Eksik anahtar hata vermez; ekranda anahtar adı görünür. Yeni anahtarı iki sözlüğe de eklemeyi unutmayın.
 - `Fmt`, `string.Format`'ı geçerli kültürle çağırır; sayı biçimleri sistem kültürüne göre değişebilir.
+- `StockAwareSmall` (en az kullanım kuralıyla çıkarılan taşlar) sözlükte durur, ancak uygulamada bu kural kapalı olduğundan (`MinUsage = 0`) normalde gösterilmez.
 - `HelpWindow.axaml` içindeki kısayol açıklamaları gibi bazı metinler XAML'e doğrudan yazılmıştır ve bu sözlüklerden gelmez.
 
 ## İlgili dosyalar

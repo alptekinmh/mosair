@@ -1,6 +1,6 @@
 # MosaicEngine
 
-> Kaynak: `mosair/Services/MosaicEngine.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/MosaicEngine.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 Mozaik üretiminin ana motoru. Yüklenen resmi taş ızgarası boyutuna küçültür ve her taş hücresine katalogdaki bir taş rengini atar. İki yolu vardır:
@@ -8,13 +8,16 @@ Mozaik üretiminin ana motoru. Yüklenen resmi taş ızgarası boyutuna küçül
 - **Optimum** (`RunOptimal` / `ApplyOptimalK`): Palet seçimini [OptimalPaletteService](./OptimalPaletteService.md)'e bırakır ve yalnızca katalog taşlarıyla çalışır.
 - **Klasik M1/M3** (`RunM3`): WPF sürümünden taşınan yoldur. Önce katalog dışı bir RGB ızgara paleti kurar ve bunu iteratif olarak azaltır. Kalan renkleri en sonda katalog taşlarına eşler.
 
+Her iki yolun ardından isteğe bağlı bir **stoğa göre düzeltme** adımı çalışabilir (`ApplyOptimalKWithStock`, `FixCurrentMosaicToStock`). Bu adım iki algoritmayı da değiştirmez; bitmiş mozaiği [StockAwareAssigner](./StockAwareAssigner.md) ile stoğu aşmayacak şekilde yeniden düzenler.
+
 Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlarına yazılır. Sınıfın kendisi de tamamen statiktir ve global durum tutar.
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
 |---|---|
-| [MainViewModel](../ViewModels/MainViewModel.md) | `Reset`, `LoadImage`, `CalculateDimensions`, `RunOptimal`, `RunM3`, `ApplyOptimalK` (slider, 350 ms debounce), `LastOptimalResult`, `width`/`height` okuma |
+| [MainViewModel](../ViewModels/MainViewModel.md) | `Reset`, `LoadImage`, `CalculateDimensions`, `RunOptimal`, `RunM3`, `ApplyOptimalK` (slider, 350 ms debounce), `LastOptimalResult`, `width`/`height` okuma. "Stoğa göre" açıkken `ApplyOptimalKWithStock` (Optimum), `FixCurrentMosaicToStock` (klasik Mos ve Stok Kontrol öncesi düzeltme), `LastStockResult` (rapor) ve `LastRunPool` (düzeltme yapılabilir mi kontrolü) |
 | [CompareRunner](../CompareRunner.md) | `--compare` modu: `RunM3` (WPF ve yeni silme stiliyle), `RunOptimal`, `GetSourceStoneData`, `WpfStyleRemoval` |
+| [StockCompareRunner](../StockCompareRunner.md) | Stoğa göre karşılaştırma aracı: `RunOptimal`, `RunM3`, `ApplyOptimalKWithStock`, `FixCurrentMosaicToStock`, `LastStockResult` |
 | [ProjectService](./ProjectService.md) | Proje kaydedip açarken `width`, `height`, `rgbM` alanlarını yazar ve okur |
 
 `CloneRgb`, `CloneList` ve `CloneNestedList` public olsa da yalnızca bu dosyanın içinde kullanılır. [PixelEditService](./PixelEditService.md)'in kendine ait private bir `CloneRgb` metodu vardır.
@@ -50,6 +53,8 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `WpfStyleRemoval` | bool | false | Yalnızca karşılaştırma içindir. WPF'teki sınırsız renk silmeyi taklit eder. |
 | `LastOptimalResult` | `OptimalPaletteResult?` | null | Son optimum analizi (salt okunur) |
 | `LastGamut` | `GamutMapper?` | null | Son gamut eşleyicisi. Kimse okumuyor. |
+| `LastRunPool` | `List<rgb>?` (salt okunur) | null | Son mozaik üretilirken seçilebilir olan taşlar (`MosaicData.arRGB` kopyası). `RunOptimal` ve `RunM3` başında atanır, `Reset()` temizler. Stok düzeltmesinde ikame taşlar yalnızca bu havuzdan seçilir; böylece kullanıcının katalog seçimi ve Stok Çek ile kapatılan taşlar korunur. |
+| `LastStockResult` | `StockAwareResult?` (salt okunur) | null | Son stok düzeltmesinin sonucu. `FixToStock` başında null yapılır, çözümden sonra atanır; `Reset()` temizler. Düzeltme yapılamadıysa (eşleşmeyen piksel) null kalır. |
 | `_optSrc`, `_optCandidates`, `_optGamut` | private | null | `ApplyOptimalK` için önbellek |
 
 ### `drl.dat[R, C, 4]` kanalları
@@ -68,7 +73,9 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `RunOptimal(interpMethod, onProgress, prepareTextures, useGamut)` | Optimum analizini yapar ve önerilen k ile mozaiği üretir | MainViewModel, CompareRunner |
 | `ApplyOptimalK(k, prepareTextures)` | Son analizden k taşlık alt kümeyi uygular (yeniden analiz yapmaz) | MainViewModel |
 | `RunM3(targetColors, rgbIncrement, useLab, useAverage, interpMethod, onProgress, prepareTextures)` | Klasik M1/M3 hattını çalıştırır | MainViewModel, CompareRunner |
-| `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler | MainViewModel, CompareRunner |
+| `ApplyOptimalKWithStock(k, capacityOfId, familyOfId, options, prepareTextures)` | `ApplyOptimalK(k, prepareTextures: false)` çalıştırır, ardından sonucu stoğa göre düzeltir (`FixToStock`). Dokular her durumda (`prepareTextures` true ise) hazırlanır. Hiçbir taş stoğu aşmıyorsa mozaik `ApplyOptimalK`'nın ürettiğinin aynısıdır. `MosaicData.reducedBitmap` döndürür. | MainViewModel (`ApplyOptimalKFor`), StockCompareRunner |
+| `FixCurrentMosaicToStock(capacityOfId, familyOfId, options, prepareTextures)` → `bool` | Ekrandaki mozaiği (klasik Mos sonucu da olabilir) stoğa göre düzeltir. `LastRunPool` veya `inputBitmap` yoksa ya da kaynak boyutu `dataM3` ile uyuşmuyorsa `false` döndürür. Gamut kullanmaz. Dokular yalnızca mozaik değiştiyse yeniden hazırlanır. | MainViewModel (`FixClassicMosaicToStock`), StockCompareRunner |
+| `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler; `LastOptimalResult`, `LastRunPool`, `LastStockResult` ve Optimum önbelleğini de sıfırlar | MainViewModel, CompareRunner, StockCompareRunner |
 | `CloneRgb`, `CloneList`, `CloneNestedList` | `rgb` nesnelerini ve listelerini derin kopyalar | Dosya içi |
 
 ## Algoritma / akış
@@ -109,7 +116,17 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 11. **ID yazımı (Bölüm 5)**: `drl.dat[..,3]` alanına katalog `ID` yazılır ve `u` değerleri 1'den yeniden numaralanır.
 12. `arMA` yedeklenir ve `BackupM3` çağrılır. Bitmap'ler üretilir, dokular hazırlanır ve ilerleme 100 olarak bildirilir.
 
+### Stoğa göre düzeltme (`FixToStock`, private)
+1. `LastStockResult = null` yapılır.
+2. Her pikselin hangi havuz taşında olduğu bulunur: `drl.dat[..,3]` değeri havuzdaki bir taşın `ID`'si ise ve o taşın rengi `dataM3`'teki piksel rengiyle aynıysa bu taş alınır (Optimum'dan sonra her zaman böyledir). Değilse piksel rengiyle eşleşen havuz taşı aranır (klasik Mos `drl.dat`'ta ara numaralar bırakabilir).
+3. Renk eşleşmesi yoksa ya da havuzda aynı RGB'li iki taş varsa (renkten ayırt edilemez) işlem tahmin yürütmeden `false` döndürür: yanlış taş ID'si stoğu yanlış taşlar arasında taşırdı.
+4. `StockAwareAssigner.SolveWithMinimum` çağrılır ve sonuç `LastStockResult`'a yazılır.
+5. Sonuç değiştiyse `PixelEditService.Reset()` ve `RebuildFromAssignment` çağrılır: `dataM3`, `drl.dat[..,3] = ID`, `ID` sırasına dizilmiş palet (`u`, `uc`, `ri/gi/bi`, `dis`), `rgbM`, `dataM1`, `arMB`/`arMA`, `BackupM3` ve `reducedBitmap` `ApplyOptimalK`'daki gibi yeniden kurulur. `exportBitmap` yeni bir kopyayla değiştirilir; eskisi ekranda olabileceği için burada (worker thread'de) dispose edilmez.
+6. Dokular: `prepareTextures` true ise ve (`texturesAlways` ya da sonuç değiştiyse) `StoneTextureService` ile yeniden hazırlanır.
+
 ## Önemli davranışlar ve iş kuralları
+- Stok düzeltmesi Optimum ve klasik Mos algoritmalarını değiştirmez; yalnızca sonuca uygulanır. Hiçbir taş stoğu aşmıyorsa mozaik birebir aynı kalır.
+- En az kullanım kuralı uygulamada kapalıdır: MainViewModel `new StockAwareOptions()` (`MinUsage = 0`) gönderir.
 - Taş 12 mm, kalıp 26×26 taştır. Bu değerler koda sabit olarak gömülüdür.
 - `TargetColors` değerini `RunM3`'ü çağıran taraf belirler. MainViewModel bu değeri toplam taş sayısının yaklaşık %10'u olarak hesaplar, 10'un katına aşağı yuvarlar, en az 2 yapar ve palet boyutunun altında tutar.
 - Optimum yolda çıktı her zaman katalog taşlarından oluşur. M3 yolunda ara renkler katalog dışıdır ve ancak Bölüm 2'de katalog taşlarına çevrilir.
@@ -125,10 +142,12 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 - Katalogda RGB'si aynı ama `codeName`'i farklı iki taş varsa Bölüm 3–5'teki `(b,g,r,reg,u)` anahtarları çakışır.
 - `ProcessM1` private'tır ve hiçbir yerden çağrılmaz (ölü kod). `penW`, `excessiveW`, `excessiveH` ve `LastGamut` da hiçbir yerde okunmaz.
 - Statik global durum nedeniyle aynı anda iki mozaik işlenemez.
+- `FixCurrentMosaicToStock`, mozaik bu oturumda üretilmediyse (ör. açılan projede `LastRunPool` null) çalışmaz. Piksel düzenlemeyle (`PixelEditService`) havuz dışı bir taş konmuşsa renk eşleşmesi bulunamaz ve `false` döner.
+- `ApplyOptimalKWithStock`, `ApplyOptimalK`'nın Optimum önbelleğine (`_optSrc`, `_optCandidates`, `_optGamut`) dayanır; önce `RunOptimal` çalışmış olmalıdır.
 - Aktif katalog boşken `ApplyOptimalK` `Math.Clamp(k, 1, 0)` nedeniyle hata verir. MainViewModel boş katalogda işlemi önceden durdurur.
 
 ## İlgili dosyalar
-- [OptimalPaletteService](./OptimalPaletteService.md), [ColorMatcher](./ColorMatcher.md), [GamutMapper](./GamutMapper.md), [ColorCatalogService](./ColorCatalogService.md)
+- [OptimalPaletteService](./OptimalPaletteService.md), [StockAwareAssigner](./StockAwareAssigner.md), [ColorMatcher](./ColorMatcher.md), [GamutMapper](./GamutMapper.md), [ColorCatalogService](./ColorCatalogService.md)
 - [ImageService](./ImageService.md), [StoneTextureService](./StoneTextureService.md), [PixelEditService](./PixelEditService.md), [ProjectService](./ProjectService.md), [MosaicMetrics](./MosaicMetrics.md)
 - [Rgb](../Models/Rgb.md), [Region](../Models/Region.md), [MosaicData](../Models/MosaicData.md)
-- [MainViewModel](../ViewModels/MainViewModel.md), [CompareRunner](../CompareRunner.md), [Arayüz kılavuzu](../../ARAYUZ.md)
+- [MainViewModel](../ViewModels/MainViewModel.md), [CompareRunner](../CompareRunner.md), [StockCompareRunner](../StockCompareRunner.md), [Arayüz kılavuzu](../../ARAYUZ.md)

@@ -1,6 +1,6 @@
 # StockSettingsDialog
 
-> Kaynak: `mosair/Controls/StockSettingsDialog.axaml`, `mosair/Controls/StockSettingsDialog.axaml.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Controls/StockSettingsDialog.axaml`, `mosair/Controls/StockSettingsDialog.axaml.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -20,13 +20,13 @@ _vm.ShowStockSettings = current =>
     new Controls.StockSettingsDialog(current).ShowDialog<StockSheetService.Config?>(this);
 ```
 
-Akış: Araçlar → Stok → Stok Ayarları menüsü veya toolbar'daki stok tablosu düğmesinin sağ tık `ContextMenu`'sü → `OnStockSettings` → `MainViewModel.ConfigureStockAsync` → bu diyalog → sonuç `null` değilse `StockSheetService.SaveConfig`.
+Akış: Araçlar → Stok → Stok Ayarları menüsü, toolbar'daki stok tablosu düğmesinin sağ tık `ContextMenu`'sü veya yanındaki açılır ok düğmesinin (`TipStockSheetMenu`) menüsü → `OnStockSettings` → `MainViewModel.ConfigureStockAsync` → bu diyalog → sonuç `null` değilse `StockSheetService.SaveConfig`.
 
 ## Yapı
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| (pencere) | `Window` | `Width=560`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `BgCard` (tema rengi). |
+| (pencere) | `Window` | `Width=560`, `SizeToContent="Height"`, `CanResize="False"` | `CenterOwner`, arka plan `BgCard` (tema rengi). Pencere başlığı yapıcıda `StockSettingsTitle` olarak atanır. |
 | `TitleText` | `TextBlock` | — | `StockSettingsTitle`. |
 | `SheetIdLabel`, `SheetIdHint` | `TextBlock` | — | `StockSheetIdLabel`, `StockSheetIdHint`. |
 | `SheetIdExample` | `TextBlock` (`Classes="example"`) | — | Tablo bağlantısı örneği; ID kısmı vurgulu. |
@@ -35,18 +35,18 @@ Akış: Araçlar → Stok → Stok Ayarları menüsü veya toolbar'daki stok tab
 | `ScriptUrlExample` | `TextBlock` (`Classes="example"`) | — | Apps Script `/exec` adresi örneği. |
 | `ScriptUrlBox` | `TextBox` | mevcut `ScriptUrl` | — |
 | `RequirementsTitle`, `RequirementsText` | `TextBlock` | — | Tablonun sağlaması gereken koşullar (`StockRequirementsTitle`, `StockRequirements`). |
-| `NoteText` | `TextBlock` | — | Turuncu (`#e0a050`) uyarı notu (`StockSettingsNote`). |
+| `NoteText` | `TextBlock` | — | Uyarı notu (`StockSettingsNote`); renk tema anahtarı `FgWarn` (koyu temada `#e0a050`, açık temada `#a8640f`). |
 | `CancelButton`, `SaveButton` | `Button` | — | `DlgCancel`, `DlgSave`; `OnCancelClick`, `OnSaveClick`. |
-| `HighlightBrush` | `static IBrush` | `#6ea8ff` | Örneklerde girilecek kısmın rengi. |
+| `HighlightBrush` | `static IBrush` (private) | `#3a7bfd` | Örneklerde girilecek kısmın rengi. |
 
-Stiller: `TextBlock.hint` (11 pt, gri, sarmalı) ve `TextBlock.example` (11 pt, eş aralıklı yazı tipi).
+Stiller: `TextBlock.hint` (11 pt, `FgSecondary`, sarmalı) ve `TextBlock.example` (11 pt, `FgMuted`, eş aralıklı yazı tipi, sarmalı).
 
 ## Public API
 
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
 | `StockSettingsDialog()` | Yalnızca `InitializeComponent`. | Avalonia |
-| `StockSettingsDialog(StockSheetService.Config current)` | Tüm metinleri `Loc.Get` ile doldurur, örnekleri `SetExample` ile kurar, kutulara mevcut değerleri yazar. | `MainWindow` (`ShowStockSettings`) |
+| `StockSettingsDialog(StockSheetService.Config current)` | Pencere başlığı dahil tüm metinleri `Loc.Get` ile doldurur, örnekleri `SetExample` ile kurar, kutulara mevcut değerleri yazar. | `MainWindow` (`ShowStockSettings`) |
 | `SetExample(target, before, part, after)` (private static) | `TextBlock.Inlines`'ı üç `Run`'dan kurar; ortadaki `part` vurgulu ve kalın. | Yapıcı |
 | `ExtractSheetId(text)` (private static) | Metin bir tablo bağlantısıysa (regex ile) yalnızca ID bölümünü döndürür, değilse metni aynen döndürür. | `OnSaveClick` |
 | `OnSaveClick` (private) | `Close(new StockSheetService.Config { SheetId = ExtractSheetId(...), ScriptUrl = ... })`; iki değer de `Trim` edilir. | `SaveButton` |

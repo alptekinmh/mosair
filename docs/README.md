@@ -7,7 +7,7 @@
 | Platform | Avalonia UI 12 · .NET 10 |
 | Görüntü işleme | SkiaSharp 3 |
 | Hedefler | Windows x64, macOS x64, macOS ARM64 |
-| Güncelleme | 2026-10-04 |
+| Güncelleme | 2026-10-06 |
 
 ## Nereden başlamalı?
 
@@ -16,6 +16,7 @@
 | Uygulamayı kullanan herkes | **[ARAYUZ.md](ARAYUZ.md)**: arayüzde yapılabilecek her şey tek dosyada |
 | Kodu geliştiren | Aşağıdaki **kod belgeleri** ve [mimari özet](#mimari-özet) |
 | Sürüm çıkaran | [kod/build-workflow.md](kod/build-workflow.md) |
+| "Stoğa göre" kararının geçmişini merak eden | [STOGA_GORE_RAPOR.md](STOGA_GORE_RAPOR.md): özelliğin deneme dalındayken hazırlanan durum ve entegrasyon raporu (tarihsel; güncel davranış için ARAYUZ.md) |
 
 ## Kod belgeleri (`docs/kod/`)
 
@@ -30,7 +31,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [MainWindow.md](kod/MainWindow.md) | `MainWindow.axaml(.cs)` | Pencere yerleşimi, bütün olay işleyiciler, kısayollar, kaydet/dışa aktar klasörleri |
 | [HelpWindow.md](kod/HelpWindow.md) | `HelpWindow.axaml(.cs)` | Uygulama içi kullanım kılavuzu (TR/EN) |
 | [CompareRunner.md](kod/CompareRunner.md) | `CompareRunner.cs` | Algoritma karşılaştırma aracı (geliştirici) |
-| [StockCompareRunner.md](kod/StockCompareRunner.md) | `StockCompareRunner.cs` | Stoğa göre düzeltme karşılaştırma aracı (deneme) |
+| [StockCompareRunner.md](kod/StockCompareRunner.md) | `StockCompareRunner.cs` | Stoğa göre düzeltme karşılaştırma aracı (geliştirici) |
 | [mosair.csproj.md](kod/mosair.csproj.md) | `mosair.csproj` | Paketler, varlıklar (renk kataloğu, taş dokuları) |
 | [build-workflow.md](kod/build-workflow.md) | `.github/workflows/build.yml` | Etiketle sürüm derleme ve yayınlama |
 
@@ -56,7 +57,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
 | [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
-| [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (deneme) |
+| [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (min-cost flow ile stoğa sığdırma) |
 
 ### Modeller, kontroller, dönüştürücüler
 

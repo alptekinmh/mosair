@@ -1,6 +1,6 @@
 # MainWindow
 
-> Kaynak: `mosair/MainWindow.axaml`, `mosair/MainWindow.axaml.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/MainWindow.axaml`, `mosair/MainWindow.axaml.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -36,14 +36,16 @@ Window
    │       ├─ Görünüm (MenuView): menuFitToScreen
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*, menuDetail*  (*kodda doldurulur: BuildToolsMenu)
-   │       │     | Optimum, Taş Sayısı ▸ (Önerilen / Artır / Azalt), Stok ▸ (Aç, Ayarlar | Çek, Kontrol, Sil, Tümünü Sil, Ekle)
+   │       │     | Optimum, Stoğa göre, Taş Sayısı ▸ (Önerilen / Artır / Azalt),
+   │       │     Stok ▸ (Aç, Ayarlar | Çek ▸ (Devre dışı bırak / Kırmızıyla işaretle), Kontrol, Sil, Tümünü Sil, Ekle)
    │       └─ Yardım (MenuHelp): Kullanım Kılavuzu (F1)
    ├─ [Top] Araç çubuğu (toolbar)
    │   ├─ Sol: Görüntü Yükle, Proje Aç, Kaydet (saveProjectBtn: saveIcon/saveCheckIcon), Farklı Kaydet,
    │   │       Mos düğmesi (mosAnimGrid: mosQ0..mosQ3), Piksel Düzenle + source/target göstergesi,
    │   │       Izgara (Flyout: aç/kapa, GridColorPresets, GridColorShades), İnterpolasyon (Flyout),
    │   │       Detay (Flyout: StonePixelSize kaydırıcısı 10–100, adım 10),
-   │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u), Optimum onay kutusu + Taş kaydırıcısı (OptimalAvailable)
+   │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
+   │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
    │   └─ Sağ: exportBtn (exportArrow animasyonu; sağ tık = klasörü aç) + açılır ok (Flyout: Dışa Aktar / Farklı Dışa Aktar),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
    ├─ [Bottom] Durum çubuğu: Grid "*,Auto,*"
@@ -103,7 +105,7 @@ Window
 | `AddHandler(DragDrop.DropEvent / DragOverEvent)` | Sürükle-bırak. |
 | `KeyDown += OnKeyDown` | Pencere düzeyi kısayollar. |
 | `paletteScroll` ↔ `assignedScroll` | İki `ScrollChanged` lambdası dikey ofseti karşılıklı eşitler (`_syncingScroll` ile döngü engellenir). |
-| `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu, `IsExporting` → dışa aktarma animasyonu, `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `StonePixelSize` / `GridColor` → menü onaylarını yenile. |
+| `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `StonePixelSize` / `GridColor` → menü onaylarını yenile. |
 | `BuildToolsMenu()`, `SetMenuShortcutTexts()` | Kodla oluşan menüler ve kısayol metinleri. |
 
 ### Olay işleyicileri
@@ -128,6 +130,7 @@ Window
 | `OnGridColorPick` | Izgara Flyout'u, `GridColorShades` düğmeleri | Yalnızca `_vm.GridColor`. |
 | `OnSelectInterpolation` | İnterpolasyon Flyout'u, `InterpolationMethods` düğmeleri (`Tag`) | `_vm.SelectedInterpolation`. |
 | `OnToggleOptimum` | Araçlar → Optimum | `_vm.UseOptimal` tersine çevrilir (toolbar'daki onay kutusu doğrudan bağlamadır). |
+| `OnToggleStockAware` | Araçlar → Stoğa göre (onay işareti `UseStockAware`'e bağlı) | `_vm.UseStockAware` tersine çevrilir (toolbar'daki "Stoğa göre" onay kutusu doğrudan bağlamadır). |
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |
 | `OnStonesLess` | Araçlar → Taş Sayısı → Azalt | `OptimalK - 1` (en az 1). |
@@ -224,7 +227,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 
 ### Araçlar menüsü
 
-`BuildToolsMenu`, toolbar'daki Flyout kontrollerinin menü eşlerini kodla üretir: `MainViewModel.InterpolationMethods`, Detay için 10–100 (adım 10, kaydırıcıyla aynı), `MainViewModel.GridColorPresets` ve dinamik `GridColorShades`. Seçili değer `PathIcon` onay işaretiyle gösterilir (`RefreshToolsMenuChecks`); aynı renk hem ana renkte hem tonda varsa yalnızca ilki işaretlenir.
+`BuildToolsMenu`, toolbar'daki Flyout kontrollerinin menü eşlerini kodla üretir: `MainViewModel.InterpolationMethods`, Detay için 10–100 (adım 10, kaydırıcıyla aynı), `MainViewModel.GridColorPresets` ve dinamik `GridColorShades`. Seçili değer `PathIcon` onay işaretiyle gösterilir (`NewMenuCheck` oluşturur, `SetMenuCheck` gösterir/gizler, `RefreshToolsMenuChecks` hepsini yeniler; renk öğelerinin başlığı `ColorSwatch` kutusudur); aynı renk hem ana renkte hem tonda varsa yalnızca ilki işaretlenir.
 
 ## Dikkat / bilinen sınırlamalar
 

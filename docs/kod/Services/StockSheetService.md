@@ -1,6 +1,6 @@
 # StockSheetService
 
-> Kaynak: `mosair/Services/StockSheetService.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Services/StockSheetService.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -8,13 +8,17 @@ Taş stoğunu tutan Google Sheet ile entegrasyon. WPF uygulamasındaki stok işl
 
 - **Okuma:** Sheet'in herkese açık gviz CSV dışa aktarımı üzerinden.
 - **Yazma:** Sheet'e bağlı Apps Script web uygulamasına JSON `POST` ile.
+- **Stoğa göre mozaik:** taş başına eldeki stok ve diğer mozaiklere ayrılan pay (`StoneStock`, `FetchOnHandAsync`); [StockAwareAssigner](./StockAwareAssigner.md) için kapasiteyi verir.
 
 ## Nerede kullanılır
 
 | Çağıran | Kullanım |
 |---|---|
 | `MainViewModel.ConfigureStockAsync` | `LoadConfig` → ayar diyaloğu → `SaveConfig` |
-| `MainViewModel.FetchStockAsync` ("stok çek") | `FetchStockAsync` |
+| `MainViewModel.FetchStockAsync` ("stok çek", `markOnly` ile ya da olmadan) | `FetchStockAsync` |
+| `MainViewModel.RefreshStockAsync` (açılışta, görsel/proje yüklenince, Mos öncesi `_loadedStock` boşsa) | `FetchOnHandAsync(sheetId, projectName)` |
+| `MainViewModel.FixToStockAsync` (Stok Kontrol yazmadan önce stok düzeltmesi) | `FetchOnHandAsync(sheetId, projectName)` |
+| `MainViewModel` (stok raporu, katalog ipuçları), `StockCompareRunner` | `StoneStock`, `StoneWeightKg`; `StockCompareRunner` ayrıca `ParseOnHandCsv` |
 | `MainViewModel.CheckStockAsync` ("stok kontrol") | `CheckStockAsync` |
 | `MainViewModel.ClearStockOneAsync` / `ClearStockAllAsync` / `AddStockAsync` | `ClearOneAsync` / `ClearAllAsync` / `AddStockAsync` |
 | `MainViewModel.OpenStockSheetAsync` | `SheetUrl` |
@@ -41,6 +45,20 @@ Taş stoğunu tutan Google Sheet ile entegrasyon. WPF uygulamasındaki stok işl
 | `Remaining` | `Dictionary<int, double>` | Taş ID → "Tahmini Kalan" (Sheet'teki mozaikler düşüldükten sonra kalan, kg) |
 | `OnHand` | `Dictionary<int, double>` | Taş ID → "Bizdeki (kg)" (eldeki stok); yalnızca `Remaining`'de bulunan ID'ler için |
 
+### `StoneStock`
+
+| Ad | Tip | Açıklama |
+|---|---|---|
+| `Id` | `int` | `mos` sütunu = katalog taş ID'si |
+| `Code` | `string` | "Kod" (ör. C125); 68+ taşlarda boş olabilir |
+| `Name` | `string` | "Öğe adı" (adında `adı` geçen ilk sütun). Aynı taşın farklı yüzeyleri aynı adı paylaşır; `StockAwareAssigner` bunu "aynı aile" olarak kullanır |
+| `OnHandKg` | `double` | "Bizdeki (kg)" |
+| `OtherMosaicsKg` | `double` | Sheet'teki diğer mozaik sütunlarına ayrılan stok (adet toplamı × `StoneWeightKg`, en az 0) |
+| `AvailableKg` | `double` (hesaplanan) | `OnHandKg − OtherMosaicsKg` |
+| `Capacity` | `int` (hesaplanan) | Bu mozaikte kullanılabilecek adet: `AvailableKg ≤ 0` ise 0, değilse ⌊`AvailableKg` / `StoneWeightKg`⌋ |
+
+`StoneWeightKg` = 0,0033 (bir taş 3,3 g; Sheet'teki "Kullanılacaklar (kg)" tam olarak adet × 3,3 g'dır).
+
 ### Özel üyeler
 
 | Ad | Açıklama |
@@ -49,7 +67,8 @@ Taş stoğunu tutan Google Sheet ile entegrasyon. WPF uygulamasındaki stok işl
 | `Http` | Paylaşılan `HttpClient`: yönlendirme açık (en fazla 5), zaman aşımı 60 sn |
 | `FetchCsvAsync` | `https://docs.google.com/spreadsheets/d/{sheetId}/gviz/tq?tqx=out:csv` adresini 15 sn iptal süresiyle indirir, satırlara böler |
 | `ReadNumberColumn` | `mos` sütunu tamsayı, değer sütunu sayı olan satırları döndürür (virgül → nokta, `InvariantCulture`) |
-| `PostAsync` | JSON gövdeyi gönderir, yanıtı yorumlar, hata varsa `Exception` atar |
+| `ParseOnHand` | `FetchOnHandAsync` ve `ParseOnHandCsv`'nin ortak ayrıştırıcısı (aşağıdaki "Taş ID eşleştirmesi") |
+| `PostAsync` | JSON gövdeyi gönderir, yanıtı yorumlar, hata varsa `Exception` atar; HTML yanıtta bir kez yeniden dener |
 | `ParseCsvLine` | Tırnak ve `""` kaçışını destekleyen basit CSV satır ayrıştırıcı |
 
 ## Public API
@@ -64,6 +83,9 @@ Taş stoğunu tutan Google Sheet ile entegrasyon. WPF uygulamasındaki stok işl
 | `ClearOneAsync(scriptUrl, sheetId, projectName)` | Bu projenin sütununu temizler | `MainViewModel.ClearStockOneAsync` |
 | `ClearAllAsync(scriptUrl, sheetId)` | Tüm mozaik sütunlarını temizler | `MainViewModel.ClearStockAllAsync` |
 | `AddStockAsync(scriptUrl, sheetId)` | "stok ekle" işlemini tetikler | `MainViewModel.AddStockAsync` |
+| `FetchOnHandAsync(sheetId, projectName = null)` → `Dictionary<int, StoneStock>` | CSV'yi okuyup taş başına `StoneStock` döndürür. `projectName` verilirse o mozaiğin kendi sütunu diğer mozaiklerin payına katılmaz | `MainViewModel.RefreshStockAsync`, `MainViewModel.FixToStockAsync` |
+| `ParseOnHandCsv(csv, projectName = null)` | Aynı ayrıştırma, hazır CSV metninden (çevrimdışı test) | `StockCompareRunner` |
+| `ParseTrNumber(s)` → `double?` | Türkçe sayı biçimi: `"1.027,00"` → 1027,0; `"15,00"` → 15,0; boş → `null`; ayrıştırılamazsa `null` | `ParseOnHand` |
 
 ## Önemli davranışlar ve iş kuralları
 
@@ -92,7 +114,7 @@ Zorunlu sütun yoksa `StockErrColumns` metniyle (beklenen sütunlar + bulunan ba
 
 ### Hata işleme (`PostAsync`)
 
-1. Yanıt gövdesi `<!DOCTYPE` veya `<html` içeriyorsa (genelde dağıtım/erişim izni hatası, Google giriş sayfası) `StockErrDeploy` metniyle hata.
+1. Yanıt gövdesi `<!DOCTYPE` veya `<html` içeriyorsa (Google bazen kısa süre HTML hata sayfası döner: meşgul, art arda iki yazma) 2 sn beklenip bir kez yeniden gönderilir. İkinci yanıt da HTML ise (genelde dağıtım/erişim izni hatası, Google giriş sayfası) `StockErrDeploy` metniyle hata atılır; sayfanın `<title>` değeri varsa mesaja parantez içinde eklenir.
 2. Gövde JSON ise `status` ve `message` okunur; değilse `message` = ham gövde.
 3. Şu durumlarda `Exception(message)` atılır (mesaj 300 karakterle kırpılır):
    - `status == "error"`;
@@ -113,7 +135,8 @@ Hatalar çağırana yükselir; `MainViewModel.RunStockAction` bunları durum çu
 - 68–124 numaralı satırların Kod'u boştur ("Taş 68" …) ama stokları okunur; yalnızca Kod'u, adı ve Bizdeki'si boş satırlar atlanır.
 - **mos ≤ 0** satırlar atlanır: katalogda karşılığı olmayan taşlar (ör. "Ege Bej") ve alt kısımdaki yüzlerce boş dolgu satırı.
 - Mozaik sütunları Apps Script'in kuralıyla bulunur ("bizdeki" ile "13." arası); `projectName` verilirse o sütun "diğer mozaikler" toplamına girmez (`OtherMosaicsKg`, `AvailableKg`, `Capacity`).
-- `MainViewModel.LoadStockOnStartupAsync` açılışta bu okumayı kullanır.
+- `ParseOnHand`'daki sayılar `ParseTrNumber` ile (Türkçe biçim) okunur; `FetchStockAsync`/`CheckStockAsync` ise `ReadNumberColumn` ile yalnızca virgülü noktaya çevirir.
+- `MainViewModel.RefreshStockAsync` (açılışta `LoadStockOnStartupAsync` üzerinden, görsel veya proje yüklenince) ve `FixToStockAsync` bu okumayı kullanır.
 
 ## Dikkat / bilinen sınırlamalar
 

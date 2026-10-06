@@ -416,8 +416,8 @@ namespace mosair.ViewModels
                     : Loc.Fmt("StockCheckShort", projectName, shortIds.Count);
         }
 
-        // "Stoğa göre" before Stok Kontrol writes: stones short of stock are used only as far as stock goes and
-        // stones used very little are dropped; their pixels go to similar stones. Returns the stock that was used,
+        // "Stoğa göre" before Stok Kontrol writes: stones short of stock are used only as far as stock goes; the
+        // rest of their pixels go to similar stones. Returns the stock that was used,
         // or null when the fix could not run (the reason is shown in a dialog, nothing is written then).
         private async Task<Dictionary<int, StockSheetService.StoneStock>?> FixToStockAsync(
             StockSheetService.Config config, string projectName)
@@ -1536,7 +1536,9 @@ public bool UseLab
                 _stockOnHand = null;
                 SetStockAwareReport("");
                 Dictionary<int, StockSheetService.StoneStock>? stock = null;
-                if (UseStockAware)
+                // Without a stock sheet set up there is nothing to fit to, and no note is shown.
+                bool stockConfigured = !string.IsNullOrEmpty(StockSheetService.LoadConfig().SheetId);
+                if (UseStockAware && stockConfigured)
                 {
                     if (_loadedStock == null) await RefreshStockAsync();
                     stock = _loadedStock;
@@ -1588,7 +1590,7 @@ public bool UseLab
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 _mosaicMadeThisSession = result != null;
-                if (UseStockAware && stock == null && result != null)
+                if (UseStockAware && stockConfigured && stock == null && result != null)
                     StatusText += " · " + Loc.Get("StockAwareNoStock");
                 if (stock != null && result != null)
                 {

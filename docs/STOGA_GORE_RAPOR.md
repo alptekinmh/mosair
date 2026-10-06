@@ -1,9 +1,9 @@
 # "Stoğa Göre" Özelliği — Durum Raporu ve Entegrasyon Planı
 
-> Dal: `stok-deneme` (yerel, push edilmedi) · Rapordaki kod durumu: `e5b869c` · Tarih: 2026-10-06
-> Bu rapor, yarın verilecek karar için hazırlandı. Kodda bu rapordan sonra değişiklik yapılmadı.
+> Durum: **birleştirildi ve v1.3.1 ile yayında** (`feature` / `main`) · Güncelleme: 2026-10-06
+> Bu belge ilk olarak deneme aşamasında bir karar raporu olarak yazıldı. Aşağıdaki bölümler o günkü değerlendirmeyi korur; güncel durum Bölüm 1'dedir.
 
-**İsteğin okunuşu:** "Stok kontrolünü ayrı bir fonksiyon olarak arayüze ekleyeceğim" ifadesini şöyle anladım: stoğa göre düzeltme, Stok Kontrol'ün sonuna otomatik eklenmeyecek; arayüzde **kendi düğmesi olan ayrı bir işlem** olacak. Rapordaki ana öneri buna göre hazırlandı. Şu anki kutu yapısı "bugünkü durum" olarak anlatılıyor.
+**İsteğin o günkü okunuşu:** "Stok kontrolünü ayrı bir fonksiyon olarak arayüze ekleyeceğim" ifadesi, stoğa göre düzeltmenin kendi düğmesi olan ayrı bir işlem olacağı şeklinde anlaşılmış ve rapordaki ana öneri buna göre hazırlanmıştı. Bu öneri **uygulanmadı**; kutu yapısı korundu (bkz. Bölüm 1).
 
 ---
 
@@ -11,22 +11,25 @@
 
 **Ne yapıyor?** Optimum'un seçtiği taşlardan biri stokta yetmiyorsa, o taş ancak elde olduğu kadar kullanılır. Fazlası, renkçe en yakın ve stoğu olan taşa aktarılır. Örneğin Toros Siyah cilalı (C130) bitmişse, neredeyse aynı renkteki Alexander Black cilalı (C110) kullanılır. Stok yeterliyse mozaik **hiç değişmez**. (Az kullanılan taşları çıkaran "en az kullanım" kuralı 2026-10-06'da kapatıldı; bkz. 4.6.)
 
-**Bugünkü durum:**
-- Kod `stok_deneme` dalında, ayrı bir klasörde (`D:\dev\mosair-stok-deneme`). `feature`, `main` ve kullanıcıların sürümü (v1.3.0) etkilenmedi.
-- Bugün bir **kutu** var: Optimum'un yanında "Stoğa göre", varsayılan olarak açık. Kutu açıkken:
+**Güncel durum (v1.3.1):**
+- Özellik `feature`'a birleştirildi ve **v1.3.1** sürümüyle yayınlandı.
+- Tetikleyici bir **kutu**dur: Optimum'un yanında "Stoğa göre", varsayılan olarak **açık**. Bölüm 2'deki "ayrı düğme" önerisi uygulanmadı.
+- Kutu açıkken:
   1. Stok uygulama açılırken ve her görsel ya da proje yüklendiğinde tablodan okunur (Bizdeki − diğer mozaikler).
-  2. **Mos** (Optimum ya da klasik) sonucu hemen bu stoğa göre düzeltilir: yetmeyen taşlar elde olduğu kadar kullanılır, az kullanılan taşlar çıkarılır. Stok okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
+  2. **Mos** (Optimum ya da klasik) sonucu daha Mos sırasında bu stoğa göre uydurulur: yetmeyen taşlar elde olduğu kadar kullanılır, kalan yer renkçe en yakın stoklu taşla doldurulur. Stok okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
   3. **Stok Kontrol** son adetleri tabloya **tek seferde** yazar (gerekirse önce bir kez daha düzeltir); kırmızı noktalar hesaplanan stoktan konur.
   4. Düzeltme yapılamazsa sebebi bir pencerede gösterilir; Stok Kontrol normal haliyle devam eder.
-- Stok ayarı şu an **"mosair deneme" (TEST) tablosuna** bağlı. Bu ayar bilgisayardaki **bütün** mosair'ler için ortak; kurulu v1.3.0 da şu an test tablosunu kullanıyor.
+- **En az kullanım kuralı** 2026-10-06'da kapatıldı (uygulamada `MinUsage = 0`; bkz. 4.6).
+- **Hızlandırma:** Akış çözücüsü aynı sonucu çok daha kısa sürede veriyor (bkz. 4.3): st1.jpg 300 cm'de 86 sn → 9 sn; 7.jpg 300 cm'de 249 sn → ~26–44 sn. Sonuçlar önceki sürümle bayt bayt aynı.
+- Tabloda `Kod` sütunu boş olan #68+ taşlar artık adı ve Bizdeki değeriyle okunuyor; yalnızca tamamen boş satırlar atlanıyor.
 
-**Test durumu (dürüst not):**
-- **Test edildi:** Algoritma, komut satırından çalışan karşılaştırma aracıyla 4 görselde test edildi; bütün kontroller geçti.
-- **Test edilmedi:** Uygulama içindeki **"Mos → stoğa göre düzeltme → Stok Kontrol ile yazma"** akışı tarafımdan arayüzde baştan sona çalıştırılmadı; kullanıcı denemesi bekleniyor.
+**Test durumu:** Algoritma, komut satırından çalışan karşılaştırma aracıyla (`--stockcompare`) test edildi; bütün kontroller geçti. Özellik kullanıcı kararıyla birleştirilip v1.3.1'e alındı.
 
 ---
 
 ## 2. Önerilen yerleşim: ayrı bir "Stoğa Göre Düzelt" işlemi
+
+> **Uygulanmadı.** Bu bölüm o günkü öneriyi kayıt için korur. Yayındaki sürümde kutu kaldı ve Mos sırasında stoğa uydurma eklendi; ayrı düğme, rapor penceresi ve "Geri al" yapılmadı.
 
 ### Arayüz
 - **Araç çubuğu:** Beş stok ikonunun yanına yeni bir düğme gelir: **"Stoğa Göre Düzelt"**. İkon önerisi: küp + çift yönlü ok.
@@ -60,9 +63,9 @@
 
 | Yöntem | Durum | Kazanç | Kayıp |
 |---|---|---|---|
-| Mos sırasında (ilk sürüm) | Kaldırıldı | Tek adım | Yalnızca Bizdeki'ye bakıyordu, başka mozaiklerin ayırdığı stoğu görmüyordu; her Mos'ta tablo okunuyordu |
-| Stok Kontrol'den sonra, kutu ile (bugün) | Çalışıyor | Diğer mozaikler hesaba katılıyor; kırmızılar düzeltmeden sonra kalkıyor | Stok Kontrol "gizlice" mozaiği değiştiriyor; kutu açık unutulursa sürpriz olabiliyor |
-| **Ayrı düğme** (önerilen) | Planlandı | Ne zaman çalıştığı açık; rapor ve "Geri al" doğal; Mos ve Stok Kontrol eski davranışında kalıyor | Kullanıcının bir düğmeye daha basması gerekiyor |
+| Mos sırasında (ilk sürüm) | Kaldırıldı; v1.3.1'de "Bizdeki − diğer mozaikler" stoğuyla yeniden eklendi | Tek adım | Yalnızca Bizdeki'ye bakıyordu, başka mozaiklerin ayırdığı stoğu görmüyordu; her Mos'ta tablo okunuyordu |
+| Stok Kontrol'den sonra, kutu ile (rapor tarihinde) | v1.3.1'de Mos sırasındaki uydurmayla birlikte korundu | Diğer mozaikler hesaba katılıyor; kırmızılar düzeltmeden sonra kalkıyor | Stok Kontrol "gizlice" mozaiği değiştiriyor; kutu açık unutulursa sürpriz olabiliyor |
+| **Ayrı düğme** (o gün önerilen) | Uygulanmadı | Ne zaman çalıştığı açık; rapor ve "Geri al" doğal; Mos ve Stok Kontrol eski davranışında kalıyor | Kullanıcının bir düğmeye daha basması gerekiyor |
 
 ---
 
@@ -91,7 +94,8 @@
 - **Hızlandırmalar:**
   - Benzer tonlar gruplanır (`GroupStep` = 2 ΔE).
   - Her taş için en yakın 8 aday değerlendirilir (`MaxCandidates` = 8).
-  - Ölçülen süreler: 7 ms – 1,5 sn.
+  - Ölçülen süreler (ilk ölçüm, küçük boyut): 7 ms – 1,5 sn.
+  - **Çözücü hızlandırması (v1.3.1):** Genişleme seviyeleri paralel denenir; tüm fazlalığı yerleştiremeyeceği belli olan seviye erken bırakılır (`skipHopeless`); Dijkstra hedefe ulaşınca durur; ağ düz dizilerde tutulur. Büyük mozaiklerde: st1.jpg 300 cm 86 sn → 9 sn, 7.jpg 300 cm 249 sn → ~26–44 sn; sonuçlar bayt bayt aynı.
 
 ### 4.4 Bir alan iki taşa bölünürse hangi pikseller gider?
 - Her pikselin 3×3 komşuluğunun ortalama rengine bakılır. Komşuluğu yeni taşa daha yakın olan pikseller önce gider; geçiş doğal tonu izler.
@@ -123,7 +127,7 @@
 
 ---
 
-## 5. Test sonuçları (TEST tablosundaki senaryo stoklarıyla)
+## 5. Test sonuçları (rapor tarihinde, test tablosundaki senaryo stoklarıyla)
 
 **Senaryo:** Bütün taşlar 20 kg, ama görsellerde çok kullanılan 8 taş kıt: Toros Siyah C 3 kg, Sarı Trv C 2 kg, Rosso Anatolia H 1,5 kg, Alexander Black H, Uşak Yeşil AH, Carrara H ve Ottoman 1'er kg, Teos1 Yeşil C 0 kg.
 
@@ -149,18 +153,18 @@
 ### Faydalar
 - **Stok gerçekçi:** Stokta olmayan taşla tasarım yapılmaz. Başka mozaiklerin ayırdığı stok da düşülür.
 - **Görünüm korunur:** Çoğu durumda değişim gözle seçilmez; ikizler ve aynı taşın diğer yüzeyleri kullanılır.
-- **Robot için daha az renk değişimi:** Az kullanılan taşlar çıkarılır.
+- **Robot için daha az renk değişimi:** Az kullanılan taşlar çıkarılabilir (en az kullanım kuralı; 2026-10-06'dan beri kapalı).
 - **Kararlar şeffaf:** Rapor her kararı kg cinsinden gösterir.
 - **Hızlı ve tekrarlanabilir:** Aynı girdiyle her zaman aynı sonuç çıkar.
 
 ### Zararlar ve riskler
 - **Yeni taş türü:** Her yeni tür, robot için bir renk değişimi daha demek. Testlerde mozaik başına 0–4 yeni tür eklendi (ikizler dahil).
-- **Detay kaybı riski:** En az kullanım kuralı, Optimum'un küçük detaylar için bilerek tuttuğu az kullanılan taşları da çıkarır. Test görsellerinde böyle bir taş çıkmadı, ama ince detaylı görsellerde detay kaybı olabilir.
+- **Detay kaybı riski (kural kapalıyken geçerli değil):** En az kullanım kuralı, Optimum'un küçük detaylar için bilerek tuttuğu az kullanılan taşları da çıkarır. Test görsellerinde böyle bir taş çıkmadı, ama ince detaylı görsellerde detay kaybı olabilir.
 - **Uzak ikame görülebilir:** Yakın renkte stok yoksa arama genişler ve fark görünür hale gelebilir. Örneğin gerçek stokta siyah azsa siyahlar koyu griye döner.
 - **Katalog renklerine bağımlılık:** "Benzer" kararı katalogdaki RGB değerlerine dayanır. Örneğin 48/49 "Teos1 Yeşil" katalogda gri görünüyor. Katalog renkleri gerçek taşlarla uyuşmazsa ikameler de yanlış olur.
-- **Kontrol edilemeyen taşlar:** Tabloda kaydı olmayan **#68–124** taşlar stokla kontrol edilemiyor. Raporda ayrıca listeleniyorlar ve Optimum bunları sıkça kullanıyor (görsel başına 4–8 taş).
+- **Kontrol edilemeyen taşlar:** Rapor tarihinde `Kod`'u boş olan **#68–124** taşlar okunmuyordu. Bu düzeltildi; artık yalnızca tabloda hiç satırı olmayan taşlar kontrol edilemez ve raporda ayrıca listelenir.
 - **Piksel düzenlemeleri sıfırlanır.**
-- **Yalnızca Optimum ile çalışır:** Taze bir Optimum Mos gerekir; proje açıldıktan sonra ya da klasik Mos ile çalışmaz.
+- **Taze Mos gerekir:** Düzeltme bu oturumda yapılmış bir Mos (Optimum ya da klasik) üzerinde çalışır; açılan projelerde çalışmaz.
 - **Kaydırıcıdan sonra tablo eskir:** Taş sayısı kaydırıcısı son okunan stoğu kullanır. Kaydırıcıdan sonra tablodaki adetler eski kalır; Stok Kontrol'ün tekrarlanması gerekir.
 - **Tablonun tuhaflıkları:** #2/#3/#5'te Kalan formülü, eksi stoklar, Google'ın birkaç saniye eski veri döndürmesi.
 - **Yapılmayan:** "Önce/Sonra" karşılaştırma düğmesi.
@@ -169,6 +173,8 @@
 
 ## 7. `feature`'a birleştirme planı
 
+> **v1.3.1 itibarıyla durum:** Özellik birleştirildi ve belge sayfaları yazıldı (madde 2–3). Madde 1 (ayrı düğme) uygulanmadı; kutu korundu. Madde 4 açık: `RebuildFromAssignment` paleti hâlâ kendisi kuruyor. Madde 5: `--stockcompare` uygulamanın içinde geliyor (`Program.Main`). Madde 6–7 ayrı düğme ve deneme dönemine aitti. Liste kayıt için korunuyor.
+
 1. **Arayüzü ayrı düğmeye çevir** (Bölüm 2): kutuyu ve otomatik çağrıyı kaldır, düğme + menü + rapor penceresi + "Geri al" ekle.
 2. **Engelleyici — belgeler:** `docs-check` iş akışı, yeni iki kaynak dosyanın (`Services/StockAwareAssigner.cs`, `StockCompareRunner.cs`) belge sayfası yoksa başarısız olur. `docs/kod/...md` sayfaları yazılmalı.
 3. **Belgeleri güncelle:**
@@ -176,13 +182,15 @@
    - `docs/kod`: StockSheetService, MosaicEngine, MainViewModel, Loc.
 4. **Kod temizliği:** `RebuildFromAssignment` içindeki palet kurma kodu `ApplyOptimalK` ile ortak bir yardımcıya taşınmalı; ardından birebir aynılık testi tekrar çalıştırılmalı.
 5. **Karşılaştırma aracı** (`--stockcompare`): uygulamayla birlikte gelsin mi, ayrı bir geliştirici aracı olarak mı kalsın?
-6. **Uygulama içi uçtan uca deneme:** TEST tablosunda Mos → Stoğa Göre Düzelt → Stok Kontrol akışı en az bir kez denenmeli.
-7. **Stok ayarını geri al:** Testler bitince `stock.real.json` geri yüklenmeli (gerçek tablo).
+6. **Uygulama içi uçtan uca deneme:** Mos → Stoğa Göre Düzelt → Stok Kontrol akışı bir test tablosunda en az bir kez denenmeli.
+7. **Stok ayarı:** Deneme sırasında kullanılan test tablosu ayarı, denemeden sonra gerçek tabloya döndürülmeli.
 8. **Sürüm:** Kullanıcı onayıyla `feature` → `main` ve sürüm etiketi her zamanki gibi taşınır.
 
 ---
 
 ## 8. Karar soruları
+
+> Verilen kararlar: (1) kutu korundu, varsayılan açık; (2) düzeltilmiş adetleri Stok Kontrol yazar; (3) en az kullanım kuralı kapatıldı. Diğer sorular açık.
 
 1. **Tetikleyici:** Ayrı düğme (önerilen) mi, bugünkü kutu mu?
 2. **Tabloya yazma:** Düğme tabloya yazmasın, "Stok Kontrol'e basın" desin (önerilen); yoksa kendisi mi yazsın?
