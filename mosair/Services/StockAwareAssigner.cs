@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using mosair.Models;
 
 namespace mosair.Services
@@ -311,17 +313,23 @@ namespace mosair.Services
             }
 
             // A: substitutes from the mosaic's own stones (and twins) only. B: also up to maxExtra new stone types.
-            Plan Best(double tol, int maxExtra)
+            // skipHopeless: return as soon as this level is known not to place all the excess. Pruning and plan A
+            // only take targets away, so once plan B leaves some excess unplaced the level can never reach zero
+            // and the rest of its pruning loop (one full solve per dropped stone) would be wasted work.
+            // abort: stop and return null (a lower level has already placed everything).
+            Plan? Best(double tol, int maxExtra, bool skipHopeless, Func<bool>? abort = null)
             {
                 var allowedA = new HashSet<int>(palette);
                 allowedA.UnionWith(twins);
-                var planA = SolveWith(allowedA, tol);
-                if (maxExtra <= 0 || fresh.Count == 0) return planA;
+                if (maxExtra <= 0 || fresh.Count == 0) return SolveWith(allowedA, tol);
                 var allowedB = new HashSet<int>(allowedA);
                 foreach (int s in over) foreach (int t in Near(s, fresh, tol)) allowedB.Add(t);
                 var planB = SolveWith(allowedB, tol);
+                if (skipHopeless && planB.Unmet > 0) return planB;
+                var planA = SolveWith(allowedA, tol);
                 while (true)
                 {
+                    if (abort != null && abort()) return null;
                     var usedNew = new Dictionary<int, long>();
                     foreach (var kv in planB.Flow)
                         if (count[kv.Key.t] == 0 && !twins.Contains(kv.Key.t))
@@ -332,6 +340,7 @@ namespace mosair.Services
                         if (kv.Value < least || (kv.Value == least && kv.Key > weakest)) { least = kv.Value; weakest = kv.Key; }
                     allowedB.Remove(weakest);
                     planB = SolveWith(allowedB, tol);
+                    if (skipHopeless && planB.Unmet > 0) return planB;
                 }
                 // "Clearly better" must also hold when costs are negative (a substitute closer than Optimum's
                 // stone), so the margin is measured on the absolute cost.
@@ -347,18 +356,37 @@ namespace mosair.Services
                 (tau, opt.MaxExtraStones), (2 * tau, opt.MaxExtraStones), (4 * tau, opt.MaxExtraStones),
                 (double.PositiveInfinity, opt.MaxExtraStones), (double.PositiveInfinity, int.MaxValue)
             };
-            Plan chosen = null!;
-            for (int lv = 0; lv < levels.Length; lv++)
+            // The levels do not depend on each other, so they run side by side; the lowest level that places
+            // everything wins, and levels above it stop as soon as it is known.
+            Plan? chosen = null;
+            var plans = new Plan?[levels.Length];
+            int found = int.MaxValue;
+            Parallel.For(0, levels.Length, lv =>
             {
-                var plan = Best(levels[lv].tol, levels[lv].extra);
-                if (chosen == null || plan.Unmet < chosen.Unmet) { chosen = plan; res.Level = lv; }
-                if (plan.Unmet == 0) break;
-            }
+                if (Volatile.Read(ref found) < lv) return;
+                var plan = Best(levels[lv].tol, levels[lv].extra, skipHopeless: true,
+                    () => Volatile.Read(ref found) < lv);
+                plans[lv] = plan;
+                if (plan == null || plan.Unmet > 0) return;
+                int seen = Volatile.Read(ref found);
+                while (lv < seen && Interlocked.CompareExchange(ref found, lv, seen) != seen)
+                    seen = Volatile.Read(ref found);
+            });
+            if (found < levels.Length) { chosen = plans[found]; res.Level = found; }
+            // Not even the widest level places everything (stock short overall): the full search, which keeps
+            // the earliest level with the smallest shortfall.
+            if (chosen == null)
+                for (int lv = 0; lv < levels.Length; lv++)
+                {
+                    var plan = Best(levels[lv].tol, levels[lv].extra, skipHopeless: false)!;
+                    if (chosen == null || plan.Unmet < chosen.Unmet) { chosen = plan; res.Level = lv; }
+                    if (plan.Unmet == 0) break;
+                }
 
             // Turn group flows into pixels: per target, the pixels whose neighbourhood is relatively closest to it.
             var newAssign = (int[])assign.Clone();
             var byGroup = new Dictionary<int, List<(int t, long f, double c)>>();
-            foreach (var kv in chosen.Flow)
+            foreach (var kv in chosen!.Flow)
             {
                 if (kv.Value <= 0) continue;
                 if (!byGroup.TryGetValue(kv.Key.g, out var l)) byGroup[kv.Key.g] = l = new();
@@ -508,9 +536,11 @@ namespace mosair.Services
 
         private sealed class Network
         {
-            private readonly List<int> _to = new(), _next = new();
-            private readonly List<long> _cap = new();
-            private readonly List<double> _cost = new();
+            // Edges in flat arrays (forward edge e, its reverse e ^ 1), grown by doubling.
+            private int[] _to = new int[64], _next = new int[64];
+            private long[] _cap = new long[64];
+            private double[] _cost = new double[64];
+            private int _edges;
             private readonly List<int> _head = new();
 
             public int AddNode() { _head.Add(-1); return _head.Count - 1; }
@@ -518,9 +548,16 @@ namespace mosair.Services
             // Returns the index of the forward edge.
             public int AddEdge(int u, int v, long capacity, double cost)
             {
-                int e = _to.Count;
-                _to.Add(v); _cap.Add(capacity); _cost.Add(cost); _next.Add(_head[u]); _head[u] = e;
-                _to.Add(u); _cap.Add(0); _cost.Add(-cost); _next.Add(_head[v]); _head[v] = e + 1;
+                if (_edges + 2 > _to.Length)
+                {
+                    int size = _to.Length * 2;
+                    Array.Resize(ref _to, size); Array.Resize(ref _next, size);
+                    Array.Resize(ref _cap, size); Array.Resize(ref _cost, size);
+                }
+                int e = _edges;
+                _to[e] = v; _cap[e] = capacity; _cost[e] = cost; _next[e] = _head[u]; _head[u] = e;
+                _to[e + 1] = u; _cap[e + 1] = 0; _cost[e + 1] = -cost; _next[e + 1] = _head[v]; _head[v] = e + 1;
+                _edges += 2;
                 return e;
             }
 
@@ -529,9 +566,13 @@ namespace mosair.Services
             public (long flow, double cost) Run(int s, int t, long limit)
             {
                 int n = _head.Count;
+                int[] head = _head.ToArray(), to = _to, next = _next;
+                long[] cap = _cap;
+                double[] cost = _cost;
                 long flow = 0; double total = 0;
                 var dist = new double[n];
                 var prevEdge = new int[n];
+                var settled = new bool[n];
 
                 // Potentials from one Bellman-Ford pass (costs may be negative: a substitute can be closer than the
                 // stone Optimum picked; the network is acyclic at the start). After that every search is a
@@ -545,11 +586,11 @@ namespace mosair.Services
                 while (queue.Count > 0)
                 {
                     int u = queue.Dequeue(); inQueue[u] = false;
-                    for (int e = _head[u]; e >= 0; e = _next[e])
+                    for (int e = head[u]; e >= 0; e = next[e])
                     {
-                        if (_cap[e] <= 0) continue;
-                        int v = _to[e];
-                        double nd = pot[u] + _cost[e];
+                        if (cap[e] <= 0) continue;
+                        int v = to[e];
+                        double nd = pot[u] + cost[e];
                         if (nd < pot[v] - 1e-12)
                         {
                             pot[v] = nd;
@@ -564,17 +605,21 @@ namespace mosair.Services
                 {
                     Array.Fill(dist, double.PositiveInfinity);
                     Array.Fill(prevEdge, -1);
+                    Array.Clear(settled);
                     dist[s] = 0;
                     heap.Clear();
                     heap.Enqueue(s, 0);
                     while (heap.TryDequeue(out int u, out double du))
                     {
                         if (du > dist[u]) continue;
-                        for (int e = _head[u]; e >= 0; e = _next[e])
+                        settled[u] = true;
+                        if (u == t) break; // the path to the sink is final; the rest of the graph is not needed
+                        double pu = pot[u];
+                        for (int e = head[u]; e >= 0; e = next[e])
                         {
-                            if (_cap[e] <= 0) continue;
-                            int v = _to[e];
-                            double rc = _cost[e] + pot[u] - pot[v];
+                            if (cap[e] <= 0) continue;
+                            int v = to[e];
+                            double rc = cost[e] + pu - pot[v];
                             if (rc < 0) rc = 0; // rounding noise only
                             double nd = du + rc;
                             if (nd < dist[v] - 1e-12)
@@ -585,16 +630,18 @@ namespace mosair.Services
                         }
                     }
                     if (double.IsPositiveInfinity(dist[t])) break;
-                    for (int v = 0; v < n; v++) if (!double.IsPositiveInfinity(dist[v])) pot[v] += dist[v];
+                    // Settled nodes move by their distance, all others by the sink's: reduced costs stay >= 0.
+                    double dt = dist[t];
+                    for (int v = 0; v < n; v++) pot[v] += settled[v] ? dist[v] : dt;
 
                     long push = limit - flow;
-                    for (int v = t; v != s; v = _to[prevEdge[v] ^ 1]) push = Math.Min(push, _cap[prevEdge[v]]);
+                    for (int v = t; v != s; v = to[prevEdge[v] ^ 1]) push = Math.Min(push, cap[prevEdge[v]]);
                     double pathCost = 0;
-                    for (int v = t; v != s; v = _to[prevEdge[v] ^ 1])
+                    for (int v = t; v != s; v = to[prevEdge[v] ^ 1])
                     {
-                        _cap[prevEdge[v]] -= push;
-                        _cap[prevEdge[v] ^ 1] += push;
-                        pathCost += _cost[prevEdge[v]];
+                        cap[prevEdge[v]] -= push;
+                        cap[prevEdge[v] ^ 1] += push;
+                        pathCost += cost[prevEdge[v]];
                     }
                     flow += push;
                     total += push * pathCost;

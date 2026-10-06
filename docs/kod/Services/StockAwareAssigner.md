@@ -42,14 +42,18 @@ Bitmiş bir Optimum mozaiğini, hiçbir taş stoğunu aşmayacak şekilde en az 
 2. Stoğu aşan taşlar bulunur; yoksa hiçbir şey değişmez.
 3. Bu taşların pikselleri benzer renk gruplarına ayrılır.
 4. Adaylar: stoğu boşta olan, benzerlik sınırı içindeki en yakın taşlar (palet + ikizler; gerekirse en fazla `MaxExtraStones` yeni tür).
-5. En ucuz akış (min-cost flow, potansiyelli Dijkstra): maliyet = kenar ağırlığı × (d²(yeni) − d²(eski)). Toplam renk değişimi en küçük çözüm bulunur.
+5. En ucuz akış (min-cost flow, potansiyelli Dijkstra): maliyet = kenar ağırlığı × (d²(yeni) − d²(eski)). Toplam renk değişimi en küçük çözüm bulunur. Dijkstra, havuza (sink) giden yol kesinleşince durur; kenarlar düz dizilerde tutulur.
 6. Yakın taşlar yetmezse sınır genişler: τ, 2τ, 4τ, sınırsız, sonra yeni tür sınırı da kalkar (`Level`).
+   - Seviyeler birbirinden bağımsızdır ve **paralel** çalışır. Fazlanın tamamını yerleştiren en düşük seviye seçilir; daha düşük bir seviye başarılı olunca üstteki seviyeler durur.
+   - Bir seviyede B planı (yeni türler serbest) fazlanın bir kısmını yerleştiremiyorsa o seviye başarısız sayılır ve yeni türleri tek tek eleme döngüsü (her adım bir tam çözüm) atlanır. Eleme ve A planı yalnızca hedef azaltır, bu yüzden sonuç değişmez.
+   - Hiçbir seviye fazlanın tamamını yerleştiremezse (stok genel olarak yetmiyorsa) eski tam arama yapılır: en az eksik bırakan en erken seviye seçilir.
 7. Grup içinde hangi piksellerin gideceği: 3×3 komşuluk ortalaması yeni taşa en yakın olanlar önce; eşitlikte Bayer sırası.
 8. `SolveWithMinimum`: sonuçta `0 < adet < MinUsage` olan taşlara kapasite 0 verilip tekrar çözülür; yeni küçük taş kalmayana kadar.
 
 ## Önemli davranışlar ve iş kuralları
 - Stok sert sınırdır; ancak hiç stoklu taş kalmazsa `ShortIds` dolar.
 - Eksi kapasite 0 sayılır.
+- Hız: 300 cm genişlikte 125.000 taşlık bir test görselinde (10 taş stoğu aşıyor, 87.000 taş taşınıyor) düzeltme 86 sn'den 9 sn'ye indi. Sonuç birebir aynı kaldı (karşılaştırma aracıyla doğrulandı).
 - Stoğu aşan ve az kullanılan taş yoksa `Assignment` girdinin aynısıdır (birebir aynılık).
 
 ## Dikkat / bilinen sınırlamalar
