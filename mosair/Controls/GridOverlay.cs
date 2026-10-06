@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
+using Avalonia.VisualTree;
 
 namespace mosair.Controls;
 
@@ -79,6 +80,34 @@ public class GridOverlay : Control
             GridColorProperty);
     }
 
+    private ScrollViewer? _scroller;
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _scroller = this.FindAncestorOfType<ScrollViewer>();
+        if (_scroller != null) _scroller.ScrollChanged += OnScrollChanged;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        if (_scroller != null) _scroller.ScrollChanged -= OnScrollChanged;
+        _scroller = null;
+    }
+
+    // Lines are only drawn inside the visible part, so redraw when it moves.
+    private void OnScrollChanged(object? sender, ScrollChangedEventArgs e) => InvalidateVisual();
+
+    private Rect VisibleRect()
+    {
+        var all = new Rect(Bounds.Size);
+        if (_scroller == null) return all;
+        var p = this.TranslatePoint(new Point(0, 0), _scroller);
+        if (p == null) return all;
+        return all.Intersect(new Rect(-p.Value.X, -p.Value.Y, _scroller.Viewport.Width, _scroller.Viewport.Height));
+    }
+
     public override void Render(DrawingContext context)
     {
         if (!ShowGrid || StoneSize <= 0 || BitmapWidth <= 0 || BitmapHeight <= 0)
@@ -100,16 +129,24 @@ public class GridOverlay : Control
         double thickness = effectiveCell >= 40 ? 2 : 1;
         var pen = new Pen(new SolidColorBrush(GridColor), thickness);
 
-        for (int py = stepPx; py < BitmapHeight; py += stepPx)
+        // Only the lines inside the visible part: a 20 m mosaic zoomed in has tens of thousands off screen.
+        var vis = VisibleRect();
+        if (vis.Width <= 0 || vis.Height <= 0) return;
+        int pyFirst = Math.Max(stepPx, (int)Math.Floor(vis.Top / scaleY / stepPx) * stepPx);
+        int pyLast = (int)Math.Min(BitmapHeight - 1, Math.Ceiling(vis.Bottom / scaleY));
+        int pxFirst = Math.Max(stepPx, (int)Math.Floor(vis.Left / scaleX / stepPx) * stepPx);
+        int pxLast = (int)Math.Min(BitmapWidth - 1, Math.Ceiling(vis.Right / scaleX));
+
+        for (int py = pyFirst; py <= pyLast; py += stepPx)
         {
             double y = Math.Round(py * scaleY);
-            context.DrawLine(pen, new Point(0, y), new Point(Bounds.Width, y));
+            context.DrawLine(pen, new Point(vis.Left, y), new Point(vis.Right, y));
         }
 
-        for (int px = stepPx; px < BitmapWidth; px += stepPx)
+        for (int px = pxFirst; px <= pxLast; px += stepPx)
         {
             double x = Math.Round(px * scaleX);
-            context.DrawLine(pen, new Point(x, 0), new Point(x, Bounds.Height));
+            context.DrawLine(pen, new Point(x, vis.Top), new Point(x, vis.Bottom));
         }
     }
 }

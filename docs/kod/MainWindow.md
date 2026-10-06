@@ -64,9 +64,11 @@ Window
        ├─ Sütun 2 — Tuval (Border, DragDrop.AllowDrop="True")
        │   ├─ imageScroller (ScrollViewer)
        │   │   └─ Panel (ImageDisplayWidth × ImageDisplayHeight)
-       │   │       ├─ Image (DisplayBitmap; wheel/move/press/release olayları)
+       │   │       ├─ Image (DisplayBitmap; yalnızca !MosaicDone; wheel/move/press/release olayları)
+       │   │       ├─ ctrl:MosaicView x:Name="mosaicView" (yalnızca MosaicDone; RenderSource, OverviewBitmap,
+       │   │       │     StonePixelSize, ShowGrid, GridColor; aynı wheel/move/press/release olayları)
        │   │       └─ ctrl:GridOverlay
-       │   ├─ navPanel (150×150 gezgin, sağ üst; ImageLoaded) + NavView* dikdörtgeni
+       │   ├─ navPanel (150×150 gezgin, sağ üst; ImageLoaded): Image (NavBitmap) + NavView* dikdörtgeni
        │   └─ N uyarısı (NWarningVisible): WarnPerfTitle / WarnPerfBody + Tamam (OnDismissNWarning)
        ├─ Sütun 3 — GridSplitter
        └─ Sütun 4 — Özellikler paneli (PropTitle; HasSelection)
@@ -102,6 +104,7 @@ Window
 | `_vm.ShowConfirm` | `ConfirmDialog` gösterir, `bool` döndürür. |
 | `_vm.ShowStockSettings` | `StockSettingsDialog` gösterir, `StockSheetService.Config?` döndürür. |
 | `_vm.OpenUrl` | `TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync` ile tarayıcıda açar (stok tablosu). |
+| `_vm.StoneInvalidated += …` | Tek taş değişince (piksel düzenleme, geri al/yinele, varyant seçimi) `mosaicView.InvalidateStone(row, col)`: yalnızca o taşı içeren karolar yeniden çizilir. |
 | `AddHandler(DragDrop.DropEvent / DragOverEvent)` | Sürükle-bırak. |
 | `KeyDown += OnKeyDown` | Pencere düzeyi kısayollar. |
 | `paletteScroll` ↔ `assignedScroll` | İki `ScrollChanged` lambdası dikey ofseti karşılıklı eşitler (`_syncingScroll` ile döngü engellenir). |
@@ -152,10 +155,10 @@ Window
 | `OnWidthKeyDown` | Genişlik `TextBox` (`KeyDown`) | Enter'da `OnWidthChanged` ile aynı işlem. |
 | `OnColorCheckChanged` | `catalogListBox` satırındaki `CheckBox` (`Click`) | `ColorItem.IsExcluded` ayarlanır, `_vm.SyncColorExclusion(item)`. |
 | `OnCatalogSelectionChanged` | `catalogListBox` (`SelectionChanged`) | Yalnızca piksel düzenleme açıkken seçili katalog taşını kaynak yapar (`_vm.SetSourceFromCatalog`). |
-| `OnImageWheel` | Tuvaldeki `Image` (`PointerWheelChanged`) | İmleç merkezli yakınlaştırma: ×1,25 / ×0,8, sınır `MinZoomLevel`–20; ofseti imleç sabit kalacak şekilde düzeltir, gezgini günceller. |
-| `OnImagePointerPressed` | `Image` (`PointerPressed`) | Sağ tuş: kaydırmayı başlatır, işaretçiyi yakalar. Sol/orta: `_vm.OnImagePressed(...)`; orta tuşla (düzenleme dışı) katalog seçimini temizler. |
-| `OnImagePointerMoved` | `Image` (`PointerMoved`) | Kaydırma sürüyorsa ofseti günceller; değilse `_vm.OnImagePointerMoved` (özellikler paneli). |
-| `OnImagePointerReleased` | `Image` (`PointerReleased`) | Kaydırmayı bitirir, yakalamayı bırakır. |
+| `OnImageWheel` | Tuvaldeki `Image` veya `MosaicView` (`PointerWheelChanged`) | İmleç merkezli yakınlaştırma: ×1,25 / ×0,8, sınır `MinZoomLevel`–20; ofseti imleç sabit kalacak şekilde düzeltir, gezgini günceller. |
+| `OnImagePointerPressed` | `Image` veya `MosaicView` (`PointerPressed`); gönderen herhangi bir `Control` olabilir | Sağ tuş: kaydırmayı başlatır, işaretçiyi yakalar. Sol/orta: `_vm.OnImagePressed(...)`; orta tuşla (düzenleme dışı) katalog seçimini temizler. |
+| `OnImagePointerMoved` | `Image` veya `MosaicView` (`PointerMoved`); gönderen herhangi bir `Control` olabilir | Kaydırma sürüyorsa ofseti günceller; değilse `_vm.OnImagePointerMoved` (özellikler paneli). |
+| `OnImagePointerReleased` | `Image` veya `MosaicView` (`PointerReleased`) | Kaydırmayı bitirir, yakalamayı bırakır. |
 | `OnScrollChanged` | `imageScroller` (`ScrollChanged`) | `UpdateNav()` → `_vm.UpdateNavigator(...)`. |
 | `OnNavPointerPressed` / `OnNavPointerMoved` | `navPanel` | Tıklanan/sürüklenen noktayı görünümün merkezine getirir (`NavigateFromNav`). |
 | `OnSelectStone` | Özellikler paneli varyant düğmeleri (`Tag` = `Index`) | `_vm.SelectStone(index)`. |
@@ -244,7 +247,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 - [App](App.md)
 - [HelpWindow](HelpWindow.md)
 - [AlertDialog](Controls/AlertDialog.md) · [ConfirmDialog](Controls/ConfirmDialog.md) · [StockSettingsDialog](Controls/StockSettingsDialog.md)
-- [GridOverlay](Controls/GridOverlay.md)
+- [GridOverlay](Controls/GridOverlay.md), [MosaicView](Controls/MosaicView.md)
 - [InvariantDoubleConverter](Converters/InvariantDoubleConverter.md)
 - [Loc](Services/Loc.md)
 - [ProjectService](Services/ProjectService.md)

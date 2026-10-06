@@ -43,6 +43,8 @@ public partial class MainWindow : Window
             if (launcher != null) await launcher.LaunchUriAsync(new Uri(url));
         };
         DataContext = _vm;
+        // A pixel edit or variant choice redraws only the tile with that stone.
+        _vm.StoneInvalidated += (row, col) => mosaicView.InvalidateStone(row, col);
         // Stock on hand from the configured sheet, once the window is up (does not block start-up).
         Opened += async (_, _) => await _vm.LoadStockOnStartupAsync();
         AddHandler(DragDrop.DropEvent, OnDrop);
@@ -664,14 +666,15 @@ public partial class MainWindow : Window
             e.Handled = true;
             return;
         }
-        if (sender is not Image img) return;
+        // The loaded image before Mos, MosaicView after it; both cover the whole canvas.
+        if (sender is not Control img) return;
         var pos = e.GetPosition(img);
         _vm.OnImagePointerMoved(pos.X, pos.Y, img.Bounds.Width, img.Bounds.Height);
     }
 
     private void OnImagePointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Image img) return;
+        if (sender is not Control img) return;
         var props = e.GetCurrentPoint(img).Properties;
 
         if (props.IsRightButtonPressed)

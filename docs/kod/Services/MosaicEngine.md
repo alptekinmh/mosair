@@ -96,7 +96,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
    3. Her benzersiz kaynak rengi için Lab mesafesi hesaplanır ve en yakın taş seçilir (renk başına önbelleklenir). Gamut varsa önce Lab değeri `gamut.Map` ile eşlenir. Mesafe şu formülle bulunur: `(ΔL·LightnessWeight)² + Δa² + Δb²`.
    4. `dataM3` doldurulur ve `drl.dat[..,3] = ID` yazılır. Kullanılan taşlar `ID` sırasına dizilir, ardından `u`, `uc`, `ri/gi/bi` ve `dis` atanır.
    5. `dataM1 = dataM3` yapılır, `arMB` ve `arMA` ile yedek (`BackupM3`) güncellenir. `reducedBitmap` ve `exportBitmap` üretilir.
-   6. `prepareTextures` true ise taş dokuları hazırlanır (`StoneTextureService`).
+   6. `prepareTextures` true ise taş dokuları hazırlanır: `StoneTextureService.PopulateRandomIndices` her taşa rastgele bir varyant verir, `LoadTextures` paletteki taşların orijinal dokularını yükler. Dokular burada küçültülmez; küçültme ve çizim, ekranda ve dışa aktarmada gerekince [MosaicRenderSource](./MosaicRenderSource.md) içinde yapılır.
 
 ### Klasik M1/M3 yolu (`RunM3`)
 1. Parametreler statik alanlara yazılır. Resim küçültülür. `CreateSingleRegion` tüm resmi kapsayan tek bir `drl` bölgesi kurar. `InitM3` çağrılır.
@@ -114,7 +114,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 9. **Aynı renkleri birleştirme (Bölüm 3)**: RGB'si aynı olan girdilere ortak bir `uc` verilir. `drl.dat[..,3]` alanına `uc` yazılır, sonra `u = uc` yapılır.
 10. **Katalog koduna göre toplama (Bölüm 4)**: Katalog sırasıyla gezilir. `arMB[0]` içinde aynı `codeName`'e sahip girdiler tek girdide toplanır ve `numOfPixel` değerleri eklenir. Sıfır pikselli girdiler atılır.
 11. **ID yazımı (Bölüm 5)**: `drl.dat[..,3]` alanına katalog `ID` yazılır ve `u` değerleri 1'den yeniden numaralanır.
-12. `arMA` yedeklenir ve `BackupM3` çağrılır. Bitmap'ler üretilir, dokular hazırlanır ve ilerleme 100 olarak bildirilir.
+12. `arMA` yedeklenir ve `BackupM3` çağrılır. Bitmap'ler üretilir, dokular hazırlanır (`PopulateRandomIndices` + `LoadTextures`) ve ilerleme 100 olarak bildirilir.
 
 ### Stoğa göre düzeltme (`FixToStock`, private)
 1. `LastStockResult = null` yapılır.
@@ -122,7 +122,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 3. Renk eşleşmesi yoksa ya da havuzda aynı RGB'li iki taş varsa (renkten ayırt edilemez) işlem tahmin yürütmeden `false` döndürür: yanlış taş ID'si stoğu yanlış taşlar arasında taşırdı.
 4. `StockAwareAssigner.SolveWithMinimum` çağrılır ve sonuç `LastStockResult`'a yazılır.
 5. Sonuç değiştiyse `PixelEditService.Reset()` ve `RebuildFromAssignment` çağrılır: `dataM3`, `drl.dat[..,3] = ID`, `ID` sırasına dizilmiş palet (`u`, `uc`, `ri/gi/bi`, `dis`), `rgbM`, `dataM1`, `arMB`/`arMA`, `BackupM3` ve `reducedBitmap` `ApplyOptimalK`'daki gibi yeniden kurulur. `exportBitmap` yeni bir kopyayla değiştirilir; eskisi ekranda olabileceği için burada (worker thread'de) dispose edilmez.
-6. Dokular: `prepareTextures` true ise ve (`texturesAlways` ya da sonuç değiştiyse) `StoneTextureService` ile yeniden hazırlanır.
+6. Dokular: `prepareTextures` true ise ve (`texturesAlways` ya da sonuç değiştiyse) `StoneTextureService` ile yeniden hazırlanır (`PopulateRandomIndices` + `LoadTextures`).
 
 ## Önemli davranışlar ve iş kuralları
 - Stok düzeltmesi Optimum ve klasik Mos algoritmalarını değiştirmez; yalnızca sonuca uygulanır. Hiçbir taş stoğu aşmıyorsa mozaik birebir aynı kalır.

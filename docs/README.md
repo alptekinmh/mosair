@@ -52,7 +52,8 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ColorCatalogService.md](kod/Services/ColorCatalogService.md) | `colorsBas.txt` renk kataloğu |
 | [GamutMapper.md](kod/Services/GamutMapper.md) | Gamut eşleme yardımcıları |
 | [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
-| [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokuları ve RS görüntüsü |
+| [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokularını yükleme, çizim anlık görüntüsü kurma |
+| [MosaicRenderSource.md](kod/Services/MosaicRenderSource.md) | Taş dokulu görüntüyü (RS) istenen bölge ve detayda çizme (ekran karoları, dışa aktarma) |
 | [PixelEditService.md](kod/Services/PixelEditService.md) | Piksel düzenleme, geri al/yinele |
 | [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
@@ -69,6 +70,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [Controls/AlertDialog.md](kod/Controls/AlertDialog.md) | Bilgi iletişim kutusu |
 | [Controls/ConfirmDialog.md](kod/Controls/ConfirmDialog.md) | Evet/Hayır iletişim kutusu |
 | [Controls/StockSettingsDialog.md](kod/Controls/StockSettingsDialog.md) | Stok ayarları penceresi |
+| [Controls/MosaicView.md](kod/Controls/MosaicView.md) | Mos'tan sonra taş dokulu mozaiği karolarla gösterme: yalnızca görünen kısım, zoom'a göre detay |
 | [Controls/GridOverlay.md](kod/Controls/GridOverlay.md) | Izgara çizimi |
 | [Controls/ActivityWave.md](kod/Controls/ActivityWave.md) | Durum çubuğundaki işlem dalgası animasyonu |
 | [Converters/InvariantDoubleConverter.md](kod/Converters/InvariantDoubleConverter.md) | cm kutusu için sayı dönüştürücü |
@@ -87,6 +89,7 @@ MainWindow (görünüm, olaylar) ──bağlama──► MainViewModel (durum, k
 
 - **Veri** statik `MosaicData` ve `drl` yapılarında tutulur; servisler bunları doğrudan okur ve yazar.
 - **Yön:** mosair görüntü dizilerini çevirmeden tutar. WPF ise yatay aynalı tutar. Dosyadaki `Source = "mosair"` işareti dosyanın hangi yönde olduğunu belirtir ([ProjectService.md](kod/Services/ProjectService.md)).
+- **Taş dokulu görüntü (RS)** bellekte hiçbir zaman bütün olarak tutulmaz. `StoneTextureService.CreateRenderSource` mozaik başına bir [MosaicRenderSource](kod/Services/MosaicRenderSource.md) kurar; ekranda [MosaicView](kod/Controls/MosaicView.md) yalnızca görünen kısmı arka planda çizilen karolarla gösterir, dışa aktarma aynı çiziciyle bütün görüntüyü üretir.
 - **Metinler** `Loc` üzerinden gelir; dil değiştirilince anında güncellenir.
 
 ## Belgeler nasıl güncel kalır?

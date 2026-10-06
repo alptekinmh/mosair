@@ -472,7 +472,6 @@ namespace mosair.ViewModels
             try
             {
                 SKBitmap? result = null;
-                SKBitmap? rsBmp = null;
                 var oldExport = MosaicData.exportBitmap;
                 int k = OptimalK;
                 bool optimum = OptimalAvailable;
@@ -486,16 +485,15 @@ namespace mosair.ViewModels
                         fixedOk = FixClassicMosaicToStock(stock);
                         result = MosaicData.reducedBitmap;
                     }
-                    if (fixedOk) rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
-                if (version != _contentVersion) { rsBmp?.Dispose(); return null; } // a new image or project was opened meanwhile
+                if (version != _contentVersion) return null; // a new image or project was opened meanwhile
                 if (!fixedOk)
                 {
                     Fail(Loc.Get("StockAwareCannotFix"));
                     return null;
                 }
-                FinishMosaic(result, rsBmp, sw.Elapsed);
+                FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 ShowStockAwareResult(stock);
                 return stock;
@@ -652,7 +650,50 @@ namespace mosair.ViewModels
         public Bitmap? DisplayBitmap
         {
             get => _displayBitmap;
-            set { _displayBitmap = value; OnPropertyChanged(); }
+            set { _displayBitmap = value; OnPropertyChanged(); OnPropertyChanged(nameof(NavBitmap)); }
+        }
+
+        // What MosaicView draws: a snapshot of the current mosaic (stone colours, variants, textures).
+        private MosaicRenderSource? _renderSource;
+        public MosaicRenderSource? RenderSource
+        {
+            get => _renderSource;
+            private set { _renderSource = value; OnPropertyChanged(); }
+        }
+
+        // One pixel per stone: the zoomed-out view, the placeholder while tiles render, and the navigator.
+        private Bitmap? _overviewBitmap;
+        public Bitmap? OverviewBitmap
+        {
+            get => _overviewBitmap;
+            private set { _overviewBitmap = value; OnPropertyChanged(); OnPropertyChanged(nameof(NavBitmap)); }
+        }
+
+        public Bitmap? NavBitmap => _mosaicDone && _overviewBitmap != null ? _overviewBitmap : _displayBitmap;
+
+        // A single stone changed (pixel edit, variant choice, undo/redo); MainWindow forwards it to MosaicView.
+        public event Action<int, int>? StoneInvalidated;
+
+        private void RefreshMosaicView()
+        {
+            if (!_mosaicDone) return;
+            var src = StoneTextureService.CreateRenderSource();
+            RenderSource = src;
+            using var overview = src.RenderOverview();
+            OverviewBitmap = ImageService.ToAvaloniaBitmap(overview);
+        }
+
+        private void RefreshOverview()
+        {
+            if (_renderSource == null) return;
+            using var overview = _renderSource.RenderOverview();
+            OverviewBitmap = ImageService.ToAvaloniaBitmap(overview);
+        }
+
+        private void InvalidateStone(int row, int col)
+        {
+            RefreshOverview();
+            StoneInvalidated?.Invoke(row, col);
         }
 
         public double WidthCm
@@ -736,7 +777,7 @@ public bool UseLab
         public Color GridColor
         {
             get => _gridColor;
-            set { _gridColor = value; OnPropertyChanged(); if (_showGrid) RegenerateRS(); else RedrawOverlay(); }
+            set { _gridColor = value; OnPropertyChanged(); }
         }
 
         public static Color[] GridColorPresets { get; } = new[]
@@ -863,6 +904,7 @@ public bool UseLab
             {
                 _mosaicDone = value;
                 OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(OptimalAvailable));
+                OnPropertyChanged(nameof(NavBitmap));
             }
         }
 
@@ -1082,17 +1124,15 @@ public bool UseLab
             try
             {
                 SKBitmap? result = null;
-                SKBitmap? rsBmp = null;
                 var oldExport = MosaicData.exportBitmap;
                 var stock = UseStockAware ? _stockOnHand : null;
                 await Task.Run(() =>
                 {
                     result = ApplyOptimalKFor(k, stock);
-                    rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
-                if (version != _contentVersion) { rsBmp?.Dispose(); return; } // another image or Mos took over
-                FinishMosaic(result, rsBmp, sw.Elapsed);
+                if (version != _contentVersion) return; // another image or Mos took over
+                FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 if (stock != null)
                 {
@@ -1119,36 +1159,16 @@ public bool UseLab
             if (old != null && !ReferenceEquals(old, current)) old.Dispose();
         }
 
-        private SKBitmap BuildRsBitmap()
-        {
-            int R = MosaicData.dataM3.GetLength(0);
-            int C = MosaicData.dataM3.GetLength(1);
-            int N = MosaicData.N;
-            int gw = _showGrid ? Math.Max(1, N / 11) : 0;
-            if (gw > 0)
-                StoneTextureService.ResizeTextures(N - gw);
-            var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
-            return StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
-        }
-
-        private void FinishMosaic(SKBitmap? result, SKBitmap? rsBmp, TimeSpan elapsed)
+        private void FinishMosaic(SKBitmap? result, TimeSpan elapsed)
         {
             ElapsedTime = elapsed.ToString(@"m\:ss\.ff");
 
-            if (rsBmp != null)
+            if (result != null)
             {
-                MosaicData.rsBitmap?.Dispose();
-                MosaicData.rsBitmap = rsBmp;
-                _bitmapPixelWidth = rsBmp.Width;
-                _bitmapPixelHeight = rsBmp.Height;
-            }
-            else if (result != null)
-            {
-                // No stone-texture image this time: drop the previous one so it is not shown for this mosaic.
-                MosaicData.rsBitmap?.Dispose();
-                MosaicData.rsBitmap = null;
-                _bitmapPixelWidth = result.Width;
-                _bitmapPixelHeight = result.Height;
+                // The stone image is no longer built as one bitmap: MosaicView draws the visible part from tiles.
+                // Its virtual size stays C·N × R·N so zoom, fit, navigator and clicks keep their meaning.
+                _bitmapPixelWidth = result.Width * _stonePixelSize;
+                _bitmapPixelHeight = result.Height * _stonePixelSize;
             }
 
             if (result == null) return;
@@ -1167,7 +1187,7 @@ public bool UseLab
             FilterCatalogByUsedColors();
             if (_lastRunOptimal)
                 _optimumAutoSelection = CaptureCatalogSelection();
-            RedrawOverlay();
+            RefreshMosaicView();
             int totalColors = MosaicData.arRGBAll.Count;
             var uniqueCodes = new HashSet<string>();
             foreach (var arList in MosaicData.arMB)
@@ -1198,7 +1218,7 @@ public bool UseLab
         public int BitmapPixelHeight => _bitmapPixelHeight;
         public int StoneColumns => (int)MosaicEngine.width;
         public int StoneRows => (int)MosaicEngine.height;
-        public string ZoomInfo => $"N={_zoomLevel:F1}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
+        public string ZoomInfo => $"N={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
 
 
         public double NavViewLeft { get => _navViewLeft; set { _navViewLeft = value; OnPropertyChanged(); } }
@@ -1378,10 +1398,10 @@ public bool UseLab
             SetStockAwareReport("");
             MosaicEngine.Reset();
             MosaicDone = false;
+            RenderSource = null;
+            OverviewBitmap = null;
 
             // Clear old mosaic state
-            MosaicData.rsBitmap?.Dispose();
-            MosaicData.rsBitmap = null;
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = null;
             MosaicData.arn = null;
@@ -1531,7 +1551,6 @@ public bool UseLab
             try
             {
                 SKBitmap? result = null;
-                SKBitmap? rsBmp = null;
                 bool optimal = UseOptimal;
                 _lastRunOptimal = false;
                 var oldExport = MosaicData.exportBitmap;
@@ -1575,11 +1594,10 @@ public bool UseLab
                             result = MosaicData.reducedBitmap;
                         }
                     }
-                    rsBmp = BuildRsBitmap();
                 });
 
                 sw.Stop();
-                if (version != _contentVersion) { rsBmp?.Dispose(); return; } // a new image or project was opened meanwhile
+                if (version != _contentVersion) return; // a new image or project was opened meanwhile
                 var res = MosaicEngine.LastOptimalResult;
                 if (optimal && res != null)
                 {
@@ -1591,7 +1609,7 @@ public bool UseLab
                     _suppressOptimalApply = false;
                     UpdateOptimalInfo();
                 }
-                FinishMosaic(result, rsBmp, sw.Elapsed);
+                FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 _mosaicMadeThisSession = result != null;
                 if (UseStockAware && stockConfigured && stock == null && result != null)
@@ -1682,8 +1700,8 @@ public bool UseLab
 
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
-            _bitmapPixelWidth = MosaicData.exportBitmap.Width;
-            _bitmapPixelHeight = MosaicData.exportBitmap.Height;
+            _bitmapPixelWidth = C * data.N;
+            _bitmapPixelHeight = R * data.N;
             OnPropertyChanged(nameof(BitmapPixelWidth));
             OnPropertyChanged(nameof(BitmapPixelHeight));
             OnPropertyChanged(nameof(StoneColumns));
@@ -1708,52 +1726,23 @@ public bool UseLab
             FilterCatalogByUsedColors();
             UpdateDimensions();
 
-            // Show exportBitmap immediately while RS generates
-            DisplayBitmap = ImageService.ToAvaloniaBitmap(MosaicData.exportBitmap);
+            // Show the stones' colours at once (no textures from an earlier mosaic); MosaicView adds the
+            // textures as soon as they are loaded.
+            StoneTextureService.Reset();
+            RefreshMosaicView();
             StatusText = Loc.Get("StatusGeneratingRs");
-
-            // Generate RS bitmap with stone textures
-            int N = data.N;
-            if (MosaicData.arn != null && N > 1)
+            IsProcessing = true;
+            try
             {
-                IsProcessing = true;
-                SKBitmap? rsBmp = null;
-                try
-                {
-                    await Task.Run(() =>
-                    {
-                        StoneTextureService.LoadTextures();
-                        int gw = _showGrid ? Math.Max(1, N / 11) : 0;
-                        int texSize = gw > 0 ? N - gw : N;
-                        StoneTextureService.ResizeTextures(texSize);
-                        var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
-                        rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
-                    });
-
-                    if (version != _contentVersion)
-                    {
-                        // Another image or project was opened while this one was being drawn.
-                        rsBmp?.Dispose();
-                        IsProcessing = false;
-                        return;
-                    }
-                    if (rsBmp != null)
-                    {
-                        MosaicData.rsBitmap?.Dispose();
-                        MosaicData.rsBitmap = rsBmp;
-                        _bitmapPixelWidth = rsBmp.Width;
-                        _bitmapPixelHeight = rsBmp.Height;
-                        OnPropertyChanged(nameof(BitmapPixelWidth));
-                        OnPropertyChanged(nameof(BitmapPixelHeight));
-                        RedrawOverlay();
-                    }
-                }
-                catch (Exception)
-                {
-                    rsBmp?.Dispose();
-                }
-                IsProcessing = false;
+                await Task.Run(StoneTextureService.LoadTextures);
             }
+            catch (Exception)
+            {
+                // No stone images: the view keeps showing stone colours.
+            }
+            IsProcessing = false;
+            if (version != _contentVersion) return; // another image or project was opened meanwhile
+            RefreshMosaicView();
 
             FitToWindow(_lastViewportWidth, _lastViewportHeight);
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
@@ -1765,26 +1754,45 @@ public bool UseLab
         {
             if (IsExporting) return;
 
-            SKBitmap? bmp = MosaicData.rsBitmap ?? MosaicData.exportBitmap;
-            if (bmp == null)
+            if (!MosaicDone || _renderSource == null)
             {
                 Alert(Loc.Get("AlertExportTitle"), Loc.Get("AlertExportNoMosaic"));
                 return;
             }
+            // A copy of the stones, so pixel edits during the export cannot reach the file.
+            var src = _renderSource.WithStoneSnapshot();
 
             var fmt = path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
                       path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
                 ? SKEncodedImageFormat.Jpeg
                 : SKEncodedImageFormat.Png;
 
-            // Encode a snapshot so pixel edits during export can't touch the bitmap being written
-            var snapshot = bmp.Copy();
+            // The whole stone image at N, as on screen. A very large mosaic does not fit in one bitmap (2 GB)
+            // or a JPEG (65,535 px a side); then the largest N that fits is used, i.e. a reduced overall view.
+            int R = src.Rows, C = src.Cols, n = _stonePixelSize;
+            int exportN = ExportStonePixels(C, R, n, fmt == SKEncodedImageFormat.Jpeg);
+            bool grid = _showGrid;
+            int gw = !grid ? 0 : exportN == n ? Math.Max(1, n / 11) : exportN >= 8 ? Math.Max(1, exportN / 11) : 0;
+            var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
+
             IsExporting = true;
-            StatusText = Loc.Fmt("StatusExporting", System.IO.Path.GetFileName(path));
+            string name = System.IO.Path.GetFileName(path);
+            StatusText = exportN < n
+                ? Loc.Fmt("StatusExportReducedN", name, exportN, n)
+                : Loc.Fmt("StatusExporting", name);
             try
             {
-                await Task.Run(() => ImageService.ExportImage(snapshot, path, fmt));
-                StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(path));
+                await Task.Run(() =>
+                {
+                    // Without stone images the export stays one pixel per stone, as before.
+                    using var bmp = src.HasTextures
+                        ? src.RenderRegion(0, 0, R, C, exportN, grid, gw, gc)
+                        : src.RenderOverview();
+                    ImageService.ExportImage(bmp, path, fmt);
+                });
+                StatusText = exportN < n
+                    ? Loc.Fmt("StatusSavedReducedN", name, exportN)
+                    : Loc.Fmt("StatusSaved", name);
             }
             catch (Exception ex)
             {
@@ -1792,9 +1800,20 @@ public bool UseLab
             }
             finally
             {
-                snapshot.Dispose();
                 IsExporting = false;
             }
+        }
+
+        // Largest pixels-per-stone ≤ N whose whole image fits one bitmap and, for JPEG, the format's side limit.
+        private static int ExportStonePixels(int cols, int rows, int n, bool jpeg)
+        {
+            for (int e = n; e > 1; e--)
+            {
+                bool fits = (long)cols * e * rows * e <= ImageService.MaxBitmapPixels;
+                if (jpeg) fits &= cols * e <= 65535 && rows * e <= 65535;
+                if (fits) return e;
+            }
+            return 1;
         }
 
         public void RefreshLocalized()
@@ -1826,7 +1845,7 @@ public bool UseLab
             _lastViewportWidth = viewportWidth;
             _lastViewportHeight = viewportHeight;
             double fit = CalcFitZoom();
-            _minZoomLevel = Math.Max(0.01, fit);
+            _minZoomLevel = Math.Max(0.001, fit);
             _initialZoomLevel = Math.Max(_minZoomLevel, Math.Min(10, fit));
             ZoomLevel = _initialZoomLevel;
         }
@@ -1845,7 +1864,7 @@ public bool UseLab
             if (oldWidth <= 0 || oldHeight <= 0 || _lastViewportWidth <= 0) return;
             double scale = (double)oldWidth / _bitmapPixelWidth;
             double fit = CalcFitZoom();
-            _minZoomLevel = Math.Max(0.01, fit);
+            _minZoomLevel = Math.Max(0.001, fit);
             ZoomLevel = Math.Max(_minZoomLevel, _zoomLevel * scale);
         }
 
@@ -2057,118 +2076,36 @@ public bool UseLab
                     EditedPixelCount = PixelEditService.EditedPixels.Count;
                     StatusText = Loc.Fmt("StatusPixelEdit", result);
 
-                    RedrawOverlay();
+                    InvalidateStone(y, x);
                 }
             }
         }
-
-        private System.Threading.CancellationTokenSource? _rsRegenerateCts;
-        private readonly System.Threading.SemaphoreSlim _rsLock = new(1, 1);
 
         // Bumped whenever the mosaic on screen is replaced (new image, opened project, new Mos). A background job
         // that finishes under an older number belongs to a mosaic that is gone and drops its result.
         private int _contentVersion;
 
-        // Cancels the waiting or running stone-texture rebuild and the pending stone-slider rebuild.
+        // Cancels the pending stone-slider rebuild.
         private int StartNewContent()
         {
-            _rsRegenerateCts?.Cancel();
             _optimalApplyCts?.Cancel();
             return ++_contentVersion;
         }
 
-        private async void RegenerateRS()
+        // N or the grid changed. Nothing is rebuilt here: MosaicView redraws from its bindings. Only the virtual
+        // size of the stone image (C·N × R·N) follows N, keeping the on-screen size the same.
+        private void RegenerateRS()
         {
             if (!MosaicDone) return;
-            if (MosaicData.arMA.Count == 0) return;
-            int version = _contentVersion;
-
-            _rsRegenerateCts?.Cancel();
-            var cts = new System.Threading.CancellationTokenSource();
-            _rsRegenerateCts = cts;
-            var ct = cts.Token;
-
-            try { await Task.Delay(300, ct); }
-            catch (TaskCanceledException) { return; }
-
-            try { await _rsLock.WaitAsync(ct); }
-            catch (OperationCanceledException) { return; }
-
-            SKBitmap? rsBmp = null;
-            try
-            {
-                if (ct.IsCancellationRequested) return;
-
-                int R = MosaicData.dataM3.GetLength(0);
-                int C = MosaicData.dataM3.GetLength(1);
-                int N = _stonePixelSize;
-
-                long totalPixels = (long)R * N * C * N;
-                if (totalPixels > ImageService.MaxBitmapPixels)
-                {
-                    long mb = totalPixels * 4 / 1_000_000;
-                    StatusText = Loc.Fmt("StatusNTooLarge", N, mb);
-                    Alert(Loc.Get("AlertNTooLargeTitle"), Loc.Fmt("AlertNTooLargeBody", N, mb));
-                    return;
-                }
-
-                StatusText = Loc.Fmt("StatusRegenRs", N);
-                IsProcessing = true;
-
-                MosaicData.rsBitmap?.Dispose();
-                MosaicData.rsBitmap = null;
-
-                await Task.Run(() =>
-                {
-                    if (ct.IsCancellationRequested) return;
-                    int gw = _showGrid ? Math.Max(1, N / 11) : 0;
-                    int texSize = gw > 0 ? N - gw : N;
-                    StoneTextureService.ResizeTextures(texSize);
-                    if (ct.IsCancellationRequested) return;
-                    var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
-                    rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
-                });
-
-                if (ct.IsCancellationRequested || version != _contentVersion)
-                {
-                    // Cancelled, or built from a mosaic that has since been replaced.
-                    rsBmp?.Dispose();
-                    rsBmp = null;
-                }
-                else if (rsBmp != null)
-                {
-                    MosaicData.rsBitmap?.Dispose();
-                    MosaicData.rsBitmap = rsBmp;
-                    rsBmp = null;
-                    int oldW = _bitmapPixelWidth, oldH = _bitmapPixelHeight;
-                    _bitmapPixelWidth = MosaicData.rsBitmap.Width;
-                    _bitmapPixelHeight = MosaicData.rsBitmap.Height;
-                    OnPropertyChanged(nameof(BitmapPixelWidth));
-                    OnPropertyChanged(nameof(BitmapPixelHeight));
-                    AdjustZoomForBitmapChange(oldW, oldH);
-                    RedrawOverlay();
-                    StatusText = Loc.Get("StatusReady");
-                }
-            }
-            catch (OutOfMemoryException)
-            {
-                rsBmp?.Dispose();
-                StatusText = Loc.Fmt("StatusErrorTooLarge", _stonePixelSize,
-                    MosaicData.dataM3.GetLength(0), MosaicData.dataM3.GetLength(1));
-                Alert(Loc.Get("AlertMemoryTitle"), Loc.Get("AlertMemoryBody"));
-            }
-            catch (Exception ex)
-            {
-                rsBmp?.Dispose();
-                StatusText = Loc.Fmt("StatusErrorTooLarge", _stonePixelSize,
-                    MosaicData.dataM3.GetLength(0), MosaicData.dataM3.GetLength(1));
-                Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
-            }
-            finally
-            {
-                IsProcessing = false;
-                _rsLock.Release();
-            }
+            int R = MosaicData.dataM3.GetLength(0);
+            int C = MosaicData.dataM3.GetLength(1);
+            int oldW = _bitmapPixelWidth, oldH = _bitmapPixelHeight;
+            _bitmapPixelWidth = C * _stonePixelSize;
+            _bitmapPixelHeight = R * _stonePixelSize;
+            if (oldW == _bitmapPixelWidth && oldH == _bitmapPixelHeight) return;
+            OnPropertyChanged(nameof(BitmapPixelWidth));
+            OnPropertyChanged(nameof(BitmapPixelHeight));
+            AdjustZoomForBitmapChange(oldW, oldH);
         }
 
         private void UpdatePropTexture(string codeName, int pixelY, int pixelX)
@@ -2255,7 +2192,7 @@ public bool UseLab
                 }
             }
 
-            RegenerateRS();
+            StoneInvalidated?.Invoke(_selectedPixelY, _selectedPixelX);
         }
 
         public void TogglePixelEditMode()
@@ -2294,7 +2231,7 @@ public bool UseLab
                 MosaicData.arn[entry.arnIndex] = entry.oldStoneIndex;
                 StatusText = Loc.Get("StatusStoneUndo");
                 UpdatePropTexture(entry.codeName, entry.pixelY, entry.pixelX);
-                RegenerateRS();
+                StoneInvalidated?.Invoke(entry.pixelY, entry.pixelX);
                 return;
             }
 
@@ -2302,7 +2239,7 @@ public bool UseLab
             string result = PixelEditService.UndoLastEdit();
             EditedPixelCount = PixelEditService.EditedPixels.Count;
             StatusText = Loc.Fmt("StatusPixelEdit", result);
-            RedrawOverlay();
+            InvalidateStone(PixelEditService.LastChanged.Y, PixelEditService.LastChanged.X);
         }
 
         public void RedoPixelEdit()
@@ -2316,7 +2253,7 @@ public bool UseLab
                 MosaicData.arn[entry.arnIndex] = entry.newStoneIndex;
                 StatusText = Loc.Get("StatusStoneRedo");
                 UpdatePropTexture(entry.codeName, entry.pixelY, entry.pixelX);
-                RegenerateRS();
+                StoneInvalidated?.Invoke(entry.pixelY, entry.pixelX);
                 return;
             }
 
@@ -2324,24 +2261,7 @@ public bool UseLab
             string result = PixelEditService.RedoLastEdit();
             EditedPixelCount = PixelEditService.EditedPixels.Count;
             StatusText = Loc.Fmt("StatusPixelEdit", result);
-            RedrawOverlay();
-        }
-
-        private void RedrawOverlay()
-        {
-            if (!MosaicDone) return;
-
-            SKBitmap? baseBmp = MosaicData.rsBitmap ?? MosaicData.exportBitmap;
-            if (baseBmp == null) return;
-
-            try
-            {
-                DisplayBitmap = ImageService.ToAvaloniaBitmap(baseBmp);
-            }
-            catch (OutOfMemoryException)
-            {
-                StatusText = "Bitmap too large for display";
-            }
+            InvalidateStone(PixelEditService.LastChanged.Y, PixelEditService.LastChanged.X);
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

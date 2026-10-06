@@ -20,7 +20,7 @@ Uygulamanın MSBuild proje dosyası: hedef çatı, derleme seçenekleri, sürüm
 | `OutputType` | `WinExe` | Windows'ta konsol penceresi açılmaz (GUI alt sistemi). |
 | `TargetFramework` | `net10.0` | .NET 10. |
 | `Nullable` | `enable` | — |
-| `AllowUnsafeBlocks` | `true` | Bitmap piksel işlemlerinde `unsafe` işaretçi kodu için (`PixelEditService`, `StoneTextureService`). |
+| `AllowUnsafeBlocks` | `true` | Bitmap piksel işlemlerinde `unsafe` işaretçi kodu için (`ImageService`, `MosaicRenderSource`). |
 | `ApplicationManifest` | `app.manifest` | Yalnızca derleme makinesi Windows ise (`IsOSPlatform('Windows')`). |
 | `AssemblyName` | `mosair` | Çıktı ikilisinin adı; `Info.plist` içindeki `CFBundleExecutable` ile aynı olmalı. |
 | `Version` | `1.3.1` | Yerel derleme sürümü (son sürümle aynı tutulur). **CI'da etiketten gelen sürümle ezilir** (`-p:Version=...`). |
@@ -55,7 +55,7 @@ Avalonia paketlerinin dördü aynı sürümde tutulmalıdır; biri yükseltilirk
 | İçerik | Açıklama |
 |---|---|
 | `colorsBas.txt` | 124 satırlık taş kataloğu. Her satır boşlukla ayrılmış: `R G B Kod Ad Yüzey…` (örn. kod `B101`). Satır sırası taş `ID`'sidir (1'den başlar). `ColorCatalogService.LoadCatalog` okur. |
-| `02_RS/` | Her taş için bir alt klasör (124 adet), adı `<ID>_<Kod>_<ad>_<R G B>` biçiminde. Her klasörde 16–22 adet `.jpg` doku fotoğrafı (`1.jpg`, `2.jpg` …). `StoneTextureService` kod adına göre eşleştirip mozaik görüntüsünü ("RS") dokulu üretir. |
+| `02_RS/` | Her taş için bir alt klasör (124 adet), adı `<ID>_<Kod>_<ad>_<R G B>` biçiminde. Her klasörde 16–22 adet `.jpg` doku fotoğrafı (`1.jpg`, `2.jpg` …). `StoneTextureService` kod adına göre eşleştirip yükler; taş dokulu mozaik görüntüsünü ("RS") `MosaicRenderSource` çizer. |
 | `mosair.ico` | Windows simgesi. |
 | `mosair-icon.png` | Pencere simgesi ve macOS `.icns` kaynağı. |
 

@@ -14,7 +14,7 @@ Durum çubuğunun arka planında, bir işlem sürdüğü sürece soldan sağa ak
 <ctrl:ActivityWave IsActive="{Binding IsBusy}"/>
 ```
 
-`IsBusy` = `IsProcessing || IsStockBusy || IsExporting` ([MainViewModel](../ViewModels/MainViewModel.md)). Böylece Mos, stoğa göre düzeltme, taş dokulu görüntünün yeniden çizimi, Optimum kaydırıcısıyla yeniden kurma, proje açılırken görüntü üretimi, stok tablosu işlemleri ve dışa aktarma sırasında dalga akar.
+`IsBusy` = `IsProcessing || IsStockBusy || IsExporting` ([MainViewModel](../ViewModels/MainViewModel.md)). Böylece Mos, stoğa göre düzeltme, Optimum kaydırıcısıyla yeniden kurma, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri ve dışa aktarma sırasında dalga akar.
 
 ## Yapı
 

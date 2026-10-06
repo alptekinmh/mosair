@@ -262,6 +262,7 @@
             </StackPanel>
             <TextBlock Classes="body" Text="Mozaik gorselin goruntulenip duzenledigi ana alandir. Mouse tekerlegi ile zoom yapin, sag tus ile surukleyerek pan yapin. Gorseli dogrudan surukle-birak ile de yukleyebilirsiniz."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Sag ustte Mini Harita (Navigator) bulunur — buyuk mozaiklerde nerede oldugunuzu gosterir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Mos'tan sonra tas dokulu goruntu parca parca, yalnizca ekranda gorunen kisim icin cizilir: cok uzaktan taslar kendi renkleriyle gorunur, yakinlastirdikca dokular netlesir. Daha keskin parca hazirlanirken bir bolge kisa bir sure bulanik gorunebilir. Goruntu boyutu icin sinir yoktur; cok buyuk mozaikler de (or. 20 m) calisir. Detay (N), izgara ve izgara rengi degisiklikleri aninda uygulanir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Ekrana Sigdir (durum cubugundaki dugme, Gorunum menusu veya kisayol) gorseli pencereye sigdirir; Mos ve Proje Ac sonrasi kendiliginden uygulanir. Detay (N) ilk kez 40'in ustune cikarilinca bir kez performans bildirimi cikar."/>
           </StackPanel>
         </Border>
@@ -378,6 +379,7 @@
             <TextBlock Classes="body" Text="• Yeni gorsel, yeni Mos, Tas sayisinin degismesi ve Stok Kontrol sirasindaki stoga gore yeniden duzeltme piksel duzenlemelerini sifirlar (stoga gore duzeltme once onay sorar)."/>
             <TextBlock Classes="body" Text="• Geri Al once tas varyanti degisikliklerini, sonra renk duzenlemelerini geri alir."/>
             <TextBlock Classes="body" Text="• Katalogdan secilip mozaigin paletinde olmayan bir tas kullanilirsa, proje kaydedilirken palete eklenir."/>
+            <TextBlock Classes="body" Text="• Duzenlenen tas kendi doku varyantiyla, diger taslarla ayni sekilde (izgara dahil) cizilir; ekranda disa aktarilan dosyadakiyle ayni gorunur."/>
           </StackPanel>
         </Border>
 
@@ -467,6 +469,7 @@
             <TextBlock Classes="h2" Text="Disa Aktarma" Margin="0"/>
             <TextBlock Classes="body" Text="Mozaik sonucunu (ekrandaki gercek tas dokulu goruntu) Masaustu/mosairEXPORT klasorune JPEG olarak kaydeder; dosya adi tarih, saat, gorsel adi ve cm olculerini icerir. Grid aciksa gridli olarak kaydedilir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Disa aktar ikonunun yanindaki ok menusunden 'mosairEXPORT As' ile konum ve bicim (JPEG/PNG) secebilirsiniz. Disa aktar ikonuna sag tiklamak mosairEXPORT klasorunu acar."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Mozaik secilen Detay (N) ile tek dosyaya sigmiyorsa (yaklasik 536,9 milyon piksel; JPEG'de ayrica kenar basina 65.535 piksel) sigan en buyuk N kullanilir ve dosya kucultulmus bir genel gorunum olur; durum cubugu kullanilan N'yi yazar. Disa aktarma basladigi andaki mozaigi yazar; bu sirada yapilan duzenlemeler dosyaya girmez."/>
           </StackPanel>
         </Border>
 
@@ -475,7 +478,7 @@
           <StackPanel Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Genislik (cm) degerini degistirdikten sonra Enter'a basin — boyut bilgileri otomatik guncellenir."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
-            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Detay slider'ini artirarak daha detayli tas dokusu elde edin. Yuksek degerler daha fazla bellek kullanir."/></StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Detay (N), yakinlastirinca gorulen ve disa aktarilan tas dokusunun detayini belirler. Yuksek degerler disa aktarilan dosyayi buyutur ve disa aktarmayi yavaslatir."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Gorseli dogrudan dosya yoneticisinden surukleyip uygulamaya birakin."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
@@ -570,6 +573,7 @@
             </StackPanel>
             <TextBlock Classes="body" Text="The main area where the mosaic image is displayed and edited. Use the mouse wheel to zoom, right-click drag to pan. You can also drag-and-drop images directly."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Top-right shows the Mini Map (Navigator) — shows your position in large mosaics."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="After Mos the stone-texture image is drawn piece by piece, only for the part on screen: from far away stones show in their own colors, and textures sharpen as you zoom in. While a sharper piece is being prepared, an area may look blurred for a moment. There is no image size limit; very large mosaics (e.g. 20 m) work too. Changes to Detail (N), the grid and the grid color apply at once."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Fit to Screen (status bar button, View menu or shortcut) fits the image to the window; it is applied automatically after Mos and Open Project. The first time Detail (N) goes above 40, a performance notice appears once."/>
           </StackPanel>
         </Border>
@@ -686,6 +690,7 @@
             <TextBlock Classes="body" Text="• A new image, a new Mos, a change of the stone count and a by-stock re-fit during Check Stock reset pixel edits (the by-stock re-fit asks first)."/>
             <TextBlock Classes="body" Text="• Undo first undoes stone-variant changes, then color edits."/>
             <TextBlock Classes="body" Text="• If you use a catalog stone that is not in the mosaic's palette, it is added to the palette when the project is saved."/>
+            <TextBlock Classes="body" Text="• An edited stone is drawn with its own texture variant, the same way as the other stones (grid included); on screen it looks the same as in the exported file."/>
           </StackPanel>
         </Border>
 
@@ -775,6 +780,7 @@
             <TextBlock Classes="h2" Text="Export" Margin="0"/>
             <TextBlock Classes="body" Text="Saves the mosaic result (the real stone-texture image on screen) as JPEG to the Desktop/mosairEXPORT folder; the file name contains the date, time, image name and size in cm. If the grid is enabled, the export includes grid lines."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Use 'mosairEXPORT As' in the arrow menu next to the export icon to choose the location and format (JPEG/PNG). Right-click the export icon to open the mosairEXPORT folder."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="If the mosaic does not fit one file at the chosen Detail (N) (about 536.9 million pixels; for JPEG also 65,535 pixels per side), the largest N that fits is used and the file is a reduced overall view; the status bar shows the N used. The export writes the mosaic as it was when the export started; edits made meanwhile do not reach the file."/>
           </StackPanel>
         </Border>
 
@@ -783,7 +789,7 @@
           <StackPanel Spacing="6">
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Press Enter after changing the width (cm) value — dimensions update automatically."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
-            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Increase the Detail slider for more detailed stone textures. Higher values use more memory."/></StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Detail (N) sets how detailed the stone textures are when zoomed in and in the export. Higher values make the exported file larger and the export slower."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Drag and drop images directly from your file manager into the application."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>

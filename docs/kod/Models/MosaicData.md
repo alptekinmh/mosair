@@ -1,6 +1,6 @@
 # MosaicData
 
-> Kaynak: `mosair/Models/MosaicData.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Models/MosaicData.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -29,9 +29,10 @@ Piksel dizileri `[satır, sütun, kanal]` düzenindedir ve kanal sırası **BGR*
 | `reducedBitmap` | `SKBitmap?` | `null` | Kaynak görüntünün taş ızgarasına küçültülmüş hali / ara sonuç. |
 | `exportBitmap` | `SKBitmap?` | `null` | Düz renkli mozaik bitmap'i (dokusuz). |
 | `inputBitmap` | `SKBitmap?` | `null` | Yüklenen orijinal görüntü. |
-| `rsBitmap` | `SKBitmap?` | `null` | Taş dokulu ("RS") yüksek çözünürlüklü görüntü; `N × N` piksellik taş blokları. Varsa dışa aktarmada `exportBitmap` yerine kullanılır. |
-| `N` | `int` | 40 | Bir taşın `rsBitmap` içindeki piksel boyutu ("Detay"). `MainViewModel.StonePixelSize` ayarlar. |
+| `N` | `int` | 40 | Taş dokulu görüntüde (RS) bir taşın piksel boyutu ("Detay"). `MainViewModel.StonePixelSize` ayarlar. |
 | `arn` | `int[]` | `new int[3]` | Hücre başına doku varyantı indeksi (`R*C` uzunluk). `StoneTextureService.PopulateRandomIndices` yeniden ayırır. |
+
+Taş dokulu görüntü (RS) bu sınıfta tutulmaz (eski `rsBitmap` alanı kaldırıldı). Görüntünün tamamı hiçbir zaman bellekte durmaz: ekranda [MosaicView](../Controls/MosaicView.md) görünen kısmı karolarla, dışa aktarma ise bütün görüntüyü [MosaicRenderSource](../Services/MosaicRenderSource.md) ile `dataM3`, `arn` ve paletten çizer.
 
 ## Public API
 
@@ -40,15 +41,15 @@ Metot yoktur; yalnızca `public static` alanlar.
 | Alan grubu | Yazan | Okuyan |
 |---|---|---|
 | `arRGBAll`, `arcs`, `arRGB` | `ColorCatalogService`, `ProjectService` | `MosaicEngine`, `ColorMatcher`, `MainViewModel`, `CompareRunner` |
-| `dataM1`, `dataM3`, `dataM3Backup` | `MosaicEngine`, `ProjectService`, `PixelEditService` (`dataM3`) | `StoneTextureService`, `MainViewModel`, `CompareRunner` |
-| `arMA`, `arMB`, `arMBR` | `MosaicEngine`, `ProjectService` | `StoneTextureService`, `PixelEditService`, `MainViewModel` |
-| Bitmap'ler | `MosaicEngine`, `MainViewModel`, `PixelEditService` (`rsBitmap` piksellerini yerinde günceller) | `MainViewModel` |
-| `N`, `arn` | `MainViewModel`, `StoneTextureService`, `ProjectService` | `PixelEditService`, `StoneTextureService` |
+| `dataM1`, `dataM3`, `dataM3Backup` | `MosaicEngine`, `ProjectService`, `PixelEditService` (`dataM3`) | `StoneTextureService`, `MosaicRenderSource` (`dataM3`), `MainViewModel`, `CompareRunner` |
+| `arMA`, `arMB`, `arMBR` | `MosaicEngine`, `ProjectService` | `StoneTextureService`, `MosaicRenderSource` (`arMA`, `arMB`), `MainViewModel` |
+| Bitmap'ler | `MosaicEngine`, `MainViewModel` | `MainViewModel` |
+| `N`, `arn` | `MainViewModel`, `StoneTextureService`, `ProjectService` | `StoneTextureService`, `MosaicRenderSource` (`arn`), `MainViewModel` |
 
 ## Önemli davranışlar ve iş kuralları
 
 - `MosaicEngine.Reset` dizileri `[3,3,3]`'e döndürür, listeleri temizler ve bitmap'leri `Dispose` edip `null` yapar. Yeni görüntü yüklemek (`MainViewModel.LoadImage`) her zaman `Reset` ile başlar.
-- Bitmap'ler değiştirilirken önce eskisi `Dispose` edilir (`MosaicData.rsBitmap?.Dispose()` kalıbı). Yeni kod bu kalıbı izlemeli, aksi halde yerel bellek sızar.
+- Bitmap'ler değiştirilirken önce eskisi `Dispose` edilir (`MosaicData.exportBitmap?.Dispose()` kalıbı). Yeni kod bu kalıbı izlemeli, aksi halde yerel bellek sızar.
 - Optimum modunda (`RunOptimal` → `ApplyOptimalK`) tek bölgeli palet doğrudan `arMB` olarak kurulur, `arMA` onun kopyasıdır.
 - `.mos` dosyası bu sınıftaki alanların neredeyse tamamını düzleştirerek saklar (bkz. `ProjectService`).
 
@@ -65,7 +66,7 @@ Metot yoktur; yalnızca `public static` alanlar.
 - [Region](Region.md)
 - [MosaicEngine](../Services/MosaicEngine.md)
 - [ColorCatalogService](../Services/ColorCatalogService.md)
-- [StoneTextureService](../Services/StoneTextureService.md)
+- [StoneTextureService](../Services/StoneTextureService.md), [MosaicRenderSource](../Services/MosaicRenderSource.md)
 - [ProjectService](../Services/ProjectService.md)
 - [PixelEditService](../Services/PixelEditService.md)
 - [MainViewModel](../ViewModels/MainViewModel.md)

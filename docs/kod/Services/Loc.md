@@ -44,13 +44,13 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **193** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **195** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Stock*` | 53 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
 | `Menu*` | 37 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware` dahil) |
-| `Status*` | 22 | Durum çubuğu metinleri (çoğu biçim dizesi) |
+| `Status*` | 24 | Durum çubuğu metinleri (çoğu biçim dizesi); küçültülmüş dışa aktarma için `StatusExportReducedN` ve `StatusSavedReducedN` dahil |
 | `Tip*` | 22 | Araç çubuğu, stok düğmesi ve "Stoğa göre" kutusu (`TipStockAware`) ipuçları |
 | `Alert*` | 18 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
@@ -92,6 +92,8 @@ Her iki sözlükte de **193** anahtar vardır ve anahtar kümeleri birebir aynı
 - Türkçe metinlerin bir kısmı Türkçe karakter içermeden yazılmıştır (ör. `AlertExportTitle` = "Disa Aktarma").
 - Eksik anahtar hata vermez; ekranda anahtar adı görünür. Yeni anahtarı iki sözlüğe de eklemeyi unutmayın.
 - `Fmt`, `string.Format`'ı geçerli kültürle çağırır; sayı biçimleri sistem kültürüne göre değişebilir.
+- `StatusNTooLarge`, `AlertNTooLargeTitle`, `AlertNTooLargeBody`, `StatusRegenRs` ve `StatusErrorTooLarge` artık hiçbir yerde kullanılmıyor (taş dokulu görüntü karolarla çizildiği için N kaydırıcısında boyut sınırı ve yeniden üretim kalmadı). Sözlüklerde duruyorlar; sayıya dahildirler.
+- `StatusGeneratingRs` ("Acildi, tas dokulari yukleniyor...") proje açılırken taş görüntüleri yüklenirken gösterilir.
 - `StockAwareSmall` (en az kullanım kuralıyla çıkarılan taşlar) sözlükte durur, ancak uygulamada bu kural kapalı olduğundan (`MinUsage = 0`) normalde gösterilmez.
 - `HelpWindow.axaml` içindeki kısayol açıklamaları gibi bazı metinler XAML'e doğrudan yazılmıştır ve bu sözlüklerden gelmez.
 

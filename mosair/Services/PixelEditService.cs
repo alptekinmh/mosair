@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using mosair.Models;
-using SkiaSharp;
 
 namespace mosair.Services
 {
@@ -27,12 +26,16 @@ namespace mosair.Services
         public static bool CanUndo => _undoStack.Count > 0;
         public static bool CanRedo => _redoStack.Count > 0;
 
+        // The stone the last edit, undo or redo changed; the screen redraws only that stone's tile.
+        public static (int Y, int X) LastChanged { get; private set; } = (-1, -1);
+
         public static void Reset()
         {
             EditedPixels.Clear();
             _undoStack.Clear();
             _redoStack.Clear();
             Current = null;
+            LastChanged = (-1, -1);
             IsSourcePixelMode = false;
             IsTargetPixelMode = false;
             IsPixelEditActive = false;
@@ -102,7 +105,7 @@ namespace mosair.Services
                 drl.dat[y, x, 3] = Current.Source.ID;
                 EditedPixels[existingIdx].Source = CloneRgb(Current.Source);
                 EditedPixels[existingIdx].Target = CloneRgb(Current.Target);
-                UpdateRSForPixel(EditedPixels[existingIdx]);
+                LastChanged = (y, x);
                 _undoStack.Push(EditedPixels[existingIdx]);
                 _redoStack.Clear();
                 return $"replaced #{existingIdx + 1}";
@@ -113,7 +116,7 @@ namespace mosair.Services
                 MosaicData.dataM3[y, x, 1] = (byte)existing.Original.g;
                 MosaicData.dataM3[y, x, 2] = (byte)existing.Original.r;
                 drl.dat[y, x, 3] = existing.Original.ID;
-                RestoreRSForPixel(existing);
+                LastChanged = (y, x);
                 EditedPixels.RemoveAt(existingIdx);
                 _redoStack.Clear();
                 return $"restored to original";
@@ -142,115 +145,11 @@ namespace mosair.Services
                     Original = CloneRgb(Current.Original)
                 };
                 EditedPixels.Add(record);
-                UpdateRSForPixel(record);
+                LastChanged = (record.Y, record.X);
                 _undoStack.Push(record);
                 _redoStack.Clear();
                 return $"edited pixel ({EditedPixels.Count} total)";
             }
-        }
-
-        private static unsafe void PatchRSRegion(PixelEditRecord p, rgb color)
-        {
-            if (MosaicData.rsBitmap == null) return;
-
-            int N = MosaicData.N;
-            int baseY = p.Y * N;
-            int baseX = p.X * N;
-            int rsW = MosaicData.rsBitmap.Width;
-            int rsH = MosaicData.rsBitmap.Height;
-            if (baseY + N > rsH || baseX + N > rsW) return;
-
-            var codeName = FindCodeNameForColor(color);
-            if (codeName == null && !string.IsNullOrEmpty(color.codeName))
-                codeName = color.codeName;
-            SKBitmap? texBmp = null;
-
-            if (codeName != null)
-            {
-                var folder = StoneTextureService.FindFolderForCode(codeName);
-                if (folder != null)
-                {
-                    int texIdx = new Random().Next(1, 16);
-                    string imgPath = System.IO.Path.Combine(folder, $"{texIdx}.jpg");
-                    if (System.IO.File.Exists(imgPath))
-                    {
-                        var src = SKBitmap.Decode(imgPath);
-                        if (src != null)
-                        {
-                            var info = new SKImageInfo(N, N);
-                            texBmp = src.Resize(info, new SKSamplingOptions(SKFilterMode.Linear));
-                            src.Dispose();
-                        }
-                    }
-                }
-            }
-
-            bool isRgba = MosaicData.rsBitmap.ColorType == SKColorType.Rgba8888;
-            byte* rsPtr = (byte*)MosaicData.rsBitmap.GetPixels();
-            int rsStride = MosaicData.rsBitmap.RowBytes;
-
-            if (texBmp != null)
-            {
-                bool texRgba = texBmp.ColorType == SKColorType.Rgba8888;
-                byte* texPtr = (byte*)texBmp.GetPixels();
-                int texStride = texBmp.RowBytes;
-
-                for (int dy = 0; dy < N; dy++)
-                {
-                    byte* rsRow = rsPtr + (baseY + dy) * rsStride + baseX * 4;
-                    byte* texRow = texPtr + dy * texStride;
-                    for (int dx = 0; dx < N; dx++)
-                    {
-                        byte tr, tg, tb;
-                        if (texRgba) { tr = texRow[0]; tg = texRow[1]; tb = texRow[2]; }
-                        else { tb = texRow[0]; tg = texRow[1]; tr = texRow[2]; }
-
-                        if (isRgba) { rsRow[0] = tr; rsRow[1] = tg; rsRow[2] = tb; rsRow[3] = 255; }
-                        else { rsRow[0] = tb; rsRow[1] = tg; rsRow[2] = tr; rsRow[3] = 255; }
-
-                        rsRow += 4;
-                        texRow += 4;
-                    }
-                }
-                texBmp.Dispose();
-            }
-            else
-            {
-                byte cr = (byte)color.r, cg = (byte)color.g, cb = (byte)color.b;
-                for (int dy = 0; dy < N; dy++)
-                {
-                    byte* rsRow = rsPtr + (baseY + dy) * rsStride + baseX * 4;
-                    for (int dx = 0; dx < N; dx++)
-                    {
-                        if (isRgba) { rsRow[0] = cr; rsRow[1] = cg; rsRow[2] = cb; rsRow[3] = 255; }
-                        else { rsRow[0] = cb; rsRow[1] = cg; rsRow[2] = cr; rsRow[3] = 255; }
-                        rsRow += 4;
-                    }
-                }
-            }
-        }
-
-        private static void UpdateRSForPixel(PixelEditRecord p)
-        {
-            PatchRSRegion(p, p.Source);
-        }
-
-        private static void RestoreRSForPixel(PixelEditRecord p)
-        {
-            PatchRSRegion(p, p.Original);
-        }
-
-        private static string? FindCodeNameForColor(rgb color)
-        {
-            foreach (var arList in MosaicData.arMA)
-            {
-                foreach (var c in arList)
-                {
-                    if (c.r == color.r && c.g == color.g && c.b == color.b)
-                        return c.codeName;
-                }
-            }
-            return null;
         }
 
         private static rgb CloneRgb(rgb src)
@@ -268,7 +167,7 @@ namespace mosair.Services
             MosaicData.dataM3[record.Y, record.X, 1] = (byte)record.Original.g;
             MosaicData.dataM3[record.Y, record.X, 2] = (byte)record.Original.r;
             drl.dat[record.Y, record.X, 3] = record.Original.ID;
-            RestoreRSForPixel(record);
+            LastChanged = (record.Y, record.X);
 
             for (int i = EditedPixels.Count - 1; i >= 0; i--)
             {
@@ -293,7 +192,7 @@ namespace mosair.Services
             MosaicData.dataM3[record.Y, record.X, 1] = (byte)record.Source.g;
             MosaicData.dataM3[record.Y, record.X, 2] = (byte)record.Source.r;
             drl.dat[record.Y, record.X, 3] = record.Source.ID;
-            UpdateRSForPixel(record);
+            LastChanged = (record.Y, record.X);
 
             EditedPixels.Add(new PixelEditRecord
             {

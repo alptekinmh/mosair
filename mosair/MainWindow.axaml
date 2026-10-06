@@ -994,13 +994,27 @@
           <Panel Margin="4"
                  Width="{Binding ImageDisplayWidth}"
                  Height="{Binding ImageDisplayHeight}">
+            <!-- Before Mos: the loaded image -->
             <Image Source="{Binding DisplayBitmap}"
+                   IsVisible="{Binding !MosaicDone}"
                    Stretch="Fill"
                    RenderOptions.BitmapInterpolationMode="LowQuality"
                    PointerWheelChanged="OnImageWheel"
                    PointerMoved="OnImagePointerMoved"
                    PointerPressed="OnImagePointerPressed"
                    PointerReleased="OnImagePointerReleased"/>
+            <!-- After Mos: the stone image, drawn tile by tile for the visible part only -->
+            <ctrl:MosaicView x:Name="mosaicView"
+                             IsVisible="{Binding MosaicDone}"
+                             Source="{Binding RenderSource}"
+                             Overview="{Binding OverviewBitmap}"
+                             StonePixelSize="{Binding StonePixelSize}"
+                             ShowGrid="{Binding ShowGrid}"
+                             GridColor="{Binding GridColor}"
+                             PointerWheelChanged="OnImageWheel"
+                             PointerMoved="OnImagePointerMoved"
+                             PointerPressed="OnImagePointerPressed"
+                             PointerReleased="OnImagePointerReleased"/>
             <ctrl:GridOverlay ShowGrid="{Binding ShowGrid}"
                               StoneSize="{Binding StonePixelSize}"
                               BitmapWidth="{Binding BitmapPixelWidth}"
@@ -1023,7 +1037,7 @@
                 PointerMoved="OnNavPointerMoved"
                 ClipToBounds="True">
           <Panel>
-            <Image Source="{Binding DisplayBitmap}" Stretch="Uniform"
+            <Image Source="{Binding NavBitmap}" Stretch="Uniform"
                    RenderOptions.BitmapInterpolationMode="LowQuality"/>
             <Canvas>
               <Border Canvas.Left="{Binding NavViewLeft}"

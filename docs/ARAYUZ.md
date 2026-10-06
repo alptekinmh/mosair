@@ -132,9 +132,9 @@ Soldan sağa:
 | Proje Farklı Kaydet | Proje Farklı Kaydet | Konum sorarak kaydeder | — | Mozaik yokken pasif |
 | **Mos** | Mozaikleştir | Mozaikleştirir | — | Görsel yokken, işlem ya da dışa aktarma sürerken pasif; çalışırken ikon animasyonludur |
 | Kalem (Piksel Düzenle) | Piksel Düzenle (Orta Tuş), 1) Kaynak renk seç, 2) Hedef piksele uygula | Düzenleme modunu aç/kapat | Orta tuş da aynı işi yapar | Mozaik yokken pasif. Açıkken kalem turuncu olur, yanında `source → target` göstergesi çıkar |
-| Izgara | Izgara Göster/Gizle | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + seçilen rengin 7 tonu) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır |
+| Izgara | Izgara Göster/Gizle | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + seçilen rengin 7 tonu) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır. Açma/kapama ve renk değişikliği anında uygulanır. |
 | İnterpolasyon | İnterpolasyon Yöntemi | Açılır liste (7 yöntem); seçili yöntemin adı düğmede yazar | — | Varsayılan **Area** |
-| Detay (N) | Detay Seviyesi (N) | Açılır kaydırıcı 10–100 (10'ar adım); değer düğmede yazar | — | Varsayılan **40**; 40'ın üstü ilk seferde performans uyarısı gösterir |
+| Detay (N) | Detay Seviyesi (N) | Açılır kaydırıcı 10–100 (10'ar adım); değer düğmede yazar | — | Varsayılan **40**; 40'ın üstü ilk seferde performans uyarısı gösterir. Değişiklik anında uygulanır; beklenecek bir yeniden oluşturma yoktur. |
 | Stok Tablosu (yeşil tablo) | Stok tablosunu tarayıcıda aç | Tabloyu tarayıcıda açar | Yanındaki **▾**: Stok Tablosunu Aç / Stok Ayarları... · Sağ tık: Stok Ayarları... | |
 | Stok Çek (depo) | Stok çek: stoğu oku, stoğu biten taşları devre dışı bırak | Bizdeki (kg) okunur, stoğu olmayan taşlar devre dışı bırakılır | Yanındaki **▾**: Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle | Tabloyu değiştirmez |
 | Stok Kontrol (pano) | Stok kontrol: adetleri tabloya yaz, stoğu yetmeyenleri işaretle | Adetler tabloya yazılır, kalan okunur | — | Tabloyu değiştirir |
@@ -194,7 +194,7 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
 
 | İşlem | Nasıl |
 |---|---|
-| Yakınlaştır/uzaklaştır | Fare tekerleği; imlecin altındaki nokta sabit kalır. Her adım ×1,25. En fazla 20×, en az ekrana sığdırma ölçüsü. |
+| Yakınlaştır/uzaklaştır | Fare tekerleği; imlecin altındaki nokta sabit kalır. Her adım ×1,25. En fazla 20×, en az ekrana sığdırma ölçüsü (ama ‰1'den az değil; bkz. [§18](#18-bilinen-davranışlar-ve-sınırlamalar)). |
 | Kaydır (pan) | **Sağ tuşu basılı tutup sürükle** |
 | Taş seç | **Sol tık**: Özellikler paneli o taşı gösterir |
 | Piksel düzenle | Düzenleme modundayken sol tık ([§9](#9-piksel-düzenleme-ve-taş-varyantı)) |
@@ -202,7 +202,15 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
 | Görsel yükle | Dosyayı pencereye sürükle-bırak (PNG, JPG, JPEG, BMP, TIFF; ilk uygun dosya alınır) |
 | Ekrana sığdır | Durum çubuğundaki ⛶ düğmesi, `Ctrl/⌘+0` veya **Görünüm → Ekrana Sığdır**. Mos ve Proje Aç sonrasında kendiliğinden uygulanır. |
 
-**Mini harita (navigator):** Sağ üstteki 150×150 küçük görüntüdür. Yeşil çerçeve ekranda görünen bölgeyi gösterir. Tıklamak ya da sol tuşla sürüklemek o bölgeye götürür. Görsel yüklüyken görünür.
+**Mini harita (navigator):** Sağ üstteki 150×150 küçük görüntüdür. Yeşil çerçeve ekranda görünen bölgeyi gösterir. Tıklamak ya da sol tuşla sürüklemek o bölgeye götürür. Görsel yüklüyken görünür. Mos'tan önce yüklenen görseli, Mos'tan sonra mozaiğin taş renklerini gösterir.
+
+**Taş dokulu görüntünün çizimi:** Mos'tan sonra canvas, mozaiği gerçek taş dokularıyla gösterir. Görüntü bir bütün olarak oluşturulmaz; yalnızca ekranda görünen kısım, parça parça ve yakınlaştırmaya uygun detayla çizilir:
+
+- Çok uzaklaştırıldığında (bir taş ekranda yalnızca birkaç piksel kaldığında) taşlar kendi renkleriyle gösterilir.
+- Yakınlaştırdıkça dokular görünür ve görüntü keskinleşir; en yakın görünümde Detay (N) değerindeki doku çizilir.
+- Kaydırma ya da yakınlaştırmadan sonra daha keskin parça hazırlanana kadar bir bölge kısa bir süre bulanık görünebilir; parça gelince kendiliğinden keskinleşir.
+- Görüntü boyutu için bir sınır yoktur: çok büyük mozaikler de (ör. 20 m genişlik) gösterilir ve düzenlenebilir.
+- Detay (N), ızgara ve ızgara rengi değişiklikleri anında uygulanır; ekran bir süre eldeki görüntüyle kalıp yeni parçalar geldikçe güncellenir.
 
 **Performans bildirimi:** Detay (N) ilk kez 40'ın üstüne çıkarıldığında ortada bir uyarı kutusu çıkar ve **Anladım** ile kapanır. Oturum boyunca bir kez gösterilir.
 
@@ -225,14 +233,14 @@ Canvas'ta bir taşa sol tıklayınca dolar.
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
 | Orta | İlerleme çubuğu (işlem sırasında), durum mesajı, geçen süre |
-| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, taş görüntüsünün yeniden çizimi, Optimum taş sayısı değişimi, proje açılırken görüntü üretimi, stok tablosu işlemleri, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
-| Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`N=2.0` biçiminde, Detay N ile karıştırılmamalı) ve ekrandaki görüntü boyutu (px) |
+| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
+| Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`N=2.0` biçiminde, Detay N ile karıştırılmamalı; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
 - Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
-- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi, piksel düzenleme bilgisi.
+- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi (küçültülmüş dışa aktarmada kullanılan N dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 
 ## 9. Piksel düzenleme ve taş varyantı
@@ -241,7 +249,7 @@ Ortadaki durum mesajında görülebilecekler:
 
 1. **Modu açın:** orta tuş, araç çubuğundaki kalem ya da **Araçlar → Piksel Düzenle**. Önce Mos yapılmış olmalıdır. Kalem turuncu yanar ve `source` göstergesi aktif olur.
 2. **Kaynak rengi seçin:** istediğiniz renkteki bir taşa sol tıklayın **veya** sol paneldeki katalogdan bir taş seçin. Gösterge `target`'a geçer.
-3. **Hedefe uygulayın:** değiştirmek istediğiniz taşlara sol tıklayın. Renk anında değişir; hedef modunda kalınır, aynı kaynakla birden çok piksel boyanabilir.
+3. **Hedefe uygulayın:** değiştirmek istediğiniz taşlara sol tıklayın. Renk anında değişir; hedef modunda kalınır, aynı kaynakla birden çok piksel boyanabilir. Düzenlenen taş, o hücrenin kendi doku varyantıyla, diğer taşlarla aynı biçimde (ızgara dahil) çizilir; ekranda dışa aktarılan dosyadakiyle aynı görünür ve sonradan değişmez.
 4. **Geri al / yinele:** `Ctrl/⌘+Z` geri alır. `Ctrl/⌘+Y` veya `Ctrl/⌘+Shift+Z` yineler.
 5. **Kapatmak için** modu tekrar tetikleyin (orta tuş/kalem). Kapanınca katalog seçimi temizlenir.
 
@@ -249,7 +257,7 @@ Ortadaki durum mesajında görülebilecekler:
 
 ### Doku varyantı değiştirme
 
-Özellikler panelindeki **VARYANTLAR** küçük resimlerinden birine tıklanınca, seçili pikselin gerçek taş dokusu o varyantla değiştirilir. Bu değişiklik de `Ctrl/⌘+Z` / `Ctrl/⌘+Y` ile geri alınır ve yinelenir.
+Özellikler panelindeki **VARYANTLAR** küçük resimlerinden birine tıklanınca, seçili pikselin gerçek taş dokusu o varyantla değiştirilir; yalnızca o taşın bulunduğu bölge yeniden çizilir. Bu değişiklik de `Ctrl/⌘+Z` / `Ctrl/⌘+Y` ile geri alınır ve yinelenir.
 
 Geri alma sırası: önce taş varyantı değişiklikleri, sonra piksel renk düzenlemeleri.
 
@@ -355,7 +363,7 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 |---|---|
 | **Proje Kaydet** (`Ctrl/⌘+S`) | `Masaüstü/mosairPROJECT/<görsel adı>/<görsel adı>.mos` olarak kaydeder. Orijinal görsel aynı klasöre kopyalanır (yoksa). Görsel adı yoksa `mosair_project` kullanılır. Kaydedince ikon kısa süre ✓ olur ve durum çubuğunda "Kaydedildi: …" yazar. |
 | **Proje Farklı Kaydet** (`Ctrl/⌘+Shift+S`) | Seçilen ad için o adda bir klasör açar ve `.mos` dosyasını içine yazar; görsel `.mos`'un yanına kopyalanır (orada yoksa). |
-| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar ve gerçek taş dokulu görüntüyü yeniden oluşturur. Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
+| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar. Mozaik önce taş renkleriyle görünür; taş görüntüleri arka planda yüklenince gerçek taş dokularıyla gösterilir (durum çubuğunda bu sırada "Acildi, tas dokulari yukleniyor..." yazar). Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
 
 **Projede saklananlar:**
 
@@ -382,7 +390,11 @@ Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri
 | **mosairEXPORT As** | Konum ve biçim sorar: JPEG veya PNG. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
 
-Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntüdür. Izgara açıksa ızgarayla birlikte kaydedilir. Kaydetme arka planda yapılır; bu sırada yapılan düzenlemeler dosyaya karışmaz. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir.
+Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntünün tamamıdır: her taş Detay (N) piksel boyutunda, kendi doku varyantıyla çizilir. Izgara açıksa ızgarayla birlikte kaydedilir. Taş görüntüleri yüklü değilse (ör. `02_RS` klasörü yoksa) taş başına 1 piksellik renkli görüntü kaydedilir.
+
+**Çok büyük mozaikler:** Bütün görüntünün tek dosyaya sığması gerekir: en fazla yaklaşık 536,9 milyon piksel, JPEG'de ayrıca her kenar en fazla 65.535 piksel. Mozaik seçilen N ile sığmıyorsa sığan en büyük N kullanılır ve dosya **küçültülmüş bir genel görünüm** olur. Durum çubuğu bunu kullanılan N ile birlikte yazar: "Dışa aktarılıyor: … — mozaik tek dosyaya N=… ile sığmadığı için N=… kullanılıyor (küçültülmüş genel görünüm)...", sonra "Kaydedildi: … (küçültülmüş genel görünüm, N=…)". Bu durumda ızgara, kullanılan N 8 veya daha büyükse ona göre inceltilerek çizilir; daha küçükse ızgara çizilmez.
+
+Kaydetme arka planda yapılır. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir. Piksel düzenleme bu sırada kapanmaz; dışa aktarma, başladığı andaki mozaiğin kopyasını yazdığı için bu sırada yapılan düzenlemeler dosyaya girmez.
 
 ## 14. Tema ve dil
 
@@ -442,8 +454,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Görsel Yükleme | Dosya okunamadı | Desteklenen biçimde, sağlam bir görsel seçin |
 | Çözünürlük Yetersiz | İstenen genişlik görselin piksel genişliğinden fazla taş gerektiriyor | Daha büyük görsel kullanın veya cm'yi küçültün |
 | Mozaikleştirme | Görsel yok / hiç taş seçili değil | Görsel yükleyin / katalogda taş işaretleyin |
-| Değer Çok Büyük | Detay (N) ile ölçü, görüntü için çok fazla bellek gerektiriyor | N veya cm değerini küçültün |
-| Bellek Yetersiz | İşlem sırasında bellek yetmedi | N veya cm değerini küçültün |
+| Bellek Yetersiz | Mozaikleştirme (Mos) sırasında bellek yetmedi | cm değerini küçültün (mesajda Detay (N) de geçer, ama Mos'un bellek kullanımı N'ye bağlı değildir) |
 | Hata | Beklenmeyen bir hata (mesajda ayrıntı yazar) | Mesajı not edin, işlemi tekrarlayın |
 | Proje | Proje dosyası açılamadı (bozuk, uyumsuz ya da eski binary) | Binary dosyayı güncel WPF'te açıp yeniden kaydedin |
 | Proje | Proje kaydedilemedi (disk dolu, klasöre yazma izni yok, dosya başka programda açık…) | Sorunu giderip tekrar kaydedin; uygulama açık kalır, çalışma kaybolmaz |
@@ -462,4 +473,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - Bir proje açıldığında Optimum **Taş** kaydırıcısı görünmez; proje dosyası Optimum analizini içermez. Kaydırıcı için Optimum açıkken yeniden Mos yapın.
 - Stok değerleri (kırmızı nokta, kg) yalnızca bellektedir; projeye kaydedilmez ve yeni Mos ile silinir.
 - Stoğa göre Mos, görsel/proje yüklenirken okunan stoğu kullanır; Stok Çek bu stoğu yenilemez ([§11](#stoğa-göre-optimumun-yanındaki-kutu)).
+- Taş dokulu görüntü parça parça çizilir; hızlı kaydırma ve yakınlaştırmada bir bölge, daha keskin hali hazırlanana kadar kısa bir süre bulanık ya da yalnızca taş renkleriyle görünebilir.
+- **Ekrana Sığdır** ve fare tekerleği en fazla ‰1 (0,001) zoom'a kadar uzaklaştırır; 20 m'lik bir mozaik N=100 ile de pencereye sığar. Zoom etiketi 0,1'in altında üç basamak gösterir.
+- Seçilen N ile tek dosyaya sığmayan bir mozaik, sığan en büyük N ile küçültülmüş genel görünüm olarak dışa aktarılır ([§13](#13-dışa-aktarma-mosairexport)).
 - Stok Kontrol, Google'ın tablo çıktısı gecikebildiği için nadiren bir önceki değeri okuyabilir; şüphede kontrolü tekrarlayın. (Stoğa göre açıkken kırmızı noktalar okunan stoktan hesaplandığı için bu durumdan etkilenmez.)

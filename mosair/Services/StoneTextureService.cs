@@ -8,8 +8,9 @@ namespace mosair.Services
 {
     public static class StoneTextureService
     {
+        // Replaced, never cleared, so a MosaicRenderSource that captured it stays valid while the engine
+        // prepares the next mosaic on another thread. Resized copies live in each MosaicRenderSource.
         private static Dictionary<string, List<byte[,,]>> _textures = new();
-        private static Dictionary<string, List<byte[,,]>> _resizedTextures = new();
         private static string[]? _rsDirNames;
         private static string? _rsBasePath;
 
@@ -39,8 +40,7 @@ namespace mosair.Services
 
         public static void LoadTextures()
         {
-            _textures.Clear();
-            _resizedTextures.Clear();
+            _textures = new Dictionary<string, List<byte[,,]>>();
 
             _rsBasePath = FindRSPath();
             if (_rsBasePath == null) return;
@@ -63,34 +63,45 @@ namespace mosair.Services
 
             System.Threading.Tasks.Parallel.ForEach(colorList, item =>
             {
-                string? folderPath = FindFolder(item.codeName);
-                var texList = new List<byte[,,]>();
-
-                for (int i = 1; i <= 16; i++)
-                {
-                    byte[,,] data;
-                    if (folderPath != null)
-                    {
-                        string imgPath = Path.Combine(folderPath, $"{i}.jpg");
-                        if (File.Exists(imgPath))
-                        {
-                            using var bmp = SKBitmap.Decode(imgPath);
-                            if (bmp != null)
-                            {
-                                data = ImageService.ToByteArray(bmp);
-                                texList.Add(data);
-                                continue;
-                            }
-                        }
-                    }
-                    data = CreateSolidTexture(item.color, 3);
-                    texList.Add(data);
-                }
-                results[item.codeName] = texList;
+                results[item.codeName] = LoadTextureSet(item.codeName, item.color);
             });
 
+            var textures = new Dictionary<string, List<byte[,,]>>();
             foreach (var kvp in results)
-                _textures[kvp.Key] = kvp.Value;
+                textures[kvp.Key] = kvp.Value;
+            _textures = textures;
+        }
+
+        // The 16 variant images of one stone (1.jpg .. 16.jpg); a missing image becomes a small solid tile.
+        internal static List<byte[,,]> LoadTextureSet(string codeName, rgb color)
+        {
+            _rsBasePath ??= FindRSPath();
+            if (_rsBasePath != null && _rsDirNames == null)
+                _rsDirNames = Directory.GetDirectories(_rsBasePath);
+            string? folderPath = FindFolder(codeName);
+            var texList = new List<byte[,,]>();
+
+            for (int i = 1; i <= 16; i++)
+            {
+                byte[,,] data;
+                if (folderPath != null)
+                {
+                    string imgPath = Path.Combine(folderPath, $"{i}.jpg");
+                    if (File.Exists(imgPath))
+                    {
+                        using var bmp = SKBitmap.Decode(imgPath);
+                        if (bmp != null)
+                        {
+                            data = ImageService.ToByteArray(bmp);
+                            texList.Add(data);
+                            continue;
+                        }
+                    }
+                }
+                data = CreateSolidTexture(color, 3);
+                texList.Add(data);
+            }
+            return texList;
         }
 
         private static string? FindFolder(string codeName)
@@ -162,199 +173,45 @@ namespace mosair.Services
             return data;
         }
 
-        public static void ResizeTextures(int N)
+        // The variant images of one stone resized to N×N (images already N×N are reused as they are).
+        internal static List<byte[,,]> ResizeSet(List<byte[,,]> originals, int N)
         {
-            _resizedTextures.Clear();
-            var keys = new List<string>(_textures.Keys);
-            var results = new System.Collections.Concurrent.ConcurrentDictionary<string, List<byte[,,]>>();
-
-            System.Threading.Tasks.Parallel.ForEach(keys, key =>
+            var resizedList = new List<byte[,,]>(originals.Count);
+            foreach (var tex in originals)
             {
-                var resizedList = new List<byte[,,]>();
-                foreach (var tex in _textures[key])
+                int srcH = tex.GetLength(0);
+                int srcW = tex.GetLength(1);
+                if (srcH == N && srcW == N)
                 {
-                    int srcH = tex.GetLength(0);
-                    int srcW = tex.GetLength(1);
-                    if (srcH == N && srcW == N)
-                    {
-                        resizedList.Add(tex);
-                        continue;
-                    }
-                    using var srcBmp = ImageService.FromByteArray(tex, srcH, srcW);
-                    using var resized = ImageService.Resize(srcBmp, N, N);
-                    resizedList.Add(ImageService.ToByteArray(resized));
+                    resizedList.Add(tex);
+                    continue;
                 }
-                results[key] = resizedList;
-            });
-
-            foreach (var kvp in results)
-                _resizedTextures[kvp.Key] = kvp.Value;
+                using var srcBmp = ImageService.FromByteArray(tex, srcH, srcW);
+                using var resized = ImageService.Resize(srcBmp, N, N);
+                resizedList.Add(ImageService.ToByteArray(resized));
+            }
+            return resizedList;
         }
 
-        public static unsafe SKBitmap? GenerateRSBitmap(int R, int C, int N,
+        // Snapshot of the current mosaic for drawing: stone colours, variants, palette codes and loaded textures.
+        public static MosaicRenderSource CreateRenderSource() =>
+            new MosaicRenderSource(MosaicData.dataM3, MosaicData.arn, _textures);
+
+        // The whole stone-texture image (RS): every stone drawn with its texture variant at N px, grid baked in.
+        // Used for export; the screen draws only the visible part through MosaicView with the same renderer.
+        public static SKBitmap? GenerateRSBitmap(int R, int C, int N,
             bool showGrid = false, int gridWidth = 0, SKColor gridColor = default)
         {
-            if (_resizedTextures.Count == 0) return null;
-
-            var colorToCodeName = new Dictionary<(byte b, byte g, byte r), string>();
-            foreach (var arList in MosaicData.arMB)
-            {
-                foreach (var color in arList)
-                {
-                    if (string.IsNullOrEmpty(color.codeName)) continue;
-                    var key = ((byte)color.b, (byte)color.g, (byte)color.r);
-                    colorToCodeName.TryAdd(key, color.codeName);
-                }
-            }
-            foreach (var arList in MosaicData.arMA)
-            {
-                foreach (var color in arList)
-                {
-                    if (string.IsNullOrEmpty(color.codeName)) continue;
-                    var key = ((byte)color.b, (byte)color.g, (byte)color.r);
-                    colorToCodeName.TryAdd(key, color.codeName);
-                }
-            }
-
-            // Pre-build fallback lookup: cache nearest codeName per unique color
-            var fallbackCache = new Dictionary<(byte, byte, byte), string>();
-            var validEntries = new List<((byte b, byte g, byte r) key, string code)>();
-            foreach (var kvp in colorToCodeName)
-            {
-                if (_resizedTextures.ContainsKey(kvp.Value))
-                    validEntries.Add((kvp.Key, kvp.Value));
-            }
-
-            int bmpW = C * N;
-            int bmpH = R * N;
-            long totalPixels = (long)bmpW * bmpH;
+            if (_textures.Count == 0) return null;
+            long totalPixels = (long)C * N * R * N;
             if (totalPixels > ImageService.MaxBitmapPixels)
-                throw new OutOfMemoryException(Loc.Fmt("StatusRsBitmapTooLarge", bmpW, bmpH));
-            var bitmap = new SKBitmap(bmpW, bmpH, SKColorType.Rgba8888, SKAlphaType.Opaque);
-            byte* dest = (byte*)bitmap.GetPixels();
-            int stride = bmpW * 4;
-
-            if (showGrid && gridWidth > 0)
-            {
-                byte gr = gridColor.Red, gg = gridColor.Green, gb = gridColor.Blue;
-                System.Threading.Tasks.Parallel.For(0, bmpH, y =>
-                {
-                    int rowOff = y * stride;
-                    for (int x = 0; x < bmpW; x++)
-                    {
-                        int off = rowOff + x * 4;
-                        dest[off + 0] = gr;
-                        dest[off + 1] = gg;
-                        dest[off + 2] = gb;
-                        dest[off + 3] = 255;
-                    }
-                });
-            }
-
-            int half = gridWidth / 2;
-            int stoneN = showGrid && gridWidth > 0 ? N - gridWidth : N;
-
-            // Pre-map each cell to its codeName (single-threaded, fast)
-            string?[] cellCodes = new string[R * C];
-            for (int i = 0; i < R; i++)
-            {
-                for (int j = 0; j < C; j++)
-                {
-                    byte pb = MosaicData.dataM3[i, j, 0];
-                    byte pg = MosaicData.dataM3[i, j, 1];
-                    byte pr = MosaicData.dataM3[i, j, 2];
-                    var key = (pb, pg, pr);
-
-                    if (colorToCodeName.TryGetValue(key, out var code) && _resizedTextures.ContainsKey(code))
-                    {
-                        cellCodes[i * C + j] = code;
-                    }
-                    else
-                    {
-                        if (!fallbackCache.TryGetValue(key, out var fb))
-                        {
-                            double minDist = double.MaxValue;
-                            string? best = null;
-                            foreach (var entry in validEntries)
-                            {
-                                double db = pb - entry.key.b;
-                                double dg = pg - entry.key.g;
-                                double dr = pr - entry.key.r;
-                                double dist = db * db + dg * dg + dr * dr;
-                                if (dist < minDist) { minDist = dist; best = entry.code; }
-                            }
-                            fb = best;
-                            fallbackCache[key] = fb!;
-                        }
-                        cellCodes[i * C + j] = fb;
-                    }
-                }
-            }
-
-            // Parallel texture blitting by row
-            System.Threading.Tasks.Parallel.For(0, R, i =>
-            {
-                for (int j = 0; j < C; j++)
-                {
-                    int idx = i * C + j;
-                    string? codeName = cellCodes[idx];
-                    int n = MosaicData.arn[idx];
-
-                    if (codeName != null &&
-                        _resizedTextures.TryGetValue(codeName, out var textures) &&
-                        n < textures.Count)
-                    {
-                        byte[,,] tex = textures[n];
-                        int texH = tex.GetLength(0);
-                        int texW = tex.GetLength(1);
-                        int baseY = i * N;
-                        int baseX = j * N;
-
-                        if (showGrid && gridWidth > 0 && stoneN > 0)
-                        {
-                            int blitH = Math.Min(stoneN, texH);
-                            int blitW = Math.Min(stoneN, texW);
-                            for (int ty = 0; ty < blitH; ty++)
-                            {
-                                int rowOff = (baseY + half + ty) * stride + (baseX + half) * 4;
-                                for (int tx = 0; tx < blitW; tx++)
-                                {
-                                    int off = rowOff + tx * 4;
-                                    dest[off + 0] = tex[ty, tx, 2];
-                                    dest[off + 1] = tex[ty, tx, 1];
-                                    dest[off + 2] = tex[ty, tx, 0];
-                                    dest[off + 3] = 255;
-                                }
-                            }
-                        }
-                        else
-                        {
-                            int blitH = Math.Min(N, texH);
-                            int blitW = Math.Min(N, texW);
-                            for (int ty = 0; ty < blitH; ty++)
-                            {
-                                int rowOff = (baseY + ty) * stride + baseX * 4;
-                                for (int tx = 0; tx < blitW; tx++)
-                                {
-                                    int off = rowOff + tx * 4;
-                                    dest[off + 0] = tex[ty, tx, 2];
-                                    dest[off + 1] = tex[ty, tx, 1];
-                                    dest[off + 2] = tex[ty, tx, 0];
-                                    dest[off + 3] = 255;
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            return bitmap;
+                throw new OutOfMemoryException(Loc.Fmt("StatusRsBitmapTooLarge", C * N, R * N));
+            return CreateRenderSource().RenderRegion(0, 0, R, C, N, showGrid, gridWidth, gridColor);
         }
 
         public static void Reset()
         {
-            _textures.Clear();
-            _resizedTextures.Clear();
+            _textures = new Dictionary<string, List<byte[,,]>>();
             _rsDirNames = null;
         }
     }

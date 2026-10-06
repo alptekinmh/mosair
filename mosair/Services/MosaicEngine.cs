@@ -204,7 +204,6 @@ namespace mosair.Services
             {
                 StoneTextureService.PopulateRandomIndices(R, C);
                 StoneTextureService.LoadTextures();
-                StoneTextureService.ResizeTextures(MosaicData.N);
             }
             return true;
         }
@@ -348,7 +347,6 @@ namespace mosair.Services
             {
                 StoneTextureService.PopulateRandomIndices(R, C);
                 StoneTextureService.LoadTextures();
-                StoneTextureService.ResizeTextures(MosaicData.N);
             }
 
             return MosaicData.reducedBitmap;
@@ -583,7 +581,6 @@ namespace mosair.Services
             {
                 StoneTextureService.PopulateRandomIndices(R, C);
                 StoneTextureService.LoadTextures();
-                StoneTextureService.ResizeTextures(MosaicData.N);
             }
 
             onProgress?.Invoke(100);
@@ -613,8 +610,6 @@ namespace mosair.Services
             MosaicData.reducedBitmap = null;
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = null;
-            MosaicData.rsBitmap?.Dispose();
-            MosaicData.rsBitmap = null;
             StoneTextureService.Reset();
             PixelEditService.Reset();
             LastOptimalResult = null;

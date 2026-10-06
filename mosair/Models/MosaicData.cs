@@ -27,7 +27,7 @@ namespace mosair.Models
         public static SKBitmap? reducedBitmap;
         public static SKBitmap? exportBitmap;
         public static SKBitmap? inputBitmap;
-        public static SKBitmap? rsBitmap;
+        // The stone-texture image is never held whole: MosaicView draws it in tiles (MosaicRenderSource).
 
         // Sabitler
         public static int N = 40;
