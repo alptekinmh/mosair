@@ -202,6 +202,9 @@ namespace mosair.ViewModels
         public Func<string, string, Task>? ShowAlert { get; set; }
         public Func<string, string, Task<bool>>? ShowConfirm { get; set; }
         public Func<StockSheetService.Config, Task<StockSheetService.Config?>>? ShowStockSettings { get; set; }
+        public Func<DriveService.Config, Task<DriveService.Config?>>? ShowDriveSettings { get; set; }
+        // Lists the Drive folder's projects (folder name, files) and returns the one chosen, or null.
+        public Func<DriveService.Config, Task<DriveService.DriveFile?>>? ShowDriveOpen { get; set; }
         public Func<string, Task>? OpenUrl { get; set; }
 
         private void Alert(string title, string message)
@@ -276,6 +279,138 @@ namespace mosair.ViewModels
             if (updated == null) return;
             StockSheetService.SaveConfig(updated);
             StatusText = Loc.Get("StockSettingsSaved");
+        }
+
+        // ===== Google Drive project folder (Apps Script, see DriveService) =====
+
+        private bool _isDriveBusy;
+        public bool IsDriveBusy
+        {
+            get => _isDriveBusy;
+            private set { _isDriveBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanUseDrive)); OnPropertyChanged(nameof(IsBusy)); }
+        }
+        public bool CanUseDrive => !_isDriveBusy;
+
+        public async Task ConfigureDriveAsync()
+        {
+            if (ShowDriveSettings == null) return;
+            var updated = await ShowDriveSettings(DriveService.LoadConfig());
+            if (updated == null) return;
+            DriveService.SaveConfig(updated);
+            StatusText = Loc.Get("DriveSettingsSaved");
+        }
+
+        // The settings, asking for them first when they are missing; null when the user cancelled.
+        private async Task<DriveService.Config?> DriveConfigOrAsk()
+        {
+            var config = DriveService.LoadConfig();
+            if (DriveService.IsConfigured(config)) return config;
+            // Waited for, so the settings window opens only after this note is closed.
+            if (ShowAlert != null) await ShowAlert(Loc.Get("AlertDriveTitle"), Loc.Get("DriveNotConfigured"));
+            await ConfigureDriveAsync();
+            config = DriveService.LoadConfig();
+            return DriveService.IsConfigured(config) ? config : null;
+        }
+
+        // Same layout as the quick save to mosairPROJECT: <image name>/<image name>.mos plus the original image, in
+        // the Drive folder. A project of the same name is replaced (the old one goes to the Drive trash); the
+        // image is uploaded only when that project folder does not have it yet.
+        public async Task SaveToDriveAsync()
+        {
+            if (IsDriveBusy) return;
+            if (!MosaicDone)
+            {
+                Alert(Loc.Get("AlertDriveTitle"), Loc.Get("DriveNoMosaic"));
+                return;
+            }
+            var config = await DriveConfigOrAsk();
+            if (config == null) return;
+
+            string baseName = "mosair_project";
+            if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName))
+                baseName = System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
+            string name = baseName + ".mos";
+
+            IsDriveBusy = true;
+            StatusText = Loc.Fmt("StatusDriveSaving", name);
+            try
+            {
+                // Written with the normal project format into a one-off folder, then sent; the folder (with the
+                // copy of the source image ProjectService.Save puts next to a project) is removed afterwards. The
+                // open file name (title bar, Ctrl+S target) is left as it was.
+                string tempDir = System.IO.Path.Combine(DriveService.CacheDir, "upload_" + Guid.NewGuid().ToString("N"));
+                string previous = ProjectService.CurrentFileName;
+                try
+                {
+                    string temp = System.IO.Path.Combine(tempDir, name);
+                    double width = WidthCm, zoom = ZoomLevel;
+                    bool grid = ShowGrid;
+                    var gc = _gridColor;
+                    int interp = (int)SelectedInterpolation;
+                    try
+                    {
+                        // In the background, so a large project does not freeze the window.
+                        await Task.Run(() => ProjectService.Save(temp, width, zoom, grid, false, gc.R, gc.G, gc.B, interp));
+                    }
+                    finally
+                    {
+                        ProjectService.CurrentFileName = previous;
+                    }
+                    byte[] bytes = await System.IO.File.ReadAllBytesAsync(temp);
+                    // ProjectService.Save copied the original image next to the project, as for mosairPROJECT.
+                    string? imageName = string.IsNullOrEmpty(ProjectService.CurrentPictureFileName)
+                        ? null : System.IO.Path.GetFileName(ProjectService.CurrentPictureFileName);
+                    string? imagePath = imageName == null ? null : System.IO.Path.Combine(tempDir, imageName);
+                    byte[]? image = imagePath != null && System.IO.File.Exists(imagePath)
+                        ? await System.IO.File.ReadAllBytesAsync(imagePath) : null;
+                    await DriveService.SaveAsync(config, baseName, name, bytes, imageName, image);
+                }
+                finally
+                {
+                    try { System.IO.Directory.Delete(tempDir, recursive: true); } catch { }
+                }
+                StatusText = Loc.Fmt("StatusDriveSaved", baseName + "/" + name);
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("DriveFailed", ex.Message);
+                Alert(Loc.Get("AlertDriveTitle"), Loc.Fmt("DriveFailed", ex.Message));
+            }
+            finally
+            {
+                IsDriveBusy = false;
+            }
+        }
+
+        // The Drive browser lists the projects (with previews); the chosen one is downloaded and opened like a
+        // local project. Returns true when a project was opened.
+        public async Task<bool> OpenFromDriveAsync()
+        {
+            if (IsDriveBusy || ShowDriveOpen == null) return false;
+            var config = await DriveConfigOrAsk();
+            if (config == null) return false;
+
+            var chosen = await ShowDriveOpen(config);
+            if (chosen == null) return false;
+            string? path = null;
+            try
+            {
+                IsDriveBusy = true;
+                StatusText = Loc.Fmt("StatusDriveDownloading", chosen.Name);
+                path = await DriveService.DownloadAsync(config, chosen);
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("DriveFailed", ex.Message);
+                Alert(Loc.Get("AlertDriveTitle"), Loc.Fmt("DriveFailed", ex.Message));
+                return false;
+            }
+            finally
+            {
+                IsDriveBusy = false;
+            }
+            OpenProject(path);
+            return true;
         }
 
         // Stock last read from the configured sheet (at start-up and whenever an image or project is loaded).
@@ -890,7 +1025,7 @@ public bool UseLab
 
         // Any work in progress (Mos, stock fit, stone-texture rebuild, stock sheet action, export): drives the
         // wave animation in the status bar.
-        public bool IsBusy => _isProcessing || _isStockBusy || _isExporting;
+        public bool IsBusy => _isProcessing || _isStockBusy || _isExporting || _isDriveBusy;
 
         public string DimensionInfo
         {

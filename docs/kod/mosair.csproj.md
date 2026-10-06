@@ -4,7 +4,7 @@
 
 ## Amaç
 
-Uygulamanın MSBuild proje dosyası: hedef çatı, derleme seçenekleri, sürüm/marka bilgileri, NuGet paketleri ve çıktıya kopyalanacak varlıklar (renk kataloğu, taş dokuları, simgeler, macOS `Info.plist`).
+Uygulamanın MSBuild proje dosyası: hedef çatı, derleme seçenekleri, sürüm/marka bilgileri, NuGet paketleri, derlemeye gömülen kaynaklar (Google Drive Apps Script kodu, simgeler) ve çıktıya kopyalanacak varlıklar (renk kataloğu, taş dokuları, macOS `Info.plist`).
 
 ## Nerede kullanılır
 
@@ -45,6 +45,7 @@ Avalonia paketlerinin dördü aynı sürümde tutulmalıdır; biri yükseltilirk
 
 | Öğe | Tür | Davranış |
 |---|---|---|
+| `Assets\mosair-drive.gs` | `EmbeddedResource` | Google Drive proje klasörü için Apps Script kodu, derlemeye (.NET manifest kaynağı olarak) gömülür; çıktı klasörüne ayrı dosya olarak kopyalanmaz. `DriveService.ScriptCode()` adı `mosair-drive.gs` ile biten kaynağı okur, Drive ayarları penceresindeki **Script kodunu kopyala** panoya yazar. |
 | `Assets\mosair.ico`, `Assets\mosair-icon.png` | `AvaloniaResource` | Derlemeye gömülür; `avares://mosair/Assets/mosair-icon.png` ile pencere simgesi olarak kullanılır. CI ayrıca PNG'den macOS `.icns` üretir. |
 | `Info.plist` | `Content`, `PreserveNewest` | Yalnızca derleme makinesi macOS ise (`IsOSPlatform('OSX')`) çıktıya kopyalanır. |
 | `Assets\colorsBas.txt` | `None Update`, `PreserveNewest` | Renk kataloğu, çıktıda `Assets/colorsBas.txt`. |
@@ -56,6 +57,7 @@ Avalonia paketlerinin dördü aynı sürümde tutulmalıdır; biri yükseltilirk
 |---|---|
 | `colorsBas.txt` | 124 satırlık taş kataloğu. Her satır boşlukla ayrılmış: `R G B Kod Ad Yüzey…` (örn. kod `B101`). Satır sırası taş `ID`'sidir (1'den başlar). `ColorCatalogService.LoadCatalog` okur. |
 | `02_RS/` | Her taş için bir alt klasör (124 adet), adı `<ID>_<Kod>_<ad>_<R G B>` biçiminde. Her klasörde 16–22 adet `.jpg` doku fotoğrafı (`1.jpg`, `2.jpg` …). `StoneTextureService` kod adına göre eşleştirip yükler; taş dokulu mozaik görüntüsünü ("RS") `MosaicRenderSource` çizer. |
+| `mosair-drive.gs` | Google Drive Apps Script web uygulaması (`doPost`: `ping`, `save`, `list`, `get`, `thumbs`; isteğe bağlı `ALLOWED_FOLDERS` script özelliği). Kullanıcı kendi Google hesabında yayınlar; ayrıntı [DriveService](Services/DriveService.md#apps-script-assetsmosair-drivegs). İçinde gerçek klasör kimliği veya adres yoktur, olmamalıdır. |
 | `mosair.ico` | Windows simgesi. |
 | `mosair-icon.png` | Pencere simgesi ve macOS `.icns` kaynağı. |
 
@@ -97,3 +99,4 @@ Yoktur (derleme yapılandırması).
 - [App](App.md)
 - [ColorCatalogService](Services/ColorCatalogService.md)
 - [StoneTextureService](Services/StoneTextureService.md)
+- [DriveService](Services/DriveService.md)

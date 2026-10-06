@@ -1,0 +1,69 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="mosair.Controls.DriveSettingsDialog"
+        Title=""
+        Width="580" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgCard}"
+        ExtendClientAreaToDecorationsHint="False">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.hint">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+    <Style Selector="TextBlock.example">
+      <Setter Property="FontSize" Value="11"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
+      <Setter Property="FontFamily" Value="JetBrains Mono,Consolas,Menlo,monospace"/>
+      <Setter Property="TextWrapping" Value="Wrap"/>
+    </Style>
+  </Window.Styles>
+
+  <Border Padding="24" Background="{DynamicResource BgCard}">
+    <StackPanel Spacing="12">
+      <TextBlock x:Name="TitleText" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"/>
+
+      <StackPanel Spacing="4">
+        <TextBlock x:Name="FolderLabel" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
+        <TextBlock x:Name="FolderHint" Classes="hint"/>
+        <TextBlock x:Name="FolderExample" Classes="example"/>
+        <TextBox x:Name="FolderBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
+      </StackPanel>
+
+      <StackPanel Spacing="4">
+        <TextBlock x:Name="ScriptUrlLabel" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
+        <TextBlock x:Name="ScriptUrlHint" Classes="hint"/>
+        <TextBlock x:Name="ScriptUrlExample" Classes="example"/>
+        <TextBox x:Name="ScriptUrlBox" FontSize="12" Height="32" Margin="0,2,0,0"/>
+      </StackPanel>
+
+      <Border Background="{DynamicResource BgPanel}" CornerRadius="4" Padding="10,8">
+        <StackPanel Spacing="6">
+          <TextBlock x:Name="StepsTitle" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource FgMenu}"/>
+          <TextBlock x:Name="StepsText" Classes="hint"/>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button x:Name="CopyScriptButton" Click="OnCopyScript" Height="28" FontSize="11"
+                    Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"/>
+            <Button x:Name="TestButton" Click="OnTest" Height="28" FontSize="11"
+                    Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"/>
+          </StackPanel>
+          <TextBlock x:Name="ResultText" Classes="hint"/>
+        </StackPanel>
+      </Border>
+
+      <TextBlock x:Name="NoteText" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource FgWarn}"/>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,4,0,0">
+        <Button x:Name="CancelButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
+                Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"
+                Click="OnCancelClick"/>
+        <Button x:Name="SaveButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
+                Background="#3a7bfd" Foreground="#ffffff" CornerRadius="4"
+                Click="OnSaveClick"/>
+      </StackPanel>
+    </StackPanel>
+  </Border>
+</Window>

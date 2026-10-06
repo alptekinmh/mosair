@@ -1,6 +1,6 @@
 # mosair Arayüz Rehberi
 
-> Uygulamada yapılabilecek **her şey** bu dosyadadır: menüler, araç çubuğu, paneller, fare ve klavye, stok, proje ve dışa aktarma.
+> Uygulamada yapılabilecek **her şey** bu dosyadadır: menüler, araç çubuğu, paneller, fare ve klavye, stok, proje (Google Drive dahil) ve dışa aktarma.
 > Kod tarafı için [`kod/`](kod/) klasörüne, belgelerin haritası için [README.md](README.md) dosyasına bakın.
 > Uygulama içindeki kılavuz (**Yardım → Kullanım Kılavuzu**, F1) bu dosyanın kısa özetidir; ikisi birbiriyle çelişmemelidir.
 >
@@ -20,6 +20,7 @@
 10. [Optimum taş sayısı](#10-optimum-taş-sayısı)
 11. [Stok yönetimi (Google Sheets)](#11-stok-yönetimi-google-sheets)
 12. [Proje kaydetme ve açma](#12-proje-kaydetme-ve-açma)
+    - [Google Drive proje klasörü](#google-drive-proje-klasörü)
 13. [Dışa aktarma (mosairEXPORT)](#13-dışa-aktarma-mosairexport)
 14. [Tema ve dil](#14-tema-ve-dil)
 15. [Klavye kısayolları](#15-klavye-kısayolları)
@@ -36,7 +37,7 @@
 │ Başlık çubuğu + Menü: Dosya  Düzenle  Görünüm  Araçlar  Yardım   ·  açık dosya adı │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Araç çubuğu: Görsel · Proje Aç │ Kaydet · Farklı Kaydet │ Mos │ Kalem │ Izgara      │
-│   Interp │ Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum                 │
+│   Interp │ Drive ▾ · Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum       │
 │   ☐ Stoğa göre  Taş ──●── N öneri K      … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Durum çubuğu: kullanılan renk │ ilerleme ✕İptal durum süre │ Ekrana Sığdır · zoom │
@@ -66,7 +67,7 @@
 | 4 | Mozaikleştir | **Mos** düğmesi veya `Ctrl/⌘+M` |
 | 5 | İncele, gerekirse taş sayısını, pikselleri ve taş varyantlarını düzenle | Taş kaydırıcısı, canvas, Özellikler paneli |
 | 6 | (İsteğe bağlı) **Stok Kontrol** ile adetleri tabloya yaz | Stok ikonları |
-| 7 | Projeyi kaydet, görüntüyü dışa aktar | `Ctrl/⌘+S`, `Ctrl/⌘+E` |
+| 7 | Projeyi kaydet (isterseniz Google Drive klasörüne de), görüntüyü dışa aktar | `Ctrl/⌘+S`, Drive ikonu, `Ctrl/⌘+E` |
 
 Uzun süren Mos, stoğa göre düzeltme ve dışa aktarma, durum çubuğundaki **✕ İptal** düğmesiyle ya da `Esc` ile yarıda kesilebilir ([§8](#8-durum-çubuğu)).
 
@@ -85,6 +86,10 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan varsayılan kaliteyle (listede **(varsayılan)** yazan seçenek) kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
 | mosairEXPORT As ▸ | — | Aynı alt menü; seçilen kaliteyle konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
 | Ekran Görüntüsü Al | — | Görsel alanında o an görüneni PNG olarak `mosairEXPORT` klasörüne kaydeder; araç çubuğundaki kamera ikonuyla aynı ([§4](#4-araç-çubuğu)) | Görsel yüklüyken |
+| *(ayırıcı)* | | | |
+| Google Drive ▸ Drive'a Kaydet | — | Projeyi orijinal görseliyle ayarlı Google Drive klasörüne `<görsel adı>/<görsel adı>.mos` olarak kaydeder (mosairPROJECT düzeni); aynı adlı proje değiştirilir ([Google Drive](#google-drive-proje-klasörü)) | Bir Drive işlemi sürmüyorken (mozaik yoksa uyarı verir) |
+| Google Drive ▸ Drive'dan Aç... | — | Drive klasöründeki projeleri önizlemeli kartlarla gösteren proje tarayıcısını açar; seçileni görseliyle indirip açar | Bir Drive işlemi sürmüyorken |
+| Google Drive ▸ Drive Klasörü Ayarları... | — | Drive klasörü bağlantısı ve Apps Script URL ayar penceresi | Bir Drive işlemi sürmüyorken |
 
 ### Düzenle
 
@@ -139,6 +144,7 @@ Soldan sağa:
 | Kalem (Piksel Düzenle) | Piksel Düzenle (Orta Tuş), 1) Kaynak renk seç, 2) Hedef piksele uygula | Düzenleme modunu aç/kapat | Orta tuş da aynı işi yapar | Mozaik yokken pasif. Açıkken kalem turuncu olur, yanında `source → target` göstergesi çıkar |
 | Izgara | Izgara Göster/Gizle | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + seçilen rengin 7 tonu) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır. Açma/kapama ve renk değişikliği anında uygulanır. |
 | İnterpolasyon | İnterpolasyon Yöntemi | Açılır liste (7 yöntem); seçili yöntemin adı düğmede yazar | — | Varsayılan **Area** |
+| Google Drive (renkli Drive logosu) | Google Drive: projeyi Drive klasörüne kaydet (ok: Drive'dan aç, klasör ayarları) | **Drive'a Kaydet** ([Google Drive](#google-drive-proje-klasörü)) | Yanındaki **▾**: Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... | Bir Drive işlemi sürerken ikon ve ok pasif |
 | Stok Tablosu (yeşil tablo) | Stok tablosunu tarayıcıda aç | Tabloyu tarayıcıda açar | Yanındaki **▾**: Stok Tablosunu Aç / Stok Ayarları... · Sağ tık: Stok Ayarları... | |
 | Stok Çek (depo) | Stok çek: stoğu oku, stoğu biten taşları devre dışı bırak | Bizdeki (kg) okunur, stoğu olmayan taşlar devre dışı bırakılır | Yanındaki **▾**: Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle | Tabloyu değiştirmez |
 | Stok Kontrol (pano) | Stok kontrol: adetleri tabloya yaz, stoğu yetmeyenleri işaretle | Adetler tabloya yazılır, kalan okunur | — | Tabloyu değiştirir |
@@ -152,7 +158,7 @@ Soldan sağa:
 | ☾ / ☀ | Tema Değiştir | Koyu/açık tema | — | |
 | 🌐 | Dil | Açılır liste: TR Türkçe / EN English | — | |
 
-Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **Araçlar → Stok** menüsü geçici olarak pasif olur.
+Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **Araçlar → Stok** menüsü geçici olarak pasif olur. Bir Google Drive işlemi sürerken de Drive ikonu, oku ve **Dosya → Google Drive** menüsü pasif olur.
 
 ## 5. Sol panel: ölçüler ve renk sütunları
 
@@ -236,14 +242,14 @@ Canvas'ta bir taşa sol tıklayınca dolar.
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
 | Orta | İlerleme çubuğu (işlem sırasında), **✕ İptal** düğmesi (yalnızca iptal edilebilen bir iş sürerken), durum mesajı, geçen süre |
-| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
+| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri, Google Drive'a kaydetme, Drive klasörünü okuma ve Drive'dan indirme, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
 | Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`Zoom=2.0` biçiminde; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
 - Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
-- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
+- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), Google Drive işlemleri ("Drive'a kaydediliyor: …", "Drive'a kaydedildi: …", "Drive'dan indiriliyor: …", "Drive ayarları kaydedildi"; "Drive klasörü okunuyor..." Drive'dan Aç penceresinin içinde görünür), kayıt ve dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 
 ### İptal düğmesi
@@ -258,7 +264,7 @@ Ortadaki durum mesajında görülebilecekler:
 | Stok Kontrol'ün içindeki stoğa göre düzeltme | Mozaik eski haline döner (Optimum'da aynı taş sayısıyla yeniden kurulur; taş varyantları yeniden seçilir); tabloya hiçbir şey yazılmaz | "Stok Kontrol iptal edildi; tabloya bir şey yazılmadı" |
 | Dışa aktarma | Durur, yarım yazılmış dosya silinir | "Dışa aktarma iptal edildi: <dosya adı> (yarım dosya silindi)" |
 
-- Stok tablosu işlemleri (Stok Çek, Stok Kontrol'ün tabloya yazması, Stok Sil, Stok Ekle) ve proje açma iptal edilemez; bunlar sürerken düğme görünmez.
+- Stok tablosu işlemleri (Stok Çek, Stok Kontrol'ün tabloya yazması, Stok Sil, Stok Ekle), Google Drive işlemleri ve proje açma iptal edilemez; bunlar sürerken düğme görünmez.
 - İşin son adımları (mozaiğin yeniden kurulması, taş dokularının hazırlanması, dışa aktarmada dosyanın son kodlaması) durdurulamaz. Düğme bu sırada da görünebilir, ama basılırsa iş normal biter ve sonuç her zamanki gibi yazılır. Küçük dışa aktarmalar da taşlar çizilirken (satır satır) durdurulabilir; yalnızca çizim bittikten sonraki kodlama adımı kesilemez.
 - Optimum'da Taş kaydırıcısıyla yapılan yeniden kurma yalnızca **Stoğa göre** düzeltme çalışırken iptal edilebilir; stoksuz (düz) taş sayısı değişiminde düğme görünmez.
 - Optimum Mos iptal edildiğinde, yeni Mos'un başında temizlenen kırmızı noktalar, kalan kg ve Stoğa göre raporu geri gelmez.
@@ -406,6 +412,78 @@ Proje dosyasında WPF ile ortak bir "taş başına piksel" değeri de vardır. m
 - WPF'te kaydedilmiş bir projeyi mosair'de açıp kaydetmek, WPF'e özgü bilgileri (robotun kaldığı yer, görünüm alanı) korur. Bu bilgiler yeni görsel yüklenince ya da yeni Mos yapılınca bırakılır.
 - Eski WPF sürümlerinin **binary** `.mos` dosyaları mosair'de açılmaz; "Proje dosyası açılamadı" uyarısı çıkar. Bu dosyalar önce güncel WPF'te açılıp yeniden kaydedilmelidir.
 
+### Google Drive proje klasörü
+
+Projeler, orijinal görselleriyle birlikte bir Google Drive klasörüne kaydedilip oradan açılabilir; böylece başka bir bilgisayardan da aynı projeye ulaşılır. Uygulamada Google'a giriş yapılmaz: klasörün sahibinin kendi hesabında bir kez kurduğu küçük bir **Apps Script** web uygulaması Drive'a yazar ve okur (stok tablosundaki gibi).
+
+**Nereden:** Araç çubuğunda İnterpolasyon'dan sonra, yeşil stok tablosu ikonunun solundaki renkli **Google Drive** ikonu: tıklayınca **Drive'a Kaydet**. Yanındaki küçük **▾** okunda: **Drive'a Kaydet**, **Drive'dan Aç...**, **Drive Klasörü Ayarları...**. Aynı üç öğe **Dosya → Google Drive** alt menüsündedir. Bir Drive işlemi sürerken ikon, ok ve menü pasif olur ve durum çubuğundaki dalga akar. Drive işlemleri iptal edilemez.
+
+#### İlk kurulum (bir kez)
+
+1. **Dosya → Google Drive → Drive Klasörü Ayarları...** (ya da ikonun **▾** okundan) ayar penceresini açın.
+2. **Script kodunu kopyala** düğmesine basın; script kodu panoya kopyalanır ("Script kodu panoya kopyalandı.").
+3. Tarayıcıda `script.google.com` → **Yeni proje** → kodu yapıştırıp kaydedin.
+4. **Dağıt → Yeni dağıtım → Web uygulaması**; **Yürüten: Ben**, **Erişimi olan: Herkes**. İzinleri onaylayın.
+5. Verilen, `/exec` ile biten adresi **Apps Script URL** alanına, Drive klasörünün tarayıcıdaki bağlantısını **Drive klasörü bağlantısı** alanına yapıştırın.
+6. **Bağlantıyı dene**: başarılıysa `Bağlantı tamam: "<klasör adı>" klasörüne erişiliyor.`, değilse `Bağlantı kurulamadı: …` ve nedeni yazar.
+7. **Kaydet**. Durum çubuğunda "Drive ayarları kaydedildi" yazar.
+
+**Ayar penceresi (Google Drive Ayarları):**
+
+| Alan / düğme | Açıklama |
+|---|---|
+| **Drive klasörü bağlantısı** | Klasörün tarayıcıdaki bağlantısı (`drive.google.com/drive/folders/<KLASOR_ID>`). Bağlantının tamamı yapıştırılabilir; klasör kimliği kendiliğinden ayrılır (`/folders/<KLASOR_ID>`, `?id=<KLASOR_ID>` ya da yalnızca kimlik). |
+| **Apps Script URL** | Web uygulamasının `/exec` ile biten adresi (`https://script.google.com/macros/s/<DAGITIM_ID>/exec`). |
+| **Kurulum (bir kez)** | Yukarıdaki adımların kısa hali. |
+| **Script kodunu kopyala** | Uygulamanın içinde gelen script kodunu panoya kopyalar. |
+| **Bağlantıyı dene** | Kaydetmeden, kutulara yazılan değerlerle klasöre ulaşmayı dener; klasörün adını ya da hatayı gösterir. |
+| **Kaydet / İptal** | Kaydet ayarları saklar; İptal ya da pencereyi kapatmak bir şey değiştirmez. |
+
+- Ayarlar yalnızca o bilgisayarda, kullanıcının uygulama verisi klasöründeki `mosair/drive.json` dosyasında saklanır (Windows: `%APPDATA%\mosair\drive.json`); her bilgisayarda bir kez girilir. Repoya ya da uygulama paketine girmez.
+- Ayar yapılmamışken Drive'a Kaydet ya da Drive'dan Aç seçilirse "Google Drive ayarlanmamış…" uyarısı çıkar ve ayar penceresi açılır; kaydedilirse işlem devam eder, iptal edilirse durur.
+
+#### Drive'a Kaydet
+
+- Önce Mos yapılmış ya da bir proje açılmış olmalıdır; yoksa "Kaydedilecek mozaik yok. Önce Mos yapın ya da bir proje açın." uyarısı çıkar.
+- Klasör düzeni **Proje Kaydet** (mosairPROJECT) ile aynıdır: Drive klasörünün içinde görselin adını taşıyan bir proje klasörü, içinde `<görsel adı>.mos` ve orijinal görsel (görsel adı yoksa `mosair_project/mosair_project.mos`). Proje klasörü yoksa oluşturulur.
+- Orijinal görsel yalnızca proje klasöründe henüz yoksa gönderilir; sonraki kayıtlarda yalnızca `.mos` gider.
+- Proje normal `.mos` biçiminde yazılır, gönderilirken sıkıştırılır; Drive'da olağan dosyalar olarak durur. Kayıt arka planda hazırlanır, büyük projede pencere donmaz.
+- Proje klasöründe **aynı adlı** bir proje varsa eskisi Drive'ın çöp kutusuna taşınır, yenisi yerine geçer (diskteki dosyanın üzerine kaydetmek gibi; gerekirse eskisi Drive çöp kutusundan geri alınabilir).
+- Açık dosyanın adı (başlık çubuğu) ve yerel kayıt yeri değişmez; Drive'a kaydetmek **Proje Kaydet**'in yerini tutmaz.
+- Durum çubuğu: "Drive'a kaydediliyor: …" → "Drive'a kaydedildi: <proje klasörü>/<ad>.mos". Hata olursa "Drive işlemi başarısız: …" uyarısı.
+
+#### Drive'dan Aç
+
+1. **Drive'dan Proje Aç** penceresi (Drive'ın ızgara görünümüne benzer bir proje tarayıcısı) hemen açılır; klasör okunurken ortada "Drive klasörü okunuyor..." yazar.
+2. Üstte klasörün adı ve proje sayısı. Her proje bir karttır: üstte orijinal görselin küçük resmi (gelene kadar ya da görsel yoksa dört kareli bir simge), altında `.mos` adı, son değişiklik tarihi ve boyutu. Klasörün kendisindeki ve proje klasörlerindeki (bir alt düzey) `.mos` dosyaları listelenir. Klasörde `.mos` yoksa "… klasöründe henüz .mos projesi yok." yazar.
+3. Pencerenin üst kısmındaki araçlar:
+
+   | Araç | Ne yapar |
+   |---|---|
+   | **Proje ara...** kutusu | Yazdıkça proje adında ya da proje klasörünün adında arar (büyük/küçük harf fark etmez); eşleşme yoksa "Aramayla eşleşen proje yok." |
+   | Sıralama | **En yeni üstte** (varsayılan) ya da **Ada göre (A-Z)** |
+   | **Yenile** | Klasörü ve önizlemeleri yeniden okur (Drive'a başka bir bilgisayardan kaydedilen proje için) |
+   | **Drive'da göster** | Drive klasörünü varsayılan tarayıcıda açar |
+
+4. Bir karta **çift tıklayın** ya da seçip **Aç**'a basın (**İptal** vazgeçer). Klasör okunamazsa hata pencerenin içinde yazar.
+5. "Drive'dan indiriliyor: …" sonrasında proje ve yanındaki orijinal görsel bilgisayara indirilir (`%LOCALAPPDATA%\mosair\drive\<proje klasörü>\`) ve **Proje Aç** ile açılmış gibi açılır, sonra pencereye sığdırılır. Görsel de geldiği için başka bir bilgisayarda da görsel ve ölçü bilgisi yüklenir. Başlık çubuğunda projenin adı görünür; **Proje Kaydet** yine `Masaüstü/mosairPROJECT`'e yazar.
+
+#### Script'i güncelleme
+
+Proje klasörleri, görselin gönderilip indirilmesi ve önizlemeler script'in güncel sürümünü ister. Uygulama güncellendiğinde: ayar penceresinde **Script kodunu kopyala** → `script.google.com`'daki projede eski kodun yerine yapıştırıp kaydedin → **Dağıt → Dağıtımları yönet** → kalem (düzenle) → **Sürüm: Yeni sürüm** → **Dağıt**. Adres (`/exec`) değişmez, uygulamada ayar değiştirmek gerekmez. **Yeni dağıtım** oluşturmayın: o zaman adres değişir. Eski script'le de kaydetme ve açma çalışır, ama proje klasörün köküne yazılır, görsel gitmez ve önizleme görünmez.
+
+#### Güvenlik
+
+- Apps Script URL'sini bilen herkes, Google'a giriş yapmadan Drive klasörüne proje yazabilir ve oradan okuyabilir. Adresi yalnızca güvendiğiniz kişilerle paylaşın; ayar penceresinin altındaki uyarı da bunu söyler.
+- Script, kuranın hesabının yetkisiyle çalışır ve klasörü uygulamanın gönderdiği kimlikten bulur; `ALLOWED_FOLDERS` tanımlı değilse adresi bilen biri o hesabın erişebildiği başka klasörlere de ulaşabilir. Bunu önlemek için script'in **Proje ayarları → Komut dosyası özellikleri** bölümüne `ALLOWED_FOLDERS` adlı bir özellik ekleyip değerine izin verilen klasör kimliklerini virgülle yazın; o zaman script yalnızca bu klasörlerle çalışır.
+- Klasör bağlantısı ve script adresi hiçbir belgeye ya da paylaşılan dosyaya yazılmamalıdır.
+
+#### Sınırlar
+
+- Google Apps Script büyük isteklere sınır koyar (yaklaşık 50 MB). Projeler gönderilmeden önce sıkıştırılır, ama çok büyük projeler yine de bu sınırı aşabilir; o zaman "Drive işlemi başarısız: …" uyarısı çıkar. Bu durumda projeyi **Proje Kaydet** ile yerel olarak kaydedin.
+- Bir istek en fazla 10 dakika bekler.
+- Google bazen kısa süre beklenen yanıt yerine bir web sayfası döndürür; uygulama bir kez yeniden dener. Yine olmazsa "Drive script'i beklenen yanıtı vermedi…" uyarısı (parantez içinde sayfanın başlığıyla) çıkar: Script URL'sini ve dağıtım ayarlarını (Yürüten: Ben, Erişimi olan: Herkes) kontrol edin.
+
 ## 13. Dışa aktarma (mosairEXPORT)
 
 | İşlem | Davranış |
@@ -486,6 +564,9 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 | Katalog | Satır (düzenleme modunda) | Kaynak rengi seç |
 | Katalog | Doku küçük resmi üzerinde bekle | Büyük önizleme ve stok kg ipucu |
 | Özellikler → Varyantlar | Sol tuş | Doku varyantını değiştir |
+| Google Drive ikonu | Sol tuş | Drive'a Kaydet |
+| Google Drive **▾** | Sol tuş | Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... |
+| Drive'dan Aç penceresinde proje kartı | Çift tık | Projeyi görseliyle indirip aç |
 | Stok Tablosu ikonu | Sağ tuş | Stok Ayarları |
 | Stok Tablosu **▾** | Sol tuş | Stok Tablosunu Aç / Stok Ayarları |
 | Stok Çek **▾** | Sol tuş | Devre dışı bırak / yalnızca kırmızıyla işaretle |
@@ -517,6 +598,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Dışa Aktarma | "Beklenmeyen bir hata oluştu: JPEG kaydedilemedi (bellek yetmemiş olabilir)…" | PNG ya da daha düşük bir görüntü kalitesi deneyin |
 | Dışa Aktarma | Dosya yazılamadı: "Beklenmeyen bir hata oluştu" ve ayrıntı (disk dolu, yazma izni yok, bellek yetmedi…) | Sorunu giderip tekrar deneyin; büyük görüntüde PNG çok daha az bellek ister |
 | Stok | Ayar eksik, sütun bulunamadı, tablo boş, Script URL/yayın hatası, proje adı ya da Mos yok | Mesajdaki adımı uygulayın; [§11](#11-stok-yönetimi-google-sheets) |
+| Google Drive | Ayar yapılmamış ("Google Drive ayarlanmamış…"; ardından ayar penceresi açılır), kaydedilecek mozaik yok, "Drive işlemi başarısız: …" (klasör bulunamadı, izin yok, `ALLOWED_FOLDERS` izin vermiyor, proje çok büyük, ağ hatası), "Drive script'i beklenen yanıtı vermedi…" | Ayar penceresinde **Bağlantıyı dene** ile denetleyin; Script URL ve dağıtım ayarlarını kontrol edin ([Google Drive](#google-drive-proje-klasörü)) |
 | Stok Temizle / Tümünü Temizle / Stok Ekle | Onay sorusu (tabloyu değiştirmeden önce) | **Evet** ile devam edin, **Hayır** ile vazgeçin |
 | Stoğa Göre | Düzeltme yapılamadı: katalog dışı renk ya da aynı renkte iki taş; açılmış projede Mos yapılmamış; stok okunamadı | Mesaja göre görselle yeniden Mos yapın ya da stok ayarını kontrol edin |
 | Stoğa Göre | Onay: düzeltme piksel düzenlemelerini sıfırlayacak | **Evet** ile düzeltin, **Hayır** ile mevcut adetleri yazın |
@@ -525,7 +607,9 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 ## 18. Bilinen davranışlar ve sınırlamalar
 
 - **Proje Kaydet** her zaman `Masaüstü/mosairPROJECT/<görsel adı>/` konumuna yazar; başka bir yerden açılmış bir projenin üzerine yazmaz. Belirli bir konuma kaydetmek için **Farklı Kaydet** kullanın.
-- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretli başlar.
+- Drive'dan açılan projeler (görselleriyle) bilgisayarda `%LOCALAPPDATA%\mosair\drive\` klasöründe kalır; uygulama bu klasörü temizlemez.
+- Drive'daki proje klasöründe görsel zaten varsa yeniden gönderilmez; aynı adlı ama değiştirilmiş bir görsel Drive'da güncellenmez.
+- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar.
 - Optimum **Taş** sayısı her değiştiğinde ve her yeni Mos'ta piksel düzenlemeleri sıfırlanır.
 - Bir proje açıldığında Optimum **Taş** kaydırıcısı görünmez; proje dosyası Optimum analizini içermez. Kaydırıcı için Optimum açıkken yeniden Mos yapın.
 - Stok değerleri (kırmızı nokta, kg) yalnızca bellektedir; projeye kaydedilmez ve yeni Mos ile silinir.

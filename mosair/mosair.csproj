@@ -27,6 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Apps Script code for Google Drive; the Drive settings window copies it to the clipboard -->
+    <EmbeddedResource Include="Assets\mosair-drive.gs"/>
+  </ItemGroup>
+
+  <ItemGroup>
     <AvaloniaResource Include="Assets\mosair.ico"/>
     <AvaloniaResource Include="Assets\mosair-icon.png"/>
   </ItemGroup>

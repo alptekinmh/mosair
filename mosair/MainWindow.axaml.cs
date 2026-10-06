@@ -38,6 +38,10 @@ public partial class MainWindow : Window
             new Controls.ConfirmDialog(title, message).ShowDialog<bool>(this);
         _vm.ShowStockSettings = current =>
             new Controls.StockSettingsDialog(current).ShowDialog<StockSheetService.Config?>(this);
+        _vm.ShowDriveSettings = current =>
+            new Controls.DriveSettingsDialog(current).ShowDialog<DriveService.Config?>(this);
+        _vm.ShowDriveOpen = config =>
+            new Controls.DriveOpenDialog(config).ShowDialog<DriveService.DriveFile?>(this);
         _vm.OpenUrl = async url =>
         {
             var launcher = TopLevel.GetTopLevel(this)?.Launcher;
@@ -387,6 +391,17 @@ public partial class MainWindow : Window
             baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
         return $"{DateTime.Now:M.dd.yyyy}_{DateTime.Now:HH.mm.ss}__{baseName}__ekran.png";
     }
+
+    // ===== Google Drive (toolbar button + arrow, File > Google Drive) =====
+    private async void OnDriveSave(object? sender, RoutedEventArgs e) => await _vm.SaveToDriveAsync();
+
+    private async void OnDriveOpen(object? sender, RoutedEventArgs e)
+    {
+        if (await _vm.OpenFromDriveAsync())
+            _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
+    }
+
+    private async void OnDriveSettings(object? sender, RoutedEventArgs e) => await _vm.ConfigureDriveAsync();
 
     // Status-bar cancel button.
     private void OnCancelWork(object? sender, RoutedEventArgs e) => _vm.CancelWork();

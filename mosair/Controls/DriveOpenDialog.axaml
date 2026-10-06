@@ -1,0 +1,95 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctrl="using:mosair.Controls"
+        x:Class="mosair.Controls.DriveOpenDialog"
+        Title=""
+        Width="820" Height="600"
+        MinWidth="520" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource BgCard}"
+        ExtendClientAreaToDecorationsHint="False">
+
+  <Window.Styles>
+    <!-- Project cards, like Drive's grid view -->
+    <Style Selector="ListBoxItem">
+      <Setter Property="Padding" Value="0"/>
+      <Setter Property="Margin" Value="4"/>
+      <Setter Property="CornerRadius" Value="8"/>
+    </Style>
+  </Window.Styles>
+
+  <Border Padding="18" Background="{DynamicResource BgCard}">
+    <DockPanel>
+      <!-- Header: title, folder, search, sort, refresh, open in browser -->
+      <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,10">
+        <DockPanel>
+          <Viewbox DockPanel.Dock="Left" Width="20" Height="20" Margin="0,0,8,0" VerticalAlignment="Center">
+            <Canvas Width="24" Height="24">
+              <Path Fill="#4285F4" Data="M4.9,22.4 L9.3,14.8 L23.5,14.8 L19.1,22.4 Z"/>
+              <Path Fill="#0F9D58" Data="M7.6,2.5 L12,10.1 L4.9,22.4 L0.5,14.8 Z"/>
+              <Path Fill="#FFC107" Data="M7.6,2.5 L16.4,2.5 L23.5,14.8 L14.7,14.8 Z"/>
+            </Canvas>
+          </Viewbox>
+          <Button x:Name="BrowserButton" DockPanel.Dock="Right" Click="OnOpenInBrowser" Height="30" FontSize="11"
+                  Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"/>
+          <StackPanel VerticalAlignment="Center">
+            <TextBlock x:Name="TitleText" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"/>
+            <TextBlock x:Name="FolderText" FontSize="11" Foreground="{DynamicResource FgSecondary}" TextWrapping="Wrap"/>
+          </StackPanel>
+        </DockPanel>
+        <DockPanel>
+          <Button x:Name="RefreshButton" DockPanel.Dock="Right" Click="OnRefresh" Height="30" FontSize="11" Margin="6,0,0,0"
+                  Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"/>
+          <ComboBox x:Name="SortBox" DockPanel.Dock="Right" Width="170" Height="30" FontSize="11" Margin="6,0,0,0"
+                    SelectionChanged="OnSortChanged"/>
+          <TextBox x:Name="SearchBox" Height="30" FontSize="12" TextChanged="OnSearchChanged"/>
+        </DockPanel>
+      </StackPanel>
+
+      <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,12,0,0">
+        <Button x:Name="CancelButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
+                Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"
+                Click="OnCancelClick"/>
+        <Button x:Name="OpenButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
+                Background="#3a7bfd" Foreground="#ffffff" CornerRadius="4" IsEnabled="False"
+                Click="OnOpenClick"/>
+      </StackPanel>
+
+      <Panel>
+        <ListBox x:Name="FileList" Background="Transparent" SelectionChanged="OnSelectionChanged"
+                 DoubleTapped="OnDoubleTapped" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel/>
+            </ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="ctrl:DriveFileRow">
+              <Border Width="176" Padding="8" CornerRadius="8" Background="{DynamicResource BgPanel}"
+                      ToolTip.Tip="{Binding Name}">
+                <StackPanel Spacing="6">
+                  <Border Height="120" CornerRadius="6" ClipToBounds="True" Background="{DynamicResource BgCanvas}">
+                    <Panel>
+                      <!-- Placeholder until (or when there is no) preview -->
+                      <PathIcon Width="36" Height="36" Foreground="{DynamicResource FgMuted}"
+                                HorizontalAlignment="Center" VerticalAlignment="Center"
+                                IsVisible="{Binding !HasThumbnail}"
+                                Data="M3,3 L10,3 L10,10 L3,10 Z M14,3 L21,3 L21,10 L14,10 Z M3,14 L10,14 L10,21 L3,21 Z M14,14 L21,14 L21,21 L14,21 Z"/>
+                      <Image Source="{Binding Thumbnail}" Stretch="UniformToFill" IsVisible="{Binding HasThumbnail}"/>
+                    </Panel>
+                  </Border>
+                  <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"
+                             TextTrimming="CharacterEllipsis"/>
+                  <TextBlock Text="{Binding Details}" FontSize="10" Foreground="{DynamicResource FgSecondary}"
+                             TextTrimming="CharacterEllipsis"/>
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+        <TextBlock x:Name="MessageText" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                   TextWrapping="Wrap" MaxWidth="460" FontSize="12" Foreground="{DynamicResource FgSecondary}"/>
+      </Panel>
+    </DockPanel>
+  </Border>
+</Window>

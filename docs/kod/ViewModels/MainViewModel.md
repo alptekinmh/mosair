@@ -8,7 +8,7 @@ Ana pencerenin tek view model'idir: görsel yükleme, mozaikleme (klasik M3 ve O
 | Dosya | Kullanım |
 |---|---|
 | `mosair/MainWindow.axaml` | `DataContext` olarak bağlanır; `CatalogColors`, `PaletteColors`, `AssignedColors`, `PropStoneThumbs`, durum çubuğu, Optimum kaydırıcısı, stok menüsü vb. binding'ler. `ColorItem` alanları katalog satırı ve tooltip'te (`StockShort`, `StockKgText`, `RemainingText`, `TooltipBitmap`, `ThumbnailBitmap`), `AssignedItem` alanları "Atanan" tablosunda kullanılır. |
-| `mosair/MainWindow.axaml.cs` | `_vm` alanı üzerinden metotları çağırır (`LoadImage`, `RunMosaicAsync`, `OpenProject`, `SaveProject`, `ExportImageAsync`, `QuickExportExtension`, `ExportChoiceLabel`, `RefreshExportEstimatesAsync`, stok metotları, `UndoPixelEdit`/`RedoPixelEdit`, `SelectStone`, `FitToWindow`, `UpdateNavigator` ...) ve `ShowAlert`, `ShowConfirm`, `ShowStockSettings`, `OpenUrl` delegelerini atar; `StoneInvalidated` ve `ExportEstimatesChanged` olaylarına abone olur. |
+| `mosair/MainWindow.axaml.cs` | `_vm` alanı üzerinden metotları çağırır (`LoadImage`, `RunMosaicAsync`, `OpenProject`, `SaveProject`, `ExportImageAsync`, `QuickExportExtension`, `ExportChoiceLabel`, `RefreshExportEstimatesAsync`, stok metotları, `UndoPixelEdit`/`RedoPixelEdit`, `SelectStone`, `FitToWindow`, `UpdateNavigator` ...) ve `ShowAlert`, `ShowConfirm`, `ShowStockSettings`, `ShowDriveSettings`, `ShowDriveOpen`, `OpenUrl` delegelerini atar; Google Drive için `SaveToDriveAsync`, `OpenFromDriveAsync`, `ConfigureDriveAsync` çağırır; `StoneInvalidated` ve `ExportEstimatesChanged` olaylarına abone olur. |
 
 ## Yapı
 
@@ -61,6 +61,8 @@ Katalog listesindeki bir taş rengi.
 | `ShowAlert` | `Func<string, string, Task>?` | Uyarı diyaloğu; `Alert` bunu UI thread'e post eder. |
 | `ShowConfirm` | `Func<string, string, Task<bool>>?` | Onay diyaloğu; null ise onay "hayır" sayılır. |
 | `ShowStockSettings` | `Func<StockSheetService.Config, Task<StockSheetService.Config?>>?` | Stok ayarları diyaloğu. |
+| `ShowDriveSettings` | `Func<DriveService.Config, Task<DriveService.Config?>>?` | Google Drive ayarları diyaloğu ([DriveSettingsDialog](../Controls/DriveSettingsDialog.md)). |
+| `ShowDriveOpen` | `Func<DriveService.Config, Task<DriveService.DriveFile?>>?` | Drive ayarlarıyla [DriveOpenDialog](../Controls/DriveOpenDialog.md) proje tarayıcısı (listeyi ve önizlemeleri kendisi yükler); seçilen dosya ya da `null`. |
 | `OpenUrl` | `Func<string, Task>?` | Tarayıcıda URL açma. |
 
 **Görsel & zoom**
@@ -104,7 +106,7 @@ Katalog listesindeki bir taş rengi.
 |---|---|---|
 | `Progress` | `int` | İlerleme yüzdesi. |
 | `IsProcessing`, `IsExporting` | `bool` | Değişince `CanRunMosaic`, `CanExport` ve `IsBusy` bildirilir. |
-| `IsBusy` | `bool` (salt okunur) | `IsProcessing \|\| IsStockBusy \|\| IsExporting`; durum çubuğundaki `ActivityWave` dalgasını sürer. Üç bayraktan biri değişince bildirilir. |
+| `IsBusy` | `bool` (salt okunur) | `IsProcessing \|\| IsStockBusy \|\| IsExporting \|\| IsDriveBusy`; durum çubuğundaki `ActivityWave` dalgasını sürer. Dört bayraktan biri değişince bildirilir. |
 | `MosaicDone` | `bool` | Değişince `CanExport` ve `OptimalAvailable` bildirilir. |
 | `CanRunMosaic` | `bool` | `ImageLoaded && !IsProcessing && !IsExporting`. |
 | `CanExport` | `bool` | `MosaicDone && !IsProcessing && !IsExporting`. |
@@ -146,6 +148,8 @@ Katalog listesindeki bir taş rengi.
 | `AssignedColors` | `ObservableCollection<AssignedItem>` | Kullanılan taşlar ve piksel sayıları. |
 | `IsStockBusy` | `bool` | Stok işlemi sürerken true (private set); değişince `CanUseStock` ve `IsBusy` bildirilir. |
 | `CanUseStock` | `bool` | `!IsStockBusy`; stok menü/butonlarını kilitler. |
+| `IsDriveBusy` | `bool` | Google Drive işlemi (kaydetme, indirme) sürerken true (private set); değişince `CanUseDrive` ve `IsBusy` bildirilir. Drive'dan Aç penceresi açıkken (listeyi pencere kendisi okur) false'tur. |
+| `CanUseDrive` | `bool` | `!IsDriveBusy`; Dosya → Google Drive menüsünü, toolbar'daki Drive ikonunu ve okunu kilitler. |
 | `UseStockAware` | `bool` | Varsayılan `false` ("Stoğa göre" onay kutusu). Kalıcı saklanmaz; her açılışta kapalı başlar. Değişince `StockAwareTip` de bildirilir. |
 | `StockAwareTip` | `string` | `TipStockAware` metni; son stoğa göre çalışmanın raporu (`_stockAwareReport`) varsa altına eklenir. |
 | `_loadedStock` | `Dictionary<int, StockSheetService.StoneStock>?` | Açılışta ve her görsel/proje yüklemesinde `RefreshStockAsync` ile okunan stok; stoğa göre Mos bunu kullanır. Görsel/proje yüklenince önce null yapılır. |
@@ -218,6 +222,9 @@ Katalog listesindeki bir taş rengi.
 | `UndoPixelEdit()` / `RedoPixelEdit()` | Önce taş varyantı yığını (`StoneInvalidated`), boşsa `PixelEditService.UndoLastEdit` / `RedoLastEdit` ve `InvalidateStone(PixelEditService.LastChanged)`. | MainWindow (kısayollar) |
 | `OpenStockSheetAsync()` | Ayarlı Sheet'i `StockSheetService.SheetUrl` ile tarayıcıda açar. | MainWindow |
 | `ConfigureStockAsync()` | Stok ayar diyaloğunu açar, `StockSheetService.SaveConfig`. | MainWindow |
+| `ConfigureDriveAsync()` | `ShowDriveSettings` yoksa döner. `DriveService.LoadConfig()` ile diyaloğu açar; sonuç `null` değilse `DriveService.SaveConfig` ve durum `DriveSettingsSaved`. | MainWindow (`OnDriveSettings`), `DriveConfigOrAsk` |
+| `SaveToDriveAsync()` | Drive işlemi sürüyorsa döner. `MosaicDone` değilse `AlertDriveTitle` + `DriveNoMosaic` uyarısı. `DriveConfigOrAsk()` null ise döner. Dosya adı Ctrl+S ile aynı kuralla: `ProjectService.CurrentPictureFileName`'in uzantısız adı + `.mos`, görsel adı yoksa `mosair_project.mos`. `IsDriveBusy = true`, durum `StatusDriveSaving`. Proje `ProjectService.Save` ile normal biçimde tek seferlik bir klasöre, `DriveService.CacheDir/upload_<guid>/<ad>`'a yazılır (genişlik, zoom, ızgara, derz rengi, interpolasyon; `SaveProject` ile aynı değerler, önceden yerel değişkenlere alınır); yazma `Task.Run` ile arka planda yapılır, büyük projede pencere donmaz. `ProjectService.CurrentFileName` `finally` içinde eski değerine döndürülür, yani başlık çubuğundaki ad ve açık dosya değişmez. Proje baytları ve `ProjectService.Save`'in projenin yanına kopyaladığı orijinal görsel (`CurrentPictureFileName`'in dosya adı; kopya yoksa görsel gönderilmez) okunup `DriveService.SaveAsync(config, <görsel adı>, <ad>, proje, görsel adı, görsel)` ile gönderilir: Drive'da mosairPROJECT gibi `<görsel adı>/<görsel adı>.mos` + görsel (görsel yalnızca o proje klasöründe yoksa yüklenir). Gönderme başarılı da olsa hata da verse geçici klasör `finally` içinde silinir (hata yutulur). Başarıda durum `StatusDriveSaved` (`<görsel adı>/<ad>`). Hata → `DriveFailed` hem durum çubuğuna hem uyarıya. Sonunda `IsDriveBusy = false`. İptal edilemez. | MainWindow (`OnDriveSave`) |
+| `OpenFromDriveAsync()` → `bool` | Bir proje açıldıysa `true`, aksi hâlde (iptal, hata, ayar yok) `false` döner. Drive işlemi sürüyorsa ya da `ShowDriveOpen` yoksa `false`. `DriveConfigOrAsk()` null ise `false`. `ShowDriveOpen(config)`: klasörü okuma, listeleme ve önizlemeler pencerenin içinde yapılır (hatalar da orada gösterilir). İptalde `false`. Seçilince `IsDriveBusy = true`, durum `StatusDriveDownloading`, `DriveService.DownloadAsync` projeyi `CacheDir/<proje klasörü>/<ad>`'a, orijinal görseli de yanına indirir. Hata → `DriveFailed` (durum + uyarı), proje açılmaz, `false`. Başarıda `IsDriveBusy = false`, `OpenProject(path)` (yerel bir `.mos` gibi) ve `true`. İptal edilemez. | MainWindow (`OnDriveOpen`; `true` dönerse `FitToWindow`) |
 | `LoadStockOnStartupAsync()` | `RefreshStockAsync()` çağırır. | MainWindow (`Opened`) |
 | `RefreshStockAsync()` | `SheetId` ayarlı değilse hiçbir şey yapmaz. Ayarlı tablodan proje adıyla stoğu okur (`FetchOnHandAsync`; bu mozaiğin kendi sütunu diğer mozaiklerin payına katılmaz), `_loadedStock`'a ve eşleşen `ColorItem.StockKg`'ya yazar; seçim ve kırmızı noktalar değişmez. Okuma sürerken başka görsel yüklendiyse (`StockProjectName()` değiştiyse) sonucu atar. Sonuç (`StockLoadedOnStart`) veya hata (`StockLoadOnStartFailed`) `AppendStartupStatus` ile durum çubuğuna not olarak eklenir. | `LoadStockOnStartupAsync`, `LoadImage`, `OpenProject`, `RunMosaicAsync` |
 | `FetchStockAsync(markOnly = false)` | Eldeki stoğu çeker (`StockSheetService.FetchStockAsync`), `StockKg` yazar. `markOnly` false ("Stok Çek"): Sheet'te stok ≤ 0 olan taşları hariç tutar, > 0 olanları dahil eder (`ApplyStockSelection`), durum `StockFetched`. `markOnly` true (yalnız işaretle): seçime dokunmaz, stok ≤ 0 olan taşlara yalnızca kırmızı nokta (`stokYetersiz`/`StockShort`), durum `StockFetchedMarked`. | MainWindow (`OnStockFetch`, `OnStockFetchMark`) |
@@ -231,6 +238,7 @@ Katalog listesindeki bir taş rengi.
 |---|---|
 | `RunStockAction(action, doneMessage)` | `IsStockBusy` kilidi; hata → `StatusError` + `StockErrFmt` uyarısı. |
 | `TryGetStockConfig(needScript, out config)` | `SheetId` (gerekirse `ScriptUrl`) yoksa `StockNotConfigured` uyarısı, false. |
+| `DriveConfigOrAsk()` → `DriveService.Config?` | Ayarlar `DriveService.IsConfigured` ise onları döndürür. Değilse `AlertDriveTitle` + `DriveNotConfigured` uyarısını `ShowAlert` ile gösterip kapatılmasını bekler (`await`), sonra `ConfigureDriveAsync` ile ayar penceresini açar (iki pencere üst üste açılmaz), ayarları yeniden okur; hâlâ eksikse (iptal) `null`. |
 | `StockProjectName()` | Sheet sütun başlığı: önce resim dosya adı, yoksa proje dosya adı (uzantısız). |
 | `ApplyStockSelection(leaveOutForId)` | Stok kararını (true/false/null) kataloğa ve `_optimumUserSelection`'a uygular; seçim önceden "otomatik" seçimle aynıysa `_optimumAutoSelection`'ı da günceller. |
 | `CaptureCatalogSelection()` / `ApplyCatalogSelection(leaveOut)` | `boolLeaveOut` + `MosaicData.arcs` + `ColorItem.IsExcluded` senkronu. |
@@ -266,6 +274,7 @@ Katalog listesindeki bir taş rengi.
 - **Stok kontrol yalnız işaretler**: `CheckStockAsync` yetersiz taşlarda `rgb.stokYetersiz` ve `ColorItem.StockShort`'u true yapar (kırmızı nokta, kırmızı kalan kg); katalog seçimine dokunmaz.
 - **Stok çek seçimi değiştirir**: `FetchStockAsync`, Sheet'te bulunan taşlardan stok ≤ 0 olanları hariç, > 0 olanları dahil eder; Sheet'te olmayan taşlar olduğu gibi kalır.
 - **Stok işlemleri tek seferde bir tane**: `RunStockAction` `IsStockBusy` ile `CanUseStock`'u kapatır. `ClearStock*`/`AddStockAsync` onay ister; `ShowConfirm` yoksa işlem yapılmaz. Check/Clear/Add için `ScriptUrl` de gerekir, Fetch/Open için yalnız `SheetId`.
+- **Google Drive** ([DriveService](../Services/DriveService.md)): Drive'a Kaydet açık dosyanın adını ve konumunu değiştirmez; Drive'daki aynı adlı proje değiştirilir (eskisi Drive çöp kutusuna gider). Drive'dan açılan proje `%LOCALAPPDATA%\mosair\drive\<proje klasörü>\<ad>` dosyasından, orijinal görsel yanında olarak açılır; bu yüzden başlık çubuğunda o adı gösterir, sonraki Ctrl+S ise her zamanki gibi `Masaüstü/mosairPROJECT`'e yazar. Drive işlemleri iptal edilemez (İptal düğmesi görünmez), ama durum çubuğu dalgasını (`IsBusy`) sürer.
 - **Stok kontrol için mozaik şart**: Proje adı yoksa `StockNoProject`, `arMA[0]`'da piksel sayısı > 0 taş yoksa `StockNoMosaic` uyarısı.
 - **Yeni Mos stok işaretlerini siler**: `RunMosaicAsync` tüm `stokYetersiz`, `StockShort`, `RemainingKg` değerlerini temizler (`StockKg` korunur) ve `ProjectService.ForgetWpfState()` çağırır (WPF projesinden okunan ek veri artık geçersiz). `LoadImage` da `ForgetWpfState` çağırır.
 - **Optimum taban seçimi**: Mos'tan sonra katalog "yalnız kullanılan taşlar"a daraltılır. Optimum açıkken yeni Mos'ta, seçim hâlâ bu otomatik seçimle (`_optimumAutoSelection`) aynıysa önce kullanıcının asıl seçimi (`_optimumUserSelection`) geri yüklenir; böylece Optimum her seferinde daraltılmış değil tam havuzdan başlar. Kullanıcı checkbox'lara dokunduysa mevcut seçim yeni taban olur.
@@ -307,6 +316,7 @@ Katalog listesindeki bir taş rengi.
 - Taş sayısı kaydırıcısında stoğa uydurma iptal edilince önceki taş sayısının kırmızı noktaları ve kalan kg'ı katalogda kalır; yeni (düzeltmesiz) mozaiğe ait değildir.
 - `ApplyOptimalKAsync` yalnızca `UseStockAware` açık ve `_stockOnHand` doluyken `BeginCancellable` çağırır; stoksuz taş sayısı değişiminde kayıtsız bir `CancellationTokenSource` kullanılır, İptal düğmesi görünmez (`MosaicEngine.ApplyOptimalK`'da kontrol noktası yoktur). Optimum Mos'ta analizden sonraki kısım (`ApplyOptimalK`, doku hazırlığı) ve Mos başındaki stok okuma durdurulamaz; okuma sırasında basılan iptal, analizin ilk kontrol noktasında etkili olur.
 - `FixToStockAsync` açılmış bir projede çalışmaz (`StockAwareNeedsMos`): taş çözünürlüğünde kaynak görsel verisi yoktur; önce Mos gerekir.
+- Drive'daki proje klasöründe görsel zaten varsa yeniden gönderilmez; aynı adlı ama değişmiş bir görsel Drive'da güncellenmez. Script'in eski bir dağıtımı proje klasörünü ve görseli tanımaz (proje kökte durur, görsel gitmez); güncel script için [DriveService](../Services/DriveService.md#apps-script-assetsmosair-drivegs).
 - `SetSourceFromCatalog`'daki `"source: "` metni yerelleştirilmemiş.
 - `ReorderCatalogList` ve `OnImagePointerMoved` boş; `PixelCoordInfo`, `PixelDetailInfo`, `PixelColorInfo`, `PixelScaleInfo`, `DimensionInfo` XAML'e bağlı değil.
 - `OnImagePressed` x ve y için aynı ölçeği (`imageControlWidth / MosaicEngine.width`) kullanır; kare taş varsayar.
@@ -322,7 +332,8 @@ Katalog listesindeki bir taş rengi.
 - [MosaicEngine](../Services/MosaicEngine.md), [OptimalPaletteService](../Services/OptimalPaletteService.md)
 - [StoneTextureService](../Services/StoneTextureService.md), [MosaicRenderSource](../Services/MosaicRenderSource.md), [MosaicExporter](../Services/MosaicExporter.md), [ImageService](../Services/ImageService.md)
 - [MosaicView](../Controls/MosaicView.md), [GridOverlay](../Controls/GridOverlay.md)
-- [ColorCatalogService](../Services/ColorCatalogService.md), [StockSheetService](../Services/StockSheetService.md)
+- [ColorCatalogService](../Services/ColorCatalogService.md), [StockSheetService](../Services/StockSheetService.md), [DriveService](../Services/DriveService.md)
+- [DriveSettingsDialog](../Controls/DriveSettingsDialog.md), [DriveOpenDialog](../Controls/DriveOpenDialog.md)
 - [ProjectService](../Services/ProjectService.md), [PixelEditService](../Services/PixelEditService.md), [Loc](../Services/Loc.md)
 - [MosaicData](../Models/MosaicData.md), [Rgb](../Models/Rgb.md), [Region](../Models/Region.md)
 - [StockAwareAssigner](../Services/StockAwareAssigner.md), [Stoğa göre raporu](../../STOGA_GORE_RAPOR.md)

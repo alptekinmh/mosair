@@ -70,6 +70,7 @@ Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` 
 
 - Dil değişimi canlıdır: paneller `IsTr`/`IsEn` bağlamasıyla gizlenip gösterilir, pencere yeniden açılmaz.
 - Stok Yönetimi bölümü (`sec8` / `sec8en`) araç çubuğundaki açılır okları (Tablo: tabloyu aç / stok ayarları; Stok Çek: stoğu olmayanları kırmızıyla işaretle) ve Optimum'un yanındaki "Stoğa göre" kutusunu da anlatır.
+- Proje Yönetimi bölümünün (`sec5` / `sec5en`) `.mos` kartında, kısayol satırının altında **Google Drive** alt başlığı vardır: Drive ikonu ve menüsü, bir kezlik Apps Script kurulumu, Drive'a Kaydet (mosairPROJECT gibi proje klasörü + orijinal görsel) / Drive'dan Aç (önizlemeli kartlar, arama, sıralama, Yenile, Drive'da göster), güvenlik (`ALLOWED_FOLDERS`), boyut sınırı ve uygulama güncellenince script'in "Dağıtımları yönet → Yeni sürüm" ile güncellenmesi. Arayüz Yapısı bölümündeki toolbar ve Dosya menüsü satırları ile Fare Kontrolleri'ndeki Sol Tuş / Ok (▾) satırları da Drive ikonunu anar.
 - Metinlerin tamamı XAML'a gömülüdür (`Loc` sözlüğünde değildir); yalnızca pencere başlığı ve kısayol tuşları `Loc`'tan gelir.
 
 ### Yeni bölüm ekleme

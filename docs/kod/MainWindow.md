@@ -35,6 +35,8 @@ Window
    │   └─ "mosair" logosu + Menu
    │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport ▸, menuExportAs ▸,
    │       │     Ekran Görüntüsü Al (MenuScreenshot; Click=OnScreenshot, IsEnabled=ImageLoaded)
+   │       │     | Google Drive ▸ (MenuDrive; IsEnabled=CanUseDrive): Drive'a Kaydet (OnDriveSave), Drive'dan Aç... (OnDriveOpen)
+   │       │       | Drive Klasörü Ayarları... (OnDriveSettings)
    │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
    │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
@@ -47,7 +49,9 @@ Window
    ├─ [Top] Araç çubuğu (toolbar)
    │   ├─ Sol: Görüntü Yükle, Proje Aç, Kaydet (saveProjectBtn: saveIcon/saveCheckIcon), Farklı Kaydet,
    │   │       Mos düğmesi (mosAnimGrid: mosQ0..mosQ3), Piksel Düzenle + source/target göstergesi,
-   │   │       Izgara (Flyout: aç/kapa, GridColorPresets, GridColorShades), İnterpolasyon (Flyout),
+   │   │       Izgara (Flyout: aç/kapa, GridColorPresets, GridColorShades), İnterpolasyon (Flyout) │
+   │   │       Google Drive düğmesi (renkli Drive logosu; Click=OnDriveSave, CanUseDrive, ipucu TipDrive) + yanında 14 px açılır ok
+   │   │       (Flyout: Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... → OnDriveSave / OnDriveOpen / OnDriveSettings),
    │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
    │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
    │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
@@ -109,6 +113,8 @@ Window
 | `_vm.ShowAlert` | `AlertDialog` gösterir. |
 | `_vm.ShowConfirm` | `ConfirmDialog` gösterir, `bool` döndürür. |
 | `_vm.ShowStockSettings` | `StockSettingsDialog` gösterir, `StockSheetService.Config?` döndürür. |
+| `_vm.ShowDriveSettings` | `DriveSettingsDialog` gösterir, `DriveService.Config?` döndürür. |
+| `_vm.ShowDriveOpen` | `DriveService.Config` ile `DriveOpenDialog` proje tarayıcısını gösterir (liste ve önizlemeleri kendisi yükler), seçilen `DriveService.DriveFile?`'ı döndürür. |
 | `_vm.OpenUrl` | `TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync` ile tarayıcıda açar (stok tablosu). |
 | `_vm.StoneInvalidated += …` | Tek taş değişince (piksel düzenleme, geri al/yinele, varyant seçimi) `mosaicView.InvalidateStone(row, col)`: yalnızca o taşı içeren karolar yeniden çizilir. |
 | `AddHandler(DragDrop.DropEvent / DragOverEvent)` | Sürükle-bırak. |
@@ -128,6 +134,9 @@ Window
 | `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S | Masaüstü/mosairPROJECT kuralına göre kaydeder, kaynak görüntüyü kopyalar, 1,2 sn `saveCheckIcon` gösterir. |
 | `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S | `SaveAsDialog()` çağırır. |
 | `OnScreenshot` | Araç çubuğundaki kamera düğmesi (dışa aktarmanın solunda) ve **Dosya → Ekran Görüntüsü Al** | Görsel alanını (`imageScroller`) ekranın gerçek ölçeğiyle (`RenderScaling`) `RenderTargetBitmap`'e çizer, kaydırma çubukları hariç yalnızca görünen kısmı (`Viewport`) alır; tuval rengini (`BgCanvas`) temadan bulur ve `_vm.SaveScreenshotAsync` ile `mosairEXPORT/tarih_saat__ad__ekran.png` olarak kaydeder. Mini harita ayrı bir katmanda olduğu için görüntüye girmez. Klasör oluşturulamazsa `ShowExportFolderError` uyarı gösterir (aynısı hızlı dışa aktarmada da). |
+| `OnDriveSave` | Toolbar'daki Drive ikonu, ok Flyout'u ve **Dosya → Google Drive → Drive'a Kaydet** (`CanUseDrive`) | `_vm.SaveToDriveAsync()`. |
+| `OnDriveOpen` | Ok Flyout'u ve **Dosya → Google Drive → Drive'dan Aç...** | `_vm.OpenFromDriveAsync()` `true` dönerse (proje açıldıysa) `_vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height)`; iptal ya da hatada zoom olduğu gibi kalır. |
+| `OnDriveSettings` | Ok Flyout'u ve **Dosya → Google Drive → Drive Klasörü Ayarları...** | `_vm.ConfigureDriveAsync()`. |
 | `OnCancelWork` | Durum çubuğundaki İptal düğmesi ve **Düzenle → İşlemi İptal Et** (`CanCancel`) | `_vm.CancelWork()`: süren iptal edilebilir işi (Mos, stoğa göre düzeltme, dışa aktarma) durdurur; Esc ile aynı. |
 | `OnExportImage` | Ctrl/⌘+E | `ExportQuickAsync(MainViewModel.DefaultExportQuality)`: varsayılan kaliteyle (40) hızlı dışa aktarma (sonucu beklenmez). |
 | `ExportQuickAsync(quality)` | `OnExportImage`, listelerdeki mosairEXPORT seçenekleri | Masaüstü/mosairEXPORT'a zaman damgalı dosya; uzantı `_vm.QuickExportExtension(quality)` (`jpeg` ya da `png`) → `_vm.ExportImageAsync(path, quality)`. |
@@ -248,7 +257,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 
 ## Dikkat / bilinen sınırlamalar
 
-- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir. Ekran Görüntüsü Al `ImageLoaded`'a, İşlemi İptal Et `CanCancel`'a bağlıdır.
+- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir. Ekran Görüntüsü Al `ImageLoaded`'a, İşlemi İptal Et `CanCancel`'a bağlıdır. **Google Drive** alt menüsü, toolbar'daki Drive ikonu ve oku `CanUseDrive`'a bağlıdır (bir Drive işlemi sürerken pasif); mozaik yokken de etkindir, Drive'a Kaydet bu durumda `DriveNoMosaic` uyarısı verir.
 - Menüdeki İşlemi İptal Et'in `InputGesture="Escape"` değeri XAML'de sabittir ve yalnızca gösterimdir; Esc'yi `OnKeyDown` yakalar. Repo kuralı gereği her özellik üst menüde de bulunur (CLAUDE.md, "Menüler").
 - `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez.
 - Kayıt (`SpecialFolder.Desktop`) ve dışa aktarma (`SpecialFolder.DesktopDirectory`) farklı özel klasör sabitleri kullanır; çoğu sistemde aynı yeri gösterir ama tutarsızdır.
@@ -261,7 +270,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 - [MainViewModel](ViewModels/MainViewModel.md)
 - [App](App.md)
 - [HelpWindow](HelpWindow.md)
-- [AlertDialog](Controls/AlertDialog.md) · [ConfirmDialog](Controls/ConfirmDialog.md) · [StockSettingsDialog](Controls/StockSettingsDialog.md)
+- [AlertDialog](Controls/AlertDialog.md) · [ConfirmDialog](Controls/ConfirmDialog.md) · [StockSettingsDialog](Controls/StockSettingsDialog.md) · [DriveSettingsDialog](Controls/DriveSettingsDialog.md) · [DriveOpenDialog](Controls/DriveOpenDialog.md) · [DriveService](Services/DriveService.md)
 - [GridOverlay](Controls/GridOverlay.md), [MosaicView](Controls/MosaicView.md)
 - [InvariantDoubleConverter](Converters/InvariantDoubleConverter.md)
 - [Loc](Services/Loc.md)

@@ -12,10 +12,10 @@ Uygulamanın Türkçe/İngilizce arayüz metinlerini sağlayan basit yerelleşti
 |---|---|
 | `MainWindow.axaml`, `HelpWindow.axaml` | `{Binding [Anahtar], Source={x:Static svc:Loc.Instance}}` indeksleyici bağlaması; `IsTr`/`IsEn` ile dile göre görünürlük; `KeyMod*` kısayol metinleri |
 | `MainWindow.axaml.cs` | Dışa aktarma listesinin kodla kurulan öğeleri (`MenuExport`, `MenuExportAs`, `ExportChooseQuality` bağlamaları); dil menüsü: `Loc.Instance.Lang = "tr"` / `"en"`, ardından `MainViewModel.RefreshLocalized()` |
-| `MainViewModel` | Durum, uyarı, dışa aktarma seçeneği ve stok metinleri için `Loc.Get` / `Loc.Fmt`; `PropertyChanged` ile `Lang` değişimini dinler |
+| `MainViewModel` | Durum, uyarı, dışa aktarma seçeneği, stok ve Google Drive metinleri için `Loc.Get` / `Loc.Fmt`; `PropertyChanged` ile `Lang` değişimini dinler |
 | `HelpWindow.axaml.cs` | `Loc.Instance.Lang`'a göre TR/EN bölümleri seçer |
-| `AlertDialog`, `ConfirmDialog`, `StockSettingsDialog` | Düğme ve etiket metinleri |
-| `StockSheetService`, `StoneTextureService`, `ImageService`, `MosaicExporter` | Hata mesajları (`StockErr*`, `StatusRsBitmapTooLarge`, `ExportJpegTooLarge`, `ExportJpegFailed`) |
+| `AlertDialog`, `ConfirmDialog`, `StockSettingsDialog`, `DriveSettingsDialog`, `DriveOpenDialog` | Düğme ve etiket metinleri |
+| `StockSheetService`, `DriveService`, `StoneTextureService`, `ImageService`, `MosaicExporter` | Hata mesajları (`StockErr*`, `DriveNotConfigured`, `DriveErrDeploy`, `StatusRsBitmapTooLarge`, `ExportJpegTooLarge`, `ExportJpegFailed`) |
 
 ## Yapı
 
@@ -44,15 +44,16 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **252** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Stock*` | 57 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
-| `Menu*` | 38 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Dosya'daki `MenuScreenshot` ve Düzen'deki `MenuCancelWork` dahil) |
-| `Status*` | 27 | Durum çubuğu metinleri (çoğu biçim dizesi); büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct`, ekran görüntüsü için `StatusScreenshotSaved` ve iptal metinleri (`StatusCancelling`, `StatusMosCancelled`, `StatusMosCancelledCleared`, `StatusStockFitCancelled`, `StatusStockCheckCancelled`, `StatusExportCancelled`) dahil |
-| `Tip*` | 23 | Araç çubuğu, stok düğmesi, "Stoğa göre" kutusu (`TipStockAware`) ve durum çubuğundaki İptal düğmesi (`TipCancel`) ipuçları |
-| `Alert*` | 16 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |
+| `Drive*` | 29 | Google Drive: ayar penceresi (`DriveSettingsTitle`, `DriveFolder*`, `DriveScriptUrl*`, `DriveSteps*`, `DriveCopyScript`, `DriveTest*`, `DriveScriptCopied`, `DriveSettingsNote`, `DriveSettingsSaved`), Drive'dan Aç proje tarayıcısı (`DriveOpen*`, `DriveRefresh`, `DriveShowInBrowser`, `DriveSearch`, `DriveSortNewest`, `DriveSortName`, `DriveNoMatch`), uyarı ve hata metinleri (`DriveNotConfigured`, `DriveErrDeploy`, `DriveNoMosaic`, `DriveFailed`) |
+| `Menu*` | 42 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Dosya'daki `MenuScreenshot` ve `MenuDrive` alt menüsü (`MenuDriveSave`, `MenuDriveOpen`, `MenuDriveSettings`), Düzen'deki `MenuCancelWork` dahil) |
+| `Status*` | 31 | Durum çubuğu metinleri (çoğu biçim dizesi); Drive işlemleri için `StatusDriveSaving`, `StatusDriveSaved`, `StatusDriveListing`, `StatusDriveDownloading`; büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct`, ekran görüntüsü için `StatusScreenshotSaved` ve iptal metinleri (`StatusCancelling`, `StatusMosCancelled`, `StatusMosCancelledCleared`, `StatusStockFitCancelled`, `StatusStockCheckCancelled`, `StatusExportCancelled`) dahil |
+| `Tip*` | 24 | Araç çubuğu, stok düğmesi, Google Drive düğmesi (`TipDrive`), "Stoğa göre" kutusu (`TipStockAware`) ve durum çubuğundaki İptal düğmesi (`TipCancel`) ipuçları |
+| `Alert*` | 17 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.; Drive uyarılarının başlığı `AlertDriveTitle`); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
 | `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, varsayılan kalitenin işareti `ExportDefaultQuality` = "(varsayılan)", `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
@@ -61,7 +62,7 @@ Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Info*` | 3 | Boyut bilgisi biçimleri |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
 | `Btn*` | 3 | Tümünü seç / seçimi kaldır, durum çubuğundaki İptal düğmesi (`BtnCancel`) |
-| `Size*` | 2 | Dosya boyutu biçimleri (`SizeMB`, `SizeGB`) |
+| `Size*` | 3 | Dosya boyutu biçimleri (`SizeKB`, `SizeMB`, `SizeGB`; Drive'dan Aç kartları `SizeKB`/`SizeMB` kullanır) |
 | `OptimumInfoFmt` | 1 | Optimum bilgi metni |
 
 ## Public API
@@ -105,5 +106,6 @@ Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynı
 - [HelpWindow](../HelpWindow.md)
 - [MainViewModel](../ViewModels/MainViewModel.md)
 - [StockSheetService](./StockSheetService.md)
-- [AlertDialog](../Controls/AlertDialog.md), [ConfirmDialog](../Controls/ConfirmDialog.md), [StockSettingsDialog](../Controls/StockSettingsDialog.md)
+- [DriveService](./DriveService.md)
+- [AlertDialog](../Controls/AlertDialog.md), [ConfirmDialog](../Controls/ConfirmDialog.md), [StockSettingsDialog](../Controls/StockSettingsDialog.md), [DriveSettingsDialog](../Controls/DriveSettingsDialog.md), [DriveOpenDialog](../Controls/DriveOpenDialog.md)
 - [Arayüz rehberi](../../ARAYUZ.md)

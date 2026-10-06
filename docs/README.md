@@ -1,6 +1,6 @@
 # mosair — Belgeler
 
-**mosair**, doğal taş mozaik üretimi için bir masaüstü uygulamasıdır. Bir görseli katalogdaki gerçek taş renklerine dönüştürür ve sonucu gerçek taş dokularıyla gösterir. Piksel ve taş düzenlemeye izin verir, Google Sheets stok tablosuyla çalışır. Projeleri robot tarafındaki WPF uygulamasıyla ortak JSON biçiminde kaydeder.
+**mosair**, doğal taş mozaik üretimi için bir masaüstü uygulamasıdır. Bir görseli katalogdaki gerçek taş renklerine dönüştürür ve sonucu gerçek taş dokularıyla gösterir. Piksel ve taş düzenlemeye izin verir, Google Sheets stok tablosuyla çalışır, projeleri bir Google Drive klasörüne kaydedip oradan açabilir. Projeleri robot tarafındaki WPF uygulamasıyla ortak JSON biçiminde kaydeder.
 
 | | |
 |---|---|
@@ -39,7 +39,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 
 | Belge | İçerik |
 |---|---|
-| [MainViewModel.md](kod/ViewModels/MainViewModel.md) | Arayüz durumu ve komutlar: görsel, Mos, Optimum, katalog, stok, piksel düzenleme, özellikler paneli |
+| [MainViewModel.md](kod/ViewModels/MainViewModel.md) | Arayüz durumu ve komutlar: görsel, Mos, Optimum, katalog, stok, Google Drive, piksel düzenleme, özellikler paneli |
 
 ### Servisler
 
@@ -58,6 +58,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [PixelEditService.md](kod/Services/PixelEditService.md) | Piksel düzenleme, geri al/yinele |
 | [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
+| [DriveService.md](kod/Services/DriveService.md) | Google Drive proje klasörü: Apps Script (`Assets/mosair-drive.gs`) üzerinden `.mos` ve orijinal görseli proje klasörüne kaydetme, listeleme, önizleme, indirme |
 | [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
 | [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (min-cost flow ile stoğa sığdırma) |
 | [WorkCancellation.md](kod/Services/WorkCancellation.md) | İptal düğmesinin belirteci: Mos, stoğa göre düzeltme ve dışa aktarmanın uzun döngülerini kontrol noktalarında durdurma |
@@ -72,6 +73,8 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [Controls/AlertDialog.md](kod/Controls/AlertDialog.md) | Bilgi iletişim kutusu |
 | [Controls/ConfirmDialog.md](kod/Controls/ConfirmDialog.md) | Evet/Hayır iletişim kutusu |
 | [Controls/StockSettingsDialog.md](kod/Controls/StockSettingsDialog.md) | Stok ayarları penceresi |
+| [Controls/DriveSettingsDialog.md](kod/Controls/DriveSettingsDialog.md) | Google Drive ayarları penceresi (klasör bağlantısı, Script URL, kurulum adımları, bağlantı denemesi) |
+| [Controls/DriveOpenDialog.md](kod/Controls/DriveOpenDialog.md) | Drive proje tarayıcısı: önizlemeli kartlar, arama, sıralama, yenile, Drive'da göster |
 | [Controls/MosaicView.md](kod/Controls/MosaicView.md) | Mos'tan sonra taş dokulu mozaiği karolarla gösterme: yalnızca görünen kısım, zoom'a göre detay |
 | [Controls/GridOverlay.md](kod/Controls/GridOverlay.md) | Izgara çizimi |
 | [Controls/ActivityWave.md](kod/Controls/ActivityWave.md) | Durum çubuğundaki işlem dalgası animasyonu |
