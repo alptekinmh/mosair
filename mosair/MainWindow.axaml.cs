@@ -43,6 +43,8 @@ public partial class MainWindow : Window
             if (launcher != null) await launcher.LaunchUriAsync(new Uri(url));
         };
         DataContext = _vm;
+        // Stock on hand from the configured sheet, once the window is up (does not block start-up).
+        Opened += async (_, _) => await _vm.LoadStockOnStartupAsync();
         AddHandler(DragDrop.DropEvent, OnDrop);
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         KeyDown += OnKeyDown;
@@ -220,6 +222,11 @@ public partial class MainWindow : Window
     private void OnToggleOptimum(object? sender, RoutedEventArgs e)
     {
         _vm.UseOptimal = !_vm.UseOptimal;
+    }
+
+    private void OnToggleStockAware(object? sender, RoutedEventArgs e)
+    {
+        _vm.UseStockAware = !_vm.UseStockAware;
     }
 
     private void OnStonesSuggested(object? sender, RoutedEventArgs e)

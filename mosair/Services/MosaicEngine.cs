@@ -111,6 +111,7 @@ namespace mosair.Services
             byte[,,] src = ImageService.ToByteArray(MosaicData.reducedBitmap);
 
             var candidates = new List<rgb>(MosaicData.arRGB);
+            LastRunPool = candidates;
             var gamut = useGamut ? GamutMapper.Build(src, R, C, candidates) : null;
             LastGamut = gamut;
             var result = OptimalPaletteService.Analyze(src, R, C, candidates, p => onProgress?.Invoke(p * 9 / 10), gamut);
@@ -122,6 +123,139 @@ namespace mosair.Services
             var bmp = ApplyOptimalK(result.KOptimal, prepareTextures);
             onProgress?.Invoke(100);
             return bmp;
+        }
+
+        // ===== Stock-aware step (runs after Optimum or classic Mos; neither algorithm is changed) =====
+
+        public static StockAwareResult? LastStockResult { get; private set; }
+
+        // Stones that were selectable when the last mosaic was made (Optimum or classic Mos); substitutes come
+        // only from these, so the user's catalog selection and Stok Çek exclusions are respected.
+        public static List<rgb>? LastRunPool { get; private set; }
+
+        // Same as ApplyOptimalK, then rearranges stones that are used beyond their stock (StockAwareAssigner).
+        // When every stone fits its stock the mosaic is left exactly as ApplyOptimalK built it.
+        public static SKBitmap ApplyOptimalKWithStock(int k, Func<int, int?> capacityOfId, Func<int, string?> familyOfId,
+            StockAwareOptions options, bool prepareTextures = true)
+        {
+            ApplyOptimalK(k, prepareTextures: false);
+            FixToStock(_optSrc!, _optCandidates!, capacityOfId, familyOfId, options, _optGamut,
+                texturesAlways: prepareTextures, prepareTextures: prepareTextures);
+            return MosaicData.reducedBitmap!;
+        }
+
+        // Fixes the mosaic on screen (classic Mos result) to stock. Returns false when it cannot be done:
+        // no mosaic made in this session, or pixels whose colour is not one of the run's stones.
+        public static bool FixCurrentMosaicToStock(Func<int, int?> capacityOfId, Func<int, string?> familyOfId,
+            StockAwareOptions options, bool prepareTextures = true)
+        {
+            if (LastRunPool == null || MosaicData.inputBitmap == null) return false;
+            var src = GetSourceStoneData();
+            if (src.GetLength(0) != MosaicData.dataM3.GetLength(0) || src.GetLength(1) != MosaicData.dataM3.GetLength(1))
+                return false;
+            return FixToStock(src, LastRunPool, capacityOfId, familyOfId, options, null,
+                texturesAlways: false, prepareTextures: prepareTextures);
+        }
+
+        private static bool FixToStock(byte[,,] src, List<rgb> pool, Func<int, int?> capacityOfId,
+            Func<int, string?> familyOfId, StockAwareOptions options, GamutMapper? gamut, bool texturesAlways, bool prepareTextures)
+        {
+            int R = src.GetLength(0), C = src.GetLength(1);
+            LastStockResult = null;
+
+            // Which stone each pixel holds: drl.dat[,,3] when it is one of the pool's stones with the pixel's
+            // colour (always so after Optimum), otherwise the pool stone with that colour (classic Mos can leave
+            // intermediate numbers in drl.dat).
+            var poolIndexOfId = new Dictionary<int, int>();
+            var poolIndexOfColor = new Dictionary<int, int>();
+            var ambiguousColors = new HashSet<int>();
+            for (int m = 0; m < pool.Count; m++)
+            {
+                poolIndexOfId[pool[m].ID] = m;
+                int key = ((int)pool[m].r << 16) | ((int)pool[m].g << 8) | (int)pool[m].b;
+                // Two stones with the same RGB cannot be told apart by colour; such pixels must come from drl.dat.
+                if (!poolIndexOfColor.TryAdd(key, m)) ambiguousColors.Add(key);
+            }
+            var assign = new int[R * C];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                {
+                    byte b = MosaicData.dataM3[i, j, 0], g = MosaicData.dataM3[i, j, 1], r = MosaicData.dataM3[i, j, 2];
+                    if (poolIndexOfId.TryGetValue(drl.dat[i, j, 3], out int m) &&
+                        (byte)pool[m].r == r && (byte)pool[m].g == g && (byte)pool[m].b == b)
+                    {
+                        assign[i * C + j] = m;
+                        continue;
+                    }
+                    int colorKey = (r << 16) | (g << 8) | b;
+                    // Refuse rather than guess: a wrong stone ID would move stock between the wrong stones.
+                    if (ambiguousColors.Contains(colorKey) || !poolIndexOfColor.TryGetValue(colorKey, out m)) return false;
+                    assign[i * C + j] = m;
+                }
+
+            var result = StockAwareAssigner.SolveWithMinimum(src, R, C, assign, pool, capacityOfId, familyOfId, options, gamut);
+            LastStockResult = result;
+            if (result.Changed)
+            {
+                PixelEditService.Reset();
+                RebuildFromAssignment(result.Assignment, pool, R, C);
+            }
+            if (prepareTextures && (texturesAlways || result.Changed))
+            {
+                StoneTextureService.PopulateRandomIndices(R, C);
+                StoneTextureService.LoadTextures();
+                StoneTextureService.ResizeTextures(MosaicData.N);
+            }
+            return true;
+        }
+
+        // Writes a per-pixel stone choice into the mosaic data the same way ApplyOptimalK does.
+        private static void RebuildFromAssignment(int[] assign, List<rgb> pool, int R, int C)
+        {
+            int M = pool.Count;
+            int[] counts = new int[M];
+            MosaicData.dataM3 = new byte[R, C, 3];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                {
+                    int m = assign[i * C + j];
+                    counts[m]++;
+                    MosaicData.dataM3[i, j, 0] = (byte)pool[m].b;
+                    MosaicData.dataM3[i, j, 1] = (byte)pool[m].g;
+                    MosaicData.dataM3[i, j, 2] = (byte)pool[m].r;
+                    drl.dat[i, j, 3] = pool[m].ID;
+                }
+
+            var palette = new List<rgb>();
+            for (int m = 0; m < M; m++)
+            {
+                if (counts[m] == 0) continue;
+                var c = CloneRgb(pool[m]);
+                c.numOfPixel = counts[m];
+                c.reg = 1;
+                c.boolLeaveOut = false;
+                palette.Add(c);
+            }
+            palette.Sort((a, b) => a.ID.CompareTo(b.ID));
+            for (int z = 0; z < palette.Count; z++)
+            {
+                palette[z].u = z + 1;
+                palette[z].uc = z + 1;
+                palette[z].ri = palette[z].r; palette[z].gi = palette[z].g; palette[z].bi = palette[z].b;
+                palette[z].dis = (palette[z].r + palette[z].g + palette[z].b) / 3.0;
+            }
+            rgbM = palette.Count;
+            if (drl.arar.Count > 0) drl.arar[0].rgbM = palette.Count;
+
+            MosaicData.dataM1 = (byte[,,])MosaicData.dataM3.Clone();
+            MosaicData.arMB = new List<List<rgb>> { palette };
+            MosaicData.arMA = CloneNestedList(MosaicData.arMB);
+            BackupM3(R, C);
+
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
+            // The export bitmap ApplyOptimalK just made may already be on screen, so it is left to the finalizer
+            // instead of being disposed here on the worker thread.
+            MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
         }
 
         private static byte[,,]? _optSrc;
@@ -224,6 +358,7 @@ namespace mosair.Services
             InterpolationMethod interpMethod = InterpolationMethod.Area, Action<int>? onProgress = null,
             bool prepareTextures = true)
         {
+            LastRunPool = new List<rgb>(MosaicData.arRGB);
             rgbM = targetColors;
             RGBInc = rgbIncrement;
             boolLab = useLab;
@@ -483,6 +618,8 @@ namespace mosair.Services
             StoneTextureService.Reset();
             PixelEditService.Reset();
             LastOptimalResult = null;
+            LastRunPool = null;
+            LastStockResult = null;
             _optSrc = null;
             _optCandidates = null;
             _optGamut = null;

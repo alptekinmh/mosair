@@ -278,6 +278,40 @@ namespace mosair.ViewModels
             StatusText = Loc.Get("StockSettingsSaved");
         }
 
+        // Stock last read from the configured sheet (at start-up and whenever an image or project is loaded).
+        // "Stoğa göre" Mos uses it; this mosaic's own sheet column is left out of the other mosaics' share.
+        private Dictionary<int, StockSheetService.StoneStock>? _loadedStock;
+
+        public Task LoadStockOnStartupAsync() => RefreshStockAsync();
+
+        // Reads "Bizdeki (kg)" (minus the other mosaics' share) so the catalog tooltips show stock and Mos can
+        // keep to it. Only information here: the selection and the red dots are not touched; a failure is a note.
+        public async Task RefreshStockAsync()
+        {
+            var config = StockSheetService.LoadConfig();
+            if (string.IsNullOrEmpty(config.SheetId)) return;
+            string project = StockProjectName();
+            try
+            {
+                var stock = await StockSheetService.FetchOnHandAsync(config.SheetId, project.Length > 0 ? project : null);
+                // A newer image may have been loaded while this was reading; keep only the stock for the current one.
+                if (project != StockProjectName()) return;
+                _loadedStock = stock;
+                int matched = 0;
+                foreach (var item in CatalogColors)
+                    if (stock.TryGetValue(item.ID, out var s)) { item.StockKg = s.OnHandKg; matched++; }
+                AppendStartupStatus(Loc.Fmt("StockLoadedOnStart", matched));
+            }
+            catch (Exception ex)
+            {
+                AppendStartupStatus(Loc.Fmt("StockLoadOnStartFailed", ex.Message));
+            }
+        }
+
+        // Keeps a start-up warning that is already in the status bar (e.g. skipped catalog lines).
+        private void AppendStartupStatus(string message) =>
+            StatusText = StatusText == Loc.Get("StatusReady") ? message : StatusText + " · " + message;
+
         // markOnly = false: stones listed with no stock are unchecked, the others checked (as in WPF).
         // markOnly = true: the selection is left alone; stones with no stock only get a red dot.
         public async Task FetchStockAsync(bool markOnly = false)
@@ -327,11 +361,22 @@ namespace mosair.ViewModels
                 Alert(Loc.Get("StockTitle"), Loc.Get("StockNoProject"));
                 return;
             }
+            if (!MosaicDone || MosaicData.arMA.Count == 0)
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNoMosaic"));
+                return;
+            }
+
+            // "Stoğa göre": fix the mosaic to stock first, so the sheet gets the final counts in one write.
+            // When the fix cannot run (reason already shown) Stok Kontrol still does its normal check below.
+            Dictionary<int, StockSheetService.StoneStock>? stock = null;
+            if (UseStockAware)
+                stock = await FixToStockAsync(config, projectName);
+
             var counts = new Dictionary<int, int>();
-            if (MosaicDone && MosaicData.arMA.Count > 0)
-                foreach (var c in MosaicData.arMA[0])
-                    if (c.numOfPixel > 0)
-                        counts[c.ID] = counts.TryGetValue(c.ID, out int n) ? n + c.numOfPixel : c.numOfPixel;
+            foreach (var c in MosaicData.arMA[0])
+                if (c.numOfPixel > 0)
+                    counts[c.ID] = counts.TryGetValue(c.ID, out int n) ? n + c.numOfPixel : c.numOfPixel;
             if (counts.Count == 0)
             {
                 Alert(Loc.Get("StockTitle"), Loc.Get("StockNoMosaic"));
@@ -340,6 +385,7 @@ namespace mosair.ViewModels
             var stones = new List<(int Id, int Count)>();
             foreach (var kv in counts) stones.Add((kv.Key, kv.Value));
 
+            string fixReport = StatusText;
             HashSet<int>? shortIds = null;
             await RunStockAction(async () =>
             {
@@ -354,10 +400,133 @@ namespace mosair.ViewModels
                     if (check.OnHand.TryGetValue(item.ID, out double onHand)) item.StockKg = onHand;
                 }
             }, "");
-            if (shortIds != null)
+            if (shortIds == null) return; // write failed; the error was shown
+
+            if (stock != null)
+            {
+                // The sheet's "Tahmini Kalan" can be read back before Google has recalculated it, so red dots
+                // and remaining kg come from the stock read for the fix instead.
+                ShowStockMarks(stock, counts);
+                bool changed = fixReport != Loc.Get("StockAwareOk");
+                StatusText = fixReport + " · " + Loc.Get(changed ? "StockAwareWritten" : "StockCountsWritten");
+            }
+            else
                 StatusText = shortIds.Count == 0
                     ? Loc.Fmt("StockCheckOk", projectName)
                     : Loc.Fmt("StockCheckShort", projectName, shortIds.Count);
+        }
+
+        // "Stoğa göre" before Stok Kontrol writes: stones short of stock are used only as far as stock goes and
+        // stones used very little are dropped; their pixels go to similar stones. Returns the stock that was used,
+        // or null when the fix could not run (the reason is shown in a dialog, nothing is written then).
+        private async Task<Dictionary<int, StockSheetService.StoneStock>?> FixToStockAsync(
+            StockSheetService.Config config, string projectName)
+        {
+            void Fail(string message)
+            {
+                SetStockAwareReport(message);
+                StatusText = message;
+                Alert(Loc.Get("StockAwareTitle"), message);
+            }
+
+            // Works on a mosaic made in this session (Optimum or classic Mos); an opened project has no source
+            // image data at stone resolution to judge substitutes by.
+            if (!_mosaicMadeThisSession || MosaicEngine.LastRunPool == null)
+            {
+                Fail(Loc.Get("StockAwareNeedsMos"));
+                return null;
+            }
+
+            // Available = Bizdeki minus the other mosaic columns; this mosaic's own column is left out.
+            Dictionary<int, StockSheetService.StoneStock> stock;
+            try
+            {
+                stock = await StockSheetService.FetchOnHandAsync(config.SheetId, projectName);
+            }
+            catch (Exception ex)
+            {
+                Fail(Loc.Fmt("StockAwareReadFailed", ex.Message));
+                return null;
+            }
+
+            bool needsFix = false;
+            foreach (var c in MosaicData.arMA[0])
+            {
+                if (c.numOfPixel <= 0) continue;
+                if (stock.TryGetValue(c.ID, out var s) && c.numOfPixel > s.Capacity) needsFix = true;
+            }
+            _stockOnHand = stock;
+            if (!needsFix)
+            {
+                SetStockAwareReport(Loc.Get("StockAwareOk"));
+                StatusText = Loc.Get("StockAwareOk");
+                return stock;
+            }
+            if (EditedPixelCount > 0 &&
+                !await Confirm(Loc.Get("StockAwareTitle"), Loc.Fmt("StockAwareEditsConfirm", EditedPixelCount)))
+                return null;
+
+            int version = StartNewContent();
+            IsProcessing = true;
+            var sw = Stopwatch.StartNew();
+            try
+            {
+                SKBitmap? result = null;
+                SKBitmap? rsBmp = null;
+                var oldExport = MosaicData.exportBitmap;
+                int k = OptimalK;
+                bool optimum = OptimalAvailable;
+                bool fixedOk = true;
+                await Task.Run(() =>
+                {
+                    if (optimum)
+                        result = ApplyOptimalKFor(k, stock);
+                    else
+                    {
+                        fixedOk = FixClassicMosaicToStock(stock);
+                        result = MosaicData.reducedBitmap;
+                    }
+                    if (fixedOk) rsBmp = BuildRsBitmap();
+                });
+                sw.Stop();
+                if (version != _contentVersion) { rsBmp?.Dispose(); return null; } // a new image or project was opened meanwhile
+                if (!fixedOk)
+                {
+                    Fail(Loc.Get("StockAwareCannotFix"));
+                    return null;
+                }
+                FinishMosaic(result, rsBmp, sw.Elapsed);
+                DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                ShowStockAwareResult(stock);
+                return stock;
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+                return null;
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
+        }
+
+        // Red dots and "remaining" kg from the stock that was read: short = used beyond what is available.
+        private void ShowStockMarks(Dictionary<int, StockSheetService.StoneStock> stock, Dictionary<int, int> counts)
+        {
+            bool Short(int id) => stock.TryGetValue(id, out var s) && counts.TryGetValue(id, out int n) && n > s.Capacity;
+            foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = Short(c.ID);
+            foreach (var item in CatalogColors)
+            {
+                item.StockShort = Short(item.ID);
+                if (stock.TryGetValue(item.ID, out var s))
+                {
+                    counts.TryGetValue(item.ID, out int used);
+                    item.StockKg = s.OnHandKg;
+                    item.RemainingKg = s.AvailableKg - used * StockSheetService.StoneWeightKg;
+                }
+            }
         }
 
         public async Task ClearStockOneAsync()
@@ -741,6 +910,114 @@ public bool UseLab
             set { _useOptimal = value; OnPropertyChanged(); }
         }
 
+        // ===== Stock-aware Optimum ("Stoğa göre"): runs after Stok Kontrol =====
+
+        private bool _useStockAware = true;
+        // Stock read by the last Stok Kontrol fix; the stone-count slider reuses it. Cleared by a new Mos,
+        // a new image or an opened project.
+        private Dictionary<int, StockSheetService.StoneStock>? _stockOnHand;
+        private string _stockAwareReport = "";
+        // True once Mos (Optimum or classic) has produced the mosaic on screen in this session; an opened
+        // project or a newly loaded image clears it.
+        private bool _mosaicMadeThisSession;
+
+        public bool UseStockAware
+        {
+            get => _useStockAware;
+            set { _useStockAware = value; OnPropertyChanged(); OnPropertyChanged(nameof(StockAwareTip)); }
+        }
+
+        public string StockAwareTip => _stockAwareReport.Length == 0
+            ? Loc.Get("TipStockAware")
+            : Loc.Get("TipStockAware") + "\n\n" + _stockAwareReport;
+
+        private void SetStockAwareReport(string text)
+        {
+            _stockAwareReport = text;
+            OnPropertyChanged(nameof(StockAwareTip));
+        }
+
+        // The minimum-usage rule (dropping stones used only a few times) is switched off: MinUsage stays 0.
+        private static StockAwareOptions StockOptions() => new();
+
+        // Runs on the worker thread.
+        private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
+            stock == null
+                ? MosaicEngine.ApplyOptimalK(k)
+                : MosaicEngine.ApplyOptimalKWithStock(k,
+                    id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
+                    id => stock.TryGetValue(id, out var s) ? s.Name : null,
+                    StockOptions());
+
+        // Runs on the worker thread: fixes a classic Mos result in place.
+        private static bool FixClassicMosaicToStock(Dictionary<int, StockSheetService.StoneStock> stock) =>
+            MosaicEngine.FixCurrentMosaicToStock(
+                id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
+                id => stock.TryGetValue(id, out var s) ? s.Name : null,
+                StockOptions());
+
+        // After a stock-aware run: kg values and red dots in the catalog, a short status note and the full report.
+        private void ShowStockAwareResult(Dictionary<int, StockSheetService.StoneStock> stock)
+        {
+            var res = MosaicEngine.LastStockResult;
+            if (res == null) return;
+            string Label(int id) => stock.TryGetValue(id, out var s)
+                ? string.Join(" ", new[] { $"#{id}", s.Code, s.Name.Trim() }.Where(x => x.Length > 0))
+                : $"#{id}";
+
+            foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = res.ShortIds.Contains(c.ID);
+            foreach (var item in CatalogColors)
+            {
+                item.StockShort = res.ShortIds.Contains(item.ID);
+                if (stock.TryGetValue(item.ID, out var s))
+                {
+                    res.CountAfter.TryGetValue(item.ID, out int used);
+                    item.StockKg = s.OnHandKg;
+                    // What stays after the other mosaics and this one (the sheet's "Tahmini Kalan").
+                    item.RemainingKg = s.AvailableKg - used * StockSheetService.StoneWeightKg;
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            string summary;
+            if (!res.Changed && res.ShortIds.Count == 0)
+            {
+                summary = Loc.Get("StockAwareOk");
+                sb.Append(summary);
+            }
+            else
+            {
+                summary = Loc.Fmt("StockAwareChanged", res.Moves.Select(m => m.FromId).Distinct().Count(), res.MovedPixels);
+                sb.AppendLine(summary);
+                foreach (var m in res.Moves)
+                    sb.AppendLine(Loc.Fmt("StockAwareMove", Label(m.FromId), Label(m.ToId), m.Count,
+                        (m.Count * StockSheetService.StoneWeightKg).ToString("0.00")));
+                if (res.AddedIds.Count > 0)
+                    sb.AppendLine(Loc.Fmt("StockAwareAdded", string.Join(", ", res.AddedIds.Select(Label))));
+                if (res.SmallRemovedIds.Count > 0)
+                    sb.AppendLine(Loc.Fmt("StockAwareSmall", res.MinUsage,
+                        string.Join(", ", res.SmallRemovedIds.Select(id =>
+                            $"{Label(id)} ({(res.CountBefore.TryGetValue(id, out int n) ? n : 0)})"))));
+                if (res.Level > 0)
+                    sb.AppendLine(Loc.Get("StockAwareLevel" + Math.Min(res.Level, 4)));
+                if (res.ShortIds.Count > 0)
+                {
+                    string shortList = string.Join(", ", res.ShortIds.Select(Label));
+                    sb.AppendLine(Loc.Fmt("StockAwareShort", shortList));
+                    summary += " · " + Loc.Fmt("StockAwareShort", shortList);
+                }
+            }
+            if (res.UnknownIds.Count > 0)
+            {
+                // Without a sheet row these stones could not be checked against stock.
+                string unknown = Loc.Fmt("StockAwareUnknown", string.Join(", ", res.UnknownIds.Select(Label)));
+                sb.AppendLine().Append(unknown);
+                summary += " · " + unknown;
+            }
+            SetStockAwareReport(sb.ToString().TrimEnd());
+            StatusText = StatusText + " · " + summary;
+        }
+
         public bool OptimalAvailable => MosaicDone && _lastRunOptimal;
 
         public int OptimalKMax
@@ -803,15 +1080,22 @@ public bool UseLab
                 SKBitmap? result = null;
                 SKBitmap? rsBmp = null;
                 var oldExport = MosaicData.exportBitmap;
+                var stock = UseStockAware ? _stockOnHand : null;
                 await Task.Run(() =>
                 {
-                    result = MosaicEngine.ApplyOptimalK(k);
+                    result = ApplyOptimalKFor(k, stock);
                     rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
                 if (version != _contentVersion) { rsBmp?.Dispose(); return; } // another image or Mos took over
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                if (stock != null)
+                {
+                    ShowStockAwareResult(stock);
+                    // The sheet column still holds the counts from the last Stok Kontrol.
+                    StatusText += " · " + Loc.Get("StockAwareRecheck");
+                }
             }
             catch (Exception ex)
             {
@@ -1085,6 +1369,9 @@ public bool UseLab
             ProjectService.CurrentPictureFileName = path;
             ProjectService.CurrentFileName = "";
             ProjectService.ForgetWpfState();
+            _stockOnHand = null;
+            _mosaicMadeThisSession = false;
+            SetStockAwareReport("");
             MosaicEngine.Reset();
             MosaicDone = false;
 
@@ -1121,6 +1408,8 @@ public bool UseLab
                 UpdateDimensions();
                 AutoSelectGridColor(bmp);
                 StatusText = Loc.Get("StatusImageLoaded");
+                _loadedStock = null;
+                _ = RefreshStockAsync();
             }
             else
             {
@@ -1199,8 +1488,9 @@ public bool UseLab
             ProjectService.ForgetWpfState();
 
             foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = false;
-            // As in WPF, a new mosaic drops the stock marks and kg values; fetch or check stock again to see them.
-            foreach (var item in CatalogColors) { item.StockShort = false; item.StockKg = null; item.RemainingKg = null; }
+            // A new mosaic drops the red dots and the "remaining" kg, which belonged to the old stone counts.
+            // The kg on hand (loaded at start-up or by Stok Çek) does not depend on the mosaic and stays.
+            foreach (var item in CatalogColors) { item.StockShort = false; item.RemainingKg = null; }
 
             if (UseOptimal)
             {
@@ -1241,12 +1531,27 @@ public bool UseLab
                 bool optimal = UseOptimal;
                 _lastRunOptimal = false;
                 var oldExport = MosaicData.exportBitmap;
+                // "Stoğa göre": the mosaic is built and then fitted to the stock read from the sheet (loaded with
+                // the image/project; read here if it is not there yet). Without stock the Mos is plain.
+                _stockOnHand = null;
+                SetStockAwareReport("");
+                Dictionary<int, StockSheetService.StoneStock>? stock = null;
+                if (UseStockAware)
+                {
+                    if (_loadedStock == null) await RefreshStockAsync();
+                    stock = _loadedStock;
+                    if (stock == null) SetStockAwareReport(Loc.Get("StockAwareNoStock"));
+                }
+                bool stockFixOk = true;
                 await Task.Run(() =>
                 {
                     if (optimal)
                     {
                         result = MosaicEngine.RunOptimal(SelectedInterpolation,
-                            progress => Dispatcher.UIThread.Post(() => Progress = progress));
+                            progress => Dispatcher.UIThread.Post(() => Progress = progress),
+                            prepareTextures: stock == null);
+                        if (stock != null)
+                            result = ApplyOptimalKFor(MosaicEngine.LastOptimalResult!.KOptimal, stock);
                     }
                     else
                     {
@@ -1258,6 +1563,11 @@ public bool UseLab
                             SelectedInterpolation,
                             progress => Dispatcher.UIThread.Post(() => Progress = progress)
                         );
+                        if (stock != null)
+                        {
+                            stockFixOk = FixClassicMosaicToStock(stock);
+                            result = MosaicData.reducedBitmap;
+                        }
                     }
                     rsBmp = BuildRsBitmap();
                 });
@@ -1277,6 +1587,22 @@ public bool UseLab
                 }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                _mosaicMadeThisSession = result != null;
+                if (UseStockAware && stock == null && result != null)
+                    StatusText += " · " + Loc.Get("StockAwareNoStock");
+                if (stock != null && result != null)
+                {
+                    if (stockFixOk)
+                    {
+                        _stockOnHand = stock; // the stone-count slider keeps to the same stock
+                        ShowStockAwareResult(stock);
+                    }
+                    else
+                    {
+                        SetStockAwareReport(Loc.Get("StockAwareCannotFix"));
+                        Alert(Loc.Get("StockAwareTitle"), Loc.Get("StockAwareCannotFix"));
+                    }
+                }
             }
             catch (OutOfMemoryException)
             {
@@ -1359,6 +1685,9 @@ public bool UseLab
 
             // An opened project has no Optimum analysis; hide the stone slider left from an earlier Optimum Mos.
             _lastRunOptimal = false;
+            _stockOnHand = null;
+            _mosaicMadeThisSession = false;
+            SetStockAwareReport("");
             MosaicDone = true;
             ImageLoaded = true;
             _stoneUndoStack.Clear();
@@ -1422,6 +1751,8 @@ public bool UseLab
 
             FitToWindow(_lastViewportWidth, _lastViewportHeight);
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
+            _loadedStock = null;
+            _ = RefreshStockAsync();
         }
 
         public async Task ExportImageAsync(string path)

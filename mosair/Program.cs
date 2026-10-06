@@ -13,6 +13,8 @@ class Program
     {
         if (args.Length > 0 && args[0] == "--compare")
             return CompareRunner.Run(args);
+        if (args.Length > 0 && args[0] == "--stockcompare")
+            return StockCompareRunner.Run(args);
         return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 

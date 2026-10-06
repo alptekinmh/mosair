@@ -314,7 +314,7 @@ namespace mosair.Services
             res.KOptimal = Math.Max(res.KThreshold, res.KProtected);
         }
 
-        private static double[] SobelMagnitude(double[] L, int R, int C)
+        internal static double[] SobelMagnitude(double[] L, int R, int C)
         {
             var mag = new double[R * C];
             for (int i = 0; i < R; i++)
@@ -330,7 +330,7 @@ namespace mosair.Services
             return mag;
         }
 
-        private static double Percentile(double[] values, double q)
+        internal static double Percentile(double[] values, double q)
         {
             var copy = (double[])values.Clone();
             Array.Sort(copy);

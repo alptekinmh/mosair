@@ -139,6 +139,98 @@ namespace mosair.Services
                 ["action"] = "stokEkle", ["sheetId"] = sheetId
             }, treatNotFoundAsError: true);
 
+        // ===== Stock-aware mosaic: stock on hand per stone =====
+
+        // Weight of one mosaic stone. The sheet's "Kullanılacaklar (kg)" is exactly count × 3.3 g.
+        public const double StoneWeightKg = 0.0033;
+
+        public sealed class StoneStock
+        {
+            public int Id;            // "mos" column = catalog stone ID
+            public string Code = "";  // "Kod", e.g. C125
+            public string Name = "";  // "Öğe adı", e.g. Teos1 Yeşil; the same stone in other finishes shares it
+            public double OnHandKg;   // "Bizdeki (kg)"
+            // Stock already set aside by the sheet's other mosaic columns (counts × 3.3 g).
+            public double OtherMosaicsKg;
+            // What this mosaic may use: on hand minus the other mosaics' share.
+            public double AvailableKg => OnHandKg - OtherMosaicsKg;
+            public int Capacity => AvailableKg <= 0 ? 0 : (int)Math.Floor(AvailableKg / StoneWeightKg + 1e-9);
+        }
+
+        // Stones that have a row in the sheet (a "mos" number and a "Kod"). Stones without a row have no stock data.
+        // projectName: this mosaic's own column, left out of the other mosaics' share (null = count every column).
+        public static async Task<Dictionary<int, StoneStock>> FetchOnHandAsync(string sheetId, string? projectName = null) =>
+            ParseOnHand(await FetchCsvAsync(sheetId), projectName);
+
+        public static Dictionary<int, StoneStock> ParseOnHandCsv(string csv, string? projectName = null)
+        {
+            var rows = new List<string[]>();
+            foreach (var line in csv.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                rows.Add(ParseCsvLine(line));
+            return ParseOnHand(rows, projectName);
+        }
+
+        private static Dictionary<int, StoneStock> ParseOnHand(List<string[]> rows, string? projectName)
+        {
+            var headers = rows[0];
+            int mosCol = -1, kodCol = -1, nameCol = -1, bizdekiCol = -1, zoneStart = -1, zoneEnd = -1;
+            for (int i = 0; i < headers.Length; i++)
+            {
+                string h = headers[i].Trim().ToLowerInvariant();
+                if (h == "mos") mosCol = i;
+                else if (h == "kod") kodCol = i;
+                else if (nameCol < 0 && h.Contains("adı")) nameCol = i;
+                if (bizdekiCol < 0 && h.Contains("bizdeki") && h.Contains("(kg)")) bizdekiCol = i;
+                // Mosaic columns: same rule as the sheet's Apps Script (findMozaikZone) — after the last
+                // "bizdeki" header up to the "13." header, skipping "#" and empty headers.
+                if (h.Contains("bizdeki")) zoneStart = i + 1;
+                if (h.Contains("13.")) zoneEnd = i;
+            }
+            if (mosCol < 0 || bizdekiCol < 0)
+                throw new Exception(Loc.Fmt("StockErrColumns", "mos / Bizdeki (kg)", string.Join(", ", headers)));
+            if (zoneStart > 0 && zoneEnd < 0) zoneEnd = zoneStart + 9;
+            var zone = new List<int>();
+            for (int c = Math.Max(zoneStart, 0); c < zoneEnd && c < headers.Length; c++)
+            {
+                string h = headers[c].Trim();
+                if (h.Length == 0 || h == "#") continue;
+                if (projectName != null && h == projectName.Trim()) continue;
+                zone.Add(c);
+            }
+
+            var stock = new Dictionary<int, StoneStock>();
+            for (int r = 1; r < rows.Count; r++)
+            {
+                var cols = rows[r];
+                string Col(int c) => c >= 0 && c < cols.Length ? cols[c].Trim() : "";
+                // "mos" is the catalog stone ID (1..124). Rows with 0 are stones that have no mosair ID
+                // (e.g. "Ege Bej") or empty filler rows, so they cannot be matched to a catalog stone.
+                if (!int.TryParse(Col(mosCol), out int mos) || mos <= 0) continue;
+                string kod = Col(kodCol), name = Col(nameCol), bizdeki = Col(bizdekiCol);
+                // Stones 68+ have no "Kod" in the sheet ("Taş 68" …) but do have a name and stock, so only rows with
+                // nothing at all (the numbered filler rows below the catalog) are skipped.
+                if (kod.Length == 0 && name.Length == 0 && bizdeki.Length == 0) continue;
+                double others = 0;
+                foreach (int c in zone) others += ParseTrNumber(Col(c)) ?? 0;
+                stock[mos] = new StoneStock
+                {
+                    Id = mos, Code = kod, Name = name,
+                    OnHandKg = ParseTrNumber(bizdeki) ?? 0,
+                    OtherMosaicsKg = Math.Max(0, others) * StoneWeightKg
+                };
+            }
+            return stock;
+        }
+
+        // Sheet numbers use Turkish format: "1.027,00" = 1027.00, "15,00" = 15.0. Empty → null.
+        public static double? ParseTrNumber(string s)
+        {
+            s = s.Trim();
+            if (s.Length == 0) return null;
+            string v = s.Replace(".", "").Replace(",", ".");
+            return double.TryParse(v, NumberStyles.Float, CultureInfo.InvariantCulture, out double d) ? d : null;
+        }
+
         private static async Task<List<string[]>> FetchCsvAsync(string sheetId)
         {
             string url = $"https://docs.google.com/spreadsheets/d/{Uri.EscapeDataString(sheetId)}/gviz/tq?tqx=out:csv";
@@ -167,12 +259,27 @@ namespace mosair.Services
 
         private static async Task PostAsync(string scriptUrl, object payload, bool treatNotFoundAsError)
         {
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await Http.PostAsync(scriptUrl, content);
-            string body = await response.Content.ReadAsStringAsync();
+            string json = JsonSerializer.Serialize(payload);
+            static bool IsHtml(string b) =>
+                b.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) || b.Contains("<html", StringComparison.OrdinalIgnoreCase);
 
-            if (body.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) || body.Contains("<html", StringComparison.OrdinalIgnoreCase))
-                throw new Exception(Loc.Get("StockErrDeploy"));
+            // Google sometimes answers with an HTML error page for a moment (busy, two writes in a row); one retry
+            // after a short wait clears that. A page that comes back twice is reported with its title.
+            string body = "";
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                if (attempt > 0) await Task.Delay(2000);
+                var response = await Http.PostAsync(scriptUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+                body = await response.Content.ReadAsStringAsync();
+                if (!IsHtml(body)) break;
+            }
+            if (IsHtml(body))
+            {
+                var title = System.Text.RegularExpressions.Regex.Match(body, "<title>(.*?)</title>",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                string detail = title.Success ? System.Net.WebUtility.HtmlDecode(title.Groups[1].Value).Trim() : "";
+                throw new Exception(detail.Length > 0 ? Loc.Get("StockErrDeploy") + "\n(" + detail + ")" : Loc.Get("StockErrDeploy"));
+            }
 
             string status = "", message = body;
             try
