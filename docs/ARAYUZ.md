@@ -177,7 +177,7 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
   - **Yalnız Bizdeki biliniyorsa:** `X kg`.
   - **Yalnız kalan biliniyorsa:** `X kg kaldı`.
   - Renk: her sayı 0 veya altındaysa **kırmızı**, üstündeyse **yeşil**.
-  - Elimizdeki kg, uygulama açılırken stok ayarındaki tablodan kendiliğinden yüklenir; Stok Çek ve Stok Kontrol de günceller. Yeni bir Mos kırmızı noktaları ve "kalan" değerini siler, elimizdeki kg'ı korur.
+  - Elimizdeki kg, uygulama açılırken ve her görsel ya da proje yüklendiğinde stok ayarındaki tablodan kendiliğinden yüklenir; Stok Çek ve Stok Kontrol de günceller. Yeni bir Mos kırmızı noktaları ve "kalan" değerini siler, elimizdeki kg'ı korur.
 
 **Mos'tan sonra:** Katalogda yalnızca mozaikte kullanılan taşlar işaretli kalır.
 
@@ -281,6 +281,14 @@ Yeşil tablo ikonuna **sağ tıklayın** (veya **Araçlar → Stok → Stok Ayar
 | Stok Ekle | **Tahmini Kalan** değerlerini **Bizdeki** sütununa taşır ve bütün mozaik sütunlarını temizler. Onay ister. | Evet |
 
 **Proje adı:** Tablodaki sütun adı görsel dosyasının adıdır (ör. `7.jpg` için `7`); görsel bilinmiyorsa açılan `.mos` dosyasının adı kullanılır. İkisi de yoksa Stok Kontrol ve Stok Sil çalışmaz. Stok Kontrol için ayrıca Mos yapılmış olmalıdır.
+
+### Stoğa göre (Optimum'un yanındaki kutu)
+
+- **İşaretliyken** Mos (Optimum ya da klasik) yalnızca stokta olan taşlarla yapılır. Kullanılabilir stok: **Bizdeki (kg) − diğer mozaik sütunlarının ayırdığı kg** (bu projenin sütunu sayılmaz), 1 taş = 3,3 g.
+- Stoğu yetmeyen taş elde olduğu kadar kullanılır; kalan yer renkçe en yakın stoklu taşla doldurulur. Çok az kullanılacak taşlar (en az 10, büyük görsellerde toplamın ‰0,5'i) hiç kullanılmaz.
+- Stok, uygulama açılırken ve her görsel ya da proje yüklendiğinde tablodan okunur; Mos sırasında tablo okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
+- Sonuç ve değişen taşlar durum çubuğunda ve kutunun ipucunda görünür. **Stok Kontrol** son adetleri tabloya yazar.
+- Optimum taş kaydırıcısı değiştirilince yeni taş sayısı da aynı stoğa göre düzeltilir.
 
 ### Önerilen akış
 

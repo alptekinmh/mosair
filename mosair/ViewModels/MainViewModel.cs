@@ -278,15 +278,25 @@ namespace mosair.ViewModels
             StatusText = Loc.Get("StockSettingsSaved");
         }
 
-        // At start-up: read "Bizdeki (kg)" from the configured sheet so the catalog tooltips show stock right away.
-        // Only information: the selection and the red dots are not touched, and a failure is a status note.
-        public async Task LoadStockOnStartupAsync()
+        // Stock last read from the configured sheet (at start-up and whenever an image or project is loaded).
+        // "Stoğa göre" Mos uses it; this mosaic's own sheet column is left out of the other mosaics' share.
+        private Dictionary<int, StockSheetService.StoneStock>? _loadedStock;
+
+        public Task LoadStockOnStartupAsync() => RefreshStockAsync();
+
+        // Reads "Bizdeki (kg)" (minus the other mosaics' share) so the catalog tooltips show stock and Mos can
+        // keep to it. Only information here: the selection and the red dots are not touched; a failure is a note.
+        public async Task RefreshStockAsync()
         {
             var config = StockSheetService.LoadConfig();
             if (string.IsNullOrEmpty(config.SheetId)) return;
+            string project = StockProjectName();
             try
             {
-                var stock = await StockSheetService.FetchOnHandAsync(config.SheetId);
+                var stock = await StockSheetService.FetchOnHandAsync(config.SheetId, project.Length > 0 ? project : null);
+                // A newer image may have been loaded while this was reading; keep only the stock for the current one.
+                if (project != StockProjectName()) return;
+                _loadedStock = stock;
                 int matched = 0;
                 foreach (var item in CatalogColors)
                     if (stock.TryGetValue(item.ID, out var s)) { item.StockKg = s.OnHandKg; matched++; }
@@ -1395,6 +1405,8 @@ public bool UseLab
                 UpdateDimensions();
                 AutoSelectGridColor(bmp);
                 StatusText = Loc.Get("StatusImageLoaded");
+                _loadedStock = null;
+                _ = RefreshStockAsync();
             }
             else
             {
@@ -1515,15 +1527,27 @@ public bool UseLab
                 bool optimal = UseOptimal;
                 _lastRunOptimal = false;
                 var oldExport = MosaicData.exportBitmap;
-                // Mos is plain Optimum; "Stoğa göre" acts after Stok Kontrol. A new mosaic drops the last check's stock.
+                // "Stoğa göre": the mosaic is built and then fitted to the stock read from the sheet (loaded with
+                // the image/project; read here if it is not there yet). Without stock the Mos is plain.
                 _stockOnHand = null;
                 SetStockAwareReport("");
+                Dictionary<int, StockSheetService.StoneStock>? stock = null;
+                if (UseStockAware)
+                {
+                    if (_loadedStock == null) await RefreshStockAsync();
+                    stock = _loadedStock;
+                    if (stock == null) SetStockAwareReport(Loc.Get("StockAwareNoStock"));
+                }
+                bool stockFixOk = true;
                 await Task.Run(() =>
                 {
                     if (optimal)
                     {
                         result = MosaicEngine.RunOptimal(SelectedInterpolation,
-                            progress => Dispatcher.UIThread.Post(() => Progress = progress));
+                            progress => Dispatcher.UIThread.Post(() => Progress = progress),
+                            prepareTextures: stock == null);
+                        if (stock != null)
+                            result = ApplyOptimalKFor(MosaicEngine.LastOptimalResult!.KOptimal, stock);
                     }
                     else
                     {
@@ -1535,6 +1559,11 @@ public bool UseLab
                             SelectedInterpolation,
                             progress => Dispatcher.UIThread.Post(() => Progress = progress)
                         );
+                        if (stock != null)
+                        {
+                            stockFixOk = FixClassicMosaicToStock(stock);
+                            result = MosaicData.reducedBitmap;
+                        }
                     }
                     rsBmp = BuildRsBitmap();
                 });
@@ -1554,6 +1583,21 @@ public bool UseLab
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 _mosaicMadeThisSession = result != null;
+                if (UseStockAware && stock == null && result != null)
+                    StatusText += " · " + Loc.Get("StockAwareNoStock");
+                if (stock != null && result != null)
+                {
+                    if (stockFixOk)
+                    {
+                        _stockOnHand = stock; // the stone-count slider keeps to the same stock
+                        ShowStockAwareResult(stock);
+                    }
+                    else
+                    {
+                        SetStockAwareReport(Loc.Get("StockAwareCannotFix"));
+                        Alert(Loc.Get("StockAwareTitle"), Loc.Get("StockAwareCannotFix"));
+                    }
+                }
             }
             catch (OutOfMemoryException)
             {
@@ -1694,6 +1738,8 @@ public bool UseLab
 
             FitToWindow(_lastViewportWidth, _lastViewportHeight);
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
+            _loadedStock = null;
+            _ = RefreshStockAsync();
         }
 
         public async Task ExportImageAsync(string path)

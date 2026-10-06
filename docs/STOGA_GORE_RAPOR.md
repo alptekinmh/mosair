@@ -13,15 +13,16 @@
 
 **Bugünkü durum:**
 - Kod `stok_deneme` dalında, ayrı bir klasörde (`D:\dev\mosair-stok-deneme`). `feature`, `main` ve kullanıcıların sürümü (v1.3.0) etkilenmedi.
-- Bugün bir **kutu** var: Optimum'un yanında "Stoğa göre", varsayılan olarak açık. Kutu açıkken **Stok Kontrol**'e basılınca (Optimum ya da klasik Mos sonrası):
-  1. Önce stoğa göre düzeltme yapılır (Bizdeki − diğer mozaikler; az kullanılan taşlar çıkarılır).
-  2. Sonra son adetler tabloya **tek seferde** yazılır; kırmızı noktalar hesaplanan stoktan konur.
-  3. Düzeltme yapılamazsa sebebi bir pencerede gösterilir ve Stok Kontrol normal haliyle devam eder.
+- Bugün bir **kutu** var: Optimum'un yanında "Stoğa göre", varsayılan olarak açık. Kutu açıkken:
+  1. Stok uygulama açılırken ve her görsel ya da proje yüklendiğinde tablodan okunur (Bizdeki − diğer mozaikler).
+  2. **Mos** (Optimum ya da klasik) sonucu hemen bu stoğa göre düzeltilir: yetmeyen taşlar elde olduğu kadar kullanılır, az kullanılan taşlar çıkarılır. Stok okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
+  3. **Stok Kontrol** son adetleri tabloya **tek seferde** yazar (gerekirse önce bir kez daha düzeltir); kırmızı noktalar hesaplanan stoktan konur.
+  4. Düzeltme yapılamazsa sebebi bir pencerede gösterilir; Stok Kontrol normal haliyle devam eder.
 - Stok ayarı şu an **"mosair deneme" (TEST) tablosuna** bağlı. Bu ayar bilgisayardaki **bütün** mosair'ler için ortak; kurulu v1.3.0 da şu an test tablosunu kullanıyor.
 
 **Test durumu (dürüst not):**
 - **Test edildi:** Algoritma, komut satırından çalışan karşılaştırma aracıyla 4 görselde test edildi; bütün kontroller geçti.
-- **Test edilmedi:** Uygulama içindeki **"Stok Kontrol → düzeltme → tabloya yazma"** akışı tarafımdan baştan sona çalıştırılmadı; kullanıcı denemelerinde klasik Mos'ta sorun bildirildi ve kök nedeni henüz doğrulanmadı.
+- **Test edilmedi:** Uygulama içindeki **"Mos → stoğa göre düzeltme → Stok Kontrol ile yazma"** akışı tarafımdan arayüzde baştan sona çalıştırılmadı; kullanıcı denemesi bekleniyor.
 
 ---
 
