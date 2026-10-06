@@ -717,9 +717,12 @@
     </Border>
 
     <!-- ===== STATUS BAR (bottom) ===== -->
-    <Border DockPanel.Dock="Bottom" Background="{DynamicResource BgBar}" Padding="8,3"
+    <Border DockPanel.Dock="Bottom" Background="{DynamicResource BgBar}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,1,0,0" Height="28">
-      <Grid ColumnDefinitions="*,Auto,*">
+      <Panel>
+      <!-- Wave that flows across the whole bar while any work is in progress -->
+      <ctrl:ActivityWave IsActive="{Binding IsBusy}"/>
+      <Grid ColumnDefinitions="*,Auto,*" Margin="8,3">
         <!-- Left: Used color info -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
                     VerticalAlignment="Center" IsVisible="{Binding MosaicDone}">
@@ -751,6 +754,7 @@
                      FontFamily="JetBrains Mono,Consolas,monospace" Margin="0,0,4,0"/>
         </StackPanel>
       </Grid>
+      </Panel>
     </Border>
 
     <!-- ===== MAIN CONTENT ===== -->

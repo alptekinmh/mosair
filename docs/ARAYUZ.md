@@ -225,12 +225,13 @@ Canvas'ta bir taşa sol tıklayınca dolar.
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
 | Orta | İlerleme çubuğu (işlem sırasında), durum mesajı, geçen süre |
+| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, taş görüntüsünün yeniden çizimi, Optimum taş sayısı değişimi, proje açılırken görüntü üretimi, stok tablosu işlemleri, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
 | Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`N=2.0` biçiminde, Detay N ile karıştırılmamalı) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
-- Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok okunamadıysa (stok ayarı yapılmamışsa da) "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir.
+- Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
 - Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi, piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 

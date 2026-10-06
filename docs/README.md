@@ -70,6 +70,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [Controls/ConfirmDialog.md](kod/Controls/ConfirmDialog.md) | Evet/Hayır iletişim kutusu |
 | [Controls/StockSettingsDialog.md](kod/Controls/StockSettingsDialog.md) | Stok ayarları penceresi |
 | [Controls/GridOverlay.md](kod/Controls/GridOverlay.md) | Izgara çizimi |
+| [Controls/ActivityWave.md](kod/Controls/ActivityWave.md) | Durum çubuğundaki işlem dalgası animasyonu |
 | [Converters/InvariantDoubleConverter.md](kod/Converters/InvariantDoubleConverter.md) | cm kutusu için sayı dönüştürücü |
 
 ## Mimari özet

@@ -48,7 +48,7 @@ Window
    │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
    │   └─ Sağ: exportBtn (exportArrow animasyonu; sağ tık = klasörü aç) + açılır ok (Flyout: Dışa Aktar / Farklı Dışa Aktar),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
-   ├─ [Bottom] Durum çubuğu: Grid "*,Auto,*"
+   ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
    │   ├─ Sol: UsedColorInfo
    │   ├─ Orta: StatusText + Progress (IsProcessing) + ElapsedTime
    │   └─ Sağ: ZoomInfo + Ekrana Sığdır düğmesi

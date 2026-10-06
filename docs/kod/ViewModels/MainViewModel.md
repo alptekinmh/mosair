@@ -99,7 +99,8 @@ Katalog listesindeki bir taş rengi.
 | Ad | Tip | Açıklama |
 |---|---|---|
 | `Progress` | `int` | İlerleme yüzdesi. |
-| `IsProcessing`, `IsExporting` | `bool` | Değişince `CanRunMosaic` ve `CanExport` bildirilir. |
+| `IsProcessing`, `IsExporting` | `bool` | Değişince `CanRunMosaic`, `CanExport` ve `IsBusy` bildirilir. |
+| `IsBusy` | `bool` (salt okunur) | `IsProcessing \|\| IsStockBusy \|\| IsExporting`; durum çubuğundaki `ActivityWave` dalgasını sürer. Üç bayraktan biri değişince bildirilir. |
 | `MosaicDone` | `bool` | Değişince `CanExport` ve `OptimalAvailable` bildirilir. |
 | `CanRunMosaic` | `bool` | `ImageLoaded && !IsProcessing && !IsExporting`. |
 | `CanExport` | `bool` | `MosaicDone && !IsProcessing && !IsExporting`. |
@@ -125,7 +126,7 @@ Katalog listesindeki bir taş rengi.
 | `CatalogColors` | `ObservableCollection<ColorItem>` | Tüm katalog. |
 | `PaletteColors` | `ObservableCollection<PaletteItem>` | Mozaikte kullanılan renkler. |
 | `AssignedColors` | `ObservableCollection<AssignedItem>` | Kullanılan taşlar ve piksel sayıları. |
-| `IsStockBusy` | `bool` | Stok işlemi sürerken true (private set). |
+| `IsStockBusy` | `bool` | Stok işlemi sürerken true (private set); değişince `CanUseStock` ve `IsBusy` bildirilir. |
 | `CanUseStock` | `bool` | `!IsStockBusy`; stok menü/butonlarını kilitler. |
 | `UseStockAware` | `bool` | Varsayılan `true` ("Stoğa göre" onay kutusu). Kalıcı saklanmaz; her açılışta açık başlar. Değişince `StockAwareTip` de bildirilir. |
 | `StockAwareTip` | `string` | `TipStockAware` metni; son stoğa göre çalışmanın raporu (`_stockAwareReport`) varsa altına eklenir. |

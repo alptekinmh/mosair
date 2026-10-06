@@ -216,7 +216,7 @@ namespace mosair.ViewModels
         public bool IsStockBusy
         {
             get => _isStockBusy;
-            private set { _isStockBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanUseStock)); }
+            private set { _isStockBusy = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanUseStock)); OnPropertyChanged(nameof(IsBusy)); }
         }
         public bool CanUseStock => !_isStockBusy;
 
@@ -789,14 +789,18 @@ public bool UseLab
         public bool IsProcessing
         {
             get => _isProcessing;
-            set { _isProcessing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); }
+            set { _isProcessing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); }
         }
 
         public bool IsExporting
         {
             get => _isExporting;
-            set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); }
+            set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); }
         }
+
+        // Any work in progress (Mos, stock fit, stone-texture rebuild, stock sheet action, export): drives the
+        // wave animation in the status bar.
+        public bool IsBusy => _isProcessing || _isStockBusy || _isExporting;
 
         public string DimensionInfo
         {
