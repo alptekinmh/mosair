@@ -248,7 +248,7 @@ Katalog listesindeki bir taş rengi.
 - Aktif renk yoksa (`MosaicData.arRGB.Count == 0`) `AlertMosaicNoColors` uyarısı, işlem yapılmaz.
 - **Katalog uyarısı**: Açılışta `ColorCatalogService.SkippedLines` doluysa okunamayan katalog satırları `StatusCatalogSkipped` ile durum çubuğunda gösterilir.
 - **N > 40 uyarısı** (`NWarningVisible`) oturumda yalnız bir kez gösterilir (`_nWarningShown`).
-- **800M piksel sınırı**: `RegenerateRS`, `R·N·C·N > 800_000_000` ise RS üretmez; `StatusNTooLarge` ve `AlertNTooLargeTitle` gösterir. `OutOfMemoryException` → `AlertMemoryTitle`.
+- **Bitmap boyut sınırı**: `RegenerateRS`, `R·N·C·N > ImageService.MaxBitmapPixels` (≈ 536,9M piksel, Skia'nın 2 GB sınırı) ise RS üretmez; `StatusNTooLarge` ve `AlertNTooLargeTitle` gösterir. `OutOfMemoryException` → `AlertMemoryTitle`.
 - `RegenerateRS` 300 ms debounce, önceki çağrıyı iptal eder ve `_rsLock` ile aynı anda tek üretim yapar; mozaik yoksa hiçbir şey yapmaz.
 - **Stoğa göre (`UseStockAware`, varsayılan açık)**: Mos sonucu, Sheet'ten okunan stoğa (Bizdeki eksi diğer mozaik sütunları) göre `StockAwareAssigner` ile düzeltilir; stoğu yetmeyen taşın fazlası benzer taşlara taşınır. Aynı düzeltme taş sayısı kaydırıcısında (`_stockOnHand`) ve Stok Kontrol'den önce (`FixToStockAsync`) de uygulanır; Sheet'e son sayılar tek yazımda gider. Stok okunamazsa Mos düz çalışır.
 - **En az kullanım kuralı kapalı**: `StockOptions()` `MinUsage = 0` döndürür; çok az kullanılan taşlar düşürülmez. Kural yalnız `StockCompareRunner` test aracında `MOSAIR_MINUSAGE=1` ile açılır.
@@ -265,7 +265,7 @@ Katalog listesindeki bir taş rengi.
 ## Dikkat / bilinen sınırlamalar
 - `OpenProject`, `MosaicEngine.LastOptimalResult`'ı sıfırlamaz; ancak `_lastRunOptimal = false` yaptığı için `OptimalAvailable` false olur ve kaydırıcı gizlenir. Optimum seçim dizileri ve stok işaretleri `OpenProject`'te sıfırlanmaz.
 - `OpenProject` içinde `GridColor` ve `ShowGrid` atamaları (önceki `MosaicDone` true ise) debounced `RegenerateRS` tetikleyebilir; aynı anda `OpenProject` kendi RS'ini üretir → çift üretim ve `IsProcessing`'in erken false olması mümkün.
-- `RegenerateRS`'in `finally` bloğu, 800M kontrolünde erken dönse bile `IsProcessing = false` yapar; başka bir işlem sürerken bayrağı düşürebilir.
+- `RegenerateRS`'in `finally` bloğu, boyut kontrolünde erken dönse bile `IsProcessing = false` yapar; başka bir işlem sürerken bayrağı düşürebilir.
 - `OpenProject` `async void`; `ProjectService.Open` sonrası oluşan istisnalar (RS üretimi hariç) yakalanmaz. RS üretim hatası sessizce yutulur.
 - `FixToStockAsync` başındaki kod yorumu hâlâ "çok az kullanılan taşlar düşürülür" der; en az kullanım kuralı kapalı olduğundan bu olmaz (`StockAwareSmall` satırı raporda çıkmaz).
 - `FixToStockAsync` açılmış bir projede çalışmaz (`StockAwareNeedsMos`): taş çözünürlüğünde kaynak görsel verisi yoktur; önce Mos gerekir.

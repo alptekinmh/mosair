@@ -54,7 +54,7 @@ Durum tutmaz. Özel yardımcılar: `ApplyOrientation` (EXIF yönü) ve `ResizeWi
 - **Kanal sırası:** Projedeki tüm `byte[,,]` diziler (`MosaicData.dataM1`, `dataM3`, doku dizileri) **BGR** sırasındadır: `[y, x, 0] = B`, `[y, x, 1] = G`, `[y, x, 2] = R`. `FromByteArray` ve `ToByteArray` bu çeviriyi yapar.
 - **Area küçültme:** Her hedef piksel için kaynakta kapladığı dikdörtgen alan, kısmi piksellerin kesir ağırlıklarıyla ortalanır (OpenCV INTER_AREA benzeri). Satırlar `Parallel.For` ile işlenir; sonuç `Rgba8888`'dir. Hedef her iki eksende de kaynaktan büyük/eşitse Mitchell kübik büyütme kullanılır.
 - **EXIF yönü:** `TopRight`, `BottomRight`, `BottomLeft`, `LeftTop`, `RightTop`, `RightBottom`, `LeftBottom` durumları için tuval dönüşümü uygulanır; 90°'lik durumlarda genişlik/yükseklik yer değiştirir.
-- **Boyut sınırı:** `ToAvaloniaBitmap`, 800 milyon pikselden büyük bitmap'lerde `OutOfMemoryException` (`StatusRsBitmapTooLarge` metniyle) atar.
+- **Boyut sınırı:** `ToAvaloniaBitmap`, `MaxBitmapPixels` (= `int.MaxValue / 4` ≈ 536,9 milyon piksel; SkiaSharp 2 GB'tan büyük bitmap ayıramaz) üstündeki bitmap'lerde `OutOfMemoryException` (`StatusRsBitmapTooLarge` metniyle) atar.
 - `ToAvaloniaBitmap` satır uzunlukları eşitse tek `Buffer.MemoryCopy`, değilse satır satır kopyalar.
 
 ## Dikkat / bilinen sınırlamalar

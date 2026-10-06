@@ -228,7 +228,7 @@ namespace mosair.Services
             int bmpW = C * N;
             int bmpH = R * N;
             long totalPixels = (long)bmpW * bmpH;
-            if (totalPixels > 800_000_000L)
+            if (totalPixels > ImageService.MaxBitmapPixels)
                 throw new OutOfMemoryException(Loc.Fmt("StatusRsBitmapTooLarge", bmpW, bmpH));
             var bitmap = new SKBitmap(bmpW, bmpH, SKColorType.Rgba8888, SKAlphaType.Opaque);
             byte* dest = (byte*)bitmap.GetPixels();

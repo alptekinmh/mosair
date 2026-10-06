@@ -338,10 +338,14 @@ namespace mosair.Services
             return result;
         }
 
+        // Largest RGBA bitmap SkiaSharp can allocate: its byte size must fit in an int (2 GB), i.e. ~536.9M pixels.
+        // Above this SKBitmap fails with "Unable to allocate pixels", so callers check against this first.
+        public const long MaxBitmapPixels = int.MaxValue / 4;
+
         public static Avalonia.Media.Imaging.Bitmap ToAvaloniaBitmap(SKBitmap bmp)
         {
             long totalPixels = (long)bmp.Width * bmp.Height;
-            if (totalPixels > 800_000_000L)
+            if (totalPixels > MaxBitmapPixels)
                 throw new OutOfMemoryException(Loc.Fmt("StatusRsBitmapTooLarge", bmp.Width, bmp.Height));
 
             var wb = new Avalonia.Media.Imaging.WriteableBitmap(

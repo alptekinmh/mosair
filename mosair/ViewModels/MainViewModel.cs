@@ -2104,7 +2104,7 @@ public bool UseLab
                 int N = _stonePixelSize;
 
                 long totalPixels = (long)R * N * C * N;
-                if (totalPixels > 800_000_000L)
+                if (totalPixels > ImageService.MaxBitmapPixels)
                 {
                     long mb = totalPixels * 4 / 1_000_000;
                     StatusText = Loc.Fmt("StatusNTooLarge", N, mb);

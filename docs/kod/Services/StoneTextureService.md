@@ -61,7 +61,7 @@ Static sınıf, özel durum alanları:
 - **Yedek eşleme:** Hücre rengi sözlükte yoksa veya dokusu yoksa, dokusu olan girişler arasında RGB öklid uzaklığına göre en yakın kod adı seçilir ve renk başına önbelleğe alınır.
 - **Varyant seçimi:** Hücre `idx = i*C + j` için doku `textures[MosaicData.arn[idx]]` olur (`arn` 1..15 aralığında, liste 0 tabanlı).
 - **Izgara:** `showGrid && gridWidth > 0` ise tüm bitmap önce ızgara rengiyle boyanır, taş dokusu `gridWidth/2` kaydırılarak `N - gridWidth` boyutunda kopyalanır. `MainViewModel.BuildRsBitmap` bu durumda dokuları önceden `N - gw` boyutuna küçültür (`gw = max(1, N/11)`).
-- **Bellek sınırı:** Toplam piksel 800 milyonu aşarsa `OutOfMemoryException` (`StatusRsBitmapTooLarge` metniyle) atılır.
+- **Bellek sınırı:** Toplam piksel `ImageService.MaxBitmapPixels`'ı (≈ 536,9 milyon; Skia'nın 2 GB sınırı) aşarsa `OutOfMemoryException` (`StatusRsBitmapTooLarge` metniyle) atılır.
 - Yükleme, küçültme ve kopyalama `Parallel.ForEach` / `Parallel.For` ile yapılır; sonuçlar önce `ConcurrentDictionary`'de toplanıp sonra tek iş parçacığında sözlüklere aktarılır.
 
 ## Dikkat / bilinen sınırlamalar
