@@ -33,7 +33,7 @@
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│ Başlık çubuğu + Menü: Dosya  Düzenle  Görünüm  Araçlar  Yardım                    │
+│ Başlık çubuğu + Menü: Dosya  Düzenle  Görünüm  Araçlar  Yardım   ·  açık dosya adı │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Araç çubuğu: Görsel · Proje Aç │ Kaydet · Farklı Kaydet │ Mos │ Kalem │ Izgara      │
 │   Interp · Detay │ Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum         │
@@ -53,6 +53,7 @@
 - Uygulama ekranı kaplayacak şekilde (büyütülmüş) açılır; pencere en az 900×600 px olabilir.
 - Paneller arasındaki ince çizgiler (ayırıcılar) sürüklenerek genişlik değiştirilebilir. Sol panel 220–380 px, sağ panel 160–360 px arasında ayarlanır.
 - Pencere kendi başlık çubuğunu kullanır: boş bir yerinden sürükleyerek pencere taşınır, **çift tıklayınca** pencere büyür ya da eski boyutuna döner.
+- Başlık çubuğunun ortasında **açık dosyanın adı** yazar: görsel yüklenince fotoğrafın adı (ör. `st1.jpg`), proje kaydedilince ya da açılınca projenin adı (ör. `st1.mos`). Farklı Kaydet ile yeni adla kaydedilince yeni ad görünür.
 - Araç çubuğundaki düğmelerin üzerine gelince kısa bir ipucu (tooltip) çıkar; ipuçlarının metni [§4](#4-araç-çubuğu)'teki tabloda özetlenmiştir.
 
 ## 2. Temel iş akışı

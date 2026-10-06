@@ -1462,6 +1462,7 @@ public bool UseLab
                 UpdateDimensions();
                 AutoSelectGridColor(bmp);
                 StatusText = Loc.Get("StatusImageLoaded");
+                OnPropertyChanged(nameof(DocumentTitle));
                 _loadedStock = null;
                 _ = RefreshStockAsync();
             }
@@ -1691,7 +1692,20 @@ public bool UseLab
                 return false;
             }
             StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(filePath));
+            OnPropertyChanged(nameof(DocumentTitle));
             return true;
+        }
+
+        // Shown in the title bar: the project file once saved or opened, otherwise the loaded image.
+        public string DocumentTitle
+        {
+            get
+            {
+                string path = !string.IsNullOrEmpty(ProjectService.CurrentFileName)
+                    ? ProjectService.CurrentFileName
+                    : ProjectService.CurrentPictureFileName;
+                return string.IsNullOrEmpty(path) ? "" : System.IO.Path.GetFileName(path);
+            }
         }
 
         public void ReportSaveFailed(Exception ex)
@@ -1710,6 +1724,7 @@ public bool UseLab
                 Alert(Loc.Get("AlertProjectTitle"), Loc.Get("AlertProjectOpenFailed"));
                 return;
             }
+            OnPropertyChanged(nameof(DocumentTitle));
 
             if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName) &&
                 System.IO.File.Exists(ProjectService.CurrentPictureFileName))

@@ -78,6 +78,7 @@ Katalog listesindeki bir taş rengi.
 | `BitmapPixelWidth`, `BitmapPixelHeight` | `int` | 1 | Tuvaldeki görüntünün piksel boyutu: Mos'tan önce yüklenen görselin boyutu, Mos'tan sonra taş dokulu görüntünün sanal boyutu `C·N × R·N` (`FinishMosaic`, `OpenProject`, `RegenerateRS`). |
 | `StoneColumns`, `StoneRows` | `int` | — | `MosaicEngine.width` / `MosaicEngine.height` (GridOverlay için). |
 | `ZoomInfo` | `string` | — | `"N={zoom}  {w}x{h}"` (etiket "N" olsa da zoom değeridir). Zoom 0,1'in altındaysa en fazla 3 ondalık (`0.###`), değilse 1 ondalık. |
+| `DocumentTitle` | `string` | "" | Başlık çubuğunda gösterilen ad: `ProjectService.CurrentFileName` (kaydedilmiş/açılmış proje) varsa onun dosya adı, yoksa `CurrentPictureFileName` (yüklenen görsel). `LoadImage`, `OpenProject` (açılınca) ve başarılı `SaveProject` sonrası bildirilir. |
 | `NavViewLeft`, `NavViewTop`, `NavViewWidth`, `NavViewHeight` | `double` | 0 | Navigator küçük resmindeki görünüm dikdörtgeni. |
 | `ImageLoaded` | `bool` | false | Görsel yüklü mü; `CanRunMosaic`'i etkiler. |
 
