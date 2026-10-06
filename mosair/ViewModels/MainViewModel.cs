@@ -883,7 +883,9 @@ public bool UseLab
         {
             var res = MosaicEngine.LastStockResult;
             if (res == null) return;
-            string Label(int id) => stock.TryGetValue(id, out var s) ? $"#{id} {s.Code} {s.Name.Trim()}" : $"#{id}";
+            string Label(int id) => stock.TryGetValue(id, out var s)
+                ? string.Join(" ", new[] { $"#{id}", s.Code, s.Name.Trim() }.Where(x => x.Length > 0))
+                : $"#{id}";
 
             foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = res.ShortIds.Contains(c.ID);
             foreach (var item in CatalogColors)

@@ -204,14 +204,16 @@ namespace mosair.Services
                 var cols = rows[r];
                 string Col(int c) => c >= 0 && c < cols.Length ? cols[c].Trim() : "";
                 if (!int.TryParse(Col(mosCol), out int mos)) continue;
-                string kod = Col(kodCol);
-                if (kodCol >= 0 && kod.Length == 0) continue; // filler row without a stone
+                string kod = Col(kodCol), name = Col(nameCol), bizdeki = Col(bizdekiCol);
+                // Stones 68+ have no "Kod" in the sheet ("Taş 68" …) but do have a name and stock, so only rows with
+                // nothing at all (the numbered filler rows below the catalog) are skipped.
+                if (kod.Length == 0 && name.Length == 0 && bizdeki.Length == 0) continue;
                 double others = 0;
                 foreach (int c in zone) others += ParseTrNumber(Col(c)) ?? 0;
                 stock[mos] = new StoneStock
                 {
-                    Id = mos, Code = kod, Name = Col(nameCol),
-                    OnHandKg = ParseTrNumber(Col(bizdekiCol)) ?? 0,
+                    Id = mos, Code = kod, Name = name,
+                    OnHandKg = ParseTrNumber(bizdeki) ?? 0,
                     OtherMosaicsKg = Math.Max(0, others) * StoneWeightKg
                 };
             }
