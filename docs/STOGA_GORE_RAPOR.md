@@ -9,7 +9,7 @@
 
 ## 1. Özet
 
-**Ne yapıyor?** Optimum'un seçtiği taşlardan biri stokta yetmiyorsa, o taş ancak elde olduğu kadar kullanılır. Fazlası, renkçe en yakın ve stoğu olan taşa aktarılır. Örneğin Toros Siyah cilalı (C130) bitmişse, neredeyse aynı renkteki Alexander Black cilalı (C110) kullanılır. Çok az kullanılan taşlar da (ör. 1–9 adet) üretimde gereksiz renk değişimi yaratmasın diye çıkarılır. Stok yeterliyse ve az kullanılan taş yoksa mozaik **hiç değişmez**.
+**Ne yapıyor?** Optimum'un seçtiği taşlardan biri stokta yetmiyorsa, o taş ancak elde olduğu kadar kullanılır. Fazlası, renkçe en yakın ve stoğu olan taşa aktarılır. Örneğin Toros Siyah cilalı (C130) bitmişse, neredeyse aynı renkteki Alexander Black cilalı (C110) kullanılır. Stok yeterliyse mozaik **hiç değişmez**. (Az kullanılan taşları çıkaran "en az kullanım" kuralı 2026-10-06'da kapatıldı; bkz. 4.6.)
 
 **Bugünkü durum:**
 - Kod `stok_deneme` dalında, ayrı bir klasörde (`D:\dev\mosair-stok-deneme`). `feature`, `main` ve kullanıcıların sürümü (v1.3.0) etkilenmedi.
@@ -110,13 +110,14 @@
   - Yeni bir tür ancak toplam değişimi en az %20 küçültüyorsa eklenir (`NewStoneGain` = 0,8). Maliyet eksiyse de doğru çalışacak şekilde düzeltildi.
 - **Stok sert sınırdır:** Hiçbir durumda aşılmaz. Yalnızca hiçbir stoklu taş kalmazsa "hâlâ yetmiyor" yazılır.
 
-### 4.6 En az kullanım kuralı
+### 4.6 En az kullanım kuralı (kapalı)
+- **Durum:** 2026-10-06'da kullanıcı isteğiyle **kapatıldı**. Uygulama `MinUsage = 0` ile çalışır; az kullanılan taşlar artık çıkarılmaz. Mekanizma kodda duruyor, karşılaştırma aracında `MOSAIR_MINUSAGE=1` ile açılabilir. Aşağısı kural açıkken nasıl çalıştığını anlatır.
 - **Sınır:** max(10, toplam taşın %0,05'i). 78×78'lik bir mozaikte 10 taş, 16 m²'lik bir mozaikte yaklaşık 56 taş (`MinUsageFor`).
 - **Uygulama:** Turlar halinde yapılır. Sınırın altında kalan her taşın kapasitesi 0 sayılır ve pikselleri aynı akış yöntemiyle taşınır. Yeni küçük taş çıkmayana kadar tekrarlanır.
 - **Rapor:** Çıkarılan taşlar adetleriyle birlikte listelenir.
 
 ### 4.7 Güvenceler
-- **Birebir aynılık:** Stoğu aşan ya da az kullanılan taş yoksa sonuç düz Optimum'la **bayt bayt aynıdır**. Her test görselinde otomatik kontrol ediliyor.
+- **Birebir aynılık:** Stoğu aşan taş yoksa sonuç düz Optimum'la **bayt bayt aynıdır**. Her test görselinde otomatik kontrol ediliyor.
 - **Optimum'a dokunulmadı:** Optimum ve klasik Mos algoritması hiç değiştirilmedi. Düzeltme Optimum'dan **sonra** ayrı bir adım olarak çalışır.
 - **WPF uyumu:** Sonuç normal bir mozaiktir; WPF ile aynı dosya biçiminde kaydedilir.
 

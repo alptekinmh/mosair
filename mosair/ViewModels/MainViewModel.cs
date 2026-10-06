@@ -449,13 +449,10 @@ namespace mosair.ViewModels
                 return null;
             }
 
-            int total = (int)(MosaicEngine.width * MosaicEngine.height);
-            int minUsage = StockAwareOptions.MinUsageFor(total);
             bool needsFix = false;
             foreach (var c in MosaicData.arMA[0])
             {
                 if (c.numOfPixel <= 0) continue;
-                if (c.numOfPixel < minUsage) needsFix = true;
                 if (stock.TryGetValue(c.ID, out var s) && c.numOfPixel > s.Capacity) needsFix = true;
             }
             _stockOnHand = stock;
@@ -940,10 +937,8 @@ public bool UseLab
             OnPropertyChanged(nameof(StockAwareTip));
         }
 
-        private static StockAwareOptions StockOptions() => new()
-        {
-            MinUsage = StockAwareOptions.MinUsageFor((int)(MosaicEngine.width * MosaicEngine.height))
-        };
+        // The minimum-usage rule (dropping stones used only a few times) is switched off: MinUsage stays 0.
+        private static StockAwareOptions StockOptions() => new();
 
         // Runs on the worker thread.
         private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>

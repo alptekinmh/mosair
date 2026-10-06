@@ -29,7 +29,7 @@ Uygulama WinExe olduğu için Windows'ta konsol çıktısı görünmeyebilir; g�
 - Stoklu her taş için ΔE'ye göre en yakın 3 taş ve aynı taşın yüzeyleri arası mesafeler.
 - Görsel başına:
   - Optimum ve stoğa göre kalite ölçüleri (`MosaicMetrics`) ve süre.
-  - Kontroller: stok yeterliyse birebir aynılık; stoğu aşan taş kalmaması; `MinUsage` altında taş kalmaması.
+  - Kontroller: stok yeterliyse birebir aynılık; stoğu aşan taş kalmaması; `MinUsage` altında taş kalmaması (en az kullanım kuralı yalnızca `MOSAIR_MINUSAGE=1` ile açılır; varsayılan kapalı, uygulamadaki gibi).
   - Değişen taşlar tablosu (adet/kg), taşınanlar, yeni türler, az kullanıldığı için çıkarılanlar, stok kaydı olmayanlar.
 - Resim panelleri: Orijinal | Optimum | Stoğa göre | Değişen taşlar.
 

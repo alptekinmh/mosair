@@ -74,7 +74,9 @@ public static class StockCompareRunner
             string optPalette = PaletteKey();
             var qOpt = MosaicMetrics.Evaluate(src, optData, R, C);
 
-            options.MinUsage = StockAwareOptions.MinUsageFor(R * C);
+            // Like the app, the minimum-usage rule is off unless MOSAIR_MINUSAGE=1.
+            if (Environment.GetEnvironmentVariable("MOSAIR_MINUSAGE") == "1")
+                options.MinUsage = StockAwareOptions.MinUsageFor(R * C);
             int smallBefore = MosaicData.arMB.SelectMany(l => l).Count(c => c.numOfPixel > 0 && c.numOfPixel < options.MinUsage);
 
             // Acceptance test: with enough stock and no minimum rule the step must not change anything.
@@ -170,7 +172,9 @@ public static class StockCompareRunner
         var before = (byte[,,])MosaicData.dataM3.Clone();
         var qBefore = MosaicMetrics.Evaluate(src, before, R, C);
 
-        var options = new StockAwareOptions { MinUsage = StockAwareOptions.MinUsageFor(total) };
+        var options = new StockAwareOptions();
+        if (Environment.GetEnvironmentVariable("MOSAIR_MINUSAGE") == "1")
+            options.MinUsage = StockAwareOptions.MinUsageFor(total);
         int smallBefore = MosaicData.arMB.SelectMany(l => l).Count(c => c.numOfPixel > 0 && c.numOfPixel < options.MinUsage);
         var sw = Stopwatch.StartNew();
         bool ok = MosaicEngine.FixCurrentMosaicToStock(cap, family, options, prepareTextures: false);

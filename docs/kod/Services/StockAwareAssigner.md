@@ -3,7 +3,7 @@
 > Kaynak: `mosair/Services/StockAwareAssigner.cs` · Güncelleme: 2026-10-06 · Durum: deneme (`stok_deneme` dalı)
 
 ## Amaç
-Bitmiş bir Optimum mozaiğini, hiçbir taş stoğunu aşmayacak şekilde en az görünür değişiklikle yeniden düzenler. Stoğu yetmeyen taşın fazlası, renkçe en yakın ve stoğu olan taşlara aktarılır. Çok az kullanılan taşlar (`MinUsage` altı) da çıkarılır. Stoğu aşan ve az kullanılan taş yoksa mozaik değişmez. Ayrıntılı tasarım ve test sonuçları için [STOGA_GORE_RAPOR.md](../../STOGA_GORE_RAPOR.md).
+Bitmiş bir mozaiği (Optimum ya da klasik Mos), hiçbir taş stoğunu aşmayacak şekilde en az görünür değişiklikle yeniden düzenler. Stoğu yetmeyen taşın fazlası, renkçe en yakın ve stoğu olan taşlara aktarılır. İsteğe bağlı olarak çok az kullanılan taşlar (`MinUsage` altı) da çıkarılabilir; uygulamada bu kural **kapalıdır** (`MinUsage = 0`). Stoğu aşan taş yoksa mozaik değişmez. Ayrıntılı tasarım ve test sonuçları için [STOGA_GORE_RAPOR.md](../../STOGA_GORE_RAPOR.md).
 
 ## Nerede kullanılır
 | Dosya | Kullanım |
@@ -23,7 +23,7 @@ Bitmiş bir Optimum mozaiğini, hiçbir taş stoğunu aşmayacak şekilde en az 
 | `MaxCandidates` | int | 8 | Taş başına değerlendirilen en yakın aday sayısı |
 | `GroupStep` | double | 2.0 | Birlikte taşınan renk grubunun Lab adımı |
 | `TwinTolerance` | double | 3.0 | "İkiz" sayılan en büyük ΔE; en yakın tek ikiz her zaman kullanılabilir |
-| `MinUsage` | int | 0 | Bu sayının altında kullanılan taşlar çıkarılır (0/1 = kapalı) |
+| `MinUsage` | int | 0 | Bu sayının altında kullanılan taşlar çıkarılır (0/1 = kapalı; uygulama 0 kullanır) |
 | `MinUsageFor(total)` | static | — | max(10, ⌈toplam × 0,0005⌉) |
 
 ### `StockAwareResult`
@@ -48,7 +48,7 @@ Bitmiş bir Optimum mozaiğini, hiçbir taş stoğunu aşmayacak şekilde en az 
    - Bir seviyede B planı (yeni türler serbest) fazlanın bir kısmını yerleştiremiyorsa o seviye başarısız sayılır ve yeni türleri tek tek eleme döngüsü (her adım bir tam çözüm) atlanır. Eleme ve A planı yalnızca hedef azaltır, bu yüzden sonuç değişmez.
    - Hiçbir seviye fazlanın tamamını yerleştiremezse (stok genel olarak yetmiyorsa) eski tam arama yapılır: en az eksik bırakan en erken seviye seçilir.
 7. Grup içinde hangi piksellerin gideceği: 3×3 komşuluk ortalaması yeni taşa en yakın olanlar önce; eşitlikte Bayer sırası.
-8. `SolveWithMinimum`: sonuçta `0 < adet < MinUsage` olan taşlara kapasite 0 verilip tekrar çözülür; yeni küçük taş kalmayana kadar.
+8. `SolveWithMinimum`: `MinUsage` > 1 ise sonuçta `0 < adet < MinUsage` olan taşlara kapasite 0 verilip tekrar çözülür; yeni küçük taş kalmayana kadar. Uygulamada `MinUsage = 0` olduğu için tek tur çalışır.
 
 ## Önemli davranışlar ve iş kuralları
 - Stok sert sınırdır; ancak hiç stoklu taş kalmazsa `ShortIds` dolar.

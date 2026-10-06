@@ -285,7 +285,7 @@ Yeşil tablo ikonuna **sağ tıklayın** (veya **Araçlar → Stok → Stok Ayar
 ### Stoğa göre (Optimum'un yanındaki kutu)
 
 - **İşaretliyken** Mos (Optimum ya da klasik) yalnızca stokta olan taşlarla yapılır. Kullanılabilir stok: **Bizdeki (kg) − diğer mozaik sütunlarının ayırdığı kg** (bu projenin sütunu sayılmaz), 1 taş = 3,3 g.
-- Stoğu yetmeyen taş elde olduğu kadar kullanılır; kalan yer renkçe en yakın stoklu taşla doldurulur. Çok az kullanılacak taşlar (en az 10, büyük görsellerde toplamın ‰0,5'i) hiç kullanılmaz.
+- Stoğu yetmeyen taş elde olduğu kadar kullanılır; kalan yer renkçe en yakın stoklu taşla doldurulur. Az kullanılan taşlar mozaikten çıkarılmaz.
 - Stok, uygulama açılırken ve her görsel ya da proje yüklendiğinde tablodan okunur; Mos sırasında tablo okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
 - Sonuç ve değişen taşlar durum çubuğunda ve kutunun ipucunda görünür. **Stok Kontrol** son adetleri tabloya yazar.
 - Optimum taş kaydırıcısı değiştirilince yeni taş sayısı da aynı stoğa göre düzeltilir.
