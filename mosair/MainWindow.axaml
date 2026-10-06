@@ -75,6 +75,14 @@
       <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
       <Setter Property="Margin" Value="0,6,0,2"/>
     </Style>
+    <!-- Cards of the properties panel's image information -->
+    <Style Selector="Border.info-card">
+      <Setter Property="Background" Value="{DynamicResource BgInput}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource BrdrMain}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="6"/>
+      <Setter Property="Padding" Value="9,8"/>
+    </Style>
   </Window.Styles>
 
   <DockPanel>
@@ -104,6 +112,12 @@
               <MenuItem x:Name="menuExportAs" Header="{Binding [MenuExportAs], Source={x:Static svc:Loc.Instance}}" IsEnabled="{Binding CanExport}"/>
               <MenuItem Header="{Binding [MenuScreenshot], Source={x:Static svc:Loc.Instance}}" Click="OnScreenshot" IsEnabled="{Binding ImageLoaded}"/>
               <Separator/>
+              <MenuItem Header="{Binding [MenuWatchImages], Source={x:Static svc:Loc.Instance}}" Click="OnToggleWatchImages">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding WatchNewImages}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
+              <Separator/>
               <MenuItem Header="{Binding [MenuDrive], Source={x:Static svc:Loc.Instance}}" IsEnabled="{Binding CanUseDrive}">
                 <MenuItem Header="{Binding [MenuDriveSave], Source={x:Static svc:Loc.Instance}}" Click="OnDriveSave"/>
                 <MenuItem Header="{Binding [MenuDriveOpen], Source={x:Static svc:Loc.Instance}}" Click="OnDriveOpen"/>
@@ -120,6 +134,13 @@
             </MenuItem>
             <MenuItem Header="{Binding [MenuView], Source={x:Static svc:Loc.Instance}}">
               <MenuItem x:Name="menuFitToScreen" Header="{Binding [MenuFitToScreen], Source={x:Static svc:Loc.Instance}}" Click="OnResetSize"/>
+              <MenuItem Header="{Binding [MenuPropertiesPanel], Source={x:Static svc:Loc.Instance}}" Click="OnTogglePropertiesPanel"
+                        InputGesture="F4">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding IsPropertiesPanelOpen}"
+                            Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
             </MenuItem>
             <MenuItem Header="{Binding [MenuTools], Source={x:Static svc:Loc.Instance}}">
               <MenuItem x:Name="menuMosaicize" Header="{Binding [MenuMosaicize], Source={x:Static svc:Loc.Instance}}" Click="OnRunMosaic"/>
@@ -785,7 +806,7 @@
     </Border>
 
     <!-- ===== MAIN CONTENT ===== -->
-    <Grid>
+    <Grid x:Name="mainGrid">
       <Grid.ColumnDefinitions>
         <ColumnDefinition Width="380" MinWidth="220" MaxWidth="380"/>
         <ColumnDefinition Width="4"/>
@@ -1021,8 +1042,8 @@
           <Panel Margin="4"
                  Width="{Binding ImageDisplayWidth}"
                  Height="{Binding ImageDisplayHeight}">
-            <!-- Before Mos: the loaded image -->
-            <Image Source="{Binding DisplayBitmap}"
+            <!-- Before Mos: the loaded image (smooth scaling while it is shown smaller than its size, set in code) -->
+            <Image x:Name="sourceImage" Source="{Binding DisplayBitmap}"
                    IsVisible="{Binding !MosaicDone}"
                    Stretch="Fill"
                    RenderOptions.BitmapInterpolationMode="LowQuality"
@@ -1081,26 +1102,173 @@
     </Border>
 
     <!-- Canvas / Properties Splitter -->
-    <GridSplitter Grid.Column="3" Width="4" Background="{DynamicResource BrdrMain}"
+    <GridSplitter x:Name="propsSplitter" Grid.Column="3" Width="4" Background="{DynamicResource BrdrMain}"
                   ResizeDirection="Columns" Cursor="SizeWestEast"/>
 
     <!-- ===== PROPERTIES PANEL ===== -->
     <Border Grid.Column="4" Background="{DynamicResource BgPanel}"
-            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0">
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
+            IsVisible="{Binding IsPropertiesPanelOpen}">
       <DockPanel>
-        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="8,4"
+        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="8,2,2,2"
                 BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
-          <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
-                     Foreground="{DynamicResource FgMuted}"/>
+          <DockPanel>
+            <!-- Minimize: folds the panel to the strip on the right -->
+            <Button DockPanel.Dock="Right" Click="OnTogglePropertiesPanel" Width="22" Height="20" Padding="0"
+                    Background="Transparent" BorderThickness="0" CornerRadius="3" Cursor="Hand"
+                    ToolTip.Tip="{Binding [TipPanelHide], Source={x:Static svc:Loc.Instance}}">
+              <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgMuted}" Data="M3,11 L21,11 L21,13 L3,13 Z"/>
+            </Button>
+            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
+                       Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
+          </DockPanel>
         </Border>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+         <StackPanel>
+          <!-- No image yet -->
+          <StackPanel Margin="16,28" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding ShowNoImageHint}">
+            <PathIcon Width="28" Height="28" Foreground="{DynamicResource BrdrTer}" HorizontalAlignment="Center"
+                      Data="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 Z M19,19 L5,19 L5,5 L19,5 Z M14.1,11.9 L11.3,15.5 L9.3,13.1 L6.5,16.7 L17.5,16.7 Z"/>
+            <TextBlock Text="{Binding [PropNoImage], Source={x:Static svc:Loc.Instance}}" FontSize="10" TextWrapping="Wrap" TextAlignment="Center"
+                       Foreground="{DynamicResource FgMuted}"/>
+          </StackPanel>
+
+          <!-- Image information (while no stone is selected): preview, details, colours, most used stones -->
+          <StackPanel Margin="8" Spacing="8" IsVisible="{Binding ShowImageInfo}">
+            <Border CornerRadius="6" ClipToBounds="True" BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
+              <StackPanel>
+                <Panel Background="{DynamicResource BgCanvas}" IsVisible="{Binding ImageInfoFound}">
+                  <Image Source="{Binding ImageInfoThumb}" Stretch="Uniform" MaxHeight="150"
+                         RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                  <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Padding="5,1" CornerRadius="3"
+                          Background="#B0000000">
+                    <TextBlock Text="{Binding ImageInfoType}" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
+                  </Border>
+                </Panel>
+                <Border Background="{DynamicResource BgInput}" Padding="8,6">
+                  <StackPanel Spacing="2">
+                    <TextBlock Text="{Binding [PropImage], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
+                    <TextBlock Text="{Binding ImageInfoName}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"
+                               Foreground="{DynamicResource FgPrimary}"/>
+                    <TextBlock Text="{Binding [PropImageMissing], Source={x:Static svc:Loc.Instance}}" FontSize="10" Foreground="#E53935"
+                               IsVisible="{Binding !ImageInfoFound}"/>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="info-card" IsVisible="{Binding ImageInfoFound}">
+              <StackPanel Spacing="6">
+                <TextBlock Text="{Binding [PropDetails], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" RowSpacing="5">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding [PropResolution], Source={x:Static svc:Loc.Instance}}" FontSize="10"
+                           Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
+                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ImageInfoResolution}" FontSize="10" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding [PropMegapixels], Source={x:Static svc:Loc.Instance}}" FontSize="10"
+                           Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
+                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ImageInfoMegapixels}" FontSize="10" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding [PropAspect], Source={x:Static svc:Loc.Instance}}" FontSize="10"
+                           Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
+                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ImageInfoAspect}" FontSize="10" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding [PropFileSize], Source={x:Static svc:Loc.Instance}}" FontSize="10"
+                           Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
+                <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ImageInfoSize}" FontSize="10" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding [PropModified], Source={x:Static svc:Loc.Instance}}" FontSize="10"
+                           Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
+                <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ImageInfoDate}" FontSize="10" HorizontalAlignment="Right"
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                </Grid>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="info-card" IsVisible="{Binding HasImageColors}">
+              <StackPanel Spacing="7">
+                <TextBlock Text="{Binding [PropImageColors], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
+                <!-- The colours side by side by share -->
+                <Border Height="10" CornerRadius="5" ClipToBounds="True">
+                  <Viewbox Stretch="Fill">
+                    <ItemsControl ItemsSource="{Binding ImageColorSegments}">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ColorSegment">
+                          <Border Width="{Binding Width}" Height="1" Background="{Binding Brush}"/>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </Viewbox>
+                </Border>
+                <ItemsControl ItemsSource="{Binding ImageColors}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ImageColorItem">
+                      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2">
+                        <Ellipse Grid.Column="0" Width="12" Height="12" Fill="{Binding Brush}"
+                                 Stroke="{DynamicResource BrdrTer}" StrokeThickness="1" Margin="0,0,8,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Hex}" FontSize="10" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource FgIcon}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                        <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
+                                   Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="info-card" IsVisible="{Binding ShowTopStonesSection}">
+              <StackPanel Spacing="7">
+                <TextBlock Text="{Binding [PropTopStones], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
+                <ItemsControl ItemsSource="{Binding TopStones}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:TopStoneItem">
+                      <StackPanel Spacing="3" Margin="0,2,0,4">
+                        <Grid ColumnDefinitions="Auto,*,Auto">
+                          <Border Grid.Column="0" Width="14" Height="12" CornerRadius="2" Background="{Binding Brush}"
+                                  BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1" Margin="0,0,7,0"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="10" VerticalAlignment="Center"
+                                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                          <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
+                                     Margin="6,0,0,0" Foreground="#4ecb71" FontWeight="SemiBold" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                        </Grid>
+                        <Grid ColumnDefinitions="*,Auto">
+                          <ProgressBar Grid.Column="0" Value="{Binding Percent}" Maximum="100" Height="4" MinHeight="4"
+                                       CornerRadius="2" VerticalAlignment="Center" Foreground="#4ecb71"
+                                       Background="{DynamicResource BgCanvas}"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="9" Margin="8,0,0,0"
+                                     Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                        </Grid>
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+
+            <TextBlock Text="{Binding [PropStoneHint], Source={x:Static svc:Loc.Instance}}" FontSize="9" TextWrapping="Wrap" Margin="2,0"
+                       Foreground="{DynamicResource FgMuted}" IsVisible="{Binding ShowStoneHint}"/>
+          </StackPanel>
+
           <StackPanel Margin="8,6" Spacing="10"
                       IsVisible="{Binding HasSelection}">
 
             <!-- Color Swatch -->
             <StackPanel Spacing="4">
-              <TextBlock Text="{Binding [PropColor], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
+              <DockPanel>
+                <!-- Back to the image information -->
+                <Button DockPanel.Dock="Right" Click="OnClearSelection" Width="18" Height="16" Padding="0"
+                        Background="Transparent" BorderThickness="0" CornerRadius="3" Cursor="Hand"
+                        ToolTip.Tip="{Binding [TipClearSelection], Source={x:Static svc:Loc.Instance}}">
+                  <PathIcon Width="8" Height="8" Foreground="{DynamicResource FgMuted}"
+                            Data="M4.2,2.8 L12,10.6 L19.8,2.8 L21.2,4.2 L13.4,12 L21.2,19.8 L19.8,21.2 L12,13.4 L4.2,21.2 L2.8,19.8 L10.6,12 L2.8,4.2 Z"/>
+                </Button>
+                <TextBlock Text="{Binding [PropColor], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
+              </DockPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
                 <Border Width="36" Height="36" CornerRadius="4"
                         Background="{Binding PropColorBrush}"
@@ -1202,8 +1370,76 @@
             </StackPanel>
 
           </StackPanel>
+         </StackPanel>
         </ScrollViewer>
       </DockPanel>
+    </Border>
+
+    <!-- Folded properties panel: a strip with a show button -->
+    <Border Grid.Column="4" Background="{DynamicResource BgBar}"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
+            IsVisible="{Binding !IsPropertiesPanelOpen}">
+      <Button Click="OnTogglePropertiesPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
+              Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
+              ToolTip.Tip="{Binding [TipPanelShow], Source={x:Static svc:Loc.Instance}}">
+        <StackPanel Spacing="10">
+          <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
+                    Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
+          <LayoutTransformControl HorizontalAlignment="Center">
+            <LayoutTransformControl.LayoutTransform>
+              <RotateTransform Angle="90"/>
+            </LayoutTransformControl.LayoutTransform>
+            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
+                       Foreground="{DynamicResource FgMuted}"/>
+          </LayoutTransformControl>
+        </StackPanel>
+      </Button>
+    </Border>
+
+    <!-- New image in Downloads / on the Desktop: open it? (closes by itself after 5 s; the count stops while the
+         pointer is over it) -->
+    <Border x:Name="toastPanel" Grid.Column="0" Grid.ColumnSpan="5" IsVisible="False"
+            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Width="300"
+            Background="{DynamicResource BgCard}" BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1"
+            CornerRadius="8" ClipToBounds="True" BoxShadow="0 8 24 0 #66000000"
+            PointerEntered="OnToastPointerEntered" PointerExited="OnToastPointerExited">
+      <StackPanel>
+        <Grid ColumnDefinitions="Auto,*,Auto" Margin="10,10,6,8">
+          <Border Grid.Column="0" Width="56" Height="56" CornerRadius="5" ClipToBounds="True" VerticalAlignment="Top"
+                  Background="{DynamicResource BgCanvas}" Margin="0,0,10,0">
+            <Image x:Name="toastThumb" Stretch="UniformToFill"/>
+          </Border>
+          <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+            <TextBlock x:Name="toastTitle" FontSize="10" FontWeight="Bold" Foreground="#4ecb71"/>
+            <TextBlock x:Name="toastName" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"
+                       TextTrimming="CharacterEllipsis"/>
+            <TextBlock Text="{Binding [ToastQuestion], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                       Foreground="{DynamicResource FgSecondary}"/>
+          </StackPanel>
+          <Button Grid.Column="2" Click="OnToastDismiss" Width="20" Height="20" Padding="0" VerticalAlignment="Top"
+                  Background="Transparent" BorderThickness="0" CornerRadius="3" Cursor="Hand"
+                  ToolTip.Tip="{Binding [ToastDismiss], Source={x:Static svc:Loc.Instance}}">
+            <PathIcon Width="8" Height="8" Foreground="{DynamicResource FgMuted}"
+                      Data="M4.2,2.8 L12,10.6 L19.8,2.8 L21.2,4.2 L13.4,12 L21.2,19.8 L19.8,21.2 L12,13.4 L4.2,21.2 L2.8,19.8 L10.6,12 L2.8,4.2 Z"/>
+          </Button>
+        </Grid>
+        <DockPanel Margin="10,0,10,10">
+          <TextBlock x:Name="toastSeconds" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="10"
+                     Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
+            <Button Click="OnToastDismiss" Content="{Binding [ToastDismiss], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="12,0"
+                    FontSize="11" VerticalContentAlignment="Center" CornerRadius="4"
+                    Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}"/>
+            <Button Click="OnToastOpen" Content="{Binding [ToastOpen], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="16,0"
+                    FontSize="11" FontWeight="SemiBold" VerticalContentAlignment="Center" CornerRadius="4"
+                    Background="#4ecb71" Foreground="#1a1a1e"/>
+          </StackPanel>
+        </DockPanel>
+        <!-- Time left -->
+        <ProgressBar x:Name="toastBar" Height="3" MinHeight="3" Maximum="100" Value="100" CornerRadius="0"
+                     Foreground="#4ecb71" Background="Transparent"/>
+      </StackPanel>
     </Border>
     </Grid>
 

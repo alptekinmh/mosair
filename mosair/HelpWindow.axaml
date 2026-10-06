@@ -251,7 +251,7 @@
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Ay/gunes dugmesi koyu ve acik tema arasinda gecer; dunya dugmesi dili Turkce / English yapar ve menuler, ipuclari ve bu kilavuz aninda degisir. Ikisi de kalici degildir: uygulama koyu tema ve Turkce ile acilir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Uyarilar kucuk bir pencerede cikar ve Anladim ile kapanir. Tabloyu degistiren stok islemleri once Evet / Hayir ile onay ister."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Araclar menusu toolbar'daki tum araclari icerir: Mozaiklestir, Piksel Duzenle, Izgara Goster, Izgara Rengi, Interpolasyon Yontemi, Optimum Tas Sayisi, Stoga Gore Ayarla, Tas Sayisi ve Stok. Acik olan secenekler ✓ ile isaretlidir; menu ve toolbar her zaman ayni durumu gosterir. Tas Sayisi yalnizca Optimum ile yapilan Mos'tan sonra, Stok ise bir stok islemi surmuyorken kullanilabilir."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Dosya menusu: Gorsel Yukle, Proje Ac, Proje Kaydet, Proje Farkli Kaydet, mosairEXPORT ve mosairEXPORT As (ikisi de goruntu kalitesi seceneklerini acar), Ekran Goruntusu Al (kamera ikonuyla ayni), Google Drive (Drive'a Kaydet, Drive'dan Ac, Drive Klasoru Ayarlari). Duzenle: Tum Renkleri Sec / Kaldir ve Islemi Iptal Et (Esc; durum cubugundaki kirmizi Iptal dugmesiyle ayni, yalnizca iptal edilebilen bir is surerken etkin). Gorunum: Ekrana Sigdir. Yardim: Kullanim Kilavuzu (F1). Kilavuz acikken ana pencere kullanilamaz; ayri bir Hakkinda penceresi yoktur."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Dosya menusu: Gorsel Yukle, Proje Ac, Proje Kaydet, Proje Farkli Kaydet, mosairEXPORT ve mosairEXPORT As (ikisi de goruntu kalitesi seceneklerini acar), Ekran Goruntusu Al (kamera ikonuyla ayni), Yeni Gorselleri Bildir (isaretliyken Indirilenler'e ve Masaustune gelen yeni gorseller icin bildirim cikar), Google Drive (Drive'a Kaydet, Drive'dan Ac, Drive Klasoru Ayarlari). Duzenle: Tum Renkleri Sec / Kaldir ve Islemi Iptal Et (Esc; durum cubugundaki kirmizi Iptal dugmesiyle ayni, yalnizca iptal edilebilen bir is surerken etkin). Gorunum: Ekrana Sigdir, Ozellikler Paneli (F4; sagdaki paneli gizler/gosterir). Yardim: Kullanim Kilavuzu (F1). Kilavuz acikken ana pencere kullanilamaz; ayri bir Hakkinda penceresi yoktur."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -263,7 +263,7 @@
             <TextBlock Classes="body" Text="Mozaik gorselin goruntulenip duzenledigi ana alandir. Mouse tekerlegi ile zoom yapin, sag tus ile surukleyerek pan yapin. Gorseli dogrudan surukle-birak ile de yukleyebilirsiniz."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Sag ustte Mini Harita (Navigator) bulunur — buyuk mozaiklerde nerede oldugunuzu gosterir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Mos'tan sonra tas dokulu goruntu parca parca, yalnizca ekranda gorunen kisim icin cizilir: cok uzaktan taslar kendi renkleriyle gorunur, yakinlastirdikca dokular netlesir. Daha keskin parca hazirlanirken bir bolge kisa bir sure bulanik gorunebilir. Yeterince yakinlastirinca tas fotograflari kendi cozunurluklerinde (tas basina 100 piksel) cizilir; ayri bir detay ayari yoktur. Goruntu boyutu icin sinir yoktur; cok buyuk mozaikler de (or. 20 m) calisir. Izgara ve izgara rengi degisiklikleri aninda uygulanir."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Ekrana Sigdir (durum cubugundaki dugme, Gorunum menusu veya kisayol) gorseli pencereye sigdirir; Mos ve Proje Ac sonrasi kendiliginden uygulanir. Mos'tan sonra zoom orani tas basina 100 piksellik goruntuye gore hesaplanir; disa aktarilan dosyanin boyutunu etkilemez."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Ekrana Sigdir (durum cubugundaki dugme, Gorunum menusu veya kisayol) gorseli pencereye sigdirir; gorsel yuklenince (Gorsel Yukle, surukle-birak, yeni gorsel bildirimi), Mos ve Proje Ac sonrasi kendiliginden uygulanir. Mos'tan sonra zoom orani tas basina 100 piksellik goruntuye gore hesaplanir; disa aktarilan dosyanin boyutunu etkilemez."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -274,6 +274,8 @@
             </StackPanel>
             <TextBlock Classes="body" Text="Secili tasin detaylarini gosterir: renk swatch'u, tas kodu, doku onizlemesi, RGB degerleri, piksel ve kalip koordinatlari."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Varyantlar bolumunde bir doku resmine tiklarsaniz o pikseldeki tasin dokusu degisir; bu degisiklik de Geri Al / Yinele ile geri alinabilir."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Tas secili degilken gorselin bilgileri kartlar halinde gorunur: onizleme (kosede dosya turu) ve dosya adi; AYRINTILAR (cozunurluk, megapiksel, en-boy orani, dosya boyutu, degistirilme tarihi); BASKIN RENKLER (renklerin paylarina gore dizildigi renk cubugu ve 6 rengin kodu ile yuzdesi); Mos'tan sonra EN COK KULLANILAN TASLAR (5 tas, yuzdesi, ince bir cubuk ve tas sayisi). RENK basliginin yanindaki x dugmesi tas seciminden gorsel bilgilerine doner."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Gizle / goster: panel basligindaki - dugmesi, F4 ya da Gorunum > Ozellikler Paneli paneli gizler; sag kenarda ince bir serit kalir, seride (ok) tiklayinca panel eski genisligiyle geri acilir. Uygulama her acilista panel acik baslar."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -308,6 +310,7 @@
             <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
             <TextBlock Text="Yardim" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F1"/><TextBlock Classes="shortcut-desc" Text="Kullanim kilavuzunu ac"/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F4"/><TextBlock Classes="shortcut-desc" Text="Ozellikler panelini gizle / goster"/></StackPanel>
           </StackPanel>
         </Border>
 
@@ -490,6 +493,8 @@
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Gorseli dogrudan dosya yoneticisinden surukleyip uygulamaya birakin."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Indirilenler'e ya da Masaustune yeni bir JPEG/PNG gelince sag altta 'mosair'de acilsin mi?' bildirimi cikar; Ac ile gorsel yuklenip pencereye sigdirilir. Bildirim 7 sn sonra kendiliginden kapanir; fare uzerindeyken sure durur. Alt klasorler izlenmez. Dosya > Yeni Gorselleri Bildir ile kapatilabilir."/></StackPanel>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Mini haritayi kullanarak buyuk mozaiklerde hizlica gezinin."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Renkli bir gorselde Optimum'un sonucu fazla sade geldiyse Tas kaydiricisini birkac adim artirin; detay ve renk cesitliligi artar."/></StackPanel>
@@ -570,7 +575,7 @@
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The moon/sun button switches between dark and light theme; the globe button switches the language to Türkçe / English, and menus, tooltips and this guide change at once. Neither is remembered: the app starts in dark theme and Turkish."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Alerts appear in a small window and close with OK. Stock actions that change the sheet first ask for confirmation with Yes / No."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The Tools menu contains every toolbar tool: Mosaicize, Pixel Edit, Show Grid, Grid Color, Interpolation Method, Optimum Stone Count, Fit to Stock, Stone Count and Stock. Active options are marked with ✓; the menu and toolbar always show the same state. Stone Count is available only after a Mos made with Optimum, and Stock only while no stock action is running."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="File menu: Load Image, Open Project, Save Project, Save Project As, mosairEXPORT and mosairEXPORT As (both open the image quality choices), Take Screenshot (same as the camera icon), Google Drive (Save to Drive, Open from Drive, Drive Folder Settings). Edit: Select / Deselect All Colors and Cancel Running Job (Esc; same as the red Cancel button in the status bar, enabled only while a cancellable job runs). View: Fit to Screen. Help: User Guide (F1). While the guide is open the main window cannot be used; there is no separate About window."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="File menu: Load Image, Open Project, Save Project, Save Project As, mosairEXPORT and mosairEXPORT As (both open the image quality choices), Take Screenshot (same as the camera icon), Notify New Images (while ticked, new images in Downloads and on the Desktop are offered), Google Drive (Save to Drive, Open from Drive, Drive Folder Settings). Edit: Select / Deselect All Colors and Cancel Running Job (Esc; same as the red Cancel button in the status bar, enabled only while a cancellable job runs). View: Fit to Screen, Properties Panel (F4; hides/shows the right panel). Help: User Guide (F1). While the guide is open the main window cannot be used; there is no separate About window."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -582,7 +587,7 @@
             <TextBlock Classes="body" Text="The main area where the mosaic image is displayed and edited. Use the mouse wheel to zoom, right-click drag to pan. You can also drag-and-drop images directly."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Top-right shows the Mini Map (Navigator) — shows your position in large mosaics."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="After Mos the stone-texture image is drawn piece by piece, only for the part on screen: from far away stones show in their own colors, and textures sharpen as you zoom in. While a sharper piece is being prepared, an area may look blurred for a moment. Zoomed in far enough, the stone photos are drawn at their own resolution (100 pixels per stone); there is no separate detail setting. There is no image size limit; very large mosaics (e.g. 20 m) work too. Changes to the grid and the grid color apply at once."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Fit to Screen (status bar button, View menu or shortcut) fits the image to the window; it is applied automatically after Mos and Open Project. After Mos the zoom ratio refers to an image of 100 pixels per stone; it does not affect the size of the exported file."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Fit to Screen (status bar button, View menu or shortcut) fits the image to the window; it is applied automatically when an image is loaded (Load Image, drag and drop, the new-image notice), after Mos and after Open Project. After Mos the zoom ratio refers to an image of 100 pixels per stone; it does not affect the size of the exported file."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -593,6 +598,8 @@
             </StackPanel>
             <TextBlock Classes="body" Text="Shows details of the selected stone: color swatch, stone code, texture preview, RGB values, pixel and mold coordinates."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Click a texture in Variants to change the stone texture at that pixel; this can also be undone and redone."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="While no stone is selected the image's details appear as cards: a preview (file type in the corner) and the file name; DETAILS (resolution, megapixels, aspect ratio, file size, date modified); DOMINANT COLORS (a bar of the colors by share and the 6 colors with code and share); after Mos, MOST USED STONES (5 stones with share, a thin bar and stone count). The x button next to COLOR goes back from a stone to the image details."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Hide / show: the - button in the panel header, F4 or View > Properties Panel hides the panel; a thin strip stays at the right edge, and clicking the strip (arrow) opens the panel again at its previous width. The panel is open each time the app starts."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -627,6 +634,7 @@
             <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="0,4"/>
             <TextBlock Text="Help" FontWeight="Bold" FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,0,0,2"/>
             <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F1"/><TextBlock Classes="shortcut-desc" Text="Open user guide"/></StackPanel>
+            <StackPanel Orientation="Horizontal"><TextBlock Classes="shortcut-key" Text="F4"/><TextBlock Classes="shortcut-desc" Text="Hide / show the properties panel"/></StackPanel>
           </StackPanel>
         </Border>
 
@@ -808,6 +816,8 @@
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Ctrl/⌘+E exports at the default quality; in the list that choice says (default). The zoom on screen does not affect the file. A higher image quality makes the file larger and the export slower."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Drag and drop images directly from your file manager into the application."/></StackPanel>
+            <Border Height="1" Background="{DynamicResource BgCard}"/>
+            <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="When a new JPEG/PNG arrives in Downloads or on the Desktop, an 'Open it in mosair?' notice appears at the bottom right; Open loads the image fitted to the window. The notice closes by itself after 7 s; the count stops while the pointer is over it. Subfolders are not watched. Turn it off with File > Notify New Images."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>
             <StackPanel Orientation="Horizontal" Spacing="8"><TextBlock Text="&#x1F4A1;" FontSize="16" VerticalAlignment="Top"/><TextBlock Classes="body" Text="Use the mini map to quickly navigate large mosaics."/></StackPanel>
             <Border Height="1" Background="{DynamicResource BgCard}"/>

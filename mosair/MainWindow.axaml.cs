@@ -54,6 +54,10 @@ public partial class MainWindow : Window
         // Stock on hand from the configured sheet, once the window is up (does not block start-up).
         Opened += async (_, _) => await _vm.LoadStockOnStartupAsync();
         AddHandler(DragDrop.DropEvent, OnDrop);
+        _imageWatcher.ImageArrived += (path, place) => Dispatcher.UIThread.Post(() => ShowImageToast(path, place));
+        ApplyWatchNewImages();
+        ApplySourceImageQuality();
+        Closed += (_, _) => _imageWatcher.Dispose();
         AddHandler(DragDrop.DragOverEvent, OnDragOver);
         KeyDown += OnKeyDown;
 
@@ -79,6 +83,9 @@ public partial class MainWindow : Window
 
         _vm.PropertyChanged += (s, e) =>
         {
+            if (e.PropertyName == nameof(MainViewModel.IsPropertiesPanelOpen)) ApplyPropertiesPanel();
+            if (e.PropertyName == nameof(MainViewModel.WatchNewImages)) ApplyWatchNewImages();
+            if (e.PropertyName == nameof(MainViewModel.ZoomLevel)) ApplySourceImageQuality();
             if (e.PropertyName == nameof(MainViewModel.IsProcessing))
             {
                 if (_vm.IsProcessing) StartMosAnim();
@@ -295,6 +302,7 @@ public partial class MainWindow : Window
         else if (cmd && (e.Key == Key.D0 || e.Key == Key.NumPad0)) { OnResetSize(this, new RoutedEventArgs()); e.Handled = true; }
         else if (cmd && e.Key == Key.M) { OnRunMosaic(this, new RoutedEventArgs()); e.Handled = true; }
         else if (mods == KeyModifiers.None && e.Key == Key.F1) { ShowHelp(); e.Handled = true; }
+        else if (mods == KeyModifiers.None && e.Key == Key.F4) { OnTogglePropertiesPanel(this, new RoutedEventArgs()); e.Handled = true; }
     }
 
     private void OnShowHelp(object? sender, RoutedEventArgs e)
@@ -325,8 +333,22 @@ public partial class MainWindow : Window
         {
             var path = files[0].TryGetLocalPath();
             if (path != null)
-                _vm.LoadImage(path);
+                LoadImageAndFit(path);
         }
+    }
+
+    // The loaded image (before Mos): shown smaller than its size, nearest-pixel scaling drops most pixels and the
+    // photo looks broken, so it is scaled smoothly; at 1x and above the pixels stay sharp as before.
+    private void ApplySourceImageQuality() =>
+        Avalonia.Media.RenderOptions.SetBitmapInterpolationMode(sourceImage,
+            _vm.ZoomLevel < 1 ? Avalonia.Media.Imaging.BitmapInterpolationMode.HighQuality
+                              : Avalonia.Media.Imaging.BitmapInterpolationMode.LowQuality);
+
+    // A newly loaded image starts fitted to the image area (Görsel Yükle, drag and drop, the new-image notice).
+    private void LoadImageAndFit(string path)
+    {
+        _vm.LoadImage(path);
+        if (_vm.ImageLoaded) _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
     }
 
     private async void OnRunMosaic(object? sender, RoutedEventArgs e)
@@ -574,6 +596,123 @@ public partial class MainWindow : Window
                 tb.Text = tb.Text?.Replace(',', '.');
             _vm.UpdateDimensions();
             e.Handled = true;
+        }
+    }
+
+    // ----- New image in Downloads / on the Desktop: a notice at the bottom right offering to open it (7 s) -----
+    private readonly NewImageWatcher _imageWatcher = new();
+    private DispatcherTimer? _toastTimer;
+    private string _toastPath = "";
+    private TimeSpan _toastLeft;
+    private bool _toastHover;
+    private DateTime _toastLastTick;
+    private static readonly TimeSpan ToastTime = TimeSpan.FromSeconds(7);
+
+    private void ApplyWatchNewImages()
+    {
+        if (_vm.WatchNewImages) _imageWatcher.Start();
+        else { _imageWatcher.Stop(); HideToast(); }
+    }
+
+    private void OnToggleWatchImages(object? sender, RoutedEventArgs e) => _vm.WatchNewImages = !_vm.WatchNewImages;
+
+    private void ShowImageToast(string path, NewImageWatcher.Place place)
+    {
+        if (!_vm.WatchNewImages) return;
+        // Already open in mosair.
+        if (string.Equals(path, Services.ProjectService.CurrentPictureFileName, StringComparison.OrdinalIgnoreCase)) return;
+        _toastPath = path;
+        toastTitle.Text = Loc.Get(place == NewImageWatcher.Place.Downloads ? "ToastNewDownload" : "ToastNewDesktop");
+        toastName.Text = System.IO.Path.GetFileName(path);
+        ToolTip.SetTip(toastName, path);
+        var old = toastThumb.Source as IDisposable;
+        toastThumb.Source = null;
+        old?.Dispose();
+        try
+        {
+            using var fs = System.IO.File.OpenRead(path);
+            toastThumb.Source = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(fs, 112);
+        }
+        catch (Exception)
+        {
+            // No preview; the notice still shows the name.
+        }
+        _toastLeft = ToastTime;
+        _toastLastTick = DateTime.UtcNow;
+        UpdateToastCountdown();
+        toastPanel.IsVisible = true;
+        if (_toastTimer == null)
+        {
+            _toastTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(50) };
+            _toastTimer.Tick += (_, _) =>
+            {
+                var now = DateTime.UtcNow;
+                if (!_toastHover) _toastLeft -= now - _toastLastTick;
+                _toastLastTick = now;
+                if (_toastLeft <= TimeSpan.Zero) HideToast();
+                else UpdateToastCountdown();
+            };
+        }
+        _toastTimer.Start();
+    }
+
+    private void UpdateToastCountdown()
+    {
+        toastBar.Value = Math.Max(0, _toastLeft.TotalMilliseconds / ToastTime.TotalMilliseconds * 100);
+        toastSeconds.Text = Loc.Fmt("ToastSeconds", Math.Max(1, (int)Math.Ceiling(_toastLeft.TotalSeconds)));
+    }
+
+    private void HideToast()
+    {
+        _toastTimer?.Stop();
+        toastPanel.IsVisible = false;
+        _toastHover = false;
+    }
+
+    private void OnToastPointerEntered(object? sender, PointerEventArgs e) => _toastHover = true;
+    private void OnToastPointerExited(object? sender, PointerEventArgs e) => _toastHover = false;
+    private void OnToastDismiss(object? sender, RoutedEventArgs e) => HideToast();
+
+    private void OnToastOpen(object? sender, RoutedEventArgs e)
+    {
+        string path = _toastPath;
+        if (_vm.IsProcessing || _vm.IsExporting)
+        {
+            _vm.StatusText = Loc.Get("StatusToastBusy");
+            return;
+        }
+        HideToast();
+        if (System.IO.File.Exists(path)) LoadImageAndFit(path);
+    }
+
+    // Properties panel: the column folds to a 24 px strip (its show button) and opens again at the width it had.
+    private GridLength _propertiesWidth = new(220);
+
+    private void OnTogglePropertiesPanel(object? sender, RoutedEventArgs e) =>
+        _vm.IsPropertiesPanelOpen = !_vm.IsPropertiesPanelOpen;
+
+    private void OnClearSelection(object? sender, RoutedEventArgs e) => _vm.ClearSelection();
+
+    private void ApplyPropertiesPanel()
+    {
+        var col = mainGrid.ColumnDefinitions[4];
+        var gap = mainGrid.ColumnDefinitions[3];
+        if (_vm.IsPropertiesPanelOpen)
+        {
+            col.MinWidth = 160;
+            col.MaxWidth = 360;
+            col.Width = _propertiesWidth;
+            gap.Width = new GridLength(4);
+            propsSplitter.IsVisible = true;
+        }
+        else
+        {
+            if (col.ActualWidth > 24) _propertiesWidth = new GridLength(col.ActualWidth);
+            col.MinWidth = 24;
+            col.MaxWidth = 24;
+            col.Width = new GridLength(24);
+            gap.Width = new GridLength(0);
+            propsSplitter.IsVisible = false;
         }
     }
 
@@ -905,7 +1044,7 @@ public partial class MainWindow : Window
             var ext = System.IO.Path.GetExtension(path).ToLowerInvariant();
             if (ext is ".png" or ".jpg" or ".jpeg" or ".bmp" or ".tiff")
             {
-                _vm.LoadImage(path);
+                LoadImageAndFit(path);
                 break;
             }
         }

@@ -177,6 +177,15 @@ namespace mosair.ViewModels
         public IBrush ColorBrush => new SolidColorBrush(Color.FromRgb(R, G, B));
     }
 
+    // A common colour of the loaded image (properties panel).
+    public sealed record ImageColorItem(IBrush Brush, string Hex, string Share, double Percent);
+
+    // One part of the properties panel's colour bar; Width is the share in percent.
+    public sealed record ColorSegment(IBrush Brush, double Width);
+
+    // One of the stones with the most pixels in the mosaic (properties panel).
+    public sealed record TopStoneItem(IBrush Brush, string Name, string Count, string Share, double Percent);
+
     public class AssignedItem
     {
         public int Num { get; set; }
@@ -1078,7 +1087,12 @@ public bool UseLab
         public bool ImageLoaded
         {
             get => _imageLoaded;
-            set { _imageLoaded = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); }
+            set
+            {
+                _imageLoaded = value;
+                OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic));
+                OnPropertyChanged(nameof(ShowImageInfo)); OnPropertyChanged(nameof(ShowNoImageHint));
+            }
         }
 
         public bool MosaicDone
@@ -1088,7 +1102,8 @@ public bool UseLab
             {
                 _mosaicDone = value;
                 OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(OptimalAvailable));
-                OnPropertyChanged(nameof(NavBitmap));
+                OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
+                OnPropertyChanged(nameof(ShowTopStonesSection));
             }
         }
 
@@ -1554,7 +1569,181 @@ public bool UseLab
         public bool HasSelection
         {
             get => _hasSelection;
-            set { _hasSelection = value; OnPropertyChanged(); }
+            set
+            {
+                _hasSelection = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(ShowImageInfo));
+                OnPropertyChanged(nameof(ShowStoneHint));
+            }
+        }
+
+        // Properties panel: open, or folded to a thin strip at the window's right edge (View menu, the panel's
+        // minimize button and the strip's show button). Not remembered between runs.
+        private bool _isPropertiesPanelOpen = true;
+        public bool IsPropertiesPanelOpen
+        {
+            get => _isPropertiesPanelOpen;
+            set { if (_isPropertiesPanelOpen == value) return; _isPropertiesPanelOpen = value; OnPropertyChanged(); }
+        }
+
+        // Offer new JPEG/PNG files in Downloads and on the Desktop (File menu; on at start-up, not remembered).
+        private bool _watchNewImages = true;
+        public bool WatchNewImages
+        {
+            get => _watchNewImages;
+            set { if (_watchNewImages == value) return; _watchNewImages = value; OnPropertyChanged(); }
+        }
+
+        // Back from a stone's details to the image's (the panel's x button).
+        public void ClearSelection() => HasSelection = false;
+
+        // ----- Image information, shown in the properties panel while no stone is selected -----
+        public bool ShowImageInfo => ImageLoaded && !HasSelection;
+        public bool ShowNoImageHint => !ImageLoaded;
+        public bool ShowStoneHint => MosaicDone && !HasSelection;
+
+        private string _imageInfoName = "";
+        public string ImageInfoName { get => _imageInfoName; private set { _imageInfoName = value; OnPropertyChanged(); } }
+
+        // Small preview of the image (about 360 px wide) for the panel's header card.
+        private Bitmap? _imageInfoThumb;
+        public Bitmap? ImageInfoThumb { get => _imageInfoThumb; private set { _imageInfoThumb = value; OnPropertyChanged(); } }
+
+        // Rows of the details table; "" hides a row. ImageInfoFound is false for a project whose image is missing.
+        private bool _imageInfoFound;
+        public bool ImageInfoFound { get => _imageInfoFound; private set { _imageInfoFound = value; OnPropertyChanged(); } }
+        private string _imageInfoType = "", _imageInfoSize = "", _imageInfoResolution = "", _imageInfoMegapixels = "",
+                       _imageInfoAspect = "", _imageInfoDate = "";
+        public string ImageInfoType { get => _imageInfoType; private set { _imageInfoType = value; OnPropertyChanged(); } }
+        public string ImageInfoSize { get => _imageInfoSize; private set { _imageInfoSize = value; OnPropertyChanged(); } }
+        public string ImageInfoResolution { get => _imageInfoResolution; private set { _imageInfoResolution = value; OnPropertyChanged(); } }
+        public string ImageInfoMegapixels { get => _imageInfoMegapixels; private set { _imageInfoMegapixels = value; OnPropertyChanged(); } }
+        public string ImageInfoAspect { get => _imageInfoAspect; private set { _imageInfoAspect = value; OnPropertyChanged(); } }
+        public string ImageInfoDate { get => _imageInfoDate; private set { _imageInfoDate = value; OnPropertyChanged(); } }
+
+        public ObservableCollection<ImageColorItem> ImageColors { get; } = new();
+        public bool HasImageColors => ImageColors.Count > 0;
+
+        // The colour bar: the common colours side by side by share, the rest as one grey part.
+        public ObservableCollection<ColorSegment> ImageColorSegments { get; } = new();
+
+        public ObservableCollection<TopStoneItem> TopStones { get; } = new();
+        public bool HasTopStones => TopStones.Count > 0;
+        public bool ShowTopStonesSection => MosaicDone && HasTopStones;
+
+        // Name, preview, file type, size and date, pixel size, megapixels, aspect ratio and the most common colours
+        // of the loaded image (or of the image beside an opened project; "not found" when it is not there).
+        private void UpdateImageInfo()
+        {
+            string path = ProjectService.CurrentPictureFileName ?? "";
+            var bmp = MosaicData.inputBitmap;
+            ImageColors.Clear();
+            ImageColorSegments.Clear();
+            var oldThumb = ImageInfoThumb;
+            ImageInfoThumb = null;
+            oldThumb?.Dispose();
+            ImageInfoName = path.Length > 0 ? System.IO.Path.GetFileName(path) : "";
+            var file = path.Length > 0 ? new System.IO.FileInfo(path) : null;
+            bool found = file != null && file.Exists && bmp != null;
+            ImageInfoFound = found;
+            if (!found)
+            {
+                ImageInfoType = ImageInfoSize = ImageInfoResolution = ImageInfoMegapixels = ImageInfoAspect = ImageInfoDate = "";
+                OnPropertyChanged(nameof(HasImageColors));
+                return;
+            }
+            ImageInfoType = file!.Extension.TrimStart('.').ToUpperInvariant();
+            ImageInfoSize = FormatFileSize(file.Length);
+            ImageInfoDate = file.LastWriteTime.ToString("g");
+            ImageInfoResolution = $"{bmp!.Width} × {bmp.Height} px";
+            ImageInfoMegapixels = $"{(double)bmp.Width * bmp.Height / 1_000_000.0:0.0} MP";
+            ImageInfoAspect = AspectText(bmp.Width, bmp.Height);
+            ImageInfoThumb = MakeThumb(bmp, 360);
+
+            var colors = DominantColors(bmp, 6);
+            foreach (var item in colors) ImageColors.Add(item);
+            double rest = 100.0;
+            foreach (var item in colors)
+            {
+                ImageColorSegments.Add(new ColorSegment(item.Brush, item.Percent));
+                rest -= item.Percent;
+            }
+            if (rest > 0.5) ImageColorSegments.Add(new ColorSegment(new SolidColorBrush(Color.FromRgb(0x80, 0x80, 0x88), 0.35), rest));
+            OnPropertyChanged(nameof(HasImageColors));
+        }
+
+        private static string FormatFileSize(long bytes) =>
+            bytes >= 1L << 30 ? Loc.Fmt("SizeGB", (bytes / (double)(1L << 30)).ToString("0.00")) :
+            bytes >= 1L << 20 ? Loc.Fmt("SizeMB", (bytes / (double)(1L << 20)).ToString("0.0")) :
+            Loc.Fmt("SizeKB", Math.Max(1, bytes / 1024));
+
+        // 3:2, 16:9 ... for common shapes, otherwise the ratio to 1 (1.47:1).
+        private static string AspectText(int w, int h)
+        {
+            int a = w, b = h;
+            while (b != 0) (a, b) = (b, a % b);
+            int rw = w / a, rh = h / a;
+            return rw <= 32 && rh <= 32 ? $"{rw}:{rh}" : $"{(double)w / h:0.00}:1";
+        }
+
+        private static Bitmap? MakeThumb(SKBitmap bmp, int maxWidth)
+        {
+            try
+            {
+                double scale = Math.Min(1.0, (double)maxWidth / bmp.Width);
+                int w = Math.Max(1, (int)(bmp.Width * scale)), h = Math.Max(1, (int)(bmp.Height * scale));
+                using var small = bmp.Resize(new SKImageInfo(w, h), new SKSamplingOptions(SKFilterMode.Linear, SKMipmapMode.Linear));
+                return small == null ? null : ImageService.ToAvaloniaBitmap(small);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        // The most common colours: about 40 000 evenly spread pixels, grouped by their top 4 bits per channel;
+        // each group is shown as the average of its pixels with its share of the samples.
+        private static List<ImageColorItem> DominantColors(SKBitmap bmp, int count)
+        {
+            int step = Math.Max(1, (int)Math.Sqrt((double)bmp.Width * bmp.Height / 40_000.0));
+            var n = new int[4096];
+            var sr = new long[4096]; var sg = new long[4096]; var sb = new long[4096];
+            int total = 0;
+            for (int y = step / 2; y < bmp.Height; y += step)
+                for (int x = step / 2; x < bmp.Width; x += step)
+                {
+                    var c = bmp.GetPixel(x, y);
+                    if (c.Alpha < 128) continue;
+                    int k = (c.Red >> 4) << 8 | (c.Green >> 4) << 4 | (c.Blue >> 4);
+                    n[k]++; sr[k] += c.Red; sg[k] += c.Green; sb[k] += c.Blue;
+                    total++;
+                }
+            var result = new List<ImageColorItem>();
+            if (total == 0) return result;
+            foreach (int k in Enumerable.Range(0, 4096).Where(k => n[k] > 0).OrderByDescending(k => n[k]).Take(count))
+            {
+                byte r = (byte)(sr[k] / n[k]), g = (byte)(sg[k] / n[k]), b = (byte)(sb[k] / n[k]);
+                double pct = 100.0 * n[k] / total;
+                result.Add(new ImageColorItem(new SolidColorBrush(Color.FromRgb(r, g, b)),
+                    $"#{r:X2}{g:X2}{b:X2}", $"%{pct:0.0}", pct));
+            }
+            return result;
+        }
+
+        // The five stones with the most pixels in the mosaic (from the "assigned" list), with their share.
+        private void UpdateTopStones()
+        {
+            TopStones.Clear();
+            long total = AssignedColors.Sum(a => (long)a.PixelCount);
+            foreach (var a in AssignedColors.OrderByDescending(a => a.PixelCount).Take(5))
+            {
+                double pct = total > 0 ? 100.0 * a.PixelCount / total : 0;
+                TopStones.Add(new TopStoneItem(new SolidColorBrush(Color.FromRgb(a.R, a.G, a.B)),
+                    a.ID > 0 ? $"#{a.ID} {a.CodeName}" : a.CodeName, a.PixelCount.ToString("N0"), $"%{pct:0.0}", pct));
+            }
+            OnPropertyChanged(nameof(HasTopStones));
+            OnPropertyChanged(nameof(ShowTopStonesSection));
         }
 
         public string PropStoneName
@@ -1683,6 +1872,7 @@ public bool UseLab
                 ZoomLevel = 2;
                 DisplayBitmap = ImageService.ToAvaloniaBitmap(bmp);
                 ImageLoaded = true;
+                UpdateImageInfo();
                 UpdateDimensions();
                 AutoSelectGridColor(bmp);
                 StatusText = Loc.Get("StatusImageLoaded");
@@ -2041,6 +2231,8 @@ public bool UseLab
             SetStockAwareReport("");
             MosaicDone = true;
             ImageLoaded = true;
+            HasSelection = false;
+            UpdateImageInfo();
             _stoneUndoStack.Clear();
             _stoneRedoStack.Clear();
             EditedPixelCount = PixelEditService.EditedPixels.Count;
@@ -2179,6 +2371,7 @@ public bool UseLab
         // A screenshot of the image area: premultiplied BGRA from the screen, put on the canvas colour and saved as PNG.
         public async Task SaveScreenshotAsync(byte[] bgra, int width, int height, byte bgR, byte bgG, byte bgB, string path)
         {
+            NewImageWatcher.Ignore(path);
             string name = System.IO.Path.GetFileName(path);
             try
             {
@@ -2209,6 +2402,7 @@ public bool UseLab
         // quality: the chosen image quality (pixels per stone); by default DefaultExportQuality.
         public async Task ExportImageAsync(string path, int? quality = null)
         {
+            NewImageWatcher.Ignore(path);   // not offered back as a new image
             if (IsExporting) return;
 
             if (!MosaicDone || _renderSource == null)
@@ -2411,7 +2605,7 @@ public bool UseLab
             PaletteColors.Clear();
             AssignedColors.Clear();
 
-            if (MosaicData.arMB.Count == 0 || MosaicData.arMB[0].Count == 0) return;
+            if (MosaicData.arMB.Count == 0 || MosaicData.arMB[0].Count == 0) { UpdateTopStones(); return; }
 
             var mbByCode = new Dictionary<string, rgb>();
             foreach (var c in MosaicData.arMB[0])
@@ -2443,6 +2637,7 @@ public bool UseLab
                     R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
                 });
             }
+            UpdateTopStones();
         }
 
         public void OnImagePointerMoved(double pointerX, double pointerY, double imageControlWidth, double imageControlHeight)

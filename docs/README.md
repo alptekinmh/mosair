@@ -61,6 +61,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [DriveService.md](kod/Services/DriveService.md) | Google Drive proje klasörü: Apps Script (`Assets/mosair-drive.gs`) üzerinden `.mos` ve orijinal görseli proje klasörüne kaydetme, listeleme, önizleme, indirme |
 | [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
 | [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (min-cost flow ile stoğa sığdırma) |
+| [NewImageWatcher.md](kod/Services/NewImageWatcher.md) | İndirilenler ve Masaüstü klasörlerine gelen yeni JPEG/PNG dosyalarını fark etme ("mosair'de açılsın mı?" bildirimi) |
 | [WorkCancellation.md](kod/Services/WorkCancellation.md) | İptal düğmesinin belirteci: Mos, stoğa göre düzeltme ve dışa aktarmanın uzun döngülerini kontrol noktalarında durdurma |
 
 ### Modeller, kontroller, dönüştürücüler

@@ -22,6 +22,7 @@ Bu belge **kablolamayı** anlatır. Kullanıcı gözünden kullanım için [ARAY
 | `ExtendClientAreaToDecorationsHint` | `True` | Sistem başlık çubuğu yerine özel başlık çubuğu; `ExtendClientAreaTitleBarHeightHint="32"`. |
 | `Title` | `" "` | Başlık metni boş; marka adı başlık çubuğunda yeşil "mosair" olarak çizilir. |
 | `Icon` | `avares://mosair/Assets/mosair-icon.png` | — |
+| `Window.Styles` | araç çubuğu düğmeleri, menü, `section-title`, `Border.info-card` … | `Border.info-card`: Özellikler panelindeki görsel bilgisi kartları (arka plan `BgInput`, kenarlık `BrdrMain` 1 px, `CornerRadius` 6, `Padding` 9,8). |
 | `Window.Resources` | `InvDouble` | Tema renkleri (`BgMain`, `FgPrimary` …) `App.axaml`'da, uygulama düzeyinde tanımlıdır; bkz. [App](App.md). |
 
 ### Yerleşim ağacı
@@ -35,12 +36,14 @@ Window
    │   └─ "mosair" logosu + Menu
    │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport ▸, menuExportAs ▸,
    │       │     Ekran Görüntüsü Al (MenuScreenshot; Click=OnScreenshot, IsEnabled=ImageLoaded)
+   │       │     | Yeni Görselleri Bildir (MenuWatchImages; Click=OnToggleWatchImages; onay işareti WatchNewImages)
    │       │     | Google Drive ▸ (MenuDrive; IsEnabled=CanUseDrive): Drive'a Kaydet (OnDriveSave), Drive'dan Aç... (OnDriveOpen)
    │       │       | Drive Klasörü Ayarları... (OnDriveSettings)
    │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
    │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
-   │       ├─ Görünüm (MenuView): menuFitToScreen
+   │       ├─ Görünüm (MenuView): menuFitToScreen, Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
+   │       │     InputGesture F4; onay işareti IsPropertiesPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
    │       │     | Optimum, Stoğa göre, Taş Sayısı ▸ (Önerilen / Artır / Azalt),
@@ -62,7 +65,7 @@ Window
    │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (kırmızı `#E53935` çerçeve, ✕ simgesi ve BtnCancel yazısı; IsVisible = CanCancel,
    │   │     ipucu TipCancel, Click=OnCancelWork) + StatusText + ElapsedTime
    │   └─ Sağ: ZoomInfo + Ekrana Sığdır düğmesi
-   └─ Ana içerik: Grid (380 | 4 | * | 4 | 220)
+   └─ Ana içerik: Grid x:Name="mainGrid" (380 | 4 | * | 4 | 220; panel gizliyken son iki sütun 0 | 24)
        ├─ Sütun 0 — Sol panel
        │   ├─ Boyut satırı: WidthCm kutusu (InvDouble) + cm, StoneInfo / MouldInfo / OriginalInfo
        │   ├─ Tümünü Seç / Tümünü Kaldır düğmeleri
@@ -79,13 +82,38 @@ Window
        │   │       │     StonePixelSize, ShowGrid, GridColor; aynı wheel/move/press/release olayları)
        │   │       └─ ctrl:GridOverlay
        │   ├─ navPanel (150×150 gezgin, sağ üst; ImageLoaded): Image (NavBitmap) + NavView* dikdörtgeni
-       ├─ Sütun 3 — GridSplitter
-       └─ Sütun 4 — Özellikler paneli (PropTitle; HasSelection)
-           ├─ Renk örneği, PropStoneId / PropStoneName
-           ├─ Doku önizleme (PropTextureBitmap)
-           ├─ Taş varyantları (PropStoneThumbs → OnSelectStone)
-           ├─ RGB (PropRgbInfo), Koordinat (PropPixelCoord / PropMouldCoord)
-           └─ Düzenleme bilgisi (IsPixelEditActive: SelectedStoneText, EditedPixelCountText, geri al/yinele ipucu)
+       ├─ Sütun 3 — GridSplitter x:Name="propsSplitter" (panel gizliyken görünmez)
+       ├─ Sütun 4 — Özellikler paneli (IsVisible = IsPropertiesPanelOpen)
+       │   ├─ Başlık: PropTitle + sağda gizle düğmesi (▬, OnTogglePropertiesPanel, ipucu TipPanelHide)
+       │   ├─ Görsel yokken (ShowNoImageHint): resim simgesi (PathIcon 28 px) + PropNoImage, ortalı
+       │   ├─ Görsel bilgileri (ShowImageInfo = ImageLoaded && !HasSelection), kartlar (Margin 8, Spacing 8)
+       │   │   ├─ Önizleme kartı (Border, CornerRadius 6, ClipToBounds): ImageInfoFound ise ImageInfoThumb
+       │   │   │     (Stretch Uniform, MaxHeight 150, HighQuality) + sağ üstte ImageInfoType rozeti (#B0000000);
+       │   │   │     altında BgInput şeridi: PropImage başlığı, ImageInfoName (sarmalı), !ImageInfoFound ise
+       │   │   │     kırmızı (#E53935) PropImageMissing
+       │   │   ├─ AYRINTILAR kartı (info-card; ImageInfoFound): Grid "Auto,*" × 5 satır — PropResolution/ImageInfoResolution,
+       │   │   │     PropMegapixels/ImageInfoMegapixels, PropAspect/ImageInfoAspect, PropFileSize/ImageInfoSize,
+       │   │   │     PropModified/ImageInfoDate (değerler sağa yaslı, eş aralıklı yazı tipi)
+       │   │   ├─ BASKIN RENKLER kartı (info-card; HasImageColors): 10 px yüksek, yuvarlatılmış renk çubuğu
+       │   │   │     (Viewbox Stretch=Fill içinde yatay ItemsControl: ImageColorSegments → ColorSegment,
+       │   │   │     Border Width = pay %, Height 1) + ImageColors → ImageColorItem satırları (Ellipse 12 px, Hex, Share)
+       │   │   ├─ EN ÇOK KULLANILAN TAŞLAR kartı (info-card; ShowTopStonesSection): TopStones → TopStoneItem satırı
+       │   │   │     (renk kutusu, Name, yeşil Share) + ProgressBar (Value = Percent, 4 px, #4ecb71) ve Count
+       │   │   └─ PropStoneHint (ShowStoneHint)
+       │   └─ Taş bilgileri (HasSelection)
+       │       ├─ Renk örneği, PropStoneId / PropStoneName; RENK başlığının sağında ✕ (OnClearSelection, ipucu TipClearSelection)
+       │       ├─ Doku önizleme (PropTextureBitmap)
+       │       ├─ Taş varyantları (PropStoneThumbs → OnSelectStone)
+       │       ├─ RGB (PropRgbInfo), Koordinat (PropPixelCoord / PropMouldCoord)
+       │       └─ Düzenleme bilgisi (IsPixelEditActive: SelectedStoneText, EditedPixelCountText, geri al/yinele ipucu)
+       ├─ Sütun 4 — Gizli panelin şeridi (IsVisible = !IsPropertiesPanelOpen): tüm şerit tek düğme (OnTogglePropertiesPanel,
+       │     ipucu TipPanelShow): ‹ oku + 90° döndürülmüş PropTitle (LayoutTransformControl)
+       └─ Sütun 0–4 (ColumnSpan 5) — toastPanel: yeni görsel bildirimi (IsVisible=False; sağ alt, Margin 0,0,12,12,
+             Width 300, BgCard, CornerRadius 8, BoxShadow; PointerEntered/Exited = OnToastPointerEntered/Exited)
+             ├─ toastThumb (56×56, UniformToFill) · toastTitle (yeşil, kalın) · toastName (kısaltılır; ipucu tam yol)
+             │   · ToastQuestion · sağ üstte ✕ (OnToastDismiss, ipucu ToastDismiss)
+             ├─ toastSeconds (sol) · Kapat (ToastDismiss → OnToastDismiss) · Aç (ToastOpen, #4ecb71 → OnToastOpen)
+             └─ toastBar (ProgressBar, 3 px, 0–100; kalan süre)
 ```
 
 ### Özel alanlar (code-behind)
@@ -102,6 +130,12 @@ Window
 | `_interpMenuItems`, `_gridColorMenuItems`, `_gridShadeMenuItems`, `_gridShadeSeparator` | listeler | boş | Araçlar menüsünde kodla oluşturulan öğeler ve onay işaretleri. |
 | `CheckGeometry` | `const string` | — | Menü onay işaretinin yol geometrisi. |
 | `_isLightTheme` | `bool` | `false` | Tema durumu. |
+| `_propertiesWidth` | `GridLength` | 220 | Özellikler paneli gizlenmeden önceki genişlik. |
+| `_imageWatcher` | `NewImageWatcher` | yeni örnek | İndirilenler / Masaüstü izleyicisi ([NewImageWatcher](Services/NewImageWatcher.md)). |
+| `_toastTimer` | `DispatcherTimer?` | `null` | Bildirim geri sayımı (50 ms; ilk bildirimde oluşturulur). |
+| `_toastPath` | `string` | `""` | Bildirimdeki dosyanın tam yolu (**Aç** bunu yükler). |
+| `_toastLeft`, `_toastLastTick`, `_toastHover` | `TimeSpan`, `DateTime`, `bool` | — | Kalan süre, son tik zamanı, fare bildirimin üzerinde mi. |
+| `ToastTime` | `static readonly TimeSpan` | 7 sn | Bildirimin görünme süresi. |
 
 ## Public API
 
@@ -118,10 +152,11 @@ Window
 | `_vm.OpenUrl` | `TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync` ile tarayıcıda açar (stok tablosu). |
 | `_vm.StoneInvalidated += …` | Tek taş değişince (piksel düzenleme, geri al/yinele, varyant seçimi) `mosaicView.InvalidateStone(row, col)`: yalnızca o taşı içeren karolar yeniden çizilir. |
 | `AddHandler(DragDrop.DropEvent / DragOverEvent)` | Sürükle-bırak. |
+| `_imageWatcher.ImageArrived += …` | İzleyici olayı iş parçacığından gelir; `Dispatcher.UIThread.Post` ile `ShowImageToast(path, place)`. Ardından `ApplyWatchNewImages()` (açılışta `WatchNewImages` true olduğundan izleme başlar); `Closed` olayında `_imageWatcher.Dispose()`. |
 | `BuildExportMenus()` | `DataContext` atandıktan hemen sonra dışa aktarma listelerini kurar (aşağıda). |
 | `KeyDown += OnKeyDown` | Pencere düzeyi kısayollar. |
 | `paletteScroll` ↔ `assignedScroll` | İki `ScrollChanged` lambdası dikey ofseti karşılıklı eşitler (`_syncingScroll` ile döngü engellenir). |
-| `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `GridColor` → menü onaylarını yenile. |
+| `_vm.PropertyChanged` lambdası | `IsPropertiesPanelOpen` → `ApplyPropertiesPanel()`; `WatchNewImages` → `ApplyWatchNewImages()`; `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `GridColor` → menü onaylarını yenile. |
 | `BuildToolsMenu()`, `SetMenuShortcutTexts()` | Kodla oluşan menüler ve kısayol metinleri. |
 
 ### Olay işleyicileri
@@ -129,7 +164,9 @@ Window
 | Handler | Bağlı olduğu kontrol | Ne yapar |
 |---|---|---|
 | `OnTitleBarPointerPressed` | Başlık çubuğu `Border` | Sol tıkta pencereyi sürükler (`BeginMoveDrag`), çift tıkta büyüt/eski boyut. Tıklanan öğe `Button`, `MenuItem` veya `Menu` içindeyse hiçbir şey yapmaz. |
-| `OnLoadImage` | `menuLoadImage`, toolbar Görüntü Yükle, Ctrl/⌘+I | Dosya seçici (`*.png, *.jpg, *.jpeg, *.bmp, *.tiff`) → `_vm.LoadImage`. |
+| `OnLoadImage` | `menuLoadImage`, toolbar Görüntü Yükle, Ctrl/⌘+I | Dosya seçici (`*.png, *.jpg, *.jpeg, *.bmp, *.tiff`) → `LoadImageAndFit`. |
+| `LoadImageAndFit(path)` | `OnLoadImage`, `OnDrop`, `OnToastOpen` | `_vm.LoadImage(path)`; görsel yüklendiyse (`_vm.ImageLoaded`) `_vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height)`: yeni görsel görsel alanına sığmış açılır (`LoadImage`'ın kurduğu `ZoomLevel = 2` ekranda kalmaz). |
+| `ApplySourceImageQuality()` | Kurucu, `ZoomLevel` değişimi (`PropertyChanged`) | Mos öncesi görseli gösteren `sourceImage` için `RenderOptions.BitmapInterpolationMode`: `ZoomLevel < 1` iken `HighQuality` (görsel kendi boyutundan küçük gösterilirken en yakın piksel ölçekleme pikselleri atlar, fotoğraf bozuk görünür), 1x ve üstünde `LowQuality` (pikseller keskin kalır). |
 | `OnOpenProject` | `menuOpenProject`, toolbar Proje Aç, Ctrl/⌘+O | `*.mos` seçici → `_vm.OpenProject` → `FitToWindow`. |
 | `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S | Masaüstü/mosairPROJECT kuralına göre kaydeder, kaynak görüntüyü kopyalar, 1,2 sn `saveCheckIcon` gösterir. |
 | `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S | `SaveAsDialog()` çağırır. |
@@ -149,6 +186,17 @@ Window
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
+| `OnTogglePropertiesPanel` | Özellikler başlığındaki ▬ düğmesi, gizli panelin şeridi, **Görünüm → Özellikler Paneli**, F4 | `_vm.IsPropertiesPanelOpen` tersine çevrilir; sütun değişikliğini `ApplyPropertiesPanel` yapar. |
+| `OnClearSelection` | Özellikler → RENK başlığının yanındaki ✕ | `_vm.ClearSelection()` (taş seçimini bırakır, görsel bilgileri görünür). |
+| `OnToggleWatchImages` | **Dosya → Yeni Görselleri Bildir** | `_vm.WatchNewImages` tersine çevrilir; izleyiciyi `ApplyWatchNewImages` başlatır/durdurur. |
+| `ApplyWatchNewImages()` | Yapıcı, `WatchNewImages` değişimi | true → `_imageWatcher.Start()`; false → `Stop()` ve `HideToast()`. |
+| `ShowImageToast(path, place)` | `ImageArrived` (UI iş parçacığında) | `WatchNewImages` kapalıysa ya da `path` açık görselin kendisiyse (`ProjectService.CurrentPictureFileName`, büyük/küçük harf duyarsız) hiçbir şey yapmaz. Başlık `ToastNewDownload`/`ToastNewDesktop`, ad + tam yol ipucu; eski küçük resmi dispose eder, yenisini `Bitmap.DecodeToWidth(stream, 112)` ile yükler (hata olursa boş). Süreyi `ToastTime`'a (7 sn) kurar, bildirimi gösterir, zamanlayıcıyı başlatır (yeni bildirim öncekinin yerine geçer). |
+| `_toastTimer.Tick` (lambda) | 50 ms | Fare üzerinde değilse geçen süreyi düşer; süre bittiyse `HideToast()`, değilse `UpdateToastCountdown()`. |
+| `UpdateToastCountdown()` | Gösterim ve her tik | `toastBar.Value` = kalan / `ToastTime` (7 sn) × 100; `toastSeconds` = `ToastSeconds` (yukarı yuvarlanmış saniye, en az 1). |
+| `HideToast()` | Kapat, ✕, süre bitimi, **Aç**, izlemenin kapatılması | Zamanlayıcıyı durdurur, bildirimi gizler. |
+| `OnToastPointerEntered` / `OnToastPointerExited` | `toastPanel` | `_toastHover`: geri sayımı durdurur / sürdürür. |
+| `OnToastDismiss` | Kapat ve ✕ düğmeleri | `HideToast()`. |
+| `OnToastOpen` | **Aç** düğmesi | `_vm.IsProcessing` ya da `_vm.IsExporting` ise `StatusText = StatusToastBusy` (bildirim açık kalır). Değilse `HideToast()`, dosya hâlâ varsa `LoadImageAndFit(path)` (Görsel Yükle ile aynı: yükler ve sığdırır). |
 | `OnRunMosaic` | `menuMosaicize`, Mos düğmesi (`CanRunMosaic`), Ctrl/⌘+M | `await _vm.RunMosaicAsync()` ardından `FitToWindow`. |
 | `OnTogglePixelEdit` | Araçlar menüsü (`MosaicDone`), toolbar kalem düğmesi | `_vm.TogglePixelEditMode()`; mod kapanınca `catalogListBox` seçimini temizler. |
 | `OnToggleGrid` | Araçlar menüsü, toolbar Izgara Flyout'undaki düğme | `_vm.ShowGrid` tersine çevrilir. |
@@ -222,6 +270,7 @@ Window
 | 0 / NumPad0 | `CmdKey` | `OnResetSize` | — |
 | M | `CmdKey` | `OnRunMosaic` | (`RunMosaicAsync` içinde `CanRunMosaic`) |
 | F1 | yok | `ShowHelp()` | — |
+| F4 | yok | `OnTogglePropertiesPanel` | — |
 | Esc | yok | `_vm.CancelWork()` (durum çubuğundaki İptal düğmesiyle aynı) | `_vm.CanCancel`; tablonun en başında denetlenir, olay `Handled` işaretlenir |
 
 Koşul sağlanmasa da Ctrl/⌘+S/E olayı `Handled` işaretlenir. Esc ise yalnızca `CanCancel` true iken yakalanır; iptal edilecek iş yoksa olay diğer kontrollere (ör. açık bir menü ya da Flyout) geçer.
@@ -240,8 +289,21 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 ### Sürükle-bırak
 
 - `OnDragOver`: veri dosya içeriyorsa `DragDropEffects.Copy`, yoksa `None`.
-- `OnDrop`: bırakılan dosyalardan uzantısı `.png/.jpg/.jpeg/.bmp/.tiff` olan **ilki** `_vm.LoadImage` ile yüklenir; `.mos` sürükle-bırakla açılmaz.
+- `OnDrop`: bırakılan dosyalardan uzantısı `.png/.jpg/.jpeg/.bmp/.tiff` olan **ilki** `LoadImageAndFit` ile yüklenip sığdırılır; `.mos` sürükle-bırakla açılmaz.
 - İşleyiciler pencereye eklenmiştir ama `DragDrop.AllowDrop="True"` yalnızca tuval `Border`'ında vardır; bırakma pratikte tuval alanında çalışır.
+
+### Özellikler panelini gizleme
+
+`ApplyPropertiesPanel` `mainGrid.ColumnDefinitions[4]` (panel) ve `[3]` (ayırıcı) sütunlarını ayarlar:
+
+- **Gizle:** o anki genişlik 24 px'ten büyükse `_propertiesWidth`'e saklanır; panel sütunu `MinWidth = MaxWidth = Width = 24`, ayırıcı sütunu 0 px ve `propsSplitter.IsVisible = false`. Yerine şerit görünür (XAML'de `!IsPropertiesPanelOpen`).
+- **Göster:** `MinWidth = 160`, `MaxWidth = 360`, `Width = _propertiesWidth` (başlangıçta 220), ayırıcı 4 px ve görünür.
+
+Durum kalıcı değildir; pencere her açılışta panel açık başlar.
+
+### Yeni görsel bildirimi
+
+İndirilenler ve Masaüstü klasörlerine gelen JPEG/PNG dosyalarını [NewImageWatcher](Services/NewImageWatcher.md) bildirir; pencere sağ altta `toastPanel`'i 7 sn gösterir (fare üzerindeyken süre durur). `toastPanel` ana `Grid`'in beş sütununu da kaplar ve son eleman olduğu için panellerin üzerinde çizilir; Özellikler paneli gizliyken de canvas'ın sağ altında görünür. Yalnızca bir bildirim vardır; yenisi öncekinin içeriğini ve süresini değiştirir. **Aç** görseli `LoadImageAndFit` ile yükleyip görsel alanına sığdırır: açık mozaik için onay sorulmaz (sürükle-bırak ve Görsel Yükle ile aynı).
 
 ### Tema
 
@@ -274,6 +336,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 - [GridOverlay](Controls/GridOverlay.md), [MosaicView](Controls/MosaicView.md)
 - [InvariantDoubleConverter](Converters/InvariantDoubleConverter.md)
 - [Loc](Services/Loc.md)
+- [NewImageWatcher](Services/NewImageWatcher.md)
 - [ProjectService](Services/ProjectService.md)
 - [PixelEditService](Services/PixelEditService.md)
 - [Kullanıcı arayüzü (ARAYUZ)](../ARAYUZ.md)
