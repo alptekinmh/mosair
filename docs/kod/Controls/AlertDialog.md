@@ -1,6 +1,6 @@
 # AlertDialog
 
-> Kaynak: `mosair/Controls/AlertDialog.axaml`, `mosair/Controls/AlertDialog.axaml.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Controls/AlertDialog.axaml`, `mosair/Controls/AlertDialog.axaml.cs` · Güncelleme: 2026-10-06
 
 ## Amaç
 
@@ -26,7 +26,7 @@ ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonu
 |---|---|---|---|
 | (pencere) | `Window` | `Width=420`, `SizeToContent="Height"`, `CanResize="False"` | `WindowStartupLocation="CenterOwner"`, arka plan `BgCard` (tema rengi). |
 | `TitleText` | `TextBlock` | — | 16 pt, SemiBold başlık. |
-| `MessageText` | `TextBlock` | — | 13 pt, `TextWrapping="Wrap"` gövde metni. |
+| `MessageText` | `SelectableTextBlock` | — | 13 pt, `TextWrapping="Wrap"` gövde metni; seçilip kopyalanabilir. En çok 460 px yüksekliğinde bir `ScrollViewer` içindedir: uzun raporlar (ör. büyük mozaikte Stoğa göre sonucu) pencereyi ekrandan taşırmaz, kaydırılır. |
 | `OkButton` | `Button` | `Content="Tamam"` | Sağa yaslı mavi (`#3a7bfd`) düğme; `Click="OnOkClick"`. |
 
 ## Public API

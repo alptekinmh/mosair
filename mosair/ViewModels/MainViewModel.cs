@@ -495,7 +495,7 @@ namespace mosair.ViewModels
                 }
                 FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
-                ShowStockAwareResult(stock);
+                ShowStockAwareResult(stock, windowIfLong: true);
                 return stock;
             }
             catch (Exception ex)
@@ -1003,7 +1003,12 @@ public bool UseLab
                 StockOptions());
 
         // After a stock-aware run: kg values and red dots in the catalog, a short status note and the full report.
-        private void ShowStockAwareResult(Dictionary<int, StockSheetService.StoneStock> stock)
+        // About how many characters fit in the status bar's centre at its font size.
+        private const int StatusBarFitChars = 110;
+
+        // windowIfLong: when the report does not fit the status bar, also open it in a window (Mos and Stok
+        // Kontrol); the stone slider only points to the tooltip so moving it does not keep opening windows.
+        private void ShowStockAwareResult(Dictionary<int, StockSheetService.StoneStock> stock, bool windowIfLong = false)
         {
             var res = MosaicEngine.LastStockResult;
             if (res == null) return;
@@ -1060,8 +1065,26 @@ public bool UseLab
                 sb.AppendLine().Append(unknown);
                 summary += " · " + unknown;
             }
-            SetStockAwareReport(sb.ToString().TrimEnd());
-            StatusText = StatusText + " · " + summary;
+            string report = sb.ToString().TrimEnd();
+            SetStockAwareReport(report);
+            string line = StatusText + " · " + summary;
+            if (line.Length <= StatusBarFitChars)
+            {
+                StatusText = line;
+                return;
+            }
+
+            // Too long for the status bar (a large mosaic can move many stones and leave long stone lists):
+            // only the counts stay there, the full report goes to a window.
+            string brief = res.Changed
+                ? Loc.Fmt("StockAwareChanged", res.Moves.Select(m => m.FromId).Distinct().Count(), res.MovedPixels)
+                : Loc.Get("StockAwareOk");
+            if (res.ShortIds.Count > 0) brief += " · " + Loc.Fmt("StockAwareShortCount", res.ShortIds.Count);
+            if (res.UnknownIds.Count > 0) brief += " · " + Loc.Fmt("StockAwareUnknownCount", res.UnknownIds.Count);
+            StatusText = StatusText + " · " + brief + " · " +
+                         Loc.Get(windowIfLong ? "StockAwareSeeWindow" : "StockAwareSeeTooltip");
+            if (windowIfLong)
+                Alert(Loc.Get("StockAwareTitle"), report);
         }
 
         public bool OptimalAvailable => MosaicDone && _lastRunOptimal;
@@ -1650,7 +1673,7 @@ public bool UseLab
                     if (stockFixOk)
                     {
                         _stockOnHand = stock; // the stone-count slider keeps to the same stock
-                        ShowStockAwareResult(stock);
+                        ShowStockAwareResult(stock, windowIfLong: true);
                     }
                     else
                     {

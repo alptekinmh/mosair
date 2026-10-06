@@ -15,11 +15,13 @@
                  FontSize="16" FontWeight="SemiBold"
                  Foreground="{DynamicResource FgPrimary}"/>
 
-      <!-- Message -->
-      <TextBlock x:Name="MessageText"
-                 FontSize="13" TextWrapping="Wrap"
-                 Foreground="{DynamicResource FgMenu}"
-                 LineHeight="20"/>
+      <!-- Message: long reports (e.g. Stoğa göre on a large mosaic) scroll and can be selected and copied -->
+      <ScrollViewer MaxHeight="460" HorizontalScrollBarVisibility="Disabled">
+        <SelectableTextBlock x:Name="MessageText"
+                             FontSize="13" TextWrapping="Wrap"
+                             Foreground="{DynamicResource FgMenu}"
+                             LineHeight="20"/>
+      </ScrollViewer>
 
       <!-- OK Button -->
       <Button x:Name="OkButton"
