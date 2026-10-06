@@ -57,7 +57,7 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 ## Public API
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `Analyze(src, R, C, candidates, onProgress, gamut)` | BGR kaynak ve aday listesiyle eleme yapar ve `OptimalPaletteResult` döndürür. `candidates` boşsa boş sonuç döner. | `MosaicEngine.RunOptimal` |
+| `Analyze(src, R, C, candidates, onProgress, gamut)` | BGR kaynak ve aday listesiyle eleme yapar ve `OptimalPaletteResult` döndürür. `candidates` boşsa boş sonuç döner. İptal edilebilir: kullanıcı İptal'e basınca bir sonraki kontrol noktasında `OperationCanceledException` (paralel adımda `AggregateException` içinde) fırlatır. | `MosaicEngine.RunOptimal` |
 
 ## Algoritma / akış
 1. **Benzersiz renkler**: Her piksel Lab'a çevrilir. `gamut` verilmişse önce `gamut.Map` uygulanır. Benzersiz renkler U listesinde toplanır ve her pikselin hangi benzersiz renge ait olduğu kaydedilir.
@@ -93,6 +93,7 @@ Bir resim için kaç farklı katalog taşının "yeterli" olduğunu bulur. Anali
 - `KKnee` önerilen k'yı etkilemez. Yalnızca CompareRunner loglarında görünür.
 - Eleme sırası sabit olduğu için kullanıcı slider ile k'yı değiştirdiğinde analiz yeniden çalıştırılmaz.
 - İlerleme, eleme adımlarının oranı olarak bildirilir.
+- **İptal kontrol noktaları** ([WorkCancellation](./WorkCancellation.md)`.Check()`): benzersiz renk geçişinde ve güçlü kenar geçişinde satır başına bir kez (`j == 0`), paralel mesafe tablosunda benzersiz renk başına, eleme döngüsünde her adımda. Analiz yalnızca kendi yerel dizilerini kullanır; iptal edilince hiçbir şey değişmemiş olur. Kontrol noktaları sonucu değiştirmez (karşılaştırma aracıyla doğrulandı). Ölçüm: 4000×4000 taşlık Optimum, tıklamadan 8 ms sonra durdu.
 
 ## Dikkat / bilinen sınırlamalar
 - Bellek kullanımı U×M'dir (`float` mesafe + `int` sıra). Çok renkli büyük resimlerde bu tablo büyür.

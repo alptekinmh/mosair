@@ -56,6 +56,7 @@
 - Eksi kapasite 0 sayılır.
 - Hız (paralel seviyeler, `skipHopeless`, sink'te duran Dijkstra, düz dizili ağ): 300 cm genişlikte 125.000 taşlık bir test görselinde (st1.jpg; 10 taş stoğu aşıyor, 87.000 taş taşınıyor) düzeltme 86 sn'den 9 sn'ye, 7.jpg'de 249 sn'den yaklaşık 26–44 sn'ye indi. Sonuçlar bayt bayt aynı kaldı (karşılaştırma aracıyla doğrulandı).
 - Stoğu aşan ve az kullanılan taş yoksa `Assignment` girdinin aynısıdır (birebir aynılık).
+- **İptal** ([WorkCancellation](./WorkCancellation.md)`.Check()`): `SolveWithMinimum`'da her en az kullanım turunun başında, `Solve`'da paralel seviye başına, en ucuz akışta (`MinCostMove`) her artırma yolunda (augmenting path), piksel dağıtımında grup başına. İptalde `OperationCanceledException` (paralel seviyelerde `AggregateException` içinde) fırlar; çözücü yalnız kendi dizilerini kullandığı için mozaik değişmez, sonucu çağıran (`MainViewModel`) belirler. Ölçüm: 1200×1200 taşlık düzeltme tıklamadan 510 ms sonra durdu.
 
 ## Dikkat / bilinen sınırlamalar
 - Benzerlik katalog RGB değerlerine dayanır (`Assets/colorsBas.txt`).

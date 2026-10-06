@@ -50,7 +50,7 @@ Bölüm kimliği = `x:Name` sonundaki sayı = gezinme düğmesinin `Tag` değeri
 | 8 | 5 | `sec5` | `sec5en` | `Proje Yonetimi` | `Project Management` |
 | 9 | 6 | `sec6` | `sec6en` | `Ipuclari` | `Tips` |
 
-Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` üzerindeki `KeyModI`, `KeyModO`, `KeyModS`, `KeyModShiftS`, `KeyModE`, `KeyModM`, `KeyMod0`, `KeyModZ`, `KeyModY` özelliklerine bağlıdır; macOS'ta ⌘, diğerlerinde Ctrl görünür.
+Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` üzerindeki `KeyModI`, `KeyModO`, `KeyModS`, `KeyModShiftS`, `KeyModE`, `KeyModM`, `KeyMod0`, `KeyModZ`, `KeyModY` özelliklerine bağlıdır; macOS'ta ⌘, diğerlerinde Ctrl görünür. `F1` ve `Esc` (süren işi iptal et) satırları sabit metindir.
 
 ### Code-behind alanları
 

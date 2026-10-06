@@ -43,7 +43,7 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 
 | Üye | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `RenderRegion(row0, col0, rows, cols, N, showGrid, gridWidth, gridColor)` → `SKBitmap` | `[row0, row0+rows) × [col0, col0+cols)` taşlarını taş başına `N` piksel ile `Rgba8888` opak bitmap'e çizer; ızgara açıksa bitmap'e işlenir | `MosaicView`, `MosaicExporter`, `StoneTextureService.GenerateRSBitmap` |
+| `RenderRegion(row0, col0, rows, cols, N, showGrid, gridWidth, gridColor)` → `SKBitmap` | `[row0, row0+rows) × [col0, col0+cols)` taşlarını taş başına `N` piksel ile `Rgba8888` opak bitmap'e çizer; ızgara açıksa bitmap'e işlenir. Her taş satırının başında `WorkCancellation.Check()` çağırır (aşağıda) | `MosaicView`, `MosaicExporter`, `StoneTextureService.GenerateRSBitmap` |
 | `RenderOverview()` → `SKBitmap` | Taş başına 1 piksel, her taşın kendi rengi (`Cols × Rows`) | `MainViewModel` (genel görünüm, gezgin) |
 | `WithStoneSnapshot()` → `MosaicRenderSource` | Aynı mozaik, taş renkleri (`dataM3`) ve varyantlarının (`arn`) kopyasıyla; dışa aktarma bunu kullanır, böylece aktarma sürerken yapılan piksel düzenlemeleri dosyaya girmez. Dokular ve kod tabloları paylaşılır. | `MainViewModel.ExportImageAsync` |
 | `HasTextures`, `Rows`, `Cols`, `Version` | Yukarıdaki tablo | `MosaicView`, `MainViewModel` |
@@ -60,12 +60,13 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 5. **Doku yoksa:** Hiç taş görüntüsü yüklü değilse (`HasTextures` false) her taş kendi rengiyle düz boyanır. Doku varsa ama bir taşın kodu bulunamazsa o taşın yeri boş kalır (ızgara açıksa ızgara rengi, değilse yeni bitmap'in tanımsız, çoğunlukla siyah pikselleri).
 6. **Canlı veri:** `dataM3` ve `arn` kopyalanmadığı için arayüzde yapılan piksel düzenlemesi ve varyant değişikliği, ilgili bölge bir sonraki çizimde yeni haliyle görünür. Ekrandaki karonun yenilenmesini `MosaicView.InvalidateStone` sağlar. Motor yeni bir mozaik kurarken `dataM3` ve `arn` için yeni diziler ayırır; böylece eski nesne, yerine yenisi konana kadar eski mozaiği tutarlı biçimde çizer.
 7. **İş parçacığı:** Önbellekler `ConcurrentDictionary` olduğundan aynı nesneden birden çok karo aynı anda çizilebilir.
+8. **İptal** ([WorkCancellation](./WorkCancellation.md)): `RenderRegion` her taş satırında `WorkCancellation.Check()` çağırır. Belirteci yalnızca dışa aktarma (`MainViewModel.ExportImageAsync`) atar; `MosaicView` karoları ve dosya boyutu tahmini belirteçsiz çalıştığı için hiç durmaz. Böylece tek bitmap'e sığan küçük bir dışa aktarma da çizim sırasında iptal edilebilir.
 
 ## Dikkat / bilinen sınırlamalar
 
 - Ekran (`MosaicView`) canlı `dataM3`/`arn` üzerinden çizer; dışa aktarma ise `WithStoneSnapshot()` kopyasından çizdiği için aktarma sürerken yapılan piksel düzenlemeleri dosyaya girmez.
 - `_catalogOf[(b, g, r)]` yalnızca `CodeFor` 2. adımda o anahtarın bulunduğunu doğruladıktan sonra okunur; adımlar değiştirilirken bu sıra korunmalıdır.
-- Her nesne kendi küçültülmüş doku önbelleğini tutar; N ya da mozaik değişince yeni nesne kurulur, eskisi çöp toplayıcıya bırakılır.
+- Her nesne kendi küçültülmüş doku önbelleğini tutar (boyut başına; ekran seviyeleri ve dışa aktarma kalitesi ayrı girdiler açar); mozaik değişince yeni nesne kurulur, eskisi çöp toplayıcıya bırakılır.
 - `unsafe` kod kullanır (doğrudan piksel işaretçisi).
 
 ## İlgili dosyalar

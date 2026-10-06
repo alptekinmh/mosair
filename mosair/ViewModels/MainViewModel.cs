@@ -370,8 +370,15 @@ namespace mosair.ViewModels
             // "Stoğa göre": fix the mosaic to stock first, so the sheet gets the final counts in one write.
             // When the fix cannot run (reason already shown) Stok Kontrol still does its normal check below.
             Dictionary<int, StockSheetService.StoneStock>? stock = null;
+            _stockCheckCancelled = false;
             if (UseStockAware)
                 stock = await FixToStockAsync(config, projectName);
+            if (_stockCheckCancelled)
+            {
+                // Cancelled during the stock fit: nothing is written to the sheet.
+                StatusText = Loc.Get("StatusStockCheckCancelled");
+                return;
+            }
 
             var counts = new Dictionary<int, int>();
             foreach (var c in MosaicData.arMA[0])
@@ -469,6 +476,7 @@ namespace mosair.ViewModels
             int version = StartNewContent();
             IsProcessing = true;
             var sw = Stopwatch.StartNew();
+            var cts = BeginCancellable();
             try
             {
                 SKBitmap? result = null;
@@ -476,18 +484,40 @@ namespace mosair.ViewModels
                 int k = OptimalK;
                 bool optimum = OptimalAvailable;
                 bool fixedOk = true;
+                bool cancelled = false;
                 await Task.Run(() =>
                 {
-                    if (optimum)
-                        result = ApplyOptimalKFor(k, stock);
-                    else
+                    WorkCancellation.Token = cts.Token;
+                    try
                     {
-                        fixedOk = FixClassicMosaicToStock(stock);
-                        result = MosaicData.reducedBitmap;
+                        if (optimum)
+                            result = ApplyOptimalKFor(k, stock);
+                        else
+                        {
+                            fixedOk = FixClassicMosaicToStock(stock);
+                            result = MosaicData.reducedBitmap;
+                        }
+                    }
+                    catch (Exception e) when (IsCancellation(e))
+                    {
+                        // Back to the mosaic as it was (Optimum is rebuilt at the same stone count).
+                        cancelled = true;
+                        WorkCancellation.Token = default;
+                        result = optimum ? MosaicEngine.ApplyOptimalK(k) : MosaicData.reducedBitmap;
                     }
                 });
                 sw.Stop();
                 if (version != _contentVersion) return null; // a new image or project was opened meanwhile
+                if (cancelled)
+                {
+                    if (optimum)
+                    {
+                        FinishMosaic(result, sw.Elapsed);
+                        DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                    }
+                    _stockCheckCancelled = true;
+                    return null;
+                }
                 if (!fixedOk)
                 {
                     Fail(Loc.Get("StockAwareCannotFix"));
@@ -506,6 +536,7 @@ namespace mosair.ViewModels
             }
             finally
             {
+                EndCancellable(cts);
                 IsProcessing = false;
             }
         }
@@ -594,9 +625,11 @@ namespace mosair.ViewModels
         private bool _useAverage;
         private InterpolationMethod _interpolationMethod = InterpolationMethod.Area;
         private bool _showGrid = true;
-        private int _stonePixelSize = 40;
-        private bool _nWarningVisible;
-        private bool _nWarningShown;
+        // Pixels per stone of the stone image at full on-screen detail: the stone photos' own size, so zooming
+        // in shows them as sharp as they are. MosaicView draws coarser levels when zoomed out; there is no
+        // setting for it any more (the export quality is chosen in the export list).
+        private const int ViewStonePixels = 100;
+        private readonly int _stonePixelSize = ViewStonePixels;
         private Color _gridColor = Color.FromRgb(128, 128, 128);
 
         private int _progress;
@@ -745,34 +778,10 @@ public bool UseLab
         public bool ShowGrid
         {
             get => _showGrid;
-            set { _showGrid = value; OnPropertyChanged(); RegenerateRS(); }
+            set { _showGrid = value; OnPropertyChanged(); }   // MosaicView and GridOverlay redraw from the binding
         }
 
-        public int StonePixelSize
-        {
-            get => _stonePixelSize;
-            set
-            {
-                if (_stonePixelSize == value) return;
-                _stonePixelSize = value;
-                MosaicData.N = value;
-                OnPropertyChanged();
-                RegenerateRS();
-                if (value > 40 && !_nWarningShown)
-                {
-                    _nWarningShown = true;
-                    NWarningVisible = true;
-                }
-            }
-        }
-
-        public bool NWarningVisible
-        {
-            get => _nWarningVisible;
-            set { _nWarningVisible = value; OnPropertyChanged(); }
-        }
-
-        public void DismissNWarning() => NWarningVisible = false;
+        public int StonePixelSize => _stonePixelSize;
 
         public Color GridColor
         {
@@ -838,6 +847,46 @@ public bool UseLab
             get => _isExporting;
             set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); }
         }
+
+        // ===== Cancel button (status bar, also Esc) =====
+        // Mos, the stone slider with stock, the stock fit before Stok Kontrol and export can be cancelled. The
+        // token flows to the engine through WorkCancellation; its long loops stop at checkpoints.
+        private System.Threading.CancellationTokenSource? _workCts;
+
+        public bool CanCancel => _workCts != null && !_workCts.IsCancellationRequested;
+
+        private System.Threading.CancellationTokenSource BeginCancellable()
+        {
+            var cts = new System.Threading.CancellationTokenSource();
+            _workCts = cts;
+            OnPropertyChanged(nameof(CanCancel));
+            return cts;
+        }
+
+        private void EndCancellable(System.Threading.CancellationTokenSource cts)
+        {
+            if (ReferenceEquals(_workCts, cts))
+            {
+                _workCts = null;
+                OnPropertyChanged(nameof(CanCancel));
+            }
+            cts.Dispose();
+        }
+
+        public void CancelWork()
+        {
+            if (!CanCancel) return;
+            _workCts!.Cancel();
+            OnPropertyChanged(nameof(CanCancel));
+            StatusText = Loc.Get("StatusCancelling");
+        }
+
+        private bool _stockCheckCancelled;
+
+        // Cancellation can arrive wrapped by Parallel.For.
+        private static bool IsCancellation(Exception e) =>
+            e is OperationCanceledException ||
+            (e is AggregateException ae && ae.Flatten().InnerExceptions.All(x => x is OperationCanceledException));
 
         // Any work in progress (Mos, stock fit, stone-texture rebuild, stock sheet action, export): drives the
         // wave animation in the status bar.
@@ -1144,20 +1193,33 @@ public bool UseLab
             int version = _contentVersion;
             IsProcessing = true;
             var sw = Stopwatch.StartNew();
+            // Only the stock fit can be stopped here; without stock the cancel button stays hidden.
+            var cts = UseStockAware && _stockOnHand != null ? BeginCancellable() : new System.Threading.CancellationTokenSource();
             try
             {
                 SKBitmap? result = null;
                 var oldExport = MosaicData.exportBitmap;
                 var stock = UseStockAware ? _stockOnHand : null;
+                bool stockFitCancelled = false;
                 await Task.Run(() =>
                 {
-                    result = ApplyOptimalKFor(k, stock);
+                    WorkCancellation.Token = cts.Token;
+                    try { result = ApplyOptimalKFor(k, stock); }
+                    catch (Exception e) when (IsCancellation(e))
+                    {
+                        // The new stone count without the stock fit.
+                        stockFitCancelled = true;
+                        WorkCancellation.Token = default;
+                        result = MosaicEngine.ApplyOptimalK(k);
+                    }
                 });
                 sw.Stop();
                 if (version != _contentVersion) return; // another image or Mos took over
                 FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
-                if (stock != null)
+                if (stockFitCancelled)
+                    StatusText += " · " + Loc.Get("StatusStockFitCancelled");
+                else if (stock != null)
                 {
                     ShowStockAwareResult(stock);
                     // The sheet column still holds the counts from the last Stok Kontrol.
@@ -1171,6 +1233,7 @@ public bool UseLab
             }
             finally
             {
+                EndCancellable(cts);
                 IsProcessing = false;
             }
         }
@@ -1241,7 +1304,7 @@ public bool UseLab
         public int BitmapPixelHeight => _bitmapPixelHeight;
         public int StoneColumns => (int)MosaicEngine.width;
         public int StoneRows => (int)MosaicEngine.height;
-        public string ZoomInfo => $"N={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
+        public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
 
 
         public double NavViewLeft { get => _navViewLeft; set { _navViewLeft = value; OnPropertyChanged(); } }
@@ -1453,6 +1516,9 @@ public bool UseLab
             MosaicDone = false;
             RenderSource = null;
             OverviewBitmap = null;
+            // The per-stone pixel value written to project files (kept for WPF): back to the default for a new
+            // image, not the value of a project opened earlier.
+            MosaicData.N = 40;
 
             // Clear old mosaic state
             MosaicData.exportBitmap?.Dispose();
@@ -1557,6 +1623,9 @@ public bool UseLab
             }
             if (!CanRunMosaic) return;
             int version = StartNewContent();
+            // To put the previous mosaic back if this Mos is cancelled before it changes anything.
+            bool hadMosaic = MosaicDone && _renderSource != null;
+            bool hadOptimal = _lastRunOptimal;
 
             IsProcessing = true;
             Progress = 0;
@@ -1601,6 +1670,8 @@ public bool UseLab
             StatusText = Loc.Fmt("StatusCalculated", TargetColors);
 
             var sw = Stopwatch.StartNew();
+            var cts = BeginCancellable();
+            bool classicStarted = false;   // classic Mos changes the shared data as it goes
 
             try
             {
@@ -1622,18 +1693,32 @@ public bool UseLab
                     if (stock == null) SetStockAwareReport(Loc.Get("StockAwareNoStock"));
                 }
                 bool stockFixOk = true;
+                bool stockFitCancelled = false;
                 await Task.Run(() =>
                 {
+                    WorkCancellation.Token = cts.Token;
                     if (optimal)
                     {
+                        // Cancelled here: nothing has changed yet (see RunOptimal).
                         result = MosaicEngine.RunOptimal(SelectedInterpolation,
                             progress => Dispatcher.UIThread.Post(() => Progress = progress),
                             prepareTextures: stock == null);
                         if (stock != null)
-                            result = ApplyOptimalKFor(MosaicEngine.LastOptimalResult!.KOptimal, stock);
+                        {
+                            int k = MosaicEngine.LastOptimalResult!.KOptimal;
+                            try { result = ApplyOptimalKFor(k, stock); }
+                            catch (Exception e) when (IsCancellation(e))
+                            {
+                                // Keep the plain Optimum mosaic, without the stock fit.
+                                stockFitCancelled = true;
+                                WorkCancellation.Token = default;
+                                result = MosaicEngine.ApplyOptimalK(k);
+                            }
+                        }
                     }
                     else
                     {
+                        classicStarted = true;
                         result = MosaicEngine.RunM3(
                             TargetColors,
                             RgbIncrement,
@@ -1642,9 +1727,12 @@ public bool UseLab
                             SelectedInterpolation,
                             progress => Dispatcher.UIThread.Post(() => Progress = progress)
                         );
+                        classicStarted = false;
                         if (stock != null)
                         {
-                            stockFixOk = FixClassicMosaicToStock(stock);
+                            // Cancelled while choosing substitutes: the classic mosaic is complete and unchanged.
+                            try { stockFixOk = FixClassicMosaicToStock(stock); }
+                            catch (Exception e) when (IsCancellation(e)) { stockFitCancelled = true; }
                             result = MosaicData.reducedBitmap;
                         }
                     }
@@ -1668,6 +1756,11 @@ public bool UseLab
                 _mosaicMadeThisSession = result != null;
                 if (UseStockAware && stockConfigured && stock == null && result != null)
                     StatusText += " · " + Loc.Get("StockAwareNoStock");
+                if (stockFitCancelled)
+                {
+                    StatusText += " · " + Loc.Get("StatusStockFitCancelled");
+                    stock = null;
+                }
                 if (stock != null && result != null)
                 {
                     if (stockFixOk)
@@ -1682,6 +1775,24 @@ public bool UseLab
                     }
                 }
             }
+            catch (Exception ex) when (IsCancellation(ex))
+            {
+                if (version != _contentVersion) { /* a new image or project took over */ }
+                else if (classicStarted || !hadMosaic)
+                {
+                    // A half-built classic mosaic cannot be trusted: clear it and show the loaded image again.
+                    if (classicStarted) ClearMosaic();
+                    StatusText = Loc.Get(classicStarted ? "StatusMosCancelledCleared" : "StatusMosCancelled");
+                }
+                else
+                {
+                    // Optimum stopped before changing anything: the previous mosaic is still there.
+                    _lastRunOptimal = hadOptimal;
+                    MosaicDone = true;
+                    FilterCatalogByUsedColors();
+                    StatusText = Loc.Get("StatusMosCancelled");
+                }
+            }
             catch (OutOfMemoryException)
             {
                 StatusText = Loc.Get("AlertMemoryBody");
@@ -1694,9 +1805,24 @@ public bool UseLab
             }
             finally
             {
+                EndCancellable(cts);
                 IsProcessing = false;
                 Progress = 100;
             }
+        }
+
+        // After a cancelled classic Mos: no mosaic, the loaded image is shown again.
+        private void ClearMosaic()
+        {
+            MosaicEngine.Reset();
+            RenderSource = null;
+            OverviewBitmap = null;
+            MosaicDone = false;
+            _lastRunOptimal = false;
+            _mosaicMadeThisSession = false;
+            _stoneUndoStack.Clear();
+            _stoneRedoStack.Clear();
+            EditedPixelCount = 0;
         }
 
         // Returns false (after telling the user) when the file could not be written, e.g. disk full or no access.
@@ -1757,8 +1883,6 @@ public bool UseLab
             }
 
             WidthCm = data.WidthCm;
-            _stonePixelSize = data.N;
-            OnPropertyChanged(nameof(StonePixelSize));
             GridColor = Color.FromRgb(data.GridColorR, data.GridColorG, data.GridColorB);
             SelectedInterpolation = (InterpolationMethod)data.InterpolationMethod;
             ShowGrid = data.ShowGrid;
@@ -1768,8 +1892,8 @@ public bool UseLab
 
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
-            _bitmapPixelWidth = C * data.N;
-            _bitmapPixelHeight = R * data.N;
+            _bitmapPixelWidth = C * _stonePixelSize;
+            _bitmapPixelHeight = R * _stonePixelSize;
             OnPropertyChanged(nameof(BitmapPixelWidth));
             OnPropertyChanged(nameof(BitmapPixelHeight));
             OnPropertyChanged(nameof(StoneColumns));
@@ -1821,6 +1945,9 @@ public bool UseLab
         // Export quality choices shown to the user as image sizes; internally the pixels per stone (N).
         public static readonly int[] ExportQualities = { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
 
+        // Used by Ctrl/⌘+E and marked "(varsayılan)" in the list (the old default detail).
+        public const int DefaultExportQuality = 40;
+
         // Estimated file sizes per (pixels per stone, JPEG?), kept until the mosaic or the grid changes.
         private readonly Dictionary<(int n, bool jpeg), long> _exportEstimates = new();
         private (int version, bool grid, Color color) _exportEstimatesKey;
@@ -1844,7 +1971,7 @@ public bool UseLab
             if (src == null) return "";
             var size = MosaicExporter.ImageSize(src, n);
             string dims = Loc.Fmt("ExportDimsPx", size.Width.ToString("N0"), size.Height.ToString("N0"));
-            string current = n == _stonePixelSize ? " " + Loc.Get("ExportCurrentQuality") : "";
+            string current = n == DefaultExportQuality ? " " + Loc.Get("ExportDefaultQuality") : "";
             string Est(bool jpeg) => _exportEstimates.TryGetValue((n, jpeg), out long b) ? FormatBytes(b) : Loc.Get("ExportEstimating");
             if (!saveAs)
             {
@@ -1944,7 +2071,7 @@ public bool UseLab
             }
         }
 
-        // n: the chosen image quality (pixels per stone); by default the current Detail setting.
+        // quality: the chosen image quality (pixels per stone); by default DefaultExportQuality.
         public async Task ExportImageAsync(string path, int? quality = null)
         {
             if (IsExporting) return;
@@ -1957,7 +2084,7 @@ public bool UseLab
 
             bool jpeg = path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
                         path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
-            int n = quality ?? _stonePixelSize;
+            int n = quality ?? DefaultExportQuality;
             var size = MosaicExporter.ImageSize(_renderSource, n);
             if (jpeg && !MosaicExporter.JpegPossible(size))
             {
@@ -1987,6 +2114,7 @@ public bool UseLab
             var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
 
             IsExporting = true;
+            var cts = BeginCancellable();
             string name = System.IO.Path.GetFileName(path);
             StatusText = Loc.Fmt("StatusExporting", name);
             int lastPercent = -1;
@@ -1997,14 +2125,23 @@ public bool UseLab
                 lastPercent = pct;
                 Dispatcher.UIThread.Post(() =>
                 {
-                    if (IsExporting) StatusText = Loc.Fmt("StatusExportingPct", name, pct);
+                    if (IsExporting && !cts.IsCancellationRequested) StatusText = Loc.Fmt("StatusExportingPct", name, pct);
                 });
             }
             try
             {
-                await Task.Run(() => MosaicExporter.Export(src, path, jpeg, n, grid, gw, gc,
-                    size.Pixels > ImageService.MaxBitmapPixels ? Report : null));
+                await Task.Run(() =>
+                {
+                    WorkCancellation.Token = cts.Token;
+                    MosaicExporter.Export(src, path, jpeg, n, grid, gw, gc,
+                        size.Pixels > ImageService.MaxBitmapPixels ? Report : null);
+                });
                 StatusText = Loc.Fmt("StatusSaved", name);
+            }
+            catch (Exception ex) when (IsCancellation(ex))
+            {
+                // The half-written file has been removed by MosaicExporter.
+                StatusText = Loc.Fmt("StatusExportCancelled", name);
             }
             catch (Exception ex)
             {
@@ -2013,6 +2150,7 @@ public bool UseLab
             }
             finally
             {
+                EndCancellable(cts);
                 IsExporting = false;
             }
         }
@@ -2060,14 +2198,6 @@ public bool UseLab
             return Math.Min(zx, zy);
         }
 
-        private void AdjustZoomForBitmapChange(int oldWidth, int oldHeight)
-        {
-            if (oldWidth <= 0 || oldHeight <= 0 || _lastViewportWidth <= 0) return;
-            double scale = (double)oldWidth / _bitmapPixelWidth;
-            double fit = CalcFitZoom();
-            _minZoomLevel = Math.Max(0.001, fit);
-            ZoomLevel = Math.Max(_minZoomLevel, _zoomLevel * scale);
-        }
 
         public void SyncColorExclusion(ColorItem item)
         {
@@ -2291,22 +2421,6 @@ public bool UseLab
         {
             _optimalApplyCts?.Cancel();
             return ++_contentVersion;
-        }
-
-        // N or the grid changed. Nothing is rebuilt here: MosaicView redraws from its bindings. Only the virtual
-        // size of the stone image (C·N × R·N) follows N, keeping the on-screen size the same.
-        private void RegenerateRS()
-        {
-            if (!MosaicDone) return;
-            int R = MosaicData.dataM3.GetLength(0);
-            int C = MosaicData.dataM3.GetLength(1);
-            int oldW = _bitmapPixelWidth, oldH = _bitmapPixelHeight;
-            _bitmapPixelWidth = C * _stonePixelSize;
-            _bitmapPixelHeight = R * _stonePixelSize;
-            if (oldW == _bitmapPixelWidth && oldH == _bitmapPixelHeight) return;
-            OnPropertyChanged(nameof(BitmapPixelWidth));
-            OnPropertyChanged(nameof(BitmapPixelHeight));
-            AdjustZoomForBitmapChange(oldW, oldH);
         }
 
         private void UpdatePropTexture(string codeName, int pixelY, int pixelX)

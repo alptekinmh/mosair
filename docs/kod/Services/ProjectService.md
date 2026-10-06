@@ -37,7 +37,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `Regions` | `List<RegionData>` | boş | `drl.arar` bölgeleri |
 | `Width`, `Height` | `double` | 0 | `MosaicEngine.width/height` |
 | `RgbM` | `int` | 0 | `MosaicEngine.rgbM` |
-| `N` | `int` | 20 | Taş başına piksel (`MosaicData.N`) |
+| `N` | `int` | 20 | Taş başına piksel (`MosaicData.N`). WPF uyumluluğu için okunur ve geri yazılır; mosair'de görünümü ya da dışa aktarmayı etkilemez (`MainViewModel.OpenProject` görünüm için kullanmaz). `MosaicData.N` uygulama açılışında 40'tır; bir proje açılınca onun değerini alır ve sonraki kayıtlarda (yeni Mos'lar dahil) o değer yazılır. |
 | `ShowGrid`, `ShowMouldLines` | `bool` | `false` | Görünüm ayarları |
 | `GridColorR/G/B` | `byte` | 0 | Izgara rengi |
 | `InterpolationMethod` | `int` | 0 | `InterpolationMethod` enum değeri |

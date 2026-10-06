@@ -87,6 +87,7 @@ namespace mosair.Services
             int level = 0;
             for (int round = 0; round < 64; round++)
             {
+                WorkCancellation.Check();
                 var r = Solve(src, R, C, current, pool, id => forced.Contains(id) ? 0 : capacityOfId(id),
                     familyOfId, opt, gamut);
                 level = Math.Max(level, r.Level);
@@ -363,6 +364,7 @@ namespace mosair.Services
             int found = int.MaxValue;
             Parallel.For(0, levels.Length, lv =>
             {
+                WorkCancellation.Check();
                 if (Volatile.Read(ref found) < lv) return;
                 var plan = Best(levels[lv].tol, levels[lv].extra, skipHopeless: true,
                     () => Volatile.Read(ref found) < lv);
@@ -397,6 +399,7 @@ namespace mosair.Services
             var gKeys = new List<int>(byGroup.Keys); gKeys.Sort();
             foreach (int gi in gKeys)
             {
+                WorkCancellation.Check();
                 var g = groups[gi];
                 var flows = byGroup[gi];
                 flows.Sort((x, y) => x.c != y.c ? x.c.CompareTo(y.c) : x.t.CompareTo(y.t));
@@ -603,6 +606,7 @@ namespace mosair.Services
                 var heap = new PriorityQueue<int, double>();
                 while (flow < limit)
                 {
+                    WorkCancellation.Check();   // cancel button: once per augmenting path
                     Array.Fill(dist, double.PositiveInfinity);
                     Array.Fill(prevEdge, -1);
                     Array.Clear(settled);

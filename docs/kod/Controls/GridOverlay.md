@@ -30,9 +30,9 @@ Tüm özellikler `StyledProperty`'dir ve `AffectsRender` ile kayıtlıdır; herh
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
 | `ShowGrid` | `bool` | `false` | Izgara görünür mü. |
-| `StoneSize` | `int` | 20 | Bir taşın bitmap içindeki piksel boyutu (`MainViewModel.StonePixelSize` = `MosaicData.N`). |
-| `BitmapWidth` | `int` | 0 | Tuvaldeki görüntünün piksel genişliği: Mos'tan önce görselin genişliği, Mos'tan sonra taş dokulu görüntünün sanal genişliği `C·N` (`MainViewModel.BitmapPixelWidth`). |
-| `BitmapHeight` | `int` | 0 | Tuvaldeki görüntünün piksel yüksekliği: Mos'tan önce görselin yüksekliği, Mos'tan sonra sanal yükseklik `R·N` (`MainViewModel.BitmapPixelHeight`). |
+| `StoneSize` | `int` | 20 | Bir taşın bitmap içindeki piksel boyutu (`MainViewModel.StonePixelSize`, sabit 100; `MosaicData.N` ile ilgisi yoktur). |
+| `BitmapWidth` | `int` | 0 | Tuvaldeki görüntünün piksel genişliği: Mos'tan önce görselin genişliği, Mos'tan sonra taş dokulu görüntünün sanal genişliği `C·100` (`MainViewModel.BitmapPixelWidth`). |
+| `BitmapHeight` | `int` | 0 | Tuvaldeki görüntünün piksel yüksekliği: Mos'tan önce görselin yüksekliği, Mos'tan sonra sanal yükseklik `R·100` (`MainViewModel.BitmapPixelHeight`). |
 | `StoneColumns` | `int` | 0 | Taş sütun sayısı (bağlı, ama `Render` içinde kullanılmıyor). |
 | `StoneRows` | `int` | 0 | Taş satır sayısı (bağlı, ama `Render` içinde kullanılmıyor). |
 | `GridColor` | `Color` | `Colors.Gray` | Çizgi rengi. |

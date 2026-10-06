@@ -53,7 +53,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `WpfStyleRemoval` | bool | false | Yalnızca karşılaştırma içindir. WPF'teki sınırsız renk silmeyi taklit eder. |
 | `LastOptimalResult` | `OptimalPaletteResult?` | null | Son optimum analizi (salt okunur) |
 | `LastGamut` | `GamutMapper?` | null | Son gamut eşleyicisi. Kimse okumuyor. |
-| `LastRunPool` | `List<rgb>?` (salt okunur) | null | Son mozaik üretilirken seçilebilir olan taşlar (`MosaicData.arRGB` kopyası). `RunOptimal` ve `RunM3` başında atanır, `Reset()` temizler. Stok düzeltmesinde ikame taşlar yalnızca bu havuzdan seçilir; böylece kullanıcının katalog seçimi ve Stok Çek ile kapatılan taşlar korunur. |
+| `LastRunPool` | `List<rgb>?` (salt okunur) | null | Son mozaik üretilirken seçilebilir olan taşlar (`MosaicData.arRGB` kopyası). `RunM3` başında, `RunOptimal`'da ise analiz bittikten sonra atanır (iptal edilen Optimum eski değeri bozmaz), `Reset()` temizler. Stok düzeltmesinde ikame taşlar yalnızca bu havuzdan seçilir; böylece kullanıcının katalog seçimi ve Stok Çek ile kapatılan taşlar korunur. |
 | `LastStockResult` | `StockAwareResult?` (salt okunur) | null | Son stok düzeltmesinin sonucu. `FixToStock` başında null yapılır, çözümden sonra atanır; `Reset()` temizler. Düzeltme yapılamadıysa (eşleşmeyen piksel) null kalır. |
 | `_optSrc`, `_optCandidates`, `_optGamut` | private | null | `ApplyOptimalK` için önbellek |
 
@@ -70,9 +70,9 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `LoadImage(path)` | `ImageService.LoadImage` ile resmi yükler ve `MosaicData.inputBitmap`'e koyar | MainViewModel, CompareRunner |
 | `CalculateDimensions(widthCm)` | Taş ve kalıp ızgarasını hesaplar, statik alanları doldurur, `DimensionResult` döndürür | MainViewModel, CompareRunner |
 | `GetSourceStoneData()` | Kaynağı taş ızgarasına küçültür ve BGR `byte[,,]` döndürür | CompareRunner |
-| `RunOptimal(interpMethod, onProgress, prepareTextures, useGamut)` | Optimum analizini yapar ve önerilen k ile mozaiği üretir | MainViewModel, CompareRunner |
+| `RunOptimal(interpMethod, onProgress, prepareTextures, useGamut)` | Optimum analizini yapar ve önerilen k ile mozaiği üretir. Analiz iptal edilebilir ve paylaşılan hiçbir şeyi değiştirmeden önce çalışır; iptalde `OperationCanceledException` fırlar, önceki mozaik olduğu gibi kalır. | MainViewModel, CompareRunner |
 | `ApplyOptimalK(k, prepareTextures)` | Son analizden k taşlık alt kümeyi uygular (yeniden analiz yapmaz) | MainViewModel |
-| `RunM3(targetColors, rgbIncrement, useLab, useAverage, interpMethod, onProgress, prepareTextures)` | Klasik M1/M3 hattını çalıştırır | MainViewModel, CompareRunner |
+| `RunM3(targetColors, rgbIncrement, useLab, useAverage, interpMethod, onProgress, prepareTextures)` | Klasik M1/M3 hattını çalıştırır. İptal edilebilir; paylaşılan veriyi giderek değiştirdiği için iptalde yarım kalan mozaiği çağıran temizler (`MainViewModel.ClearMosaic`). | MainViewModel, CompareRunner |
 | `ApplyOptimalKWithStock(k, capacityOfId, familyOfId, options, prepareTextures)` | `ApplyOptimalK(k, prepareTextures: false)` çalıştırır, ardından sonucu stoğa göre düzeltir (`FixToStock`). Dokular her durumda (`prepareTextures` true ise) hazırlanır. Hiçbir taş stoğu aşmıyorsa mozaik `ApplyOptimalK`'nın ürettiğinin aynısıdır. `MosaicData.reducedBitmap` döndürür. | MainViewModel (`ApplyOptimalKFor`), StockCompareRunner |
 | `FixCurrentMosaicToStock(capacityOfId, familyOfId, options, prepareTextures)` → `bool` | Ekrandaki mozaiği (klasik Mos sonucu da olabilir) stoğa göre düzeltir. `LastRunPool` veya `inputBitmap` yoksa ya da kaynak boyutu `dataM3` ile uyuşmuyorsa `false` döndürür. Gamut kullanmaz. Dokular yalnızca mozaik değiştiyse yeniden hazırlanır. | MainViewModel (`FixClassicMosaicToStock`), StockCompareRunner |
 | `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler; `LastOptimalResult`, `LastRunPool`, `LastStockResult` ve Optimum önbelleğini de sıfırlar | MainViewModel, CompareRunner, StockCompareRunner |
@@ -87,10 +87,11 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 4. Kalıp satırı `he`, `actualWidth*rate / (12*26)` değerinin yukarı yuvarlanmasıyla bulunur. Bu, yuvarlanmamış yükseklikten hesaplanır.
 
 ### Optimum yol (`RunOptimal` → `ApplyOptimalK`)
-1. Kaynak `(int)width × (int)height` boyutuna küçültülür ve BGR diziye çevrilir.
+1. Kaynak `(int)width × (int)height` boyutuna yerel bir bitmap'e küçültülür ve BGR diziye çevrilir.
 2. Adaylar aktif katalogdur (`MosaicData.arRGB` kopyası). `useGamut` true ise `GamutMapper.Build` çağrılır. Varsayılan false'tur.
-3. `OptimalPaletteService.Analyze` çağrılır. İlerleme bu adımda %0–90 aralığına ölçeklenir.
-4. `ApplyOptimalK(result.KOptimal)` çağrılır:
+3. `OptimalPaletteService.Analyze` çağrılır. İlerleme bu adımda %0–90 aralığına ölçeklenir. Analiz iptal edilirse (ya da hata verirse) yerel bitmap serbest bırakılır ve istisna yeniden atılır; bu noktaya kadar paylaşılan hiçbir şey değişmemiştir.
+4. Analiz bittikten sonra paylaşılan alanlar atanır: `reducedBitmap` (yerel bitmap ile değiştirilir), `LastRunPool`, `LastGamut`, `LastOptimalResult` ve `_optSrc`/`_optCandidates`/`_optGamut` önbelleği.
+5. `ApplyOptimalK(result.KOptimal)` çağrılır:
    1. `k` değeri [1, M] aralığına sıkıştırılır. `PixelEditService.Reset()` çağrılır, `rgbM = k` yapılır ve tek bölge kurulur.
    2. Seçilen taşlar `RemovalOrder` listesinin son k elemanıdır. Böylece farklı k değerleri iç içe alt kümeler verir.
    3. Her benzersiz kaynak rengi için Lab mesafesi hesaplanır ve en yakın taş seçilir (renk başına önbelleklenir). Gamut varsa önce Lab değeri `gamut.Map` ile eşlenir. Mesafe şu formülle bulunur: `(ΔL·LightnessWeight)² + Δa² + Δb²`.
@@ -108,6 +109,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
    2. `RemoveMinimalColors` çağrılır. `numOfPixel < numOfMinRGB` olan renkler silinir. Silme sonrası hedeften az renk kalacaksa renkler piksel sayısına göre sıralanır ve ilk `rgbM` tanesi tutulur. `WpfStyleRemoval` açıkken bu alt sınır uygulanmaz, yalnızca paletin boşalması engellenir.
    3. Resim yeniden küçültülür ve `ProcessM3` çağrılır. Bölgedeki her piksel kalan ızgara paletinin en yakın rengine atanır (paralel). Mesafe M1'deki gibidir. Sayaçlar ana thread'de toplanır.
    4. `numOfMinRGB += minRGBInc` yapılır ve ilerleme `rgbM / ar3.Count · 100` olarak bildirilir.
+   5. İptal kontrol noktaları: her azaltma turunun başında, ayrıca `RunM1` ve `ProcessM3`'ün paralel döngülerinde satır başına (`WorkCancellation.Check`).
 6. `AssignColorNumbers`: Kalan renklere 1'den başlayarak `u` numarası verilir ve bölge numarası atanır. `drl.dat[..,3]` alanına `u` yazılır.
 7. `arMB = arMA` kopyası alınır.
 8. **Katalog eşleme (Bölüm 2)**: Her ızgara rengi için `ColorMatcher.FindCatalogDistances` ve `SelectNearest` çağrılır. Bunlar RGB kare mesafesiyle en yakın katalog taşını bulur. Rengin `r,g,b`, `ID`, `codeName` ve `name` alanları bu taşınkiyle değiştirilir. `dataM3` pikselleri `(b,g,r,reg,u)` anahtarıyla güncellenir.
@@ -133,6 +135,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 - `ApplyOptimalK` yeniden analiz yapmaz. `_optSrc` ve `_optCandidates` önbelleğini kullandığı için slider hızlı tepki verir. `Reset()` bu önbelleği temizler.
 - `RunM3` `LastOptimalResult`'ı sıfırlamaz. MainViewModel bunu `_lastRunOptimal` bayrağıyla ayırt eder.
 - `rgb` kanal sırası dizilerde **BGR**'dir (`[..,0]=B, [..,2]=R`).
+- **İptal** ([WorkCancellation](./WorkCancellation.md)): Optimum'da yalnız analiz (`OptimalPaletteService.Analyze`), klasikte `RunM3`'ün azaltma döngüsü ve paralel satır döngüleri, stoğa göre düzeltmede `StockAwareAssigner` iptal edilebilir. Kontrol noktaları sonucu değiştirmez (Optimum ve klasik için karşılaştırma aracıyla aynı çıktı doğrulandı). `ApplyOptimalK`, `RebuildFromAssignment` ve doku hazırlığında kontrol noktası yoktur; iptal bu adımlarda etkisizdir. Stoğa göre düzeltme `SolveWithMinimum` içinde iptal edilirse `FixToStock` paylaşılan veriye henüz yazmamıştır, ama `LastStockResult` null kalır; Optimum'da `ApplyOptimalKWithStock`'un ilk adımı (`ApplyOptimalK`) ise uygulanmış olur.
 
 ## Dikkat / bilinen sınırlamalar
 - Bölüm 2'deki katalog eşleme `boolLab` seçeneğine bakmaz ve her zaman RGB kare mesafesi kullanır.

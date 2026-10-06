@@ -32,3 +32,17 @@ Depo herkese açıktır. Google Sheet ID, tablo bağlantısı veya Apps Script (
 ## Metinler
 
 Arayüz metinleri `mosair/Services/Loc.cs` içindeki TR ve EN sözlüklerine birlikte eklenir.
+
+## Menüler
+
+Kullanıcının yapabildiği her işlem, araç çubuğunda ya da başka bir yerde düğmesi olsa bile, üst menüde de bulunur. Yeni bir özellik eklenince ait olduğu menünün altına da eklenir:
+
+| Menü | Neler |
+|---|---|
+| Dosya | Görsel yükleme, proje aç/kaydet, dışa aktarma, ekran görüntüsü gibi dosya üreten/okuyan işlemler |
+| Düzenle | Seçim, geri al/yinele, süren işlemi iptal etme gibi düzenleme işlemleri |
+| Görünüm | Zoom, ekrana sığdırma gibi yalnızca görüntüyü değiştiren ayarlar |
+| Araçlar | Mos, piksel düzenleme, ızgara, Optimum, Stoğa göre, stok işlemleri |
+| Yardım | Kullanım kılavuzu |
+
+Menü öğesinin kısayolu varsa menüde gösterilir; `docs/ARAYUZ.md` §3 ve `HelpWindow.axaml` menü listesi de güncellenir.

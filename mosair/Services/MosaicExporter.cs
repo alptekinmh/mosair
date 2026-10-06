@@ -106,21 +106,25 @@ namespace mosair.Services
             if (jpeg && !JpegPossible(size))
                 throw new InvalidOperationException(Loc.Fmt("ExportJpegTooLarge",
                     size.Width.ToString("N0"), size.Height.ToString("N0"), JpegMaxSide.ToString("N0")));
+            // Written next to the target under a temporary name and moved over it only when complete, so a
+            // cancelled or failed export never removes or damages a file that was already there.
+            string temp = path + ".part";
             try
             {
                 if (size.Pixels <= ImageService.MaxBitmapPixels)
                 {
                     // Fits one bitmap: the same Skia encoding as always.
                     using var bmp = src.RenderRegion(0, 0, src.Rows, src.Cols, n, grid, gw, gc);
-                    ImageService.ExportImage(bmp, path, jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png);
-                    progress?.Invoke(1);
+                    ImageService.ExportImage(bmp, temp, jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png);
                 }
-                else if (jpeg) ExportLargeJpeg(src, path, size, n, grid, gw, gc, progress);
-                else ExportStreamedPng(src, path, size, n, grid, gw, gc, progress);
+                else if (jpeg) ExportLargeJpeg(src, temp, size, n, grid, gw, gc, progress);
+                else ExportStreamedPng(src, temp, size, n, grid, gw, gc, progress);
+                File.Move(temp, path, overwrite: true);
+                progress?.Invoke(1);
             }
             catch
             {
-                try { File.Delete(path); } catch { }
+                try { File.Delete(temp); } catch { }
                 throw;
             }
         }
@@ -132,15 +136,24 @@ namespace mosair.Services
             using var png = new StreamingPngWriter(file, size.Width, size.Height);
             // Draw the next stone row while the current one is being compressed.
             Task<SKBitmap>? next = Task.Run(() => src.RenderRegion(0, 0, 1, src.Cols, n, grid, gw, gc));
-            for (int row = 0; row < src.Rows; row++)
+            try
             {
-                using var band = next!.GetAwaiter().GetResult();
-                int nextRow = row + 1;
-                next = nextRow < src.Rows
-                    ? Task.Run(() => src.RenderRegion(nextRow, 0, 1, src.Cols, n, grid, gw, gc))
-                    : null;
-                png.WriteRows(band, 0, band.Height);
-                progress?.Invoke((double)(row + 1) / src.Rows);
+                for (int row = 0; row < src.Rows; row++)
+                {
+                    WorkCancellation.Check();   // cancel button: the half-written file is removed by Export
+                    using var band = next!.GetAwaiter().GetResult();
+                    int nextRow = row + 1;
+                    next = nextRow < src.Rows
+                        ? Task.Run(() => src.RenderRegion(nextRow, 0, 1, src.Cols, n, grid, gw, gc))
+                        : null;
+                    png.WriteRows(band, 0, band.Height);
+                    progress?.Invoke((double)(row + 1) / src.Rows);
+                }
+            }
+            finally
+            {
+                // A row drawn ahead but not written (cancel or error) is freed when it is ready.
+                next?.ContinueWith(t => { if (t.Status == TaskStatus.RanToCompletion) t.Result.Dispose(); });
             }
         }
 
@@ -153,6 +166,7 @@ namespace mosair.Services
             {
                 for (int row = 0; row < src.Rows; row++)
                 {
+                    WorkCancellation.Check();
                     using var band = src.RenderRegion(row, 0, 1, src.Cols, n, grid, gw, gc);
                     byte* from = (byte*)band.GetPixels();
                     for (int y = 0; y < band.Height; y++)

@@ -105,16 +105,29 @@ namespace mosair.Services
             Action<int>? onProgress = null, bool prepareTextures = true, bool useGamut = false)
         {
             interpolationMethod = interpMethod;
-            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
-            int R = MosaicData.reducedBitmap.Height;
-            int C = MosaicData.reducedBitmap.Width;
-            byte[,,] src = ImageService.ToByteArray(MosaicData.reducedBitmap);
+            // The analysis can be cancelled (WorkCancellation); nothing shared is changed before it has finished,
+            // so a cancelled Optimum leaves the previous mosaic as it was.
+            var reduced = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
+            int R = reduced.Height;
+            int C = reduced.Width;
+            byte[,,] src = ImageService.ToByteArray(reduced);
 
             var candidates = new List<rgb>(MosaicData.arRGB);
+            OptimalPaletteResult result;
+            GamutMapper? gamut;
+            try
+            {
+                gamut = useGamut ? GamutMapper.Build(src, R, C, candidates) : null;
+                result = OptimalPaletteService.Analyze(src, R, C, candidates, p => onProgress?.Invoke(p * 9 / 10), gamut);
+            }
+            catch
+            {
+                reduced.Dispose();
+                throw;
+            }
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, reduced);
             LastRunPool = candidates;
-            var gamut = useGamut ? GamutMapper.Build(src, R, C, candidates) : null;
             LastGamut = gamut;
-            var result = OptimalPaletteService.Analyze(src, R, C, candidates, p => onProgress?.Invoke(p * 9 / 10), gamut);
             LastOptimalResult = result;
             _optSrc = src;
             _optCandidates = candidates;
@@ -397,6 +410,7 @@ namespace mosair.Services
 
                 while (ar3.Count > dr.rgbM)
                 {
+                    WorkCancellation.Check();
                     if (ar3.Count >= 2000) minRGBInc = 5;
                     else if (ar3.Count > 1000) minRGBInc = 2;
                     else minRGBInc = 1;
@@ -710,6 +724,7 @@ namespace mosair.Services
 
             System.Threading.Tasks.Parallel.For(0, R, i =>
             {
+                WorkCancellation.Check();
                 rowBestIdx[i] = new int[C];
                 for (int j = 0; j < C; j++)
                 {
@@ -868,6 +883,7 @@ namespace mosair.Services
 
             System.Threading.Tasks.Parallel.For(0, R, i =>
             {
+                WorkCancellation.Check();
                 rowBestIdx[i] = new int[C];
                 for (int j = 0; j < C; j++)
                 {

@@ -91,7 +91,7 @@ public partial class MainWindow : Window
                 RefreshToolsMenuChecks();
             }
             else if (e.PropertyName is nameof(MainViewModel.SelectedInterpolation)
-                     or nameof(MainViewModel.StonePixelSize) or nameof(MainViewModel.GridColor))
+                     or nameof(MainViewModel.GridColor))
             {
                 RefreshToolsMenuChecks();
             }
@@ -105,7 +105,6 @@ public partial class MainWindow : Window
 
     private const string CheckGeometry = "M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z";
     private readonly System.Collections.Generic.List<(MenuItem Item, Services.InterpolationMethod Value)> _interpMenuItems = new();
-    private readonly System.Collections.Generic.List<(MenuItem Item, int Value)> _detailMenuItems = new();
     private readonly System.Collections.Generic.List<(MenuItem Item, Avalonia.Media.Color Value)> _gridColorMenuItems = new();
     private readonly System.Collections.Generic.List<MenuItem> _gridShadeMenuItems = new();
     private Separator? _gridShadeSeparator;
@@ -132,16 +131,6 @@ public partial class MainWindow : Window
             item.Click += (_, _) => _vm.SelectedInterpolation = method;
             menuInterp.Items.Add(item);
             _interpMenuItems.Add((item, method));
-        }
-
-        // Same range and step as the toolbar detail slider.
-        for (int v = 10; v <= 100; v += 10)
-        {
-            int value = v;
-            var item = new MenuItem { Header = value.ToString(), Icon = NewMenuCheck() };
-            item.Click += (_, _) => _vm.StonePixelSize = value;
-            menuDetail.Items.Add(item);
-            _detailMenuItems.Add((item, value));
         }
 
         foreach (var color in MainViewModel.GridColorPresets)
@@ -190,8 +179,6 @@ public partial class MainWindow : Window
     {
         foreach (var (item, value) in _interpMenuItems)
             SetMenuCheck(item, value == _vm.SelectedInterpolation);
-        foreach (var (item, value) in _detailMenuItems)
-            SetMenuCheck(item, value == _vm.StonePixelSize);
         bool marked = false;
         foreach (var (item, value) in _gridColorMenuItems)
         {
@@ -267,6 +254,13 @@ public partial class MainWindow : Window
 
     private void OnKeyDown(object? sender, KeyEventArgs e)
     {
+        // Esc cancels the running job (same as the status-bar cancel button).
+        if (e.Key == Key.Escape && e.KeyModifiers == KeyModifiers.None && _vm.CanCancel)
+        {
+            _vm.CancelWork();
+            e.Handled = true;
+            return;
+        }
         var mods = e.KeyModifiers;
         bool cmd = mods == CmdKey;
         bool cmdShift = mods == (CmdKey | KeyModifiers.Shift);
@@ -394,8 +388,11 @@ public partial class MainWindow : Window
         return $"{DateTime.Now:M.dd.yyyy}_{DateTime.Now:HH.mm.ss}__{baseName}__ekran.png";
     }
 
-    // Ctrl/⌘+E: quick export at the current quality.
-    private void OnExportImage(object? sender, RoutedEventArgs e) => _ = ExportQuickAsync(_vm.StonePixelSize);
+    // Status-bar cancel button.
+    private void OnCancelWork(object? sender, RoutedEventArgs e) => _vm.CancelWork();
+
+    // Ctrl/⌘+E: quick export at the default quality.
+    private void OnExportImage(object? sender, RoutedEventArgs e) => _ = ExportQuickAsync(MainViewModel.DefaultExportQuality);
 
     private async Task ExportQuickAsync(int quality)
     {
@@ -833,11 +830,6 @@ public partial class MainWindow : Window
     {
         if (sender is Button btn && btn.Tag is int index)
             _vm.SelectStone(index);
-    }
-
-    private void OnDismissNWarning(object? sender, RoutedEventArgs e)
-    {
-        _vm.DismissNWarning();
     }
 
     private void OnGridMainColorPick(object? sender, RoutedEventArgs e)

@@ -6,7 +6,7 @@
 
 Mos'tan sonra tuvalde taş dokulu mozaiği gösteren `Control`. Görüntünün tamamını hiçbir zaman oluşturmaz: yalnızca ekranda görünen kısmı, arka planda çizilen 512 piksellik karolardan (tile) ve yakınlaştırmanın gerektirdiği detayla (seviye) çizer. Çok uzaktayken taş başına 1 piksellik genel görünüm (overview) yeterlidir. Böylece görüntü boyutu sınırı kalkar; ör. 20 m'lik (1667×1667 taş) bir mozaik de gösterilebilir.
 
-Kontrolün sanal boyutu `C·N × R·N` pikseldir (`MainViewModel.BitmapPixelWidth/Height`, `C` sütun, `R` satır, `N` Detay). Bu sayede yakınlaştırma, Ekrana Sığdır, mini harita ve tıklama koordinatları eskisi gibi çalışır.
+Kontrolün sanal boyutu `C·N × R·N` pikseldir (`MainViewModel.BitmapPixelWidth/Height`, `C` sütun, `R` satır, `N` = `StonePixelSize` = 100, taş fotoğraflarının kendi boyutu). Bu sayede yakınlaştırma, Ekrana Sığdır, mini harita ve tıklama koordinatları eskisi gibi çalışır.
 
 ## Nerede kullanılır
 
@@ -34,7 +34,7 @@ Mos'tan önce aynı yerde yüklenen görsel (`Image`, `!MosaicDone`) görünür.
 |---|---|---|---|
 | `Source` | `MosaicRenderSource?` (StyledProperty) | `null` | Çizilecek mozaik ([MosaicRenderSource](../Services/MosaicRenderSource.md)) |
 | `Overview` | `Bitmap?` (StyledProperty, `AffectsRender`) | `null` | Taş başına 1 piksellik genel görünüm |
-| `StonePixelSize` | `int` (StyledProperty) | 40 | Detay N |
+| `StonePixelSize` | `int` (StyledProperty) | 40 | Tam detay N (taş başına piksel). `MainViewModel.StonePixelSize`'a bağlıdır; o artık sabit 100'dür (`ViewStonePixels`), kullanıcı ayarı yoktur. Kontrolün kendi varsayılanı 40 yalnızca bağlama yokken geçerlidir. |
 | `ShowGrid` | `bool` (StyledProperty) | `false` | Izgara karolara işlensin mi |
 | `GridColor` | `Color` (StyledProperty) | `Colors.Gray` | Izgara rengi |
 | `TilePx` | const | 512 | Karo kenarı (piksel); bir karo `max(1, 512 / seviye)` taş kenarı kapsar |
@@ -67,7 +67,7 @@ Mos'tan önce aynı yerde yüklenen görsel (`Image`, `!MosaicDone`) görünür.
 4. **Karo isteme:** Her karo `Task.Run` ile arka planda, `Workers` semaforu altında `MosaicRenderSource.RenderRegion` ile çizilir. Sıra gelince karo artık gerekmiyorsa (kaydırıldı, yakınlaştırıldı ya da ayar değişti) çizilmeden atlanır. Bitince UI iş parçacığında (`DispatcherPriority.Background`) Avalonia bitmap'e çevrilip önbelleğe konur.
 5. **Izgara:** Karoya işlenir. Seviye = N ise eski tek parça görüntüdeki gibi tam `max(1, N/11)`; daha kaba seviyelerde `max(1, seviye/11)`, ama yalnızca seviye ≥ 8 ise (2 ve 4'te ızgara karoya işlenmez).
 6. **Önbellek:** Toplam 256 MB'ı geçince en uzun süredir çizilmeyen karolar, toplam 192 MB'a inene kadar çıkarılır; o karede çizilenler korunur. Çıkarılan bitmap'ler, compositor o anda hâlâ kullanıyor olabileceği için ~1,5 sn sonra `Dispose` edilir.
-7. **Temizleme:** `Source`, `StonePixelSize`, `ShowGrid` veya `GridColor` değişince ya da kontrol görsel ağaçtan çıkınca bütün karolar atılır ve nesil artar. Bu ayarlar bu yüzden anında uygulanır; ekran önce genel görünümü ve önbellekteki karoları gösterir, yeni karolar geldikçe keskinleşir.
+7. **Temizleme:** `Source`, `StonePixelSize` (uygulamada artık değişmez), `ShowGrid` veya `GridColor` değişince ya da kontrol görsel ağaçtan çıkınca bütün karolar atılır ve nesil artar. Bu ayarlar bu yüzden anında uygulanır; ekran önce genel görünümü ve önbellekteki karoları gösterir, yeni karolar geldikçe keskinleşir.
 
 ## Ölçümler
 

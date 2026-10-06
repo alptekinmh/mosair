@@ -36,10 +36,10 @@
 │ Başlık çubuğu + Menü: Dosya  Düzenle  Görünüm  Araçlar  Yardım   ·  açık dosya adı │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Araç çubuğu: Görsel · Proje Aç │ Kaydet · Farklı Kaydet │ Mos │ Kalem │ Izgara      │
-│   Interp · Detay │ Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum         │
+│   Interp │ Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum                 │
 │   ☐ Stoğa göre  Taş ──●── N öneri K      … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
 ├──────────────────────────────────────────────────────────────────────────────────┤
-│ Durum çubuğu: kullanılan renk │ ilerleme + durum + süre │ Ekrana Sığdır · zoom    │
+│ Durum çubuğu: kullanılan renk │ ilerleme ✕İptal durum süre │ Ekrana Sığdır · zoom │
 ├───────────────────────┬───────────────────────────────────┬──────────────────────┤
 │ SOL PANEL             │ GÖRSEL ALANI (canvas)             │ ÖZELLİKLER PANELİ    │
 │ cm · ölçü · alan      │                       ┌─────────┐ │ RENK                 │
@@ -68,6 +68,8 @@
 | 6 | (İsteğe bağlı) **Stok Kontrol** ile adetleri tabloya yaz | Stok ikonları |
 | 7 | Projeyi kaydet, görüntüyü dışa aktar | `Ctrl/⌘+S`, `Ctrl/⌘+E` |
 
+Uzun süren Mos, stoğa göre düzeltme ve dışa aktarma, durum çubuğundaki **✕ İptal** düğmesiyle ya da `Esc` ile yarıda kesilebilir ([§8](#8-durum-çubuğu)).
+
 ## 3. Üst menü
 
 Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı işletim sistemine göre kendiliğinden değişir.
@@ -80,15 +82,18 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Proje Aç | `Ctrl/⌘+O` | `.mos` proje dosyası açar ([§12](#12-proje-kaydetme-ve-açma)) | Her zaman |
 | Proje Kaydet | `Ctrl/⌘+S` | Projeyi `Masaüstü/mosairPROJECT/<görsel adı>/` klasörüne kaydeder | Mozaik varken |
 | Proje Farklı Kaydet | `Ctrl/⌘+Shift+S` (macOS: `⌘+⇧+S`) | Konum ve ad sorarak kaydeder | Mozaik varken |
-| mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan Detay ayarındaki kaliteyle kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
+| mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan varsayılan kaliteyle (listede **(varsayılan)** yazan seçenek) kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
 | mosairEXPORT As ▸ | — | Aynı alt menü; seçilen kaliteyle konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
+| Ekran Görüntüsü Al | — | Görsel alanında o an görüneni PNG olarak `mosairEXPORT` klasörüne kaydeder; araç çubuğundaki kamera ikonuyla aynı ([§4](#4-araç-çubuğu)) | Görsel yüklüyken |
 
 ### Düzenle
 
-| Öğe | Ne yapar |
-|---|---|
-| Tüm Renkleri Seç | Katalogdaki bütün taşları işaretler (Mos'ta kullanılabilir yapar) |
-| Tüm Renkleri Kaldır | Katalogdaki bütün işaretleri kaldırır |
+| Öğe | Kısayol | Ne yapar |
+|---|---|---|
+| Tüm Renkleri Seç | — | Katalogdaki bütün taşları işaretler (Mos'ta kullanılabilir yapar) |
+| Tüm Renkleri Kaldır | — | Katalogdaki bütün işaretleri kaldırır |
+| *(ayırıcı)* | | |
+| İşlemi İptal Et | `Esc` | Süren işi iptal eder; durum çubuğundaki **✕ İptal** düğmesiyle aynı ([§8](#iptal-düğmesi)). Yalnızca iptal edilebilen bir iş sürerken etkindir |
 
 ### Görünüm
 
@@ -107,7 +112,6 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | Izgara Göster | — | Taşlar arası ızgara çizgilerini açar/kapatır |
 | Izgara Rengi ▸ | — | 12 hazır renk; seçilen rengin 7 tonu ayrıca listelenir. Seçili renk ✓ ile işaretlidir. |
 | İnterpolasyon Yöntemi ▸ | — | Area, Nearest, Linear, Cubic, Lanczos4, LinearExact, NearestExact |
-| Detay Seviyesi ▸ | — | 10–100 arası (10'ar adım) taş başına piksel (N) |
 | Optimum Taş Sayısı | — | Optimum modunu açar/kapatır ([§10](#10-optimum-taş-sayısı)) |
 | Stoğa Göre Ayarla | — | **Stoğa göre** kutusunu açar/kapatır ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum ile yapılmış bir Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir; başka zaman pasiftir |
@@ -135,7 +139,6 @@ Soldan sağa:
 | Kalem (Piksel Düzenle) | Piksel Düzenle (Orta Tuş), 1) Kaynak renk seç, 2) Hedef piksele uygula | Düzenleme modunu aç/kapat | Orta tuş da aynı işi yapar | Mozaik yokken pasif. Açıkken kalem turuncu olur, yanında `source → target` göstergesi çıkar |
 | Izgara | Izgara Göster/Gizle | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + seçilen rengin 7 tonu) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır. Açma/kapama ve renk değişikliği anında uygulanır. |
 | İnterpolasyon | İnterpolasyon Yöntemi | Açılır liste (7 yöntem); seçili yöntemin adı düğmede yazar | — | Varsayılan **Area** |
-| Detay (N) | Detay Seviyesi (N) | Açılır kaydırıcı 10–100 (10'ar adım); değer düğmede yazar | — | Varsayılan **40**; 40'ın üstü ilk seferde performans uyarısı gösterir. Değişiklik anında uygulanır; beklenecek bir yeniden oluşturma yoktur. |
 | Stok Tablosu (yeşil tablo) | Stok tablosunu tarayıcıda aç | Tabloyu tarayıcıda açar | Yanındaki **▾**: Stok Tablosunu Aç / Stok Ayarları... · Sağ tık: Stok Ayarları... | |
 | Stok Çek (depo) | Stok çek: stoğu oku, stoğu biten taşları devre dışı bırak | Bizdeki (kg) okunur, stoğu olmayan taşlar devre dışı bırakılır | Yanındaki **▾**: Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle | Tabloyu değiştirmez |
 | Stok Kontrol (pano) | Stok kontrol: adetleri tabloya yaz, stoğu yetmeyenleri işaretle | Adetler tabloya yazılır, kalan okunur | — | Tabloyu değiştirir |
@@ -208,12 +211,11 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
 **Taş dokulu görüntünün çizimi:** Mos'tan sonra canvas, mozaiği gerçek taş dokularıyla gösterir. Görüntü bir bütün olarak oluşturulmaz; yalnızca ekranda görünen kısım, parça parça ve yakınlaştırmaya uygun detayla çizilir:
 
 - Çok uzaklaştırıldığında (bir taş ekranda yalnızca birkaç piksel kaldığında) taşlar kendi renkleriyle gösterilir.
-- Yakınlaştırdıkça dokular görünür ve görüntü keskinleşir; en yakın görünümde Detay (N) değerindeki doku çizilir.
+- Yakınlaştırdıkça dokular görünür ve görüntü keskinleşir. Yeterince yakınlaştırınca taş fotoğrafları kendi çözünürlüklerinde (taş başına 100 piksel) çizilir; uzaklaştırınca daha kaba seviyeler kullanılır. Bunun için ayrı bir detay ayarı yoktur.
 - Kaydırma ya da yakınlaştırmadan sonra daha keskin parça hazırlanana kadar bir bölge kısa bir süre bulanık görünebilir; parça gelince kendiliğinden keskinleşir.
 - Görüntü boyutu için bir sınır yoktur: çok büyük mozaikler de (ör. 20 m genişlik) gösterilir ve düzenlenebilir.
-- Detay (N), ızgara ve ızgara rengi değişiklikleri anında uygulanır; ekran bir süre eldeki görüntüyle kalıp yeni parçalar geldikçe güncellenir.
-
-**Performans bildirimi:** Detay (N) ilk kez 40'ın üstüne çıkarıldığında ortada bir uyarı kutusu çıkar ve **Anladım** ile kapanır. Oturum boyunca bir kez gösterilir.
+- Izgara ve ızgara rengi değişiklikleri anında uygulanır; ekran bir süre eldeki görüntüyle kalıp yeni parçalar geldikçe güncellenir.
+- Mos'tan sonra zoom oranı, taş başına 100 piksellik sanal görüntüye göre hesaplanır (sütun × 100 × satır × 100 px). Bu yüzden durum çubuğundaki zoom değeri ve görüntü boyutu aynı ekran görünümü için Mos'tan önceki yüklenen görselinkinden farklıdır. Dışa aktarılan dosyanın boyutu bundan bağımsızdır; listede seçilen görüntü kalitesine göre belirlenir ([§13](#13-dışa-aktarma-mosairexport)).
 
 ## 7. Özellikler paneli (Properties)
 
@@ -233,9 +235,9 @@ Canvas'ta bir taşa sol tıklayınca dolar.
 | Bölge | İçerik |
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
-| Orta | İlerleme çubuğu (işlem sırasında), durum mesajı, geçen süre |
+| Orta | İlerleme çubuğu (işlem sırasında), **✕ İptal** düğmesi (yalnızca iptal edilebilen bir iş sürerken), durum mesajı, geçen süre |
 | Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
-| Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`N=2.0` biçiminde, Detay N ile karıştırılmamalı; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
+| Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`Zoom=2.0` biçiminde; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
 
@@ -243,6 +245,23 @@ Ortadaki durum mesajında görülebilecekler:
 - Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
 - Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
+
+### İptal düğmesi
+
+İlerleme çubuğunun hemen sağındaki **✕ İptal** (EN: Cancel) düğmesi yalnızca iptal edilebilen bir iş sürerken görünür; ipucu "Süren işlemi iptal et (Esc)". `Esc` tuşu (başka tuş basılı değilken) ve **Düzenle → İşlemi İptal Et** aynı işi yapar. Basınca düğme kaybolur ve durum "İptal ediliyor..." olur; iş genellikle birkaç milisaniye ile yarım saniye içinde durur (ölçümler: Optimum 4000×4000 taş 8 ms, klasik 2000×2000 taş 125 ms, stoğa göre düzeltme 1200×1200 taş 510 ms, 20 m PNG 34 ms).
+
+| İptal edilen iş | Sonuç | Durum mesajı |
+|---|---|---|
+| Mos, **Optimum** açık | Önceki mozaik olduğu gibi kalır (yoksa yüklenen görsel kalır); katalog yine kullanılan taşlara daraltılır | "Mos iptal edildi" |
+| Mos, klasik (Optimum kapalı) | Yarım kalan mozaik kaldırılır, yüklenen görsel yeniden gösterilir | "Mos iptal edildi; yarım kalan mozaik kaldırıldı, görsel yeniden gösteriliyor" |
+| **Stoğa göre** düzeltme, Mos içinde (Optimum ya da klasik) ya da Taş kaydırıcısında | Mozaik stoğa göre düzeltilmeden kalır (Optimum aynı taş sayısıyla düz kurulur) | Sonuna "stoğa göre düzeltme iptal edildi, mozaik stoğa bakılmadan bırakıldı" eklenir |
+| Stok Kontrol'ün içindeki stoğa göre düzeltme | Mozaik eski haline döner (Optimum'da aynı taş sayısıyla yeniden kurulur; taş varyantları yeniden seçilir); tabloya hiçbir şey yazılmaz | "Stok Kontrol iptal edildi; tabloya bir şey yazılmadı" |
+| Dışa aktarma | Durur, yarım yazılmış dosya silinir | "Dışa aktarma iptal edildi: <dosya adı> (yarım dosya silindi)" |
+
+- Stok tablosu işlemleri (Stok Çek, Stok Kontrol'ün tabloya yazması, Stok Sil, Stok Ekle) ve proje açma iptal edilemez; bunlar sürerken düğme görünmez.
+- İşin son adımları (mozaiğin yeniden kurulması, taş dokularının hazırlanması, dışa aktarmada dosyanın son kodlaması) durdurulamaz. Düğme bu sırada da görünebilir, ama basılırsa iş normal biter ve sonuç her zamanki gibi yazılır. Küçük dışa aktarmalar da taşlar çizilirken (satır satır) durdurulabilir; yalnızca çizim bittikten sonraki kodlama adımı kesilemez.
+- Optimum'da Taş kaydırıcısıyla yapılan yeniden kurma yalnızca **Stoğa göre** düzeltme çalışırken iptal edilebilir; stoksuz (düz) taş sayısı değişiminde düğme görünmez.
+- Optimum Mos iptal edildiğinde, yeni Mos'un başında temizlenen kırmızı noktalar, kalan kg ve Stoğa göre raporu geri gelmez.
 
 ## 9. Piksel düzenleme ve taş varyantı
 
@@ -270,7 +289,7 @@ Yeni görsel yüklemek, yeni Mos ve Optimum **Taş** sayısının değiştirilme
 
 - **Ne yapar:** Görsel için kaç çeşit taş kullanılacağını kendisi bulur. **Optimum** kutusu işaretliyken Mos'a basınca çalışır. Kutu uygulama açılırken işaretsizdir; işaretsizken klasik algoritma kullanılır.
 - **Nasıl çalışır:** Önce katalogdaki bütün işaretli taşlarla en iyi sonuç hesaplanır. Sonra görüntüyü en az bozan taşlar tek tek çıkarılır. Renk farkı, detay ve kenarlar ile açık-koyu yapısı gözle fark edilmeyecek kadar korunurken kullanılabilecek en az taş sayısı **öneri** olarak seçilir.
-- **Taş kaydırıcısı:** Optimum ile yapılmış Mos'tan sonra görünür ve önerilen değerden başlar. Değer değişip kısa bir süre (yaklaşık 0,35 sn) sabit kalınca mozaik o taş sayısıyla yeniden kurulur; yanında `öneri K` yazar. Aynı ayar **Araçlar → Taş Sayısı** menüsünde de vardır: Önerilen Değere Dön, Bir Taş Artır, Bir Taş Azalt. Yeni bir görsel, proje ya da Mos başlatılırsa bekleyen yeniden kurma iptal edilir.
+- **Taş kaydırıcısı:** Optimum ile yapılmış Mos'tan sonra görünür ve önerilen değerden başlar. Değer değişip kısa bir süre (yaklaşık 0,35 sn) sabit kalınca mozaik o taş sayısıyla yeniden kurulur; yanında `öneri K` yazar. Aynı ayar **Araçlar → Taş Sayısı** menüsünde de vardır: Önerilen Değere Dön, Bir Taş Artır, Bir Taş Azalt. Yeni bir görsel, proje ya da Mos başlatılırsa bekleyen yeniden kurma iptal edilir. Mos'un Optimum analizi uzun sürerse **✕ İptal** ya da `Esc` ile kesilebilir; önceki mozaik değişmeden kalır ([§8](#iptal-düğmesi)).
 - **Seçim hafızası:** Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalır. Kataloğa elle dokunmadıysanız bir sonraki Optimum Mos, önceki seçiminizin tamamından yeniden başlar.
 - **Stokla ilişkisi:**
   - Stok Çek ile devre dışı kalan taşlar Optimum'un taş havuzundan da çıkar.
@@ -278,7 +297,7 @@ Yeni görsel yüklemek, yeni Mos ve Optimum **Taş** sayısının değiştirilme
 
 ## 11. Stok yönetimi (Google Sheets)
 
-Araç çubuğunda Detay ile Optimum arasında beş stok ikonu ve ikisinin yanında birer **▾** oku vardır; aynı işlemler **Araçlar → Stok** menüsünde de bulunur. Stok ayarı yapılmamışken bir stok düğmesine basılırsa "Stok tablosu ayarlı değil…" uyarısı çıkar.
+Araç çubuğunda İnterpolasyon ile Optimum arasında beş stok ikonu ve ikisinin yanında birer **▾** oku vardır; aynı işlemler **Araçlar → Stok** menüsünde de bulunur. Stok ayarı yapılmamışken bir stok düğmesine basılırsa "Stok tablosu ayarlı değil…" uyarısı çıkar.
 
 ### İlk kurulum
 
@@ -331,6 +350,7 @@ Kutu uygulama açılırken **kapalıdır**; **Araçlar → Stoğa Göre Ayarla**
 - Klasik Mos'ta bazı pikseller tek bir katalog taşına kesin eşleştirilemezse düzeltme yapılmaz, **Stoğa Göre** uyarısı çıkar ve mozaik stoğa bakılmadan kalır.
 - Optimum taş kaydırıcısı değiştirilince yeni taş sayısı da aynı stoğa göre düzeltilir ([§10](#10-optimum-taş-sayısı)).
 - **Stok Kontrol** son adetleri tabloya yazar.
+- Düzeltme uzun sürerse durum çubuğundaki **✕ İptal** (ya da `Esc`) ile kesilebilir: Mos'ta ve Taş kaydırıcısında mozaik stoğa bakılmadan kalır, Stok Kontrol'de mozaik eski haline döner ve tabloya yazılmaz ([§8](#iptal-düğmesi)).
 
 #### Stok Kontrol ve Stoğa göre
 
@@ -372,9 +392,11 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 - Mozaik verisi, palet ve renk atamaları, katalog seçimi
 - Piksel düzenlemeleri ve taş varyantları
 - Bölgeler
-- Genişlik (cm), Detay (N), ızgara açık/kapalı ve rengi, interpolasyon yöntemi
+- Genişlik (cm), ızgara açık/kapalı ve rengi, interpolasyon yöntemi
 
 Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri projeye kaydedilmez.
+
+Proje dosyasında WPF ile ortak bir "taş başına piksel" değeri de vardır. mosair bu değeri açılan projeden alıp kaydederken aynen geri yazar (o oturumda hiç proje açılmadıysa 40 yazar), ama açılan projenin ekrandaki görünümünü ya da dışa aktarma kalitesini değiştirmez.
 
 **WPF uyumluluğu:**
 
@@ -391,7 +413,7 @@ Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri
 | Dışa aktar ikonuna **tıklama** | Liste açılır: **mosairEXPORT ▸** ve **mosairEXPORT As ▸**. İkona tıklamak doğrudan kaydetmez; önce görüntü kalitesi seçilir. |
 | **mosairEXPORT ▸** → kalite | Seçilen görüntü kalitesiyle `Masaüstü/mosairEXPORT/` klasörüne `<ay.gün.yıl>_<ss.dd.ss>__<görsel adı>__<genişlik>x<yükseklik>.jpeg` adıyla kaydeder (ölçüler cm). Görsel adı yoksa `mosair` kullanılır. JPEG bu boyutta mümkün değilse ya da belleğe sığmayacaksa (aşağıda) aynı adla `.png` kaydeder. |
 | **mosairEXPORT As ▸** → kalite | Konum, ad ve biçim (JPEG/PNG) sorar, seçilen görüntü kalitesiyle kaydeder. |
-| `Ctrl/⌘+E` | Liste açılmadan, Detay ayarındaki (ekrandaki) görüntü kalitesiyle mosairEXPORT. |
+| `Ctrl/⌘+E` | Liste açılmadan, varsayılan görüntü kalitesiyle (listede **(varsayılan)** yazan seçenek) mosairEXPORT. |
 | **Dosya** menüsü → mosairEXPORT ▸ / mosairEXPORT As ▸ | Araç çubuğundaki listeyle aynı alt menüler. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
 
@@ -399,7 +421,7 @@ Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri
 
 - mosairEXPORT: `13.333 × 23.688 px · JPEG ≈ 420 MB` (yazılacak biçim ve boyutu).
 - mosairEXPORT As: `13.333 × 23.688 px · JPEG ≈ … · PNG ≈ …`; JPEG'in kenar sınırını aşan boyutlarda `… px · PNG ≈ … (bu boyutta JPEG olmaz)`.
-- Detay ayarına (ekrandaki görüntüye) karşılık gelen seçeneğin sonunda **(ekrandaki ayar)** yazar.
+- Varsayılan seçeneğin (`Ctrl/⌘+E`'nin kullandığı kalite) sonunda **(varsayılan)** yazar. Ekrandaki zoom ya da görünüm seçimi dosyanın boyutunu etkilemez.
 - Dosya boyutları liste açılınca arka planda, en küçük kaliteden başlayarak hesaplanır; hazır olmayan seçenekte "hesaplanıyor…" yazar. Hesaplananlar mozaik, ızgara ya da ızgara rengi değişene kadar hatırlanır.
 
 Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntünün tamamıdır: her taş seçilen görüntü kalitesinde, kendi doku varyantıyla çizilir. Izgara açıksa ızgarayla birlikte kaydedilir. Taş görüntüleri yüklü değilse (ör. `02_RS` klasörü yoksa) her taş kendi renginde düz olarak, aynı boyutta çizilir; dosya her durumda listede gösterilen boyuttadır.
@@ -421,7 +443,7 @@ Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntünün tamam
 | 600 × 600 taş | 24.000 × 24.000 px | 498 MB, ≈ 5 s | 450 MB, ≈ 15 s |
 | 20 m, 1667 × 1667 taş | 66.680 × 66.680 px | 2,8 GB, ≈ 26 s | Yazılamaz (kenar > 65.535 px) |
 
-Kaydetme arka planda yapılır. Dışa aktarma yarıda kalırsa (hata, disk dolu…) yarım yazılmış dosya silinir. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir. Piksel düzenleme bu sırada kapanmaz; dışa aktarma, başladığı andaki mozaiğin kopyasını yazdığı için bu sırada yapılan düzenlemeler dosyaya girmez.
+Kaydetme arka planda yapılır. Dışa aktarma yarıda kalırsa (hata, disk dolu…) ya da durum çubuğundaki **✕ İptal** düğmesiyle (veya `Esc` ile) iptal edilirse yarım yazılmış dosya silinir (dosya önce geçici bir adla yazılır, bitince asıl adı alır; bu yüzden üzerine kaydedilmek istenen eski bir dosya iptalde ya da hatada korunur); iptalde durum çubuğunda "Dışa aktarma iptal edildi: … (yarım dosya silindi)" yazar. Büyük dosyalarda iptal birkaç on milisaniyede etkili olur (20 m PNG: 34 ms); tek parçada yazılan küçük görüntülerde de taşlar çizilirken (her taş satırında) iptal edilebilir; yalnızca çizimden sonraki son kodlama adımı kesilemez. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir. Piksel düzenleme bu sırada kapanmaz; dışa aktarma, başladığı andaki mozaiğin kopyasını yazdığı için bu sırada yapılan düzenlemeler dosyaya girmez.
 
 ## 14. Tema ve dil
 
@@ -440,15 +462,16 @@ Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Tür
 | Proje aç | `Ctrl+O` | `⌘+O` |
 | Proje kaydet | `Ctrl+S` | `⌘+S` |
 | Proje farklı kaydet | `Ctrl+Shift+S` | `⌘+⇧+S` |
-| Dışa aktar (mosairEXPORT, Detay ayarındaki görüntü kalitesiyle) | `Ctrl+E` | `⌘+E` |
+| Dışa aktar (mosairEXPORT, varsayılan görüntü kalitesiyle) | `Ctrl+E` | `⌘+E` |
 | Mozaikleştir | `Ctrl+M` | `⌘+M` |
 | Ekrana sığdır | `Ctrl+0` (numpad 0 da olur) | `⌘+0` |
 | Geri al | `Ctrl+Z` | `⌘+Z` (Ctrl+Z da çalışır) |
 | Yinele | `Ctrl+Y` veya `Ctrl+Shift+Z` | `⌘+Y` veya `⌘+⇧+Z` (Ctrl ile de çalışır) |
 | Kullanım kılavuzu | `F1` | `F1` |
+| Süren işi iptal et (Mos, stoğa göre düzeltme, dışa aktarma; durum çubuğundaki ✕ İptal ve **Düzenle → İşlemi İptal Et** ile aynı) | `Esc` | `Esc` |
 | cm değerini uygula | `Enter` (cm kutusundayken) | `Enter` |
 
-Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapmaz. `F1` yalnızca başka tuş basılı değilken çalışır.
+Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapmaz. `F1` ve `Esc` yalnızca başka tuş basılı değilken çalışır. `Esc` yalnızca iptal edilebilen bir iş sürerken bir şey yapar ([§8](#iptal-düğmesi)).
 
 ## 16. Fare kontrolleri
 
@@ -470,6 +493,7 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 | Stoğa göre kutusu | Üzerinde bekle | Açıklama ve son stok raporu |
 | Dışa aktar ikonu | Sol tuş | Liste: mosairEXPORT ▸ / mosairEXPORT As ▸ ve görüntü kalitesi seçenekleri |
 | Dışa aktar ikonu | Sağ tuş | mosairEXPORT klasörünü aç |
+| Durum çubuğu → ✕ İptal | Sol tuş | Süren işi iptal et (yalnızca iş sürerken görünür) |
 | Başlık çubuğu | Sürükle / çift tık | Pencereyi taşı / büyüt-küçült |
 | Panel ayırıcıları | Sürükle | Panel genişliğini değiştir |
 
@@ -482,7 +506,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Görsel Yükleme | Dosya okunamadı | Desteklenen biçimde, sağlam bir görsel seçin |
 | Çözünürlük Yetersiz | İstenen genişlik görselin piksel genişliğinden fazla taş gerektiriyor | Daha büyük görsel kullanın veya cm'yi küçültün |
 | Mozaikleştirme | Görsel yok / hiç taş seçili değil | Görsel yükleyin / katalogda taş işaretleyin |
-| Bellek Yetersiz | Mozaikleştirme (Mos) sırasında bellek yetmedi | cm değerini küçültün (mesajda Detay (N) de geçer, ama Mos'un bellek kullanımı N'ye bağlı değildir) |
+| Bellek Yetersiz | Mozaikleştirme (Mos) sırasında bellek yetmedi | Mesajın dediği gibi cm değerini küçültün |
 | Hata | Beklenmeyen bir hata (mesajda ayrıntı yazar) | Mesajı not edin, işlemi tekrarlayın |
 | Proje | Proje dosyası açılamadı (bozuk, uyumsuz ya da eski binary) | Binary dosyayı güncel WPF'te açıp yeniden kaydedin |
 | Proje | Proje kaydedilemedi (disk dolu, klasöre yazma izni yok, dosya başka programda açık…) | Sorunu giderip tekrar kaydedin; uygulama açık kalır, çalışma kaybolmaz |
@@ -496,6 +520,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Stok Temizle / Tümünü Temizle / Stok Ekle | Onay sorusu (tabloyu değiştirmeden önce) | **Evet** ile devam edin, **Hayır** ile vazgeçin |
 | Stoğa Göre | Düzeltme yapılamadı: katalog dışı renk ya da aynı renkte iki taş; açılmış projede Mos yapılmamış; stok okunamadı | Mesaja göre görselle yeniden Mos yapın ya da stok ayarını kontrol edin |
 | Stoğa Göre | Onay: düzeltme piksel düzenlemelerini sıfırlayacak | **Evet** ile düzeltin, **Hayır** ile mevcut adetleri yazın |
+| (durum çubuğu) | İptal mesajları: "Mos iptal edildi", "… yarım kalan mozaik kaldırıldı…", "stoğa göre düzeltme iptal edildi…", "Stok Kontrol iptal edildi…", "Dışa aktarma iptal edildi…" | Uyarı penceresi çıkmaz; ne kaldığı [§8](#iptal-düğmesi)'de. İşi yeniden başlatmak yeterlidir |
 
 ## 18. Bilinen davranışlar ve sınırlamalar
 
@@ -506,6 +531,6 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - Stok değerleri (kırmızı nokta, kg) yalnızca bellektedir; projeye kaydedilmez ve yeni Mos ile silinir.
 - Stoğa göre Mos, görsel/proje yüklenirken okunan stoğu kullanır; Stok Çek bu stoğu yenilemez ([§11](#stoğa-göre-optimumun-yanındaki-kutu)).
 - Taş dokulu görüntü parça parça çizilir; hızlı kaydırma ve yakınlaştırmada bir bölge, daha keskin hali hazırlanana kadar kısa bir süre bulanık ya da yalnızca taş renkleriyle görünebilir.
-- **Ekrana Sığdır** ve fare tekerleği en fazla ‰1 (0,001) zoom'a kadar uzaklaştırır; 20 m'lik bir mozaik N=100 ile de pencereye sığar. Zoom etiketi 0,1'in altında üç basamak gösterir.
+- **Ekrana Sığdır** ve fare tekerleği en fazla ‰1 (0,001) zoom'a kadar uzaklaştırır; 20 m'lik bir mozaik de (sanal genişlik 1667 taş × 100 px = 166.700 px) pencereye sığar. Zoom etiketi 0,1'in altında üç basamak gösterir.
 - Dışa aktarmada boyut sınırı yoktur ve görüntü kendiliğinden küçültülmez; yalnızca JPEG kenar başına 65.535 pikselle sınırlıdır. Çok büyük bir JPEG yaklaşık genişlik × yükseklik × 4 bayt bellek ister ([§13](#13-dışa-aktarma-mosairexport)).
 - Stok Kontrol, Google'ın tablo çıktısı gecikebildiği için nadiren bir önceki değeri okuyabilir; şüphede kontrolü tekrarlayın. (Stoğa göre açıkken kırmızı noktalar okunan stoktan hesaplandığı için bu durumdan etkilenmez.)

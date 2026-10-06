@@ -33,12 +33,14 @@ Window
    │   ├─ Panel: DockPanel (Margin sağ 142 px, sistem pencere düğmeleri için) + üstünde DocumentTitle: açık dosyanın adı,
    │   │   pencere genişliğinin tam ortasında (menüden bağımsız; MaxWidth 340, uzunsa "…"; IsHitTestVisible=False, sürükleme bozulmaz)
    │   └─ "mosair" logosu + Menu
-   │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport ▸, menuExportAs ▸
-   │       │     (ikisinin de alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
-   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır
+   │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport ▸, menuExportAs ▸,
+   │       │     Ekran Görüntüsü Al (MenuScreenshot; Click=OnScreenshot, IsEnabled=ImageLoaded)
+   │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
+   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
+   │       │     IsEnabled=CanCancel, InputGesture="Escape")
    │       ├─ Görünüm (MenuView): menuFitToScreen
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
-   │       │     menuGridColor*, menuInterp*, menuDetail*  (*kodda doldurulur: BuildToolsMenu)
+   │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
    │       │     | Optimum, Stoğa göre, Taş Sayısı ▸ (Önerilen / Artır / Azalt),
    │       │     Stok ▸ (Aç, Ayarlar | Çek ▸ (Devre dışı bırak / Kırmızıyla işaretle), Kontrol, Sil, Tümünü Sil, Ekle)
    │       └─ Yardım (MenuHelp): Kullanım Kılavuzu (F1)
@@ -46,7 +48,6 @@ Window
    │   ├─ Sol: Görüntü Yükle, Proje Aç, Kaydet (saveProjectBtn: saveIcon/saveCheckIcon), Farklı Kaydet,
    │   │       Mos düğmesi (mosAnimGrid: mosQ0..mosQ3), Piksel Düzenle + source/target göstergesi,
    │   │       Izgara (Flyout: aç/kapa, GridColorPresets, GridColorShades), İnterpolasyon (Flyout),
-   │   │       Detay (Flyout: StonePixelSize kaydırıcısı 10–100, adım 10),
    │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
    │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
    │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
@@ -54,7 +55,8 @@ Window
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
    ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
    │   ├─ Sol: UsedColorInfo
-   │   ├─ Orta: StatusText + Progress (IsProcessing) + ElapsedTime
+   │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (✕ simgesi + BtnCancel; IsVisible = CanCancel,
+   │   │     ipucu TipCancel, Click=OnCancelWork) + StatusText + ElapsedTime
    │   └─ Sağ: ZoomInfo + Ekrana Sığdır düğmesi
    └─ Ana içerik: Grid (380 | 4 | * | 4 | 220)
        ├─ Sütun 0 — Sol panel
@@ -73,7 +75,6 @@ Window
        │   │       │     StonePixelSize, ShowGrid, GridColor; aynı wheel/move/press/release olayları)
        │   │       └─ ctrl:GridOverlay
        │   ├─ navPanel (150×150 gezgin, sağ üst; ImageLoaded): Image (NavBitmap) + NavView* dikdörtgeni
-       │   └─ N uyarısı (NWarningVisible): WarnPerfTitle / WarnPerfBody + Tamam (OnDismissNWarning)
        ├─ Sütun 3 — GridSplitter
        └─ Sütun 4 — Özellikler paneli (PropTitle; HasSelection)
            ├─ Renk örneği, PropStoneId / PropStoneName
@@ -94,7 +95,7 @@ Window
 | `_exportAnimTimer`, `_exportAnimFrame` | `DispatcherTimer?`, `int` | `null`, 0 | Dışa aktarma ok animasyonu (90 ms, `ExportAnimOffsets`). |
 | `_exportChoices` | `List<(MenuItem item, int quality, bool saveAs)>` | boş | Dışa aktarma listelerindeki (toolbar MenuFlyout'u ve Dosya menüsü) bütün kalite seçenekleri; metinleri `UpdateExportChoiceTexts` yeniler. |
 | `CmdKey` | `static readonly KeyModifiers` | `Meta` (macOS) / `Control` | `Loc.IsMac`'e göre. |
-| `_interpMenuItems`, `_detailMenuItems`, `_gridColorMenuItems`, `_gridShadeMenuItems`, `_gridShadeSeparator` | listeler | boş | Araçlar menüsünde kodla oluşturulan öğeler ve onay işaretleri. |
+| `_interpMenuItems`, `_gridColorMenuItems`, `_gridShadeMenuItems`, `_gridShadeSeparator` | listeler | boş | Araçlar menüsünde kodla oluşturulan öğeler ve onay işaretleri. |
 | `CheckGeometry` | `const string` | — | Menü onay işaretinin yol geometrisi. |
 | `_isLightTheme` | `bool` | `false` | Tema durumu. |
 
@@ -114,7 +115,7 @@ Window
 | `BuildExportMenus()` | `DataContext` atandıktan hemen sonra dışa aktarma listelerini kurar (aşağıda). |
 | `KeyDown += OnKeyDown` | Pencere düzeyi kısayollar. |
 | `paletteScroll` ↔ `assignedScroll` | İki `ScrollChanged` lambdası dikey ofseti karşılıklı eşitler (`_syncingScroll` ile döngü engellenir). |
-| `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `StonePixelSize` / `GridColor` → menü onaylarını yenile. |
+| `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `GridColor` → menü onaylarını yenile. |
 | `BuildToolsMenu()`, `SetMenuShortcutTexts()` | Kodla oluşan menüler ve kısayol metinleri. |
 
 ### Olay işleyicileri
@@ -126,8 +127,9 @@ Window
 | `OnOpenProject` | `menuOpenProject`, toolbar Proje Aç, Ctrl/⌘+O | `*.mos` seçici → `_vm.OpenProject` → `FitToWindow`. |
 | `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S | Masaüstü/mosairPROJECT kuralına göre kaydeder, kaynak görüntüyü kopyalar, 1,2 sn `saveCheckIcon` gösterir. |
 | `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S | `SaveAsDialog()` çağırır. |
-| `OnScreenshot` | Araç çubuğundaki kamera düğmesi (dışa aktarmanın solunda) | Görsel alanını (`imageScroller`) ekranın gerçek ölçeğiyle (`RenderScaling`) `RenderTargetBitmap`'e çizer, kaydırma çubukları hariç yalnızca görünen kısmı (`Viewport`) alır; tuval rengini (`BgCanvas`) temadan bulur ve `_vm.SaveScreenshotAsync` ile `mosairEXPORT/tarih_saat__ad__ekran.png` olarak kaydeder. Mini harita ayrı bir katmanda olduğu için görüntüye girmez. Klasör oluşturulamazsa `ShowExportFolderError` uyarı gösterir (aynısı hızlı dışa aktarmada da). |
-| `OnExportImage` | Ctrl/⌘+E | `ExportQuickAsync(_vm.StonePixelSize)`: o anki Detay ayarıyla hızlı dışa aktarma (sonucu beklenmez). |
+| `OnScreenshot` | Araç çubuğundaki kamera düğmesi (dışa aktarmanın solunda) ve **Dosya → Ekran Görüntüsü Al** | Görsel alanını (`imageScroller`) ekranın gerçek ölçeğiyle (`RenderScaling`) `RenderTargetBitmap`'e çizer, kaydırma çubukları hariç yalnızca görünen kısmı (`Viewport`) alır; tuval rengini (`BgCanvas`) temadan bulur ve `_vm.SaveScreenshotAsync` ile `mosairEXPORT/tarih_saat__ad__ekran.png` olarak kaydeder. Mini harita ayrı bir katmanda olduğu için görüntüye girmez. Klasör oluşturulamazsa `ShowExportFolderError` uyarı gösterir (aynısı hızlı dışa aktarmada da). |
+| `OnCancelWork` | Durum çubuğundaki İptal düğmesi ve **Düzenle → İşlemi İptal Et** (`CanCancel`) | `_vm.CancelWork()`: süren iptal edilebilir işi (Mos, stoğa göre düzeltme, dışa aktarma) durdurur; Esc ile aynı. |
+| `OnExportImage` | Ctrl/⌘+E | `ExportQuickAsync(MainViewModel.DefaultExportQuality)`: varsayılan kaliteyle (40) hızlı dışa aktarma (sonucu beklenmez). |
 | `ExportQuickAsync(quality)` | `OnExportImage`, listelerdeki mosairEXPORT seçenekleri | Masaüstü/mosairEXPORT'a zaman damgalı dosya; uzantı `_vm.QuickExportExtension(quality)` (`jpeg` ya da `png`) → `_vm.ExportImageAsync(path, quality)`. |
 | `ExportAsAsync(quality)` | Listelerdeki mosairEXPORT As seçenekleri | Kayıt seçici (`DlgExportImage`; JPEG `*.jpg/*.jpeg`, PNG `*.png`; varsayılan uzantı `jpg`) → `_vm.ExportImageAsync(path, quality)`. |
 | `BuildExportMenus()` | Yapıcı | Toolbar için bir `MenuFlyout` (`BottomEdgeAlignedRight`) kurar: `MenuExport` ve `MenuExportAs` başlıklı (Loc bağlamalı) iki öğe, ikisi de `FillExportChoices` ile doldurulur; `Opening` → `RefreshExportChoices`; `exportBtn.Flyout`'a atanır. Dosya menüsündeki `menuExport` ve `menuExportAs` de aynı şekilde doldurulur, `SubmenuOpened` → `RefreshExportChoices`. Son olarak `_vm.ExportEstimatesChanged += UpdateExportChoiceTexts`. |
@@ -174,12 +176,11 @@ Window
 | `OnScrollChanged` | `imageScroller` (`ScrollChanged`) | `UpdateNav()` → `_vm.UpdateNavigator(...)`. |
 | `OnNavPointerPressed` / `OnNavPointerMoved` | `navPanel` | Tıklanan/sürüklenen noktayı görünümün merkezine getirir (`NavigateFromNav` → `_vm.NavigatorTarget`). Konum, kenarlığın içindeki içerik paneline (`NavContent`) göre alınır; `UpdateNav` da bu panelin boyutunu (`NavInnerSize`) gönderir. |
 | `OnSelectStone` | Özellikler paneli varyant düğmeleri (`Tag` = `Index`) | `_vm.SelectStone(index)`. |
-| `OnDismissNWarning` | N uyarısındaki Tamam düğmesi | `_vm.DismissNWarning()`. |
 | `OnKeyDown` | Pencere (`KeyDown +=`) | Kısayollar (aşağıda). |
 | `OnDragOver` / `OnDrop` | Pencere (`AddHandler`) | Sürükle-bırak (aşağıda). |
 | `OnMosAnimTick` | `_mosAnimTimer.Tick` | `mosQ0..mosQ3` karelerini sırayla yakar (opaklık 1 / 0,15). |
 | `OnExportAnimTick` | `_exportAnimTimer.Tick` | `exportArrow`'un `TranslateTransform.Y` değerini `ExportAnimOffsets` dizisinden alır. |
-| Menü lambdaları | `BuildToolsMenu`, `RebuildGridShadeItems` içinde oluşturulan `MenuItem.Click` | İnterpolasyon → `SelectedInterpolation`; Detay 10…100 → `StonePixelSize`; ana renk → `GridColor` + `SelectMainColor`; ton → `GridColor`. |
+| Menü lambdaları | `BuildToolsMenu`, `RebuildGridShadeItems` içinde oluşturulan `MenuItem.Click` | İnterpolasyon → `SelectedInterpolation`; ana renk → `GridColor` + `SelectMainColor`; ton → `GridColor`. |
 
 ## Önemli davranışlar ve iş kuralları
 
@@ -193,7 +194,7 @@ Window
 | `menuOpenProject` | `CmdKey` + O |
 | `menuSave` | `CmdKey` + S |
 | `menuSaveAs` | `CmdKey` + Shift + S |
-| `menuExport` | `CmdKey` + E (alt menülü öğede yalnızca gösterim; kısayol o anki Detay ayarıyla hızlı dışa aktarır) |
+| `menuExport` | `CmdKey` + E (alt menülü öğede yalnızca gösterim; kısayol varsayılan kaliteyle hızlı dışa aktarır) |
 | `menuFitToScreen` | `CmdKey` + 0 (`Key.D0`) |
 | `menuMosaicize` | `CmdKey` + M |
 
@@ -208,12 +209,13 @@ Window
 | O | `CmdKey` | `OnOpenProject` | — |
 | S | `CmdKey` | `OnSaveProject` | `_vm.MosaicDone` |
 | S | `CmdKey` + Shift | `OnSaveAsProject` | `_vm.MosaicDone` |
-| E | `CmdKey` | `OnExportImage` (o anki Detay ayarıyla) | `_vm.CanExport` |
+| E | `CmdKey` | `OnExportImage` (`DefaultExportQuality` ile) | `_vm.CanExport` |
 | 0 / NumPad0 | `CmdKey` | `OnResetSize` | — |
 | M | `CmdKey` | `OnRunMosaic` | (`RunMosaicAsync` içinde `CanRunMosaic`) |
 | F1 | yok | `ShowHelp()` | — |
+| Esc | yok | `_vm.CancelWork()` (durum çubuğundaki İptal düğmesiyle aynı) | `_vm.CanCancel`; tablonun en başında denetlenir, olay `Handled` işaretlenir |
 
-Koşul sağlanmasa da Ctrl/⌘+S/E olayı `Handled` işaretlenir.
+Koşul sağlanmasa da Ctrl/⌘+S/E olayı `Handled` işaretlenir. Esc ise yalnızca `CanCancel` true iken yakalanır; iptal edilecek iş yoksa olay diğer kontrollere (ör. açık bir menü ya da Flyout) geçer.
 
 ### Kayıt ve dışa aktarma klasörleri
 
@@ -242,11 +244,12 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 
 ### Araçlar menüsü
 
-`BuildToolsMenu`, toolbar'daki Flyout kontrollerinin menü eşlerini kodla üretir: `MainViewModel.InterpolationMethods`, Detay için 10–100 (adım 10, kaydırıcıyla aynı), `MainViewModel.GridColorPresets` ve dinamik `GridColorShades`. Seçili değer `PathIcon` onay işaretiyle gösterilir (`NewMenuCheck` oluşturur, `SetMenuCheck` gösterir/gizler, `RefreshToolsMenuChecks` hepsini yeniler; renk öğelerinin başlığı `ColorSwatch` kutusudur); aynı renk hem ana renkte hem tonda varsa yalnızca ilki işaretlenir.
+`BuildToolsMenu`, toolbar'daki Flyout kontrollerinin menü eşlerini kodla üretir: `MainViewModel.InterpolationMethods`, `MainViewModel.GridColorPresets` ve dinamik `GridColorShades`. Seçili değer `PathIcon` onay işaretiyle gösterilir (`NewMenuCheck` oluşturur, `SetMenuCheck` gösterir/gizler, `RefreshToolsMenuChecks` hepsini yeniler; renk öğelerinin başlığı `ColorSwatch` kutusudur); aynı renk hem ana renkte hem tonda varsa yalnızca ilki işaretlenir.
 
 ## Dikkat / bilinen sınırlamalar
 
-- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir.
+- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir. Ekran Görüntüsü Al `ImageLoaded`'a, İşlemi İptal Et `CanCancel`'a bağlıdır.
+- Menüdeki İşlemi İptal Et'in `InputGesture="Escape"` değeri XAML'de sabittir ve yalnızca gösterimdir; Esc'yi `OnKeyDown` yakalar. Repo kuralı gereği her özellik üst menüde de bulunur (CLAUDE.md, "Menüler").
 - `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez.
 - Kayıt (`SpecialFolder.Desktop`) ve dışa aktarma (`SpecialFolder.DesktopDirectory`) farklı özel klasör sabitleri kullanır; çoğu sistemde aynı yeri gösterir ama tutarsızdır.
 - `OnRunMosaic`, `RunMosaicAsync` hiçbir şey yapmadan dönse bile `FitToWindow` çağırır.

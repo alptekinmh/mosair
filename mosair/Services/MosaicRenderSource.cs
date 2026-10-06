@@ -105,6 +105,7 @@ namespace mosair.Services
 
             for (int i = 0; i < rows; i++)
             {
+                WorkCancellation.Check();   // only an export sets a token; screen tiles never stop here
                 int si = row0 + i;
                 for (int j = 0; j < cols; j++)
                 {

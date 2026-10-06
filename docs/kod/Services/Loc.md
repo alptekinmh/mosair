@@ -49,18 +49,18 @@ Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynı
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Stock*` | 57 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
-| `Menu*` | 37 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware` dahil) |
-| `Status*` | 24 | Durum çubuğu metinleri (çoğu biçim dizesi); büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct` ve ekran görüntüsü için `StatusScreenshotSaved` dahil |
-| `Tip*` | 23 | Araç çubuğu, stok düğmesi ve "Stoğa göre" kutusu (`TipStockAware`) ipuçları |
-| `Alert*` | 18 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
+| `Menu*` | 38 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Dosya'daki `MenuScreenshot` ve Düzen'deki `MenuCancelWork` dahil) |
+| `Status*` | 27 | Durum çubuğu metinleri (çoğu biçim dizesi); büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct`, ekran görüntüsü için `StatusScreenshotSaved` ve iptal metinleri (`StatusCancelling`, `StatusMosCancelled`, `StatusMosCancelledCleared`, `StatusStockFitCancelled`, `StatusStockCheckCancelled`, `StatusExportCancelled`) dahil |
+| `Tip*` | 23 | Araç çubuğu, stok düğmesi, "Stoğa göre" kutusu (`TipStockAware`) ve durum çubuğundaki İptal düğmesi (`TipCancel`) ipuçları |
+| `Alert*` | 16 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
-| `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, `ExportCurrentQuality`, `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
-| `Lbl*` | 7 | Sol panel etiketleri (`LblStockAware` dahil) |
+| `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, varsayılan kalitenin işareti `ExportDefaultQuality` = "(varsayılan)", `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
+| `Lbl*` | 6 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
 | `Info*` | 3 | Boyut bilgisi biçimleri |
-| `Warn*` | 3 | Performans uyarısı |
-| `Btn*` | 2 | Tümünü seç / seçimi kaldır |
+| `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
+| `Btn*` | 3 | Tümünü seç / seçimi kaldır, durum çubuğundaki İptal düğmesi (`BtnCancel`) |
 | `Size*` | 2 | Dosya boyutu biçimleri (`SizeMB`, `SizeGB`) |
 | `OptimumInfoFmt` | 1 | Optimum bilgi metni |
 
@@ -94,7 +94,7 @@ Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynı
 - Türkçe metinlerin bir kısmı Türkçe karakter içermeden yazılmıştır (ör. `AlertExportTitle` = "Disa Aktarma").
 - Eksik anahtar hata vermez; ekranda anahtar adı görünür. Yeni anahtarı iki sözlüğe de eklemeyi unutmayın.
 - `Fmt`, `string.Format`'ı geçerli kültürle çağırır; sayı biçimleri sistem kültürüne göre değişebilir.
-- `StatusNTooLarge`, `AlertNTooLargeTitle`, `AlertNTooLargeBody`, `StatusRegenRs` ve `StatusErrorTooLarge` artık hiçbir yerde kullanılmıyor (taş dokulu görüntü karolarla çizildiği için N kaydırıcısında boyut sınırı ve yeniden üretim kalmadı). Sözlüklerde duruyorlar; sayıya dahildirler.
+- Detay (N) ayarı kaldırılırken ona ait anahtarlar (`MenuDetail`, `TipDetail`, `LblDetail`, `WarnPerfTitle`, `WarnPerfBody`, `StatusRegenRs`, `StatusNTooLarge`, `StatusErrorTooLarge`, `AlertNTooLargeTitle`, `AlertNTooLargeBody`) iki sözlükten de silindi; `ExportCurrentQuality` yerini `ExportDefaultQuality`'ye bıraktı. Kullanıcıya görünen dışa aktarma metinlerinde "N" geçmez.
 - `StatusGeneratingRs` ("Acildi, tas dokulari yukleniyor...") proje açılırken taş görüntüleri yüklenirken gösterilir.
 - `StockAwareSmall` (en az kullanım kuralıyla çıkarılan taşlar) sözlükte durur, ancak uygulamada bu kural kapalı olduğundan (`MinUsage = 0`) normalde gösterilmez.
 - `HelpWindow.axaml` içindeki kısayol açıklamaları gibi bazı metinler XAML'e doğrudan yazılmıştır ve bu sözlüklerden gelmez.

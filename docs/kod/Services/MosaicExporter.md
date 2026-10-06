@@ -38,7 +38,7 @@ Eski sürümde çok büyük mozaiklerde taş başına piksel kendiliğinden dü�
 | `FreeMemoryBytes()` → `long` | O an boş bellek: `GC.GetGCMemoryInfo()` ile `TotalAvailableMemoryBytes − MemoryLoadBytes` (0'dan küçük olmaz). | `QuickExportUsesJpeg`, `MainViewModel.ExportImageAsync` |
 | `QuickExportUsesJpeg(size)` → `bool` | JPEG mümkün değilse `false`; görüntü `ImageService.MaxBitmapPixels`'a sığıyorsa `true`; daha büyükse JPEG tamponu o an boş belleğin (`FreeMemoryBytes()`) en fazla yarısıysa `true`, değilse `false` (PNG) | `MainViewModel` |
 | `EstimateBytes(src, n, grid, gw, gc, jpeg)` → `long` | Tahmini dosya boyutu: mozaiğin birkaç parçası gerçekten aynı biçimde kodlanır, piksel başına bayt bütün görüntüye ölçeklenir (aşağıda) | `MainViewModel` (arka planda) |
-| `Export(src, path, jpeg, n, grid, gw, gc, progress = null)` | Dosyayı yazar. JPEG istenip `JpegPossible` değilse `InvalidOperationException` (`ExportJpegTooLarge` metni); bu kontrol dosya açılmadan yapılır. Yazma sırasında hata olursa yarım kalan dosya silinir (`File.Delete`, hatası yutulur) ve özgün hata yeniden atılır. `progress` 0..1 arası değeri işçi iş parçacığından bildirir. | `MainViewModel.ExportImageAsync` (arka planda) |
+| `Export(src, path, jpeg, n, grid, gw, gc, progress = null)` | Dosyayı yazar. JPEG istenip `JpegPossible` değilse `InvalidOperationException` (`ExportJpegTooLarge` metni); bu kontrol dosya açılmadan yapılır. Yazma sırasında hata olursa ya da iptal edilirse yarım kalan dosya silinir (`File.Delete`, hatası yutulur) ve özgün hata (iptalde `OperationCanceledException`) yeniden atılır. `progress` 0..1 arası değeri işçi iş parçacığından bildirir. | `MainViewModel.ExportImageAsync` (arka planda) |
 
 ## Önemli davranışlar ve iş kuralları
 
@@ -53,7 +53,9 @@ Eski sürümde çok büyük mozaiklerde taş başına piksel kendiliğinden dü�
    - **JPEG:** Mozaiğin beş noktasından (dört köşeye yakın nokta ve orta) ≈ 512 × 512 px'lik kareler (`max(1, 512 / n)` taş) çizilip Skia ile kodlanır. Ölçümde gerçek boyutun ≈ %104'ü.
    - **PNG:** Mozaiğin %25, %50 ve %75 yüksekliğindeki üç tam genişlikte taş satırı, gerçek dışa aktarmanın kullanacağı yolla kodlanır: sığan görüntüde Skia PNG, akışla yazılacak görüntüde `StreamingPngWriter` + `CountingStream`. Ölçümde gerçek boyutun %106–116'sı. Taş görüntüleri satır boyunca tekrarlandığından küçük kareler PNG'yi ≈ 2 kat fazla tahmin ediyordu; bu yüzden tam satır kullanılır.
    - Sonuç: toplam bayt / toplam örnek piksel × bütün görüntünün piksel sayısı.
-9. **Anlık görüntü:** `Export` ve `EstimateBytes` arka planda çalışır. Dışa aktarmada `MainViewModel` çizim kaynağı olarak `WithStoneSnapshot()` kopyasını verir; böylece dışa aktarma sürerken yapılan düzenlemeler dosyaya girmez.
+8a. **Geçici dosya:** Her yol önce hedefin yanında `<ad>.part` adlı geçici dosyaya yazar; iş tamamlanınca `File.Move(temp, path, overwrite: true)` ile asıl adın yerine geçirir. İptal ya da hata olursa yalnızca `.part` dosyası silinir: aynı adla var olan bir dosya (ör. mosairEXPORT As ile üzerine yazılmak istenen) hiçbir zaman silinmez ya da bozulmaz.
+9. **İptal** ([WorkCancellation](./WorkCancellation.md)): `ExportStreamedPng` ve `ExportLargeJpeg` her taş satırının başında `WorkCancellation.Check()` çağırır; `MosaicRenderSource.RenderRegion` da her taş satırında çağırdığı için tek bitmap'e sığan görüntü de çizilirken durur. Kullanıcı İptal'e (ya da Esc'ye) basınca `OperationCanceledException` fırlar, `Export`'un `catch`'i yarım dosyayı siler ve `MainViewModel` durumu `StatusExportCancelled` yapar. Çizim bittikten sonraki kodlama adımı (tek bitmap'te `ImageService.ExportImage`, büyük JPEG'de `SKPixmap.Encode`) iptal edilemez; o adımda basılan iptal iş bitince etkisiz kalır. Ölçüm: akışla yazılan 20 m PNG tıklamadan 34 ms sonra durdu, yarım dosya silindi.
+10. **Anlık görüntü:** `Export` ve `EstimateBytes` arka planda çalışır. Dışa aktarmada `MainViewModel` çizim kaynağı olarak `WithStoneSnapshot()` kopyasını verir; böylece dışa aktarma sürerken yapılan düzenlemeler dosyaya girmez.
 
 ### Ölçümler
 
@@ -69,6 +71,7 @@ Büyük dosyalar doğrulanmıştır: bütün CRC'ler doğru, bütün satırlar �
 
 - Büyük JPEG ≈ genişlik × yükseklik × 4 bayt RAM ister (ör. 60.000 × 60.000 px için ≈ 13,4 GB). mosairEXPORT bu yüzden belleğin yetmeyeceği durumda PNG seçer; **mosairEXPORT As** ile JPEG seçilirse kullanıcıya sorulur (`ExportJpegMemoryConfirm`). "Boş bellek" `FreeMemoryBytes()` = `TotalAvailableMemoryBytes − MemoryLoadBytes` (kurulu ya da izin verilen bellek eksi tüm sistemin o an kullandığı).
 - `unsafe` kod kullanır (doğrudan piksel işaretçisi, `NativeMemory`).
+- Akışla PNG yazımı iptal edilince (ya da hata olursa) önceden başlatılmış bir sonraki satırın çizimi (`next` görevi) arka planda biter; `finally`'deki `ContinueWith` görev başarıyla biterse bitmap'ini serbest bırakır. Görev aynı belirteçle çalıştığı için çoğu zaman kendisi de `OperationCanceledException` ile durur.
 
 ## İlgili dosyalar
 

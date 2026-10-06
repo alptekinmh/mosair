@@ -59,6 +59,7 @@ namespace mosair.Services
             for (int i = 0; i < R; i++)
                 for (int j = 0; j < C; j++)
                 {
+                    if (j == 0) WorkCancellation.Check();   // cancel button: once per row
                     byte b = src[i, j, 0], g = src[i, j, 1], r = src[i, j, 2];
                     int key = (r << 16) | (g << 8) | b;
                     if (!labCache.TryGetValue(key, out var lab))
@@ -100,6 +101,7 @@ namespace mosair.Services
             int[] order = new int[U * M];
             System.Threading.Tasks.Parallel.For(0, U, u =>
             {
+                WorkCancellation.Check();
                 int baseIdx = u * M;
                 var keys = new float[M];
                 var idx = new int[M];
@@ -138,6 +140,7 @@ namespace mosair.Services
             for (int i = 0; i < R; i++)
                 for (int j = 0; j < C; j++)
                 {
+                    if (j == 0) WorkCancellation.Check();
                     if (j + 1 < C) TryEdge(i * C + j, i * C + j + 1);
                     if (i + 1 < R) TryEdge(i * C + j, (i + 1) * C + j);
                 }
@@ -157,6 +160,7 @@ namespace mosair.Services
             int minProtectPixels = Math.Max(MinProtectedPixels, (int)Math.Ceiling(totalCount * MinProtectedShare));
             for (int k = M; k > 1; k--)
             {
+                WorkCancellation.Check();
                 Array.Clear(cost); Array.Clear(owned); Array.Clear(localIncrease);
                 for (int u = 0; u < U; u++)
                 {

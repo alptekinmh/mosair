@@ -29,7 +29,7 @@ Piksel dizileri `[satır, sütun, kanal]` düzenindedir ve kanal sırası **BGR*
 | `reducedBitmap` | `SKBitmap?` | `null` | Kaynak görüntünün taş ızgarasına küçültülmüş hali / ara sonuç. |
 | `exportBitmap` | `SKBitmap?` | `null` | Düz renkli mozaik bitmap'i (dokusuz). |
 | `inputBitmap` | `SKBitmap?` | `null` | Yüklenen orijinal görüntü. |
-| `N` | `int` | 40 | Taş dokulu görüntüde (RS) bir taşın piksel boyutu ("Detay"). `MainViewModel.StonePixelSize` ayarlar. |
+| `N` | `int` | 40 | Proje dosyasındaki taş başına piksel değeri; yalnızca WPF uyumluluğu için tutulur. `ProjectService.Open` dosyadan okur, `Save` aynen geri yazar. mosair'in görünümü (`MainViewModel.StonePixelSize`, sabit 100) ve dışa aktarma kalitesi bunu kullanmaz; Detay ayarı kaldırıldığı için başka hiçbir yer değiştirmez; bu yüzden bir proje açıldıktan sonra yapılan yeni Mos'lar da o projenin değeriyle kaydedilir (40'a dönmez). |
 | `arn` | `int[]` | `new int[3]` | Hücre başına doku varyantı indeksi (`R*C` uzunluk). `StoneTextureService.PopulateRandomIndices` yeniden ayırır. |
 
 Taş dokulu görüntü (RS) bu sınıfta tutulmaz (eski `rsBitmap` alanı kaldırıldı). Görüntünün tamamı hiçbir zaman bellekte durmaz: ekranda [MosaicView](../Controls/MosaicView.md) görünen kısmı karolarla, dışa aktarma ise bütün görüntüyü [MosaicRenderSource](../Services/MosaicRenderSource.md) ile `dataM3`, `arn` ve paletten çizer.

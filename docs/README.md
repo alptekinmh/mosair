@@ -60,6 +60,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
 | [Loc.md](kod/Services/Loc.md) | TR/EN metinler, kısayol yazıları |
 | [StockAwareAssigner.md](kod/Services/StockAwareAssigner.md) | Stoğa göre düzeltme algoritması (min-cost flow ile stoğa sığdırma) |
+| [WorkCancellation.md](kod/Services/WorkCancellation.md) | İptal düğmesinin belirteci: Mos, stoğa göre düzeltme ve dışa aktarmanın uzun döngülerini kontrol noktalarında durdurma |
 
 ### Modeller, kontroller, dönüştürücüler
 
