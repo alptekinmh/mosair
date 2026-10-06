@@ -61,6 +61,12 @@ public static class StockCompareRunner
             int C = (int)MosaicEngine.width, R = (int)MosaicEngine.height;
             byte[,,] src = MosaicEngine.GetSourceStoneData();
 
+            if (Environment.GetEnvironmentVariable("MOSAIR_CLASSIC") == "1")
+            {
+                RunClassic(name, src, R, C, Cap, Family, Label, Log);
+                continue;
+            }
+
             MosaicEngine.RunOptimal(InterpolationMethod.Area, null, prepareTextures: false);
             int k = MosaicEngine.LastOptimalResult!.KOptimal;
             var optData = (byte[,,])MosaicData.dataM3.Clone();
@@ -127,6 +133,40 @@ public static class StockCompareRunner
         Log(summary.ToString());
         File.WriteAllText(Path.Combine(outDir, "rapor.txt"), report.ToString(), new UTF8Encoding(true));
         return 0;
+    }
+
+    // Classic Mos (same rgbM rule as the app) followed by the stock fix on the result.
+    private static void RunClassic(string name, byte[,,] src, int R, int C, Func<int, int?> cap,
+        Func<int, string?> family, Func<int, string> label, Action<string> log)
+    {
+        int total = R * C;
+        const int rgbInc = 10;
+        int steps = (int)Math.Ceiling(256.0 / rgbInc);
+        int target = Math.Clamp(Math.Max(2, (int)(0.1 * total) / 10 * 10), 2, Math.Max(2, total));
+        if (target >= steps * steps * steps) target = steps * steps * steps - 1;
+        MosaicEngine.RunM3(target, rgbInc, false, false, InterpolationMethod.Area, null, prepareTextures: false);
+        var before = (byte[,,])MosaicData.dataM3.Clone();
+        var qBefore = MosaicMetrics.Evaluate(src, before, R, C);
+
+        var options = new StockAwareOptions { MinUsage = StockAwareOptions.MinUsageFor(total) };
+        int smallBefore = MosaicData.arMB.SelectMany(l => l).Count(c => c.numOfPixel > 0 && c.numOfPixel < options.MinUsage);
+        var sw = Stopwatch.StartNew();
+        bool ok = MosaicEngine.FixCurrentMosaicToStock(cap, family, options, prepareTextures: false);
+        sw.Stop();
+        log($"[{name}] klasik Mos {C}x{R}, rgbM={target}");
+        if (!ok) { log("  düzeltme YAPILAMADI (katalog dışı renk)"); return; }
+        var res = MosaicEngine.LastStockResult!;
+        var qAfter = MosaicMetrics.Evaluate(src, MosaicData.dataM3, R, C);
+        int overBefore = res.CountBefore.Count(kv => res.Capacity.TryGetValue(kv.Key, out int c) && kv.Value > c);
+        int smallAfter = res.CountAfter.Count(kv => kv.Value < options.MinUsage);
+        log($"  önce   {qBefore}");
+        log($"  sonra  {qAfter}  süre={sw.Elapsed.TotalMilliseconds:F0}ms");
+        log($"  taş türü {res.CountBefore.Count} → {res.CountAfter.Count}; stoğu aşan {overBefore} → {res.ShortIds.Count}; " +
+            $"en az {options.MinUsage} altı {smallBefore} → {smallAfter}; taşınan {res.MovedPixels}; arama seviyesi {res.Level}; " +
+            $"kontroller {(res.ShortIds.Count == 0 && smallAfter == 0 ? "GEÇTİ" : "KALDI")}");
+        foreach (var mv in res.Moves.Where(m => m.Count >= 50))
+            log($"    {label(mv.FromId)} → {label(mv.ToId)}: {mv.Count} taş");
+        log("");
     }
 
     private static string LevelText(int level) => level switch

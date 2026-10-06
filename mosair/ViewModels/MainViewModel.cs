@@ -346,10 +346,12 @@ namespace mosair.ViewModels
         // used very little are dropped; their pixels go to similar stones. The corrected counts are written back.
         private async Task FixToStockAfterCheckAsync(StockSheetService.Config config, string projectName)
         {
-            if (!OptimalAvailable)
+            // Works on a mosaic made in this session (Optimum or classic Mos); an opened project has no source
+            // image data at stone resolution to judge substitutes by.
+            if (!_mosaicMadeThisSession || MosaicEngine.LastRunPool == null)
             {
-                SetStockAwareReport(Loc.Get("StockAwareNeedsOptimum"));
-                StatusText += " · " + Loc.Get("StockAwareNeedsOptimum");
+                SetStockAwareReport(Loc.Get("StockAwareNeedsMos"));
+                StatusText += " · " + Loc.Get("StockAwareNeedsMos");
                 return;
             }
 
@@ -397,12 +399,26 @@ namespace mosair.ViewModels
                 SKBitmap? rsBmp = null;
                 var oldExport = MosaicData.exportBitmap;
                 int k = OptimalK;
+                bool optimum = OptimalAvailable;
+                bool fixedOk = true;
                 await Task.Run(() =>
                 {
-                    result = ApplyOptimalKFor(k, stock);
-                    rsBmp = BuildRsBitmap();
+                    if (optimum)
+                        result = ApplyOptimalKFor(k, stock);
+                    else
+                    {
+                        fixedOk = FixClassicMosaicToStock(stock);
+                        result = MosaicData.reducedBitmap;
+                    }
+                    if (fixedOk) rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
+                if (!fixedOk)
+                {
+                    SetStockAwareReport(Loc.Get("StockAwareCannotFix"));
+                    StatusText += " · " + Loc.Get("StockAwareCannotFix");
+                    return;
+                }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 ShowStockAwareResult(stock);
@@ -821,6 +837,9 @@ public bool UseLab
         // a new image or an opened project.
         private Dictionary<int, StockSheetService.StoneStock>? _stockOnHand;
         private string _stockAwareReport = "";
+        // True once Mos (Optimum or classic) has produced the mosaic on screen in this session; an opened
+        // project or a newly loaded image clears it.
+        private bool _mosaicMadeThisSession;
 
         public bool UseStockAware
         {
@@ -838,6 +857,11 @@ public bool UseLab
             OnPropertyChanged(nameof(StockAwareTip));
         }
 
+        private static StockAwareOptions StockOptions() => new()
+        {
+            MinUsage = StockAwareOptions.MinUsageFor((int)(MosaicEngine.width * MosaicEngine.height))
+        };
+
         // Runs on the worker thread.
         private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
             stock == null
@@ -845,10 +869,14 @@ public bool UseLab
                 : MosaicEngine.ApplyOptimalKWithStock(k,
                     id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
                     id => stock.TryGetValue(id, out var s) ? s.Name : null,
-                    new StockAwareOptions
-                    {
-                        MinUsage = StockAwareOptions.MinUsageFor((int)(MosaicEngine.width * MosaicEngine.height))
-                    });
+                    StockOptions());
+
+        // Runs on the worker thread: fixes a classic Mos result in place.
+        private static bool FixClassicMosaicToStock(Dictionary<int, StockSheetService.StoneStock> stock) =>
+            MosaicEngine.FixCurrentMosaicToStock(
+                id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
+                id => stock.TryGetValue(id, out var s) ? s.Name : null,
+                StockOptions());
 
         // After a stock-aware run: kg values and red dots in the catalog, a short status note and the full report.
         private void ShowStockAwareResult(Dictionary<int, StockSheetService.StoneStock> stock)
@@ -1256,6 +1284,7 @@ public bool UseLab
             ProjectService.CurrentFileName = "";
             ProjectService.ForgetWpfState();
             _stockOnHand = null;
+            _mosaicMadeThisSession = false;
             SetStockAwareReport("");
             MosaicEngine.Reset();
             MosaicDone = false;
@@ -1450,6 +1479,7 @@ public bool UseLab
                 }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                _mosaicMadeThisSession = result != null;
             }
             catch (OutOfMemoryException)
             {
@@ -1532,6 +1562,7 @@ public bool UseLab
             // An opened project has no Optimum analysis; hide the stone slider left from an earlier Optimum Mos.
             _lastRunOptimal = false;
             _stockOnHand = null;
+            _mosaicMadeThisSession = false;
             SetStockAwareReport("");
             MosaicDone = true;
             ImageLoaded = true;
