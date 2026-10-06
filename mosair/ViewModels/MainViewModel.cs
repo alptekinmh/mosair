@@ -1226,20 +1226,50 @@ public bool UseLab
         public double NavViewWidth { get => _navViewWidth; set { _navViewWidth = value; OnPropertyChanged(); } }
         public double NavViewHeight { get => _navViewHeight; set { _navViewHeight = value; OnPropertyChanged(); } }
 
+        // Margin of the image panel inside the canvas ScrollViewer (MainWindow.axaml).
+        private const double CanvasMargin = 4;
+
+        // Where the thumbnail sits in the navigator: Stretch="Uniform" centres it in the navSize × navSize area.
+        private (double x0, double y0, double w, double h) NavThumb(double navSize)
+        {
+            double imgW = ImageDisplayWidth, imgH = ImageDisplayHeight;
+            double scale = Math.Min(navSize / imgW, navSize / imgH);
+            double w = imgW * scale, h = imgH * scale;
+            return ((navSize - w) / 2, (navSize - h) / 2, w, h);
+        }
+
+        // navSize: the navigator's inner size (inside its border), the area the thumbnail is centred in.
         public void UpdateNavigator(double viewportW, double viewportH, double offsetX, double offsetY, double navSize)
         {
             double imgW = ImageDisplayWidth;
             double imgH = ImageDisplayHeight;
-            if (imgW <= 0 || imgH <= 0) return;
+            if (imgW <= 0 || imgH <= 0 || navSize <= 0) return;
 
-            double scale = Math.Min(navSize / imgW, navSize / imgH);
-            double thumbW = imgW * scale;
-            double thumbH = imgH * scale;
+            var t = NavThumb(navSize);
+            // The part of the image that is on screen, in image pixels (the panel has a small margin).
+            double left = Math.Clamp(offsetX - CanvasMargin, 0, imgW);
+            double top = Math.Clamp(offsetY - CanvasMargin, 0, imgH);
+            double right = Math.Clamp(offsetX - CanvasMargin + viewportW, 0, imgW);
+            double bottom = Math.Clamp(offsetY - CanvasMargin + viewportH, 0, imgH);
 
-            NavViewLeft = (offsetX / imgW) * thumbW;
-            NavViewTop = (offsetY / imgH) * thumbH;
-            NavViewWidth = Math.Min(viewportW / imgW, 1.0) * thumbW;
-            NavViewHeight = Math.Min(viewportH / imgH, 1.0) * thumbH;
+            NavViewLeft = t.x0 + left / imgW * t.w;
+            NavViewTop = t.y0 + top / imgH * t.h;
+            NavViewWidth = (right - left) / imgW * t.w;
+            NavViewHeight = (bottom - top) / imgH * t.h;
+        }
+
+        // Scroll offset that centres the view on the navigator point (x, y), or null outside the thumbnail.
+        public (double x, double y)? NavigatorTarget(double x, double y, double navSize, double viewportW, double viewportH)
+        {
+            double imgW = ImageDisplayWidth;
+            double imgH = ImageDisplayHeight;
+            if (imgW <= 0 || imgH <= 0 || navSize <= 0) return null;
+
+            var t = NavThumb(navSize);
+            double rx = Math.Clamp((x - t.x0) / t.w, 0, 1);
+            double ry = Math.Clamp((y - t.y0) / t.h, 0, 1);
+            return (Math.Max(0, rx * imgW + CanvasMargin - viewportW / 2),
+                    Math.Max(0, ry * imgH + CanvasMargin - viewportH / 2));
         }
 
         public string PixelCoordInfo

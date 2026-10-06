@@ -488,6 +488,11 @@ public partial class MainWindow : Window
         UpdateNav();
     }
 
+    // The navigator's content area: inside its border, where the thumbnail is centred and the view box is drawn.
+    private Control NavContent => (Control)navPanel.Child!;
+    private double NavInnerSize => Math.Min(NavContent.Bounds.Width, NavContent.Bounds.Height) is > 0 and var s
+        ? s : navPanel.Width - navPanel.BorderThickness.Left - navPanel.BorderThickness.Right;
+
     private void UpdateNav()
     {
         _vm.UpdateNavigator(
@@ -495,45 +500,29 @@ public partial class MainWindow : Window
             imageScroller.Viewport.Height,
             imageScroller.Offset.X,
             imageScroller.Offset.Y,
-            navPanel.Width);
+            NavInnerSize);
     }
 
     private void OnNavPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (sender is not Border nav) return;
-        NavigateFromNav(e.GetPosition(nav));
+        NavigateFromNav(e.GetPosition(NavContent));
         e.Handled = true;
     }
 
     private void OnNavPointerMoved(object? sender, PointerEventArgs e)
     {
-        if (sender is not Border nav) return;
-        var props = e.GetCurrentPoint(nav).Properties;
+        var props = e.GetCurrentPoint(NavContent).Properties;
         if (!props.IsLeftButtonPressed) return;
-        NavigateFromNav(e.GetPosition(nav));
+        NavigateFromNav(e.GetPosition(NavContent));
         e.Handled = true;
     }
 
     private void NavigateFromNav(Avalonia.Point pos)
     {
-        double imgW = _vm.ImageDisplayWidth;
-        double imgH = _vm.ImageDisplayHeight;
-        if (imgW <= 0 || imgH <= 0) return;
-
-        double navSize = navPanel.Width;
-        double scale = Math.Min(navSize / imgW, navSize / imgH);
-        double thumbW = imgW * scale;
-        double thumbH = imgH * scale;
-
-        double ratioX = pos.X / thumbW;
-        double ratioY = pos.Y / thumbH;
-
-        double targetX = ratioX * imgW - imageScroller.Viewport.Width / 2;
-        double targetY = ratioY * imgH - imageScroller.Viewport.Height / 2;
-
-        imageScroller.Offset = new Avalonia.Vector(
-            Math.Max(0, targetX),
-            Math.Max(0, targetY));
+        var target = _vm.NavigatorTarget(pos.X, pos.Y, NavInnerSize,
+            imageScroller.Viewport.Width, imageScroller.Viewport.Height);
+        if (target == null) return;
+        imageScroller.Offset = new Avalonia.Vector(target.Value.x, target.Value.y);
     }
 
     private async void OnSaveProject(object? sender, RoutedEventArgs e)
