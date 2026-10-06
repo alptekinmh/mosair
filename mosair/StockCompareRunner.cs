@@ -144,7 +144,29 @@ public static class StockCompareRunner
         int steps = (int)Math.Ceiling(256.0 / rgbInc);
         int target = Math.Clamp(Math.Max(2, (int)(0.1 * total) / 10 * 10), 2, Math.Max(2, total));
         if (target >= steps * steps * steps) target = steps * steps * steps - 1;
+
+        // MOSAIR_EXCLUDE_ZERO=1: like Stok Çek, untick stones whose capacity is 0 before Mos.
+        if (Environment.GetEnvironmentVariable("MOSAIR_EXCLUDE_ZERO") == "1")
+        {
+            foreach (var c in MosaicData.arRGBAll) c.boolLeaveOut = cap(c.ID) is int k && k <= 0;
+            ColorCatalogService.SetActiveColors();
+        }
+        var active = new HashSet<int>(MosaicData.arRGB.Select(c => c.ID));
         MosaicEngine.RunM3(target, rgbInc, false, false, InterpolationMethod.Area, null, prepareTextures: false);
+        // Does classic Mos keep to the selected stones? (pixel colours that are not an active stone's colour)
+        var activeColors = new HashSet<(byte, byte, byte)>(MosaicData.arRGB.Select(c => ((byte)c.b, (byte)c.g, (byte)c.r)));
+        int outside = 0;
+        for (int i = 0; i < R; i++)
+            for (int j = 0; j < C; j++)
+                if (!activeColors.Contains((MosaicData.dataM3[i, j, 0], MosaicData.dataM3[i, j, 1], MosaicData.dataM3[i, j, 2]))) outside++;
+        var usedInactive = MosaicData.arMB.SelectMany(l => l).Where(c => !active.Contains(c.ID)).Select(c => $"#{c.ID}({c.numOfPixel})").ToList();
+        // Are the palette entries' IDs real catalog IDs with the catalog colour? (the app decides "needs a fix" from them)
+        var catalogById = MosaicData.arRGBAll.ToDictionary(c => c.ID);
+        var badIds = MosaicData.arMA.SelectMany(l => l)
+            .Where(c => !catalogById.TryGetValue(c.ID, out var k) || (byte)k.r != (byte)c.r || (byte)k.g != (byte)c.g || (byte)k.b != (byte)c.b)
+            .Select(c => $"ID {c.ID} rgb({c.r:0},{c.g:0},{c.b:0}) {c.codeName}").ToList();
+        log($"  [palet ID kontrolü] arMA[0] {MosaicData.arMA.FirstOrDefault()?.Count ?? 0} kayıt; katalogla uyuşmayan: {(badIds.Count == 0 ? "yok" : badIds.Count + " → " + string.Join("; ", badIds.Take(5)))}");
+        log($"  [seçim kontrolü] aktif taş {active.Count}; aktif taşların rengi olmayan piksel {outside}; seçili olmayan kullanılan taş: {(usedInactive.Count == 0 ? "yok" : string.Join(", ", usedInactive))}");
         var before = (byte[,,])MosaicData.dataM3.Clone();
         var qBefore = MosaicMetrics.Evaluate(src, before, R, C);
 

@@ -351,11 +351,24 @@ namespace mosair.ViewModels
                 Alert(Loc.Get("StockTitle"), Loc.Get("StockNoProject"));
                 return;
             }
+            if (!MosaicDone || MosaicData.arMA.Count == 0)
+            {
+                Alert(Loc.Get("StockTitle"), Loc.Get("StockNoMosaic"));
+                return;
+            }
+
+            // "Stoğa göre": fix the mosaic to stock first, so the sheet gets the final counts in one write.
+            Dictionary<int, StockSheetService.StoneStock>? stock = null;
+            if (UseStockAware)
+            {
+                stock = await FixToStockAsync(config, projectName);
+                if (stock == null) return; // the reason was shown; nothing written
+            }
+
             var counts = new Dictionary<int, int>();
-            if (MosaicDone && MosaicData.arMA.Count > 0)
-                foreach (var c in MosaicData.arMA[0])
-                    if (c.numOfPixel > 0)
-                        counts[c.ID] = counts.TryGetValue(c.ID, out int n) ? n + c.numOfPixel : c.numOfPixel;
+            foreach (var c in MosaicData.arMA[0])
+                if (c.numOfPixel > 0)
+                    counts[c.ID] = counts.TryGetValue(c.ID, out int n) ? n + c.numOfPixel : c.numOfPixel;
             if (counts.Count == 0)
             {
                 Alert(Loc.Get("StockTitle"), Loc.Get("StockNoMosaic"));
@@ -364,6 +377,7 @@ namespace mosair.ViewModels
             var stones = new List<(int Id, int Count)>();
             foreach (var kv in counts) stones.Add((kv.Key, kv.Value));
 
+            string fixReport = StatusText;
             HashSet<int>? shortIds = null;
             await RunStockAction(async () =>
             {
@@ -378,29 +392,44 @@ namespace mosair.ViewModels
                     if (check.OnHand.TryGetValue(item.ID, out double onHand)) item.StockKg = onHand;
                 }
             }, "");
-            if (shortIds != null)
+            if (shortIds == null) return; // write failed; the error was shown
+
+            if (stock != null)
+            {
+                // The sheet's "Tahmini Kalan" can be read back before Google has recalculated it, so red dots
+                // and remaining kg come from the stock read for the fix instead.
+                ShowStockMarks(stock, counts);
+                bool changed = fixReport != Loc.Get("StockAwareOk");
+                StatusText = fixReport + " · " + Loc.Get(changed ? "StockAwareWritten" : "StockCountsWritten");
+            }
+            else
                 StatusText = shortIds.Count == 0
                     ? Loc.Fmt("StockCheckOk", projectName)
                     : Loc.Fmt("StockCheckShort", projectName, shortIds.Count);
-            if (shortIds != null && UseStockAware)
-                await FixToStockAfterCheckAsync(config, projectName);
         }
 
-        // "Stoğa göre" after Stok Kontrol: stones short of stock are used only as far as stock goes and stones
-        // used very little are dropped; their pixels go to similar stones. The corrected counts are written back.
-        private async Task FixToStockAfterCheckAsync(StockSheetService.Config config, string projectName)
+        // "Stoğa göre" before Stok Kontrol writes: stones short of stock are used only as far as stock goes and
+        // stones used very little are dropped; their pixels go to similar stones. Returns the stock that was used,
+        // or null when the fix could not run (the reason is shown in a dialog, nothing is written then).
+        private async Task<Dictionary<int, StockSheetService.StoneStock>?> FixToStockAsync(
+            StockSheetService.Config config, string projectName)
         {
+            void Fail(string message)
+            {
+                SetStockAwareReport(message);
+                StatusText = message;
+                Alert(Loc.Get("StockAwareTitle"), message);
+            }
+
             // Works on a mosaic made in this session (Optimum or classic Mos); an opened project has no source
             // image data at stone resolution to judge substitutes by.
             if (!_mosaicMadeThisSession || MosaicEngine.LastRunPool == null)
             {
-                SetStockAwareReport(Loc.Get("StockAwareNeedsMos"));
-                StatusText += " · " + Loc.Get("StockAwareNeedsMos");
-                return;
+                Fail(Loc.Get("StockAwareNeedsMos"));
+                return null;
             }
 
-            // Available = Bizdeki minus the other mosaic columns. This mosaic's own column (just written) is left
-            // out, so a stale read of it cannot matter.
+            // Available = Bizdeki minus the other mosaic columns; this mosaic's own column is left out.
             Dictionary<int, StockSheetService.StoneStock> stock;
             try
             {
@@ -408,32 +437,29 @@ namespace mosair.ViewModels
             }
             catch (Exception ex)
             {
-                SetStockAwareReport(Loc.Fmt("StockAwareReadFailed", ex.Message));
-                return;
+                Fail(Loc.Fmt("StockAwareReadFailed", ex.Message));
+                return null;
             }
 
             int total = (int)(MosaicEngine.width * MosaicEngine.height);
             int minUsage = StockAwareOptions.MinUsageFor(total);
             bool needsFix = false;
-            if (MosaicData.arMA.Count > 0)
-                foreach (var c in MosaicData.arMA[0])
-                {
-                    if (c.numOfPixel <= 0) continue;
-                    if (c.numOfPixel < minUsage) needsFix = true;
-                    if (stock.TryGetValue(c.ID, out var s) && c.numOfPixel > s.Capacity) needsFix = true;
-                }
+            foreach (var c in MosaicData.arMA[0])
+            {
+                if (c.numOfPixel <= 0) continue;
+                if (c.numOfPixel < minUsage) needsFix = true;
+                if (stock.TryGetValue(c.ID, out var s) && c.numOfPixel > s.Capacity) needsFix = true;
+            }
             _stockOnHand = stock;
             if (!needsFix)
             {
-                // Every stone fits: drop red dots a stale read during the check may have left.
-                foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = false;
-                foreach (var item in CatalogColors) item.StockShort = false;
                 SetStockAwareReport(Loc.Get("StockAwareOk"));
-                return;
+                StatusText = Loc.Get("StockAwareOk");
+                return stock;
             }
             if (EditedPixelCount > 0 &&
                 !await Confirm(Loc.Get("StockAwareTitle"), Loc.Fmt("StockAwareEditsConfirm", EditedPixelCount)))
-                return;
+                return null;
 
             IsProcessing = true;
             var sw = Stopwatch.StartNew();
@@ -459,37 +485,40 @@ namespace mosair.ViewModels
                 sw.Stop();
                 if (!fixedOk)
                 {
-                    SetStockAwareReport(Loc.Get("StockAwareCannotFix"));
-                    StatusText += " · " + Loc.Get("StockAwareCannotFix");
-                    return;
+                    Fail(Loc.Get("StockAwareCannotFix"));
+                    return null;
                 }
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 ShowStockAwareResult(stock);
-
-                // The sheet column still holds the counts before the fix; write the corrected ones.
-                var res = MosaicEngine.LastStockResult;
-                if (res != null && res.Changed)
-                {
-                    var stones = res.CountAfter.Select(kv => (kv.Key, kv.Value)).ToList();
-                    string report = StatusText;
-                    bool written = false;
-                    await RunStockAction(async () =>
-                    {
-                        await StockSheetService.WriteCountsAsync(config.ScriptUrl, config.SheetId, projectName, stones);
-                        written = true;
-                    }, "");
-                    if (written) StatusText = report + " · " + Loc.Get("StockAwareWritten");
-                }
+                return stock;
             }
             catch (Exception ex)
             {
                 StatusText = Loc.Fmt("StatusError", ex.Message);
                 Alert(Loc.Get("AlertErrorTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+                return null;
             }
             finally
             {
                 IsProcessing = false;
+            }
+        }
+
+        // Red dots and "remaining" kg from the stock that was read: short = used beyond what is available.
+        private void ShowStockMarks(Dictionary<int, StockSheetService.StoneStock> stock, Dictionary<int, int> counts)
+        {
+            bool Short(int id) => stock.TryGetValue(id, out var s) && counts.TryGetValue(id, out int n) && n > s.Capacity;
+            foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = Short(c.ID);
+            foreach (var item in CatalogColors)
+            {
+                item.StockShort = Short(item.ID);
+                if (stock.TryGetValue(item.ID, out var s))
+                {
+                    counts.TryGetValue(item.ID, out int used);
+                    item.StockKg = s.OnHandKg;
+                    item.RemainingKg = s.AvailableKg - used * StockSheetService.StoneWeightKg;
+                }
             }
         }
 
