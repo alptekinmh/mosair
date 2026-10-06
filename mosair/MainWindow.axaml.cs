@@ -207,6 +207,8 @@ public partial class MainWindow : Window
 
     private async void OnStockFetch(object? sender, RoutedEventArgs e) => await _vm.FetchStockAsync();
 
+    private async void OnStockFetchMark(object? sender, RoutedEventArgs e) => await _vm.FetchStockAsync(markOnly: true);
+
     private async void OnStockCheck(object? sender, RoutedEventArgs e) => await _vm.CheckStockAsync();
 
     private async void OnStockClearOne(object? sender, RoutedEventArgs e) => await _vm.ClearStockOneAsync();
