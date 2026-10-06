@@ -248,7 +248,7 @@ Ortadaki durum mesajında görülebilecekler:
 
 ### İptal düğmesi
 
-İlerleme çubuğunun hemen sağındaki **✕ İptal** (EN: Cancel) düğmesi yalnızca iptal edilebilen bir iş sürerken görünür; ipucu "Süren işlemi iptal et (Esc)". `Esc` tuşu (başka tuş basılı değilken) ve **Düzenle → İşlemi İptal Et** aynı işi yapar. Basınca düğme kaybolur ve durum "İptal ediliyor..." olur; iş genellikle birkaç milisaniye ile yarım saniye içinde durur (ölçümler: Optimum 4000×4000 taş 8 ms, klasik 2000×2000 taş 125 ms, stoğa göre düzeltme 1200×1200 taş 510 ms, 20 m PNG 34 ms).
+İlerleme çubuğunun hemen sağındaki kırmızı **✕ İptal** (EN: Cancel) düğmesi yalnızca iptal edilebilen bir iş sürerken görünür; ipucu "Süren işlemi iptal et (Esc)". `Esc` tuşu (başka tuş basılı değilken) ve **Düzenle → İşlemi İptal Et** aynı işi yapar. Basınca düğme kaybolur ve durum "İptal ediliyor..." olur; iş genellikle birkaç milisaniye ile yarım saniye içinde durur (ölçümler: Optimum 4000×4000 taş 8 ms, klasik 2000×2000 taş 125 ms, stoğa göre düzeltme 1200×1200 taş 510 ms, 20 m PNG 34 ms).
 
 | İptal edilen iş | Sonuç | Durum mesajı |
 |---|---|---|

@@ -55,7 +55,7 @@ Window
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
    ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
    │   ├─ Sol: UsedColorInfo
-   │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (✕ simgesi + BtnCancel; IsVisible = CanCancel,
+   │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (kırmızı `#E53935` çerçeve, ✕ simgesi ve BtnCancel yazısı; IsVisible = CanCancel,
    │   │     ipucu TipCancel, Click=OnCancelWork) + StatusText + ElapsedTime
    │   └─ Sağ: ZoomInfo + Ekrana Sığdır düğmesi
    └─ Ana içerik: Grid (380 | 4 | * | 4 | 220)

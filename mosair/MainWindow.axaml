@@ -695,13 +695,14 @@
           <!-- Cancel: only while a cancellable job runs (Mos, stock fit, export); Esc does the same -->
           <Button Click="OnCancelWork" IsVisible="{Binding CanCancel}" VerticalAlignment="Center"
                   Padding="6,0" Height="20" MinHeight="0" CornerRadius="3" Cursor="Hand"
-                  Background="Transparent" BorderBrush="#4ecb71" BorderThickness="1"
+                  Background="Transparent" BorderBrush="#E53935" BorderThickness="1"
                   ToolTip.Tip="{Binding [TipCancel], Source={x:Static svc:Loc.Instance}}">
+            <!-- Red, like the stock red dots, so it stands apart from the green status text -->
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <PathIcon Width="8" Height="8" Foreground="#4ecb71"
+              <PathIcon Width="8" Height="8" Foreground="#E53935"
                         Data="M2,0 L6,4 L10,0 L12,2 L8,6 L12,10 L10,12 L6,8 L2,12 L0,10 L4,6 L0,2 Z"/>
               <TextBlock Text="{Binding [BtnCancel], Source={x:Static svc:Loc.Instance}}" FontSize="11"
-                         Foreground="#4ecb71" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                         Foreground="#E53935" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
           <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"
