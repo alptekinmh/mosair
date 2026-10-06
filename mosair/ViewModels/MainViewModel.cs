@@ -278,6 +278,30 @@ namespace mosair.ViewModels
             StatusText = Loc.Get("StockSettingsSaved");
         }
 
+        // At start-up: read "Bizdeki (kg)" from the configured sheet so the catalog tooltips show stock right away.
+        // Only information: the selection and the red dots are not touched, and a failure is a status note.
+        public async Task LoadStockOnStartupAsync()
+        {
+            var config = StockSheetService.LoadConfig();
+            if (string.IsNullOrEmpty(config.SheetId)) return;
+            try
+            {
+                var stock = await StockSheetService.FetchOnHandAsync(config.SheetId);
+                int matched = 0;
+                foreach (var item in CatalogColors)
+                    if (stock.TryGetValue(item.ID, out var s)) { item.StockKg = s.OnHandKg; matched++; }
+                AppendStartupStatus(Loc.Fmt("StockLoadedOnStart", matched));
+            }
+            catch (Exception ex)
+            {
+                AppendStartupStatus(Loc.Fmt("StockLoadOnStartFailed", ex.Message));
+            }
+        }
+
+        // Keeps a start-up warning that is already in the status bar (e.g. skipped catalog lines).
+        private void AppendStartupStatus(string message) =>
+            StatusText = StatusText == Loc.Get("StatusReady") ? message : StatusText + " · " + message;
+
         // markOnly = false: stones listed with no stock are unchecked, the others checked (as in WPF).
         // markOnly = true: the selection is left alone; stones with no stock only get a red dot.
         public async Task FetchStockAsync(bool markOnly = false)
@@ -1421,8 +1445,9 @@ public bool UseLab
             ProjectService.ForgetWpfState();
 
             foreach (var c in MosaicData.arRGBAll) c.stokYetersiz = false;
-            // As in WPF, a new mosaic drops the stock marks and kg values; fetch or check stock again to see them.
-            foreach (var item in CatalogColors) { item.StockShort = false; item.StockKg = null; item.RemainingKg = null; }
+            // A new mosaic drops the red dots and the "remaining" kg, which belonged to the old stone counts.
+            // The kg on hand (loaded at start-up or by Stok Çek) does not depend on the mosaic and stays.
+            foreach (var item in CatalogColors) { item.StockShort = false; item.RemainingKg = null; }
 
             if (UseOptimal)
             {

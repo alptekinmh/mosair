@@ -188,7 +188,8 @@ Katalog listesindeki bir taş rengi.
 | `UndoPixelEdit()` / `RedoPixelEdit()` | Önce taş varyantı yığını, boşsa `PixelEditService.UndoLastEdit` / `RedoLastEdit`. | MainWindow (kısayollar) |
 | `OpenStockSheetAsync()` | Ayarlı Sheet'i `StockSheetService.SheetUrl` ile tarayıcıda açar. | MainWindow |
 | `ConfigureStockAsync()` | Stok ayar diyaloğunu açar, `StockSheetService.SaveConfig`. | MainWindow |
-| `FetchStockAsync()` | Eldeki stoğu çeker, `StockKg` yazar, stok ≤ 0 olan taşları hariç tutar (`ApplyStockSelection`), `StockFetched` durumu. | MainWindow |
+| `LoadStockOnStartupAsync()` | Açılışta stok ayarındaki tablodan Bizdeki kg'ı okur (`FetchOnHandAsync`), yalnızca `StockKg` yazar; seçim ve kırmızı noktalar değişmez. Hata durum çubuğuna not olarak düşer. | MainWindow (`Opened`) |
+| `FetchStockAsync(markOnly = false)` | Eldeki stoğu çeker, `StockKg` yazar. `markOnly` false: stok ≤ 0 olan taşları hariç tutar (`ApplyStockSelection`), `StockFetched`. `markOnly` true: seçime dokunmaz, yalnızca kırmızı nokta, `StockFetchedMarked`. | MainWindow |
 | `CheckStockAsync()` | Mozaikteki taş sayılarını (`arMA[0]`) proje adıyla Sheet'e gönderir; yetersiz taşları işaretler, `RemainingKg`/`StockKg` yazar. | MainWindow |
 | `ClearStockOneAsync()` / `ClearStockAllAsync()` | Onaydan sonra bu projenin / tüm projelerin sütununu temizler. | MainWindow |
 | `AddStockAsync()` | Onaydan sonra `StockSheetService.AddStockAsync`. | MainWindow |

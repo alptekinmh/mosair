@@ -131,9 +131,11 @@ Window
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |
 | `OnStonesLess` | Araçlar → Taş Sayısı → Azalt | `OptimalK - 1` (en az 1). |
-| `OnStockSheet` | Araçlar → Stok → Aç, toolbar stok tablosu düğmesi (`CanUseStock`) | `_vm.OpenStockSheetAsync()`. |
-| `OnStockSettings` | Araçlar → Stok → Ayarlar, stok tablosu düğmesinin `ContextMenu`'sü | `_vm.ConfigureStockAsync()`. |
-| `OnStockFetch` | Araçlar → Stok, toolbar Stok Çek | `_vm.FetchStockAsync()`. |
+| `Opened` (lambda) | Pencere açıldığında | `_vm.LoadStockOnStartupAsync()`: stok kg'ı tablodan yükler. |
+| `OnStockSheet` | Araçlar → Stok → Aç, toolbar stok tablosu düğmesi ve ok Flyout'u (`CanUseStock`) | `_vm.OpenStockSheetAsync()`. |
+| `OnStockSettings` | Araçlar → Stok → Ayarlar, stok tablosu düğmesinin `ContextMenu`'sü ve ok Flyout'u | `_vm.ConfigureStockAsync()`. |
+| `OnStockFetch` | Araçlar → Stok → Stok Çek → Devre dışı bırak, toolbar Stok Çek ve ok Flyout'u | `_vm.FetchStockAsync()`. |
+| `OnStockFetchMark` | Araçlar → Stok → Stok Çek → Kırmızıyla işaretle, Stok Çek ok Flyout'u | `_vm.FetchStockAsync(markOnly: true)`. |
 | `OnStockCheck` | Araçlar → Stok, toolbar Stok Kontrol | `_vm.CheckStockAsync()`. |
 | `OnStockClearOne` | Araçlar → Stok, toolbar Stok Sil (sol tık ve `ContextMenu`) | `_vm.ClearStockOneAsync()`. |
 | `OnStockClearAll` | Araçlar → Stok, Stok Sil düğmesinin `ContextMenu`'sü | `_vm.ClearStockAllAsync()`. |

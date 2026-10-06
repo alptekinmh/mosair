@@ -203,7 +203,9 @@ namespace mosair.Services
             {
                 var cols = rows[r];
                 string Col(int c) => c >= 0 && c < cols.Length ? cols[c].Trim() : "";
-                if (!int.TryParse(Col(mosCol), out int mos)) continue;
+                // "mos" is the catalog stone ID (1..124). Rows with 0 are stones that have no mosair ID
+                // (e.g. "Ege Bej") or empty filler rows, so they cannot be matched to a catalog stone.
+                if (!int.TryParse(Col(mosCol), out int mos) || mos <= 0) continue;
                 string kod = Col(kodCol), name = Col(nameCol), bizdeki = Col(bizdekiCol);
                 // Stones 68+ have no "Kod" in the sheet ("Taş 68" …) but do have a name and stock, so only rows with
                 // nothing at all (the numbered filler rows below the catalog) are skipped.

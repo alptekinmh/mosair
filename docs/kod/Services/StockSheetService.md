@@ -108,6 +108,13 @@ Hatalar çağırana yükselir; `MainViewModel.RunStockAction` bunları durum çu
 3. CSV okunur; `Tahmini Kalan < 0` olanlar `ShortIds`'e girer.
 4. `OnHand` yalnızca `Remaining`'de yer alan ID'ler için doldurulur (WPF ile aynı).
 
+### Taş ID eşleştirmesi (`FetchOnHandAsync` / `ParseOnHand`)
+- Tablodaki **mos** sütunu, katalogdaki taş ID'sidir (`Assets/colorsBas.txt` satır sırası, 1–124; kod numarası 100 + ID, ör. B133 = #33). Eşleştirme yalnızca bu numarayla yapılır, taş adı veya Kod ile yapılmaz.
+- 68–124 numaralı satırların Kod'u boştur ("Taş 68" …) ama stokları okunur; yalnızca Kod'u, adı ve Bizdeki'si boş satırlar atlanır.
+- **mos ≤ 0** satırlar atlanır: katalogda karşılığı olmayan taşlar (ör. "Ege Bej") ve alt kısımdaki yüzlerce boş dolgu satırı.
+- Mozaik sütunları Apps Script'in kuralıyla bulunur ("bizdeki" ile "13." arası); `projectName` verilirse o sütun "diğer mozaikler" toplamına girmez (`OtherMosaicsKg`, `AvailableKg`, `Capacity`).
+- `MainViewModel.LoadStockOnStartupAsync` açılışta bu okumayı kullanır.
+
 ## Dikkat / bilinen sınırlamalar
 
 - Okuma için Sheet'in "bağlantıya sahip herkes görüntüleyebilir" olması gerekir; gviz dışa aktarımı oturum açmadan çalışır.

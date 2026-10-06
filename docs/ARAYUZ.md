@@ -177,7 +177,7 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
   - **Yalnız Bizdeki biliniyorsa:** `X kg`.
   - **Yalnız kalan biliniyorsa:** `X kg kaldı`.
   - Renk: her sayı 0 veya altındaysa **kırmızı**, üstündeyse **yeşil**.
-  - Bilgi Stok Çek ve Stok Kontrol'den gelir; yeni bir Mos bu değerleri ve kırmızı noktaları siler.
+  - Elimizdeki kg, uygulama açılırken stok ayarındaki tablodan kendiliğinden yüklenir; Stok Çek ve Stok Kontrol de günceller. Yeni bir Mos kırmızı noktaları ve "kalan" değerini siler, elimizdeki kg'ı korur.
 
 **Mos'tan sonra:** Katalogda yalnızca mozaikte kullanılan taşlar işaretli kalır.
 

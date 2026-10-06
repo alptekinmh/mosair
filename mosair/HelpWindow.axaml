@@ -380,6 +380,7 @@
             <TextBlock Classes="h2" Text="Ilk Kurulum" Margin="0"/>
             <TextBlock Classes="body" Text="Yesil tablo ikonuna sag tiklayin (veya Araclar > Stok > Stok Ayarlari) ve Google Sheet ID ile Apps Script URL'yi girin. Bu bilgiler sadece o bilgisayarda saklanir; her bilgisayarda bir kez girilmesi gerekir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Script URL'yi bilen herkes tabloya yazabilir; bu adresi sadece guvendiginiz kisilerle paylasin."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Uygulama acilirken tablodaki 'Bizdeki (kg)' degerleri kendiliginden okunur ve katalog ipucunda gorunur; secim degismez. Taslar tablodaki 'mos' numarasiyla (1-124) eslesir."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -636,6 +637,7 @@
             <TextBlock Classes="h2" Text="First-Time Setup" Margin="0"/>
             <TextBlock Classes="body" Text="Right-click the green sheet icon (or Tools > Stock > Stock Settings) and enter the Google Sheet ID and the Apps Script URL. They are stored only on that computer and must be entered once per computer."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Anyone with the Script URL can write to the sheet; share it only with people you trust."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="When the app starts, the sheet's 'Bizdeki (kg)' values are read automatically and shown in the catalog tooltip; the selection does not change. Stones are matched by the sheet's 'mos' number (1-124)."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">

@@ -168,11 +168,13 @@ namespace mosair.Services
             // intermediate numbers in drl.dat).
             var poolIndexOfId = new Dictionary<int, int>();
             var poolIndexOfColor = new Dictionary<int, int>();
+            var ambiguousColors = new HashSet<int>();
             for (int m = 0; m < pool.Count; m++)
             {
                 poolIndexOfId[pool[m].ID] = m;
                 int key = ((int)pool[m].r << 16) | ((int)pool[m].g << 8) | (int)pool[m].b;
-                poolIndexOfColor.TryAdd(key, m);
+                // Two stones with the same RGB cannot be told apart by colour; such pixels must come from drl.dat.
+                if (!poolIndexOfColor.TryAdd(key, m)) ambiguousColors.Add(key);
             }
             var assign = new int[R * C];
             for (int i = 0; i < R; i++)
@@ -185,7 +187,9 @@ namespace mosair.Services
                         assign[i * C + j] = m;
                         continue;
                     }
-                    if (!poolIndexOfColor.TryGetValue((r << 16) | (g << 8) | b, out m)) return false;
+                    int colorKey = (r << 16) | (g << 8) | b;
+                    // Refuse rather than guess: a wrong stone ID would move stock between the wrong stones.
+                    if (ambiguousColors.Contains(colorKey) || !poolIndexOfColor.TryGetValue(colorKey, out m)) return false;
                     assign[i * C + j] = m;
                 }
 
