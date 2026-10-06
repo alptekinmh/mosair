@@ -358,12 +358,10 @@ namespace mosair.ViewModels
             }
 
             // "Stoğa göre": fix the mosaic to stock first, so the sheet gets the final counts in one write.
+            // When the fix cannot run (reason already shown) Stok Kontrol still does its normal check below.
             Dictionary<int, StockSheetService.StoneStock>? stock = null;
             if (UseStockAware)
-            {
                 stock = await FixToStockAsync(config, projectName);
-                if (stock == null) return; // the reason was shown; nothing written
-            }
 
             var counts = new Dictionary<int, int>();
             foreach (var c in MosaicData.arMA[0])

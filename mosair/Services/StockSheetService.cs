@@ -222,16 +222,6 @@ namespace mosair.Services
             return stock;
         }
 
-        // Writes this mosaic's stone counts into its project column, without reading anything back
-        // (used after the stock-aware fix, whose result is already known).
-        public static Task WriteCountsAsync(string scriptUrl, string sheetId, string projectName, List<(int Id, int Count)> stones) =>
-            PostAsync(scriptUrl, new Dictionary<string, object>
-            {
-                ["projectName"] = projectName,
-                ["sheetId"] = sheetId,
-                ["stones"] = stones.ConvertAll(s => new Dictionary<string, int> { ["mos"] = s.Id, ["count"] = s.Count })
-            }, treatNotFoundAsError: false);
-
         // Sheet numbers use Turkish format: "1.027,00" = 1027.00, "15,00" = 15.0. Empty → null.
         public static double? ParseTrNumber(string s)
         {

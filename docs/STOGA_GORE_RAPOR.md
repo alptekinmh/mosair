@@ -12,16 +12,16 @@
 **Ne yapıyor?** Optimum'un seçtiği taşlardan biri stokta yetmiyorsa, o taş ancak elde olduğu kadar kullanılır. Fazlası, renkçe en yakın ve stoğu olan taşa aktarılır. Örneğin Toros Siyah cilalı (C130) bitmişse, neredeyse aynı renkteki Alexander Black cilalı (C110) kullanılır. Çok az kullanılan taşlar da (ör. 1–9 adet) üretimde gereksiz renk değişimi yaratmasın diye çıkarılır. Stok yeterliyse ve az kullanılan taş yoksa mozaik **hiç değişmez**.
 
 **Bugünkü durum:**
-- Kod yerel `stok-deneme` dalında, ayrı bir klasörde (`D:\dev\mosair-stok-deneme`). `feature`, `main` ve kullanıcıların sürümü (v1.3.0) etkilenmedi.
-- Bugün bir **kutu** var: Optimum'un yanında "Stoğa göre", varsayılan olarak açık. Kutu açıkken **Stok Kontrol**'e basılınca:
-  1. Adetler tabloya yazılır.
-  2. Hemen ardından stoğa göre düzeltme yapılır.
-  3. Düzeltilmiş adetler tabloya tekrar yazılır.
+- Kod `stok_deneme` dalında, ayrı bir klasörde (`D:\dev\mosair-stok-deneme`). `feature`, `main` ve kullanıcıların sürümü (v1.3.0) etkilenmedi.
+- Bugün bir **kutu** var: Optimum'un yanında "Stoğa göre", varsayılan olarak açık. Kutu açıkken **Stok Kontrol**'e basılınca (Optimum ya da klasik Mos sonrası):
+  1. Önce stoğa göre düzeltme yapılır (Bizdeki − diğer mozaikler; az kullanılan taşlar çıkarılır).
+  2. Sonra son adetler tabloya **tek seferde** yazılır; kırmızı noktalar hesaplanan stoktan konur.
+  3. Düzeltme yapılamazsa sebebi bir pencerede gösterilir ve Stok Kontrol normal haliyle devam eder.
 - Stok ayarı şu an **"mosair deneme" (TEST) tablosuna** bağlı. Bu ayar bilgisayardaki **bütün** mosair'ler için ortak; kurulu v1.3.0 da şu an test tablosunu kullanıyor.
 
 **Test durumu (dürüst not):**
 - **Test edildi:** Algoritma, komut satırından çalışan karşılaştırma aracıyla 4 görselde test edildi; bütün kontroller geçti.
-- **Test edilmedi:** Uygulama içindeki **"Stok Kontrol → düzeltme → tabloya ikinci yazma"** akışı henüz baştan sona hiç çalıştırılmadı. İlk gerçek deneme kullanıcıya ait olacak.
+- **Test edilmedi:** Uygulama içindeki **"Stok Kontrol → düzeltme → tabloya yazma"** akışı tarafımdan baştan sona çalıştırılmadı; kullanıcı denemelerinde klasik Mos'ta sorun bildirildi ve kök nedeni henüz doğrulanmadı.
 
 ---
 
