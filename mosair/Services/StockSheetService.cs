@@ -267,12 +267,27 @@ namespace mosair.Services
 
         private static async Task PostAsync(string scriptUrl, object payload, bool treatNotFoundAsError)
         {
-            var content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
-            var response = await Http.PostAsync(scriptUrl, content);
-            string body = await response.Content.ReadAsStringAsync();
+            string json = JsonSerializer.Serialize(payload);
+            static bool IsHtml(string b) =>
+                b.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) || b.Contains("<html", StringComparison.OrdinalIgnoreCase);
 
-            if (body.Contains("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) || body.Contains("<html", StringComparison.OrdinalIgnoreCase))
-                throw new Exception(Loc.Get("StockErrDeploy"));
+            // Google sometimes answers with an HTML error page for a moment (busy, two writes in a row); one retry
+            // after a short wait clears that. A page that comes back twice is reported with its title.
+            string body = "";
+            for (int attempt = 0; attempt < 2; attempt++)
+            {
+                if (attempt > 0) await Task.Delay(2000);
+                var response = await Http.PostAsync(scriptUrl, new StringContent(json, Encoding.UTF8, "application/json"));
+                body = await response.Content.ReadAsStringAsync();
+                if (!IsHtml(body)) break;
+            }
+            if (IsHtml(body))
+            {
+                var title = System.Text.RegularExpressions.Regex.Match(body, "<title>(.*?)</title>",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                string detail = title.Success ? System.Net.WebUtility.HtmlDecode(title.Groups[1].Value).Trim() : "";
+                throw new Exception(detail.Length > 0 ? Loc.Get("StockErrDeploy") + "\n(" + detail + ")" : Loc.Get("StockErrDeploy"));
+            }
 
             string status = "", message = body;
             try
