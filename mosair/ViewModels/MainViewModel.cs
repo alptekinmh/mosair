@@ -1818,7 +1818,134 @@ public bool UseLab
             _ = RefreshStockAsync();
         }
 
-        public async Task ExportImageAsync(string path)
+        // Export quality choices shown to the user as image sizes; internally the pixels per stone (N).
+        public static readonly int[] ExportQualities = { 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+
+        // Estimated file sizes per (pixels per stone, JPEG?), kept until the mosaic or the grid changes.
+        private readonly Dictionary<(int n, bool jpeg), long> _exportEstimates = new();
+        private (int version, bool grid, Color color) _exportEstimatesKey;
+        private bool _estimatingExport;
+
+        // Raised (on the UI thread) whenever a new estimate is ready, so the menu texts can be refreshed.
+        public event Action? ExportEstimatesChanged;
+
+        // Quick export: JPEG when possible and affordable at this quality, otherwise PNG.
+        public string QuickExportExtension(int n)
+        {
+            var src = _renderSource;
+            if (src == null) return "jpeg";
+            return MosaicExporter.QuickExportUsesJpeg(MosaicExporter.ImageSize(src, n)) ? "jpeg" : "png";
+        }
+
+        // The text of one quality choice: image size in pixels and the estimated file size(s); no "N".
+        public string ExportChoiceLabel(int n, bool saveAs)
+        {
+            var src = _renderSource;
+            if (src == null) return "";
+            var size = MosaicExporter.ImageSize(src, n);
+            string dims = Loc.Fmt("ExportDimsPx", size.Width.ToString("N0"), size.Height.ToString("N0"));
+            string current = n == _stonePixelSize ? " " + Loc.Get("ExportCurrentQuality") : "";
+            string Est(bool jpeg) => _exportEstimates.TryGetValue((n, jpeg), out long b) ? FormatBytes(b) : Loc.Get("ExportEstimating");
+            if (!saveAs)
+            {
+                bool jpeg = MosaicExporter.QuickExportUsesJpeg(size);
+                return Loc.Fmt("ExportChoiceQuick", dims, jpeg ? "JPEG" : "PNG", Est(jpeg), current);
+            }
+            return MosaicExporter.JpegPossible(size)
+                ? Loc.Fmt("ExportChoiceAs", dims, Est(true), Est(false), current)
+                : Loc.Fmt("ExportChoiceAsPngOnly", dims, Est(false), current);
+        }
+
+        // Fills in the missing estimates, smallest quality first, telling the menu after each one.
+        public async Task RefreshExportEstimatesAsync()
+        {
+            var src = _renderSource;
+            if (!MosaicDone || src == null) return;
+            var key = (src.Version, _showGrid, _gridColor);
+            if (key != _exportEstimatesKey)
+            {
+                _exportEstimates.Clear();
+                _exportEstimatesKey = key;
+            }
+            if (_estimatingExport)
+            {
+                // A run is going on; it starts over once more when it ends (the mosaic or grid may have changed).
+                _estimateExportAgain = true;
+                return;
+            }
+            _estimatingExport = true;
+            bool changed = false;
+            try
+            {
+                bool grid = _showGrid;
+                var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
+                foreach (int n in ExportQualities)
+                {
+                    foreach (bool jpeg in new[] { true, false })
+                    {
+                        if (_exportEstimates.ContainsKey((n, jpeg))) continue;
+                        if (jpeg && !MosaicExporter.JpegPossible(MosaicExporter.ImageSize(src, n))) continue;
+                        int gw = grid ? Math.Max(1, n / 11) : 0;
+                        long bytes = await Task.Run(() => MosaicExporter.EstimateBytes(src, n, grid, gw, gc, jpeg));
+                        if (!ReferenceEquals(src, _renderSource) || key != _exportEstimatesKey) { changed = true; return; }
+                        _exportEstimates[(n, jpeg)] = bytes;
+                        ExportEstimatesChanged?.Invoke();
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // An estimate is only a hint; the menu keeps showing "estimating".
+            }
+            finally
+            {
+                _estimatingExport = false;
+                if (changed || _estimateExportAgain)
+                {
+                    _estimateExportAgain = false;
+                    _ = RefreshExportEstimatesAsync();
+                }
+            }
+        }
+
+        private bool _estimateExportAgain;
+
+        private static string FormatBytes(long bytes) =>
+            bytes >= 1L << 30 ? Loc.Fmt("SizeGB", (bytes / (double)(1L << 30)).ToString("0.0"))
+                              : Loc.Fmt("SizeMB", Math.Max(1, (int)Math.Round(bytes / (double)(1 << 20))));
+
+        // A screenshot of the image area: premultiplied BGRA from the screen, put on the canvas colour and saved as PNG.
+        public async Task SaveScreenshotAsync(byte[] bgra, int width, int height, byte bgR, byte bgG, byte bgB, string path)
+        {
+            string name = System.IO.Path.GetFileName(path);
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using var bmp = new SKBitmap(width, height, SKColorType.Rgba8888, SKAlphaType.Opaque);
+                    var dst = bmp.GetPixelSpan();
+                    for (int i = 0; i < width * height; i++)
+                    {
+                        int o = i * 4;
+                        int a = bgra[o + 3], ia = 255 - a;
+                        dst[o] = (byte)(bgra[o + 2] + bgR * ia / 255);
+                        dst[o + 1] = (byte)(bgra[o + 1] + bgG * ia / 255);
+                        dst[o + 2] = (byte)(bgra[o] + bgB * ia / 255);
+                        dst[o + 3] = 255;
+                    }
+                    ImageService.ExportImage(bmp, path, SKEncodedImageFormat.Png);
+                });
+                StatusText = Loc.Fmt("StatusScreenshotSaved", name);
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertExportTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+            }
+        }
+
+        // n: the chosen image quality (pixels per stone); by default the current Detail setting.
+        public async Task ExportImageAsync(string path, int? quality = null)
         {
             if (IsExporting) return;
 
@@ -1827,61 +1954,67 @@ public bool UseLab
                 Alert(Loc.Get("AlertExportTitle"), Loc.Get("AlertExportNoMosaic"));
                 return;
             }
-            // A copy of the stones, so pixel edits during the export cannot reach the file.
+
+            bool jpeg = path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
+                        path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase);
+            int n = quality ?? _stonePixelSize;
+            var size = MosaicExporter.ImageSize(_renderSource, n);
+            if (jpeg && !MosaicExporter.JpegPossible(size))
+            {
+                Alert(Loc.Get("AlertExportTitle"),
+                    Loc.Fmt("ExportJpegTooLarge", size.Width.ToString("N0"), size.Height.ToString("N0"),
+                        MosaicExporter.JpegMaxSide.ToString("N0")));
+                return;
+            }
+
+            // A JPEG too big for one bitmap is built in memory (≈ width × height × 4 bytes): ask when that is more
+            // than half of what the computer has free.
+            if (jpeg && size.Pixels > ImageService.MaxBitmapPixels)
+            {
+                long need = MosaicExporter.JpegMemoryBytes(size);
+                long free = MosaicExporter.FreeMemoryBytes();
+                if (need > free / 2 &&
+                    !await Confirm(Loc.Get("AlertExportTitle"),
+                        Loc.Fmt("ExportJpegMemoryConfirm", FormatBytes(need), FormatBytes(free))))
+                    return;
+            }
+
+            // The whole stone image at the chosen quality, with no size limit; a copy of the stones, so pixel
+            // edits made during the export cannot reach the file.
             var src = _renderSource.WithStoneSnapshot();
-
-            var fmt = path.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
-                      path.EndsWith(".jpeg", StringComparison.OrdinalIgnoreCase)
-                ? SKEncodedImageFormat.Jpeg
-                : SKEncodedImageFormat.Png;
-
-            // The whole stone image at N, as on screen. A very large mosaic does not fit in one bitmap (2 GB)
-            // or a JPEG (65,535 px a side); then the largest N that fits is used, i.e. a reduced overall view.
-            int R = src.Rows, C = src.Cols, n = _stonePixelSize;
-            int exportN = ExportStonePixels(C, R, n, fmt == SKEncodedImageFormat.Jpeg);
             bool grid = _showGrid;
-            int gw = !grid ? 0 : exportN == n ? Math.Max(1, n / 11) : exportN >= 8 ? Math.Max(1, exportN / 11) : 0;
+            int gw = grid ? Math.Max(1, n / 11) : 0;   // as on screen at full detail
             var gc = new SKColor(_gridColor.R, _gridColor.G, _gridColor.B);
 
             IsExporting = true;
             string name = System.IO.Path.GetFileName(path);
-            StatusText = exportN < n
-                ? Loc.Fmt("StatusExportReducedN", name, exportN, n)
-                : Loc.Fmt("StatusExporting", name);
+            StatusText = Loc.Fmt("StatusExporting", name);
+            int lastPercent = -1;
+            void Report(double fraction)
+            {
+                int pct = (int)(fraction * 100);
+                if (pct == lastPercent) return;
+                lastPercent = pct;
+                Dispatcher.UIThread.Post(() =>
+                {
+                    if (IsExporting) StatusText = Loc.Fmt("StatusExportingPct", name, pct);
+                });
+            }
             try
             {
-                await Task.Run(() =>
-                {
-                    // Without stone images the export stays one pixel per stone, as before.
-                    using var bmp = src.HasTextures
-                        ? src.RenderRegion(0, 0, R, C, exportN, grid, gw, gc)
-                        : src.RenderOverview();
-                    ImageService.ExportImage(bmp, path, fmt);
-                });
-                StatusText = exportN < n
-                    ? Loc.Fmt("StatusSavedReducedN", name, exportN)
-                    : Loc.Fmt("StatusSaved", name);
+                await Task.Run(() => MosaicExporter.Export(src, path, jpeg, n, grid, gw, gc,
+                    size.Pixels > ImageService.MaxBitmapPixels ? Report : null));
+                StatusText = Loc.Fmt("StatusSaved", name);
             }
             catch (Exception ex)
             {
                 StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertExportTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
             }
             finally
             {
                 IsExporting = false;
             }
-        }
-
-        // Largest pixels-per-stone ≤ N whose whole image fits one bitmap and, for JPEG, the format's side limit.
-        private static int ExportStonePixels(int cols, int rows, int n, bool jpeg)
-        {
-            for (int e = n; e > 1; e--)
-            {
-                bool fits = (long)cols * e * rows * e <= ImageService.MaxBitmapPixels;
-                if (jpeg) fits &= cols * e <= 65535 && rows * e <= 65535;
-                if (fits) return e;
-            }
-            return 1;
         }
 
         public void RefreshLocalized()

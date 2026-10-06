@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -43,6 +44,7 @@ public partial class MainWindow : Window
             if (launcher != null) await launcher.LaunchUriAsync(new Uri(url));
         };
         DataContext = _vm;
+        BuildExportMenus();
         // A pixel edit or variant choice redraws only the tile with that stone.
         _vm.StoneInvalidated += (row, col) => mosaicView.InvalidateStone(row, col);
         // Stock on hand from the configured sheet, once the window is up (does not block start-up).
@@ -343,9 +345,63 @@ public partial class MainWindow : Window
         return exportDir;
     }
 
-    private async void OnExportImage(object? sender, RoutedEventArgs e)
+    // Screenshot of the image area exactly as it is on screen (visible part, zoom, grid), without the
+    // navigator and the scroll bars; saved as PNG in the mosairEXPORT folder.
+    private async void OnScreenshot(object? sender, RoutedEventArgs e)
     {
-        string exportDir = GetExportDir();
+        var viewport = imageScroller.Viewport;
+        if (viewport.Width <= 0 || viewport.Height <= 0) return;
+        double scale = RenderScaling;
+        var whole = new PixelSize(
+            Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Width * scale)),
+            Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Height * scale)));
+        int w = Math.Min(whole.Width, (int)Math.Round(viewport.Width * scale));
+        int h = Math.Min(whole.Height, (int)Math.Round(viewport.Height * scale));
+        if (w <= 0 || h <= 0) return;
+
+        byte[] pixels = new byte[w * h * 4];
+        using (var rtb = new Avalonia.Media.Imaging.RenderTargetBitmap(whole, new Vector(96 * scale, 96 * scale)))
+        {
+            rtb.Render(imageScroller);
+            unsafe
+            {
+                fixed (byte* ptr = pixels)
+                    rtb.CopyPixels(new PixelRect(0, 0, w, h), (IntPtr)ptr, pixels.Length, w * 4);
+            }
+        }
+        // Areas around a small image are transparent in the render; give them the canvas colour.
+        var bg = this.TryFindResource("BgCanvas", ActualThemeVariant, out var res) && res is Avalonia.Media.Color c
+            ? c : Avalonia.Media.Color.FromRgb(0x2e, 0x2e, 0x34);
+
+        string path;
+        try { path = System.IO.Path.Combine(GetExportDir(), ScreenshotFileName()); }
+        catch (Exception ex) { await ShowExportFolderError(ex); return; }
+        await _vm.SaveScreenshotAsync(pixels, w, h, bg.R, bg.G, bg.B, path);
+    }
+
+    // The mosairEXPORT folder could not be created (e.g. no permission on the desktop).
+    private async Task ShowExportFolderError(Exception ex)
+    {
+        if (_vm.ShowAlert != null)
+            await _vm.ShowAlert(Loc.Get("AlertExportTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+    }
+
+    private static string ScreenshotFileName()
+    {
+        string baseName = "mosair";
+        if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
+            baseName = System.IO.Path.GetFileNameWithoutExtension(Services.ProjectService.CurrentPictureFileName);
+        return $"{DateTime.Now:M.dd.yyyy}_{DateTime.Now:HH.mm.ss}__{baseName}__ekran.png";
+    }
+
+    // Ctrl/⌘+E: quick export at the current quality.
+    private void OnExportImage(object? sender, RoutedEventArgs e) => _ = ExportQuickAsync(_vm.StonePixelSize);
+
+    private async Task ExportQuickAsync(int quality)
+    {
+        string exportDir;
+        try { exportDir = GetExportDir(); }
+        catch (Exception ex) { await ShowExportFolderError(ex); return; }
 
         string baseName = "mosair";
         if (!string.IsNullOrEmpty(Services.ProjectService.CurrentPictureFileName))
@@ -355,9 +411,71 @@ public partial class MainWindow : Window
         string time = DateTime.Now.ToString("HH.mm.ss");
         int w = (int)Math.Round(_vm.WidthCm);
         int h = (int)Math.Round(_vm.HeightCm);
-        string path = System.IO.Path.Combine(exportDir, $"{date}_{time}__{baseName}__{w}x{h}.jpeg");
+        string ext = _vm.QuickExportExtension(quality);
+        string path = System.IO.Path.Combine(exportDir, $"{date}_{time}__{baseName}__{w}x{h}.{ext}");
 
-        await _vm.ExportImageAsync(path);
+        await _vm.ExportImageAsync(path, quality);
+    }
+
+    // ===== Export lists: mosairEXPORT ▸ and mosairEXPORT As ▸, each "Görüntü kalitesi seçiniz" + quality choices.
+    // The toolbar button and the File menu share the same structure; the choice texts come from the view model.
+    private readonly List<(MenuItem item, int quality, bool saveAs)> _exportChoices = new();
+
+    private void BuildExportMenus()
+    {
+        var flyout = new MenuFlyout { Placement = Avalonia.Controls.PlacementMode.BottomEdgeAlignedRight };
+        var quick = new MenuItem();
+        quick.Bind(MenuItem.HeaderProperty, new Avalonia.Data.Binding("[MenuExport]") { Source = Loc.Instance });
+        var saveAs = new MenuItem();
+        saveAs.Bind(MenuItem.HeaderProperty, new Avalonia.Data.Binding("[MenuExportAs]") { Source = Loc.Instance });
+        FillExportChoices(quick, false);
+        FillExportChoices(saveAs, true);
+        flyout.Items.Add(quick);
+        flyout.Items.Add(saveAs);
+        flyout.Opening += (_, _) => RefreshExportChoices();
+        exportBtn.Flyout = flyout;
+
+        FillExportChoices(menuExport, false);
+        FillExportChoices(menuExportAs, true);
+        menuExport.SubmenuOpened += (_, _) => RefreshExportChoices();
+        menuExportAs.SubmenuOpened += (_, _) => RefreshExportChoices();
+
+        _vm.ExportEstimatesChanged += UpdateExportChoiceTexts;
+    }
+
+    private void FillExportChoices(MenuItem parent, bool saveAs)
+    {
+        parent.Items.Clear();
+        var title = new MenuItem { IsEnabled = false };
+        title.Bind(MenuItem.HeaderProperty, new Avalonia.Data.Binding("[ExportChooseQuality]") { Source = Loc.Instance });
+        parent.Items.Add(title);
+        parent.Items.Add(new Separator());
+        foreach (int q in MainViewModel.ExportQualities)
+        {
+            var item = new MenuItem();
+            int quality = q;
+            item.Click += async (_, _) =>
+            {
+                exportBtn.Flyout?.Hide();
+                if (saveAs) await ExportAsAsync(quality);
+                else await ExportQuickAsync(quality);
+            };
+            parent.Items.Add(item);
+            _exportChoices.Add((item, quality, saveAs));
+        }
+    }
+
+    private void RefreshExportChoices()
+    {
+        // The view model drops outdated estimates synchronously first, so the texts never show old sizes.
+        _ = _vm.RefreshExportEstimatesAsync();
+        UpdateExportChoiceTexts();
+    }
+
+    private void UpdateExportChoiceTexts()
+    {
+        foreach (var (item, quality, saveAs) in _exportChoices)
+            item.Header = _vm.ExportChoiceLabel(quality, saveAs);
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
@@ -395,7 +513,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void OnExportAsImage(object? sender, RoutedEventArgs e)
+    private async Task ExportAsAsync(int quality)
     {
         var file = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
@@ -411,7 +529,7 @@ public partial class MainWindow : Window
         {
             var path = file.TryGetLocalPath();
             if (path != null)
-                await _vm.ExportImageAsync(path);
+                await _vm.ExportImageAsync(path, quality);
         }
     }
 

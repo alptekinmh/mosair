@@ -54,14 +54,14 @@ Static sınıf, özel durum alanları:
 | `LoadTooltipImages(codeName, thumbSize = 60)` → `List<SKBitmap>` | `1..16.jpg`'yi kare küçük resimlere çevirir | `ColorItem.BuildTooltipBitmap` |
 | `ResizeSet(originals, N)` → `List<byte[,,]>` (`internal`) | Bir taşın doku setini `N×N`'e küçültür (`ImageService.Resize`, Area); zaten `N×N` olanları kopyalamadan kullanır | `MosaicRenderSource` |
 | `CreateRenderSource()` → `MosaicRenderSource` | O anki `MosaicData.dataM3`, `MosaicData.arn` ve `_textures` ile çizim anlık görüntüsü kurar | `MainViewModel.RefreshMosaicView` |
-| `GenerateRSBitmap(R, C, N, showGrid = false, gridWidth = 0, gridColor = default)` → `SKBitmap?` | Bütün mozaiği tek bitmap olarak üretir: `CreateRenderSource().RenderRegion(0, 0, R, C, N, …)`. Doku yoksa `null`; `C·N·R·N > ImageService.MaxBitmapPixels` ise `OutOfMemoryException` (`StatusRsBitmapTooLarge`). Tam görüntü API'si olarak duruyor; şu an çağıranı yok (dışa aktarma `RenderRegion`'ı doğrudan kullanır). | — |
+| `GenerateRSBitmap(R, C, N, showGrid = false, gridWidth = 0, gridColor = default)` → `SKBitmap?` | Bütün mozaiği tek bitmap olarak üretir: `CreateRenderSource().RenderRegion(0, 0, R, C, N, …)`. Doku yoksa `null`; `C·N·R·N > ImageService.MaxBitmapPixels` ise `OutOfMemoryException` (`StatusRsBitmapTooLarge`). Tam görüntü API'si olarak duruyor; şu an çağıranı yok (dışa aktarma `MosaicExporter` üzerinden `RenderRegion`'ı doğrudan kullanır). | — |
 | `Reset()` | `_textures`'ı yeni boş sözlükle değiştirir, `_rsDirNames`'i temizler | `MosaicEngine`, `MainViewModel.LoadImage`, `MainViewModel.OpenProject` |
 
 ## Önemli davranışlar ve iş kuralları
 
 - **Çizim kuralları** (renk → kod eşlemesi, en yakın renk yedeği, varyant seçimi, ızgara) [MosaicRenderSource](./MosaicRenderSource.md) sayfasındadır. `RenderRegion` eski tek parça RS ile aynı yerde birebir aynı pikselleri üretir.
 - **Anlık görüntü güvenliği:** `_textures` yerinde değiştirilmez; `LoadTextures` ve `Reset` yeni sözlük atar. Küçültülmüş kopyalar servis düzeyinde tutulmaz, her `MosaicRenderSource` kendi önbelleğini tutar.
-- **Bellek sınırı:** Yalnızca `GenerateRSBitmap` için geçerlidir: toplam piksel `ImageService.MaxBitmapPixels`'ı (≈ 536,9 milyon; Skia'nın 2 GB sınırı) aşarsa `OutOfMemoryException` atılır. Ekran gösterimi karolarla çalıştığı için böyle bir sınırı yoktur; dışa aktarma sığan en büyük N'yi kendisi seçer (`MainViewModel.ExportImageAsync`).
+- **Bellek sınırı:** Yalnızca `GenerateRSBitmap` için geçerlidir: toplam piksel `ImageService.MaxBitmapPixels`'ı (≈ 536,9 milyon; Skia'nın 2 GB sınırı) aşarsa `OutOfMemoryException` atılır. Ekran gösterimi karolarla çalıştığı için böyle bir sınırı yoktur; dışa aktarma da bu sınırın üstündeki görüntüyü `MosaicExporter` ile parça parça yazar, N'yi düşürmez.
 - `LoadTextures` dokuları `Parallel.ForEach` ile yükler; sonuçlar önce `ConcurrentDictionary`'de toplanıp sonra yeni sözlüğe aktarılır.
 
 ## Dikkat / bilinen sınırlamalar

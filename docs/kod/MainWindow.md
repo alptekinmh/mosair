@@ -33,7 +33,8 @@ Window
    │   ├─ Panel: DockPanel (Margin sağ 142 px, sistem pencere düğmeleri için) + üstünde DocumentTitle: açık dosyanın adı,
    │   │   pencere genişliğinin tam ortasında (menüden bağımsız; MaxWidth 340, uzunsa "…"; IsHitTestVisible=False, sürükleme bozulmaz)
    │   └─ "mosair" logosu + Menu
-   │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport, Farklı Dışa Aktar
+   │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport ▸, menuExportAs ▸
+   │       │     (ikisinin de alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
    │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır
    │       ├─ Görünüm (MenuView): menuFitToScreen
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
@@ -48,7 +49,8 @@ Window
    │   │       Detay (Flyout: StonePixelSize kaydırıcısı 10–100, adım 10),
    │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
    │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
-   │   └─ Sağ: exportBtn (exportArrow animasyonu; sağ tık = klasörü aç) + açılır ok (Flyout: Dışa Aktar / Farklı Dışa Aktar),
+   │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
+   │           her biri "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; sağ tık = klasörü aç),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
    ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
    │   ├─ Sol: UsedColorInfo
@@ -90,6 +92,7 @@ Window
 | `_syncingScroll` | `bool` | `false` | Palet/Atanan sütunlarının kaydırma eşitlemesinde yeniden giriş kilidi. |
 | `_mosAnimTimer`, `_mosAnimFrame` | `DispatcherTimer?`, `int` | `null`, 0 | Mos düğmesi animasyonu (350 ms). |
 | `_exportAnimTimer`, `_exportAnimFrame` | `DispatcherTimer?`, `int` | `null`, 0 | Dışa aktarma ok animasyonu (90 ms, `ExportAnimOffsets`). |
+| `_exportChoices` | `List<(MenuItem item, int quality, bool saveAs)>` | boş | Dışa aktarma listelerindeki (toolbar MenuFlyout'u ve Dosya menüsü) bütün kalite seçenekleri; metinleri `UpdateExportChoiceTexts` yeniler. |
 | `CmdKey` | `static readonly KeyModifiers` | `Meta` (macOS) / `Control` | `Loc.IsMac`'e göre. |
 | `_interpMenuItems`, `_detailMenuItems`, `_gridColorMenuItems`, `_gridShadeMenuItems`, `_gridShadeSeparator` | listeler | boş | Araçlar menüsünde kodla oluşturulan öğeler ve onay işaretleri. |
 | `CheckGeometry` | `const string` | — | Menü onay işaretinin yol geometrisi. |
@@ -108,6 +111,7 @@ Window
 | `_vm.OpenUrl` | `TopLevel.GetTopLevel(this)?.Launcher.LaunchUriAsync` ile tarayıcıda açar (stok tablosu). |
 | `_vm.StoneInvalidated += …` | Tek taş değişince (piksel düzenleme, geri al/yinele, varyant seçimi) `mosaicView.InvalidateStone(row, col)`: yalnızca o taşı içeren karolar yeniden çizilir. |
 | `AddHandler(DragDrop.DropEvent / DragOverEvent)` | Sürükle-bırak. |
+| `BuildExportMenus()` | `DataContext` atandıktan hemen sonra dışa aktarma listelerini kurar (aşağıda). |
 | `KeyDown += OnKeyDown` | Pencere düzeyi kısayollar. |
 | `paletteScroll` ↔ `assignedScroll` | İki `ScrollChanged` lambdası dikey ofseti karşılıklı eşitler (`_syncingScroll` ile döngü engellenir). |
 | `_vm.PropertyChanged` lambdası | `IsProcessing` → Mos animasyonu (`StartMosAnim`/`StopMosAnim`), `IsExporting` → dışa aktarma animasyonu (`StartExportAnim`/`StopExportAnim`), `GridColorShades` → ton menüsünü yeniden kur, `SelectedInterpolation` / `StonePixelSize` / `GridColor` → menü onaylarını yenile. |
@@ -122,9 +126,15 @@ Window
 | `OnOpenProject` | `menuOpenProject`, toolbar Proje Aç, Ctrl/⌘+O | `*.mos` seçici → `_vm.OpenProject` → `FitToWindow`. |
 | `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S | Masaüstü/mosairPROJECT kuralına göre kaydeder, kaynak görüntüyü kopyalar, 1,2 sn `saveCheckIcon` gösterir. |
 | `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S | `SaveAsDialog()` çağırır. |
-| `OnExportImage` | `menuExport`, `exportBtn`, dışa aktarma Flyout'undaki ilk düğme, Ctrl/⌘+E | Masaüstü/mosairEXPORT'a zaman damgalı JPEG → `_vm.ExportImageAsync`. |
-| `OnExportAsImage` | Dosya menüsü "Farklı Dışa Aktar", dışa aktarma Flyout'undaki ikinci düğme | Kayıt seçici (JPEG/PNG) → `_vm.ExportImageAsync`. |
-| `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). |
+| `OnScreenshot` | Araç çubuğundaki kamera düğmesi (dışa aktarmanın solunda) | Görsel alanını (`imageScroller`) ekranın gerçek ölçeğiyle (`RenderScaling`) `RenderTargetBitmap`'e çizer, kaydırma çubukları hariç yalnızca görünen kısmı (`Viewport`) alır; tuval rengini (`BgCanvas`) temadan bulur ve `_vm.SaveScreenshotAsync` ile `mosairEXPORT/tarih_saat__ad__ekran.png` olarak kaydeder. Mini harita ayrı bir katmanda olduğu için görüntüye girmez. Klasör oluşturulamazsa `ShowExportFolderError` uyarı gösterir (aynısı hızlı dışa aktarmada da). |
+| `OnExportImage` | Ctrl/⌘+E | `ExportQuickAsync(_vm.StonePixelSize)`: o anki Detay ayarıyla hızlı dışa aktarma (sonucu beklenmez). |
+| `ExportQuickAsync(quality)` | `OnExportImage`, listelerdeki mosairEXPORT seçenekleri | Masaüstü/mosairEXPORT'a zaman damgalı dosya; uzantı `_vm.QuickExportExtension(quality)` (`jpeg` ya da `png`) → `_vm.ExportImageAsync(path, quality)`. |
+| `ExportAsAsync(quality)` | Listelerdeki mosairEXPORT As seçenekleri | Kayıt seçici (`DlgExportImage`; JPEG `*.jpg/*.jpeg`, PNG `*.png`; varsayılan uzantı `jpg`) → `_vm.ExportImageAsync(path, quality)`. |
+| `BuildExportMenus()` | Yapıcı | Toolbar için bir `MenuFlyout` (`BottomEdgeAlignedRight`) kurar: `MenuExport` ve `MenuExportAs` başlıklı (Loc bağlamalı) iki öğe, ikisi de `FillExportChoices` ile doldurulur; `Opening` → `RefreshExportChoices`; `exportBtn.Flyout`'a atanır. Dosya menüsündeki `menuExport` ve `menuExportAs` de aynı şekilde doldurulur, `SubmenuOpened` → `RefreshExportChoices`. Son olarak `_vm.ExportEstimatesChanged += UpdateExportChoiceTexts`. |
+| `FillExportChoices(parent, saveAs)` | `BuildExportMenus` | Alt menüyü temizler; pasif başlık öğesi (`ExportChooseQuality`: "Görüntü kalitesi seçiniz"), `Separator`, sonra `MainViewModel.ExportQualities` için birer `MenuItem` ekler ve `_exportChoices`'a kaydeder. Tıklanınca `exportBtn.Flyout` gizlenir, `saveAs` ise `ExportAsAsync(quality)`, değilse `ExportQuickAsync(quality)`. |
+| `RefreshExportChoices()` | Flyout `Opening`, `menuExport`/`menuExportAs` `SubmenuOpened` | `UpdateExportChoiceTexts()`, ardından tahminleri başlatır: `_vm.RefreshExportEstimatesAsync()` (beklenmez). |
+| `UpdateExportChoiceTexts()` | `RefreshExportChoices`, `_vm.ExportEstimatesChanged` | Her seçeneğin başlığını `_vm.ExportChoiceLabel(quality, saveAs)` yapar (piksel boyutu + tahmini dosya boyutu; "N" gösterilmez). |
+| `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). Sol tıkta listeyi düğmenin kendi `Flyout`'u açar. |
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
@@ -183,7 +193,7 @@ Window
 | `menuOpenProject` | `CmdKey` + O |
 | `menuSave` | `CmdKey` + S |
 | `menuSaveAs` | `CmdKey` + Shift + S |
-| `menuExport` | `CmdKey` + E |
+| `menuExport` | `CmdKey` + E (alt menülü öğede yalnızca gösterim; kısayol o anki Detay ayarıyla hızlı dışa aktarır) |
 | `menuFitToScreen` | `CmdKey` + 0 (`Key.D0`) |
 | `menuMosaicize` | `CmdKey` + M |
 
@@ -198,7 +208,7 @@ Window
 | O | `CmdKey` | `OnOpenProject` | — |
 | S | `CmdKey` | `OnSaveProject` | `_vm.MosaicDone` |
 | S | `CmdKey` + Shift | `OnSaveAsProject` | `_vm.MosaicDone` |
-| E | `CmdKey` | `OnExportImage` | `_vm.CanExport` |
+| E | `CmdKey` | `OnExportImage` (o anki Detay ayarıyla) | `_vm.CanExport` |
 | 0 / NumPad0 | `CmdKey` | `OnResetSize` | — |
 | M | `CmdKey` | `OnRunMosaic` | (`RunMosaicAsync` içinde `CanRunMosaic`) |
 | F1 | yok | `ShowHelp()` | — |
@@ -211,8 +221,8 @@ Koşul sağlanmasa da Ctrl/⌘+S/E olayı `Handled` işaretlenir.
 |---|---|---|
 | Kaydet (`OnSaveProject`) | `Masaüstü/mosairPROJECT/<ad>/<ad>.mos` | `<ad>` = `ProjectService.CurrentPictureFileName` dosya adı (uzantısız), yoksa `mosair_project`. Klasörler yoksa oluşturulur. Kaynak görüntü `<ad><uzantı>` olarak aynı klasöre, **yalnızca orada yoksa** kopyalanır. Mevcut `.mos` sorulmadan üzerine yazılır. |
 | Farklı Kaydet (`SaveAsDialog`) | Seçilen `X/foo.mos` → **`X/foo/foo.mos`** | Önerilen ad kaynak görüntü adı. Seçilen klasörün içinde proje adıyla alt klasör açılır. Görüntü kopyalanmaz. |
-| Dışa aktar (`OnExportImage`) | `Masaüstü/mosairEXPORT/<M.dd.yyyy>_<HH.mm.ss>__<ad>__<G>x<Y>.jpeg` | `<ad>` kaynak görüntü adı ya da `mosair`; `<G>x<Y>` = `WidthCm` × `HeightCm` (tam sayıya yuvarlanmış). Klasör `GetExportDir()` ile oluşturulur. |
-| Farklı dışa aktar (`OnExportAsImage`) | Seçilen yol | JPEG veya PNG; biçim uzantıdan belirlenir (`ExportImageAsync`). |
+| Dışa aktar (`ExportQuickAsync`) | `Masaüstü/mosairEXPORT/<M.dd.yyyy>_<HH.mm.ss>__<ad>__<G>x<Y>.<jpeg\|png>` | `<ad>` kaynak görüntü adı ya da `mosair`; `<G>x<Y>` = `WidthCm` × `HeightCm` (tam sayıya yuvarlanmış). Uzantı `QuickExportExtension(quality)`: JPEG mümkünse ve tamponu kullanılabilir belleğin yarısını aşmıyorsa `jpeg`, değilse `png`. Klasör `GetExportDir()` ile oluşturulur. |
+| Farklı dışa aktar (`ExportAsAsync`) | Seçilen yol | JPEG veya PNG; biçim uzantıdan belirlenir (`ExportImageAsync`). |
 
 Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada `Environment.SpecialFolder.DesktopDirectory` kullanılır.
 
@@ -236,7 +246,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 
 ## Dikkat / bilinen sınırlamalar
 
-- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve mosairEXPORT As öğesi `CanExport`'a bağlıdır; toolbar ve klavye yoluyla aynı koşullar geçerlidir.
+- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir.
 - `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez.
 - Kayıt (`SpecialFolder.Desktop`) ve dışa aktarma (`SpecialFolder.DesktopDirectory`) farklı özel klasör sabitleri kullanır; çoğu sistemde aynı yeri gösterir ama tutarsızdır.
 - `OnRunMosaic`, `RunMosaicAsync` hiçbir şey yapmadan dönse bile `FitToWindow` çağırır.

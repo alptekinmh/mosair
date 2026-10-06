@@ -11,11 +11,11 @@ Uygulamanın Türkçe/İngilizce arayüz metinlerini sağlayan basit yerelleşti
 | Çağıran | Kullanım |
 |---|---|
 | `MainWindow.axaml`, `HelpWindow.axaml` | `{Binding [Anahtar], Source={x:Static svc:Loc.Instance}}` indeksleyici bağlaması; `IsTr`/`IsEn` ile dile göre görünürlük; `KeyMod*` kısayol metinleri |
-| `MainWindow.axaml.cs` | Dil menüsü: `Loc.Instance.Lang = "tr"` / `"en"`, ardından `MainViewModel.RefreshLocalized()` |
-| `MainViewModel` | Durum, uyarı ve stok metinleri için `Loc.Get` / `Loc.Fmt`; `PropertyChanged` ile `Lang` değişimini dinler |
+| `MainWindow.axaml.cs` | Dışa aktarma listesinin kodla kurulan öğeleri (`MenuExport`, `MenuExportAs`, `ExportChooseQuality` bağlamaları); dil menüsü: `Loc.Instance.Lang = "tr"` / `"en"`, ardından `MainViewModel.RefreshLocalized()` |
+| `MainViewModel` | Durum, uyarı, dışa aktarma seçeneği ve stok metinleri için `Loc.Get` / `Loc.Fmt`; `PropertyChanged` ile `Lang` değişimini dinler |
 | `HelpWindow.axaml.cs` | `Loc.Instance.Lang`'a göre TR/EN bölümleri seçer |
 | `AlertDialog`, `ConfirmDialog`, `StockSettingsDialog` | Düğme ve etiket metinleri |
-| `StockSheetService`, `StoneTextureService`, `ImageService` | Hata mesajları (`StockErr*`, `StatusRsBitmapTooLarge`) |
+| `StockSheetService`, `StoneTextureService`, `ImageService`, `MosaicExporter` | Hata mesajları (`StockErr*`, `StatusRsBitmapTooLarge`, `ExportJpegTooLarge`, `ExportJpegFailed`) |
 
 ## Yapı
 
@@ -44,22 +44,24 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **199** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **212** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Stock*` | 57 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
 | `Menu*` | 37 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware` dahil) |
-| `Status*` | 24 | Durum çubuğu metinleri (çoğu biçim dizesi); küçültülmüş dışa aktarma için `StatusExportReducedN` ve `StatusSavedReducedN` dahil |
-| `Tip*` | 22 | Araç çubuğu, stok düğmesi ve "Stoğa göre" kutusu (`TipStockAware`) ipuçları |
+| `Status*` | 24 | Durum çubuğu metinleri (çoğu biçim dizesi); büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct` ve ekran görüntüsü için `StatusScreenshotSaved` dahil |
+| `Tip*` | 23 | Araç çubuğu, stok düğmesi ve "Stoğa göre" kutusu (`TipStockAware`) ipuçları |
 | `Alert*` | 18 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.) |
 | `Prop*` | 12 | Özellikler paneli etiketleri ve biçimleri |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
+| `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, `ExportCurrentQuality`, `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
 | `Lbl*` | 7 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
 | `Info*` | 3 | Boyut bilgisi biçimleri |
 | `Warn*` | 3 | Performans uyarısı |
 | `Btn*` | 2 | Tümünü seç / seçimi kaldır |
+| `Size*` | 2 | Dosya boyutu biçimleri (`SizeMB`, `SizeGB`) |
 | `OptimumInfoFmt` | 1 | Optimum bilgi metni |
 
 ## Public API

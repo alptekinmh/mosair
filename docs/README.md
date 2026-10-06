@@ -54,6 +54,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
 | [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokularını yükleme, çizim anlık görüntüsü kurma |
 | [MosaicRenderSource.md](kod/Services/MosaicRenderSource.md) | Taş dokulu görüntüyü (RS) istenen bölge ve detayda çizme (ekran karoları, dışa aktarma) |
+| [MosaicExporter.md](kod/Services/MosaicExporter.md) | Dışa aktarma: seçilen görüntü kalitesiyle (taş başına piksel) boyut sınırı olmadan JPEG/PNG yazma (büyük PNG akışla, büyük JPEG tek tamponla), dosya boyutu tahmini |
 | [PixelEditService.md](kod/Services/PixelEditService.md) | Piksel düzenleme, geri al/yinele |
 | [ProjectService.md](kod/Services/ProjectService.md) | `.mos` JSON proje biçimi, WPF uyumu |
 | [StockSheetService.md](kod/Services/StockSheetService.md) | Google Sheets stok işlemleri |
@@ -89,7 +90,7 @@ MainWindow (görünüm, olaylar) ──bağlama──► MainViewModel (durum, k
 
 - **Veri** statik `MosaicData` ve `drl` yapılarında tutulur; servisler bunları doğrudan okur ve yazar.
 - **Yön:** mosair görüntü dizilerini çevirmeden tutar. WPF ise yatay aynalı tutar. Dosyadaki `Source = "mosair"` işareti dosyanın hangi yönde olduğunu belirtir ([ProjectService.md](kod/Services/ProjectService.md)).
-- **Taş dokulu görüntü (RS)** bellekte hiçbir zaman bütün olarak tutulmaz. `StoneTextureService.CreateRenderSource` mozaik başına bir [MosaicRenderSource](kod/Services/MosaicRenderSource.md) kurar; ekranda [MosaicView](kod/Controls/MosaicView.md) yalnızca görünen kısmı arka planda çizilen karolarla gösterir, dışa aktarma aynı çiziciyle bütün görüntüyü üretir.
+- **Taş dokulu görüntü (RS)** bellekte hiçbir zaman bütün olarak tutulmaz. `StoneTextureService.CreateRenderSource` mozaik başına bir [MosaicRenderSource](kod/Services/MosaicRenderSource.md) kurar; ekranda [MosaicView](kod/Controls/MosaicView.md) yalnızca görünen kısmı arka planda çizilen karolarla gösterir, dışa aktarma ([MosaicExporter](kod/Services/MosaicExporter.md)) aynı çiziciyle bütün görüntüyü üretir; tek bitmap'e sığmayan görüntüyü taş satırı taş satırı çizip dosyaya yazar.
 - **Metinler** `Loc` üzerinden gelir; dil değiştirilince anında güncellenir.
 
 ## Belgeler nasıl güncel kalır?

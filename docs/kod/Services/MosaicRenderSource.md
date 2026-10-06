@@ -15,7 +15,9 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 | `StoneTextureService.CreateRenderSource()` | Nesneyi kurar (yapıcı `internal`) |
 | `MainViewModel.RefreshMosaicView` / `RefreshOverview` | `RenderSource` özelliğine koyar, `RenderOverview` ile `OverviewBitmap`'i üretir |
 | `MosaicView.Request` | Arka plan işçilerinde `RenderRegion` ile 512 px'lik karolar |
-| `MainViewModel.ExportImageAsync` | Önce `WithStoneSnapshot()` (taş renkleri ve varyantlarının kopyası; dışa aktarma sürerken yapılan düzenlemeler dosyaya girmez), sonra görüntünün tamamı: `RenderRegion(0, 0, Rows, Cols, exportN, …)`; doku yoksa `RenderOverview` |
+| `MainViewModel.ExportImageAsync` | `WithStoneSnapshot()` (taş renkleri ve varyantlarının kopyası; dışa aktarma sürerken yapılan düzenlemeler dosyaya girmez); kopya `MosaicExporter.Export`'a verilir |
+| `MosaicExporter.Export` | Görüntü tek bitmap'e sığıyorsa (`ImageService.MaxBitmapPixels`) tamamı: `RenderRegion(0, 0, Rows, Cols, N, …)` (doku yoksa da; taşlar kendi renginde, taş başına N piksel); sığmıyorsa her seferinde bir taş satırı: `RenderRegion(row, 0, 1, Cols, N, …)` |
+| `MosaicExporter.EstimateBytes` | Dosya boyutu tahmini için `RenderRegion` ile birkaç kare (JPEG) ya da tam genişlikte taş satırı (PNG) |
 | `StoneTextureService.GenerateRSBitmap` | Tüm mozaik için `RenderRegion` (şu an çağıranı yok) |
 
 ## Yapı
@@ -41,9 +43,9 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 
 | Üye | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `RenderRegion(row0, col0, rows, cols, N, showGrid, gridWidth, gridColor)` → `SKBitmap` | `[row0, row0+rows) × [col0, col0+cols)` taşlarını taş başına `N` piksel ile `Rgba8888` opak bitmap'e çizer; ızgara açıksa bitmap'e işlenir | `MosaicView`, `MainViewModel.ExportImageAsync`, `StoneTextureService.GenerateRSBitmap` |
-| `RenderOverview()` → `SKBitmap` | Taş başına 1 piksel, her taşın kendi rengi (`Cols × Rows`) | `MainViewModel` (genel görünüm, gezgin, doku yokken dışa aktarma) |
-| `WithStoneSnapshot()` → `MosaicRenderSource` | Aynı mozaik, taş renkleri (`dataM3`) ve varyantlarının (`arn`) kopyasıyla; dışa aktarma bunu kullanır, böylece aktarma sürerken yapılan piksel düzenlemeleri dosyaya girmez. Dokular ve kod tabloları paylaşılır. |
+| `RenderRegion(row0, col0, rows, cols, N, showGrid, gridWidth, gridColor)` → `SKBitmap` | `[row0, row0+rows) × [col0, col0+cols)` taşlarını taş başına `N` piksel ile `Rgba8888` opak bitmap'e çizer; ızgara açıksa bitmap'e işlenir | `MosaicView`, `MosaicExporter`, `StoneTextureService.GenerateRSBitmap` |
+| `RenderOverview()` → `SKBitmap` | Taş başına 1 piksel, her taşın kendi rengi (`Cols × Rows`) | `MainViewModel` (genel görünüm, gezgin) |
+| `WithStoneSnapshot()` → `MosaicRenderSource` | Aynı mozaik, taş renkleri (`dataM3`) ve varyantlarının (`arn`) kopyasıyla; dışa aktarma bunu kullanır, böylece aktarma sürerken yapılan piksel düzenlemeleri dosyaya girmez. Dokular ve kod tabloları paylaşılır. | `MainViewModel.ExportImageAsync` |
 | `HasTextures`, `Rows`, `Cols`, `Version` | Yukarıdaki tablo | `MosaicView`, `MainViewModel` |
 
 ## Önemli davranışlar ve iş kuralları
@@ -61,7 +63,7 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 
 ## Dikkat / bilinen sınırlamalar
 
-- Dışa aktarma da canlı `dataM3`/`arn` üzerinden çizer. Dışa aktarma sürerken yapılan bir piksel düzenlemesi, o satır henüz çizilmemişse dosyaya girebilir.
+- Ekran (`MosaicView`) canlı `dataM3`/`arn` üzerinden çizer; dışa aktarma ise `WithStoneSnapshot()` kopyasından çizdiği için aktarma sürerken yapılan piksel düzenlemeleri dosyaya girmez.
 - `_catalogOf[(b, g, r)]` yalnızca `CodeFor` 2. adımda o anahtarın bulunduğunu doğruladıktan sonra okunur; adımlar değiştirilirken bu sıra korunmalıdır.
 - Her nesne kendi küçültülmüş doku önbelleğini tutar; N ya da mozaik değişince yeni nesne kurulur, eskisi çöp toplayıcıya bırakılır.
 - `unsafe` kod kullanır (doğrudan piksel işaretçisi).
@@ -73,3 +75,4 @@ Bir mozaiğin taş dokulu görüntüsünü (RS) çizmek için gereken her şeyi 
 - [PixelEditService](./PixelEditService.md)
 - [MosaicData](../Models/MosaicData.md)
 - [MainViewModel](../ViewModels/MainViewModel.md)
+- [MosaicExporter](./MosaicExporter.md)

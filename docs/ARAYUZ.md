@@ -37,7 +37,7 @@
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Araç çubuğu: Görsel · Proje Aç │ Kaydet · Farklı Kaydet │ Mos │ Kalem │ Izgara      │
 │   Interp · Detay │ Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Optimum         │
-│   ☐ Stoğa göre  Taş ──●── N öneri K          … Dışa Aktar ▾ │ ☾ │ 🌐              │
+│   ☐ Stoğa göre  Taş ──●── N öneri K      … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Durum çubuğu: kullanılan renk │ ilerleme + durum + süre │ Ekrana Sığdır · zoom    │
 ├───────────────────────┬───────────────────────────────────┬──────────────────────┤
@@ -80,8 +80,8 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Proje Aç | `Ctrl/⌘+O` | `.mos` proje dosyası açar ([§12](#12-proje-kaydetme-ve-açma)) | Her zaman |
 | Proje Kaydet | `Ctrl/⌘+S` | Projeyi `Masaüstü/mosairPROJECT/<görsel adı>/` klasörüne kaydeder | Mozaik varken |
 | Proje Farklı Kaydet | `Ctrl/⌘+Shift+S` (macOS: `⌘+⇧+S`) | Konum ve ad sorarak kaydeder | Mozaik varken |
-| mosairEXPORT | `Ctrl/⌘+E` | Görüntüyü `Masaüstü/mosairEXPORT` klasörüne JPEG olarak kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
-| mosairEXPORT As | — | Konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
+| mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan Detay ayarındaki kaliteyle kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
+| mosairEXPORT As ▸ | — | Aynı alt menü; seçilen kaliteyle konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
 
 ### Düzenle
 
@@ -144,8 +144,8 @@ Soldan sağa:
 | ☐ Optimum | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **kapalı** |
 | ☐ Stoğa göre | Özelliğin açıklaması; son Mos'un stok raporu da eklenir | Stoğa göre modunu aç/kapat | — | Varsayılan **kapalı** ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
 | Taş ──●── N · öneri K | — | Taş çeşidi sayısını değiştirir | — | Yalnızca Optimum ile yapılmış bir Mos'tan sonra görünür |
-| mosairEXPORT (sağda) | mosairEXPORT | Masaüstü/mosairEXPORT'a JPEG | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |
-| ▾ (dışa aktar yanındaki) | — | mosairEXPORT / mosairEXPORT As | — | Mozaik yokken pasif |
+| Ekran görüntüsü (kamera, dışa aktarmanın solunda) | Ekran görüntüsü: görsel alanında şu an görünen kısmı PNG olarak mosairEXPORT klasörüne kaydeder | Görsel alanında o an ne görünüyorsa (mozaik ya da yüklenen görsel, aynı zoom, ızgara dahil) yakalar; mini harita ve kaydırma çubukları girmez. Görüntü pencereden küçükse kenarlar tuval rengiyle dolar. Yüksek çözünürlüklü ekranlarda ekranın gerçek piksel yoğunluğuyla kaydedilir. Dosya: `mosairEXPORT/tarih_saat__görselAdı__ekran.png`; durum çubuğu dosya adını yazar. | — | Görsel yokken pasif |
+| mosairEXPORT (sağda) | Dışa aktar: mosairEXPORT / mosairEXPORT As, görüntü kalitesi seçerek (boyut bilgisiyle). Sağ tık: klasörü aç | Liste açar: **mosairEXPORT ▸** / **mosairEXPORT As ▸**, her birinde görüntü kalitesi seçenekleri ([§13](#13-dışa-aktarma-mosairexport)); tıklama doğrudan kaydetmez | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |
 | ☾ / ☀ | Tema Değiştir | Koyu/açık tema | — | |
 | 🌐 | Dil | Açılır liste: TR Türkçe / EN English | — | |
 
@@ -241,7 +241,7 @@ Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
 - Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
-- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi (küçültülmüş dışa aktarmada kullanılan N dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
+- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), kayıt ve dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 
 ## 9. Piksel düzenleme ve taş varyantı
@@ -388,15 +388,40 @@ Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri
 
 | İşlem | Davranış |
 |---|---|
-| **mosairEXPORT** (`Ctrl/⌘+E`) | `Masaüstü/mosairEXPORT/` klasörüne `<ay.gün.yıl>_<ss.dd.ss>__<görsel adı>__<genişlik>x<yükseklik>.jpeg` adıyla kaydeder (ölçüler cm). Görsel adı yoksa `mosair` kullanılır. |
-| **mosairEXPORT As** | Konum ve biçim sorar: JPEG veya PNG. |
+| Dışa aktar ikonuna **tıklama** | Liste açılır: **mosairEXPORT ▸** ve **mosairEXPORT As ▸**. İkona tıklamak doğrudan kaydetmez; önce görüntü kalitesi seçilir. |
+| **mosairEXPORT ▸** → kalite | Seçilen görüntü kalitesiyle `Masaüstü/mosairEXPORT/` klasörüne `<ay.gün.yıl>_<ss.dd.ss>__<görsel adı>__<genişlik>x<yükseklik>.jpeg` adıyla kaydeder (ölçüler cm). Görsel adı yoksa `mosair` kullanılır. JPEG bu boyutta mümkün değilse ya da belleğe sığmayacaksa (aşağıda) aynı adla `.png` kaydeder. |
+| **mosairEXPORT As ▸** → kalite | Konum, ad ve biçim (JPEG/PNG) sorar, seçilen görüntü kalitesiyle kaydeder. |
+| `Ctrl/⌘+E` | Liste açılmadan, Detay ayarındaki (ekrandaki) görüntü kalitesiyle mosairEXPORT. |
+| **Dosya** menüsü → mosairEXPORT ▸ / mosairEXPORT As ▸ | Araç çubuğundaki listeyle aynı alt menüler. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
 
-Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntünün tamamıdır: her taş Detay (N) piksel boyutunda, kendi doku varyantıyla çizilir. Izgara açıksa ızgarayla birlikte kaydedilir. Taş görüntüleri yüklü değilse (ör. `02_RS` klasörü yoksa) taş başına 1 piksellik renkli görüntü kaydedilir.
+**Görüntü kalitesi listesi:** Her iki alt menünün başında pasif bir "Görüntü kalitesi seçiniz" başlığı, altında en düşükten en yükseğe 10 görüntü kalitesi vardır. Her seçenek yalnızca görüntünün piksel boyutunu ve tahmini dosya boyutunu gösterir:
 
-**Çok büyük mozaikler:** Bütün görüntünün tek dosyaya sığması gerekir: en fazla yaklaşık 536,9 milyon piksel, JPEG'de ayrıca her kenar en fazla 65.535 piksel. Mozaik seçilen N ile sığmıyorsa sığan en büyük N kullanılır ve dosya **küçültülmüş bir genel görünüm** olur. Durum çubuğu bunu kullanılan N ile birlikte yazar: "Dışa aktarılıyor: … — mozaik tek dosyaya N=… ile sığmadığı için N=… kullanılıyor (küçültülmüş genel görünüm)...", sonra "Kaydedildi: … (küçültülmüş genel görünüm, N=…)". Bu durumda ızgara, kullanılan N 8 veya daha büyükse ona göre inceltilerek çizilir; daha küçükse ızgara çizilmez.
+- mosairEXPORT: `13.333 × 23.688 px · JPEG ≈ 420 MB` (yazılacak biçim ve boyutu).
+- mosairEXPORT As: `13.333 × 23.688 px · JPEG ≈ … · PNG ≈ …`; JPEG'in kenar sınırını aşan boyutlarda `… px · PNG ≈ … (bu boyutta JPEG olmaz)`.
+- Detay ayarına (ekrandaki görüntüye) karşılık gelen seçeneğin sonunda **(ekrandaki ayar)** yazar.
+- Dosya boyutları liste açılınca arka planda, en küçük kaliteden başlayarak hesaplanır; hazır olmayan seçenekte "hesaplanıyor…" yazar. Hesaplananlar mozaik, ızgara ya da ızgara rengi değişene kadar hatırlanır.
 
-Kaydetme arka planda yapılır. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir. Piksel düzenleme bu sırada kapanmaz; dışa aktarma, başladığı andaki mozaiğin kopyasını yazdığı için bu sırada yapılan düzenlemeler dosyaya girmez.
+Dışa aktarılan görüntü, ekrandaki gerçek taş dokulu görüntünün tamamıdır: her taş seçilen görüntü kalitesinde, kendi doku varyantıyla çizilir. Izgara açıksa ızgarayla birlikte kaydedilir. Taş görüntüleri yüklü değilse (ör. `02_RS` klasörü yoksa) her taş kendi renginde düz olarak, aynı boyutta çizilir; dosya her durumda listede gösterilen boyuttadır.
+
+**Boyut sınırı yok:** Görüntü her zaman seçilen görüntü kalitesiyle kaydedilir; çok büyük mozaiklerde de kendiliğinden küçültülmez. Daha küçük bir dosya için daha düşük bir görüntü kalitesi seçin. Tek sınır JPEG biçiminin kendisidir: her kenar en fazla 65.535 piksel. JPEG bu boyutu aşarsa dışa aktarma başlamaz ve "JPEG bu boyutta kaydedilemez…" uyarısı PNG ya da daha düşük bir görüntü kalitesi seçmeyi önerir.
+
+**Büyük dosyalar** (yaklaşık 536,9 milyon pikselden büyük görüntüler):
+
+- **PNG** parça parça yazılır: her seferinde bir taş satırı çizilip doğrudan dosyaya sıkıştırılır. Görüntü ne kadar büyük olursa olsun az bellek kullanır.
+- **JPEG** bütün görüntüyü bir kez bellekte tutar: yaklaşık genişlik × yükseklik × 4 bayt RAM ister (ör. 60.000 × 60.000 px için ≈ 13,4 GB). mosairEXPORT bu yüzden JPEG tamponu kullanılabilir belleğin yarısını aşacaksa ya da JPEG mümkün değilse PNG kaydeder. mosairEXPORT As ile böyle bir JPEG seçilirse önce sorulur ("Bu boyutta JPEG için yaklaşık … bellek gerekiyor…"): **Evet** ile JPEG kaydedilir (bilgisayar yavaşlayabilir), **Hayır** ile vazgeçilir. JPEG yine de kaydedilemezse "JPEG kaydedilemedi (bellek yetmemiş olabilir)…" uyarısı çıkar.
+- Durum çubuğu ilerlemeyi yüzde olarak gösterir: "Dışa aktarılıyor: <dosya adı> — %42".
+- Listede gösterilen dosya boyutu, mozaiğin birkaç parçası gerçekten kodlanarak yapılan bir tahmindir; genellikle biraz fazladır (JPEG'de ≈ %4, PNG'de ≈ %6–16).
+
+Örnek ölçümler:
+
+| Mozaik | Görüntü | PNG | JPEG |
+|---|---|---|---|
+| 300 × 300 taş | 12.000 × 12.000 px | 93 MB, ≈ 9 s | 113 MB, ≈ 4 s |
+| 600 × 600 taş | 24.000 × 24.000 px | 498 MB, ≈ 5 s | 450 MB, ≈ 15 s |
+| 20 m, 1667 × 1667 taş | 66.680 × 66.680 px | 2,8 GB, ≈ 26 s | Yazılamaz (kenar > 65.535 px) |
+
+Kaydetme arka planda yapılır. Dışa aktarma yarıda kalırsa (hata, disk dolu…) yarım yazılmış dosya silinir. Dışa aktarma sürerken Mos ve dışa aktarma düğmeleri pasiftir. Piksel düzenleme bu sırada kapanmaz; dışa aktarma, başladığı andaki mozaiğin kopyasını yazdığı için bu sırada yapılan düzenlemeler dosyaya girmez.
 
 ## 14. Tema ve dil
 
@@ -415,7 +440,7 @@ Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Tür
 | Proje aç | `Ctrl+O` | `⌘+O` |
 | Proje kaydet | `Ctrl+S` | `⌘+S` |
 | Proje farklı kaydet | `Ctrl+Shift+S` | `⌘+⇧+S` |
-| Dışa aktar (mosairEXPORT) | `Ctrl+E` | `⌘+E` |
+| Dışa aktar (mosairEXPORT, Detay ayarındaki görüntü kalitesiyle) | `Ctrl+E` | `⌘+E` |
 | Mozaikleştir | `Ctrl+M` | `⌘+M` |
 | Ekrana sığdır | `Ctrl+0` (numpad 0 da olur) | `⌘+0` |
 | Geri al | `Ctrl+Z` | `⌘+Z` (Ctrl+Z da çalışır) |
@@ -443,6 +468,7 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 | Stok Çek **▾** | Sol tuş | Devre dışı bırak / yalnızca kırmızıyla işaretle |
 | Stok Sil ikonu | Sağ tuş | Bu / tüm mozaik sütunlarını temizle |
 | Stoğa göre kutusu | Üzerinde bekle | Açıklama ve son stok raporu |
+| Dışa aktar ikonu | Sol tuş | Liste: mosairEXPORT ▸ / mosairEXPORT As ▸ ve görüntü kalitesi seçenekleri |
 | Dışa aktar ikonu | Sağ tuş | mosairEXPORT klasörünü aç |
 | Başlık çubuğu | Sürükle / çift tık | Pencereyi taşı / büyüt-küçült |
 | Panel ayırıcıları | Sürükle | Panel genişliğini değiştir |
@@ -462,6 +488,10 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Proje | Proje kaydedilemedi (disk dolu, klasöre yazma izni yok, dosya başka programda açık…) | Sorunu giderip tekrar kaydedin; uygulama açık kalır, çalışma kaybolmaz |
 | (durum çubuğu) | "Renk kataloğunda okunamayan satırlar atlandı" | `colorsBas.txt` içinde belirtilen satırları düzeltin; diğer taşlar normal yüklenir |
 | Dışa Aktarma | Dışa aktarılacak mozaik yok | Önce Mos yapın |
+| Dışa Aktarma | JPEG bu boyutta kaydedilemez (bir kenar 65.535 pikseli aşıyor) | PNG ya da daha düşük bir görüntü kalitesi seçin |
+| Dışa Aktarma | Onay: bu boyutta JPEG yaklaşık … bellek gerektiriyor (mosairEXPORT As ile büyük JPEG seçilince) | **Evet** ile JPEG kaydedilir, **Hayır** ile vazgeçilir; PNG neredeyse hiç bellek kullanmaz |
+| Dışa Aktarma | "Beklenmeyen bir hata oluştu: JPEG kaydedilemedi (bellek yetmemiş olabilir)…" | PNG ya da daha düşük bir görüntü kalitesi deneyin |
+| Dışa Aktarma | Dosya yazılamadı: "Beklenmeyen bir hata oluştu" ve ayrıntı (disk dolu, yazma izni yok, bellek yetmedi…) | Sorunu giderip tekrar deneyin; büyük görüntüde PNG çok daha az bellek ister |
 | Stok | Ayar eksik, sütun bulunamadı, tablo boş, Script URL/yayın hatası, proje adı ya da Mos yok | Mesajdaki adımı uygulayın; [§11](#11-stok-yönetimi-google-sheets) |
 | Stok Temizle / Tümünü Temizle / Stok Ekle | Onay sorusu (tabloyu değiştirmeden önce) | **Evet** ile devam edin, **Hayır** ile vazgeçin |
 | Stoğa Göre | Düzeltme yapılamadı: katalog dışı renk ya da aynı renkte iki taş; açılmış projede Mos yapılmamış; stok okunamadı | Mesaja göre görselle yeniden Mos yapın ya da stok ayarını kontrol edin |
@@ -477,5 +507,5 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - Stoğa göre Mos, görsel/proje yüklenirken okunan stoğu kullanır; Stok Çek bu stoğu yenilemez ([§11](#stoğa-göre-optimumun-yanındaki-kutu)).
 - Taş dokulu görüntü parça parça çizilir; hızlı kaydırma ve yakınlaştırmada bir bölge, daha keskin hali hazırlanana kadar kısa bir süre bulanık ya da yalnızca taş renkleriyle görünebilir.
 - **Ekrana Sığdır** ve fare tekerleği en fazla ‰1 (0,001) zoom'a kadar uzaklaştırır; 20 m'lik bir mozaik N=100 ile de pencereye sığar. Zoom etiketi 0,1'in altında üç basamak gösterir.
-- Seçilen N ile tek dosyaya sığmayan bir mozaik, sığan en büyük N ile küçültülmüş genel görünüm olarak dışa aktarılır ([§13](#13-dışa-aktarma-mosairexport)).
+- Dışa aktarmada boyut sınırı yoktur ve görüntü kendiliğinden küçültülmez; yalnızca JPEG kenar başına 65.535 pikselle sınırlıdır. Çok büyük bir JPEG yaklaşık genişlik × yükseklik × 4 bayt bellek ister ([§13](#13-dışa-aktarma-mosairexport)).
 - Stok Kontrol, Google'ın tablo çıktısı gecikebildiği için nadiren bir önceki değeri okuyabilir; şüphede kontrolü tekrarlayın. (Stoğa göre açıkken kırmızı noktalar okunan stoktan hesaplandığı için bu durumdan etkilenmez.)
