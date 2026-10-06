@@ -113,7 +113,7 @@ Katalog listesindeki bir taş rengi.
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| `UseOptimal` | `bool` | true | Mos'un Optimum (`MosaicEngine.RunOptimal`) mi M3 (`RunM3`) mü çalıştıracağı. |
+| `UseOptimal` | `bool` | false | Mos'un Optimum (`MosaicEngine.RunOptimal`) mi M3 (`RunM3`) mü çalıştıracağı. |
 | `OptimalAvailable` | `bool` | — | `MosaicDone && _lastRunOptimal`; taş sayısı kaydırıcısını açar. |
 | `OptimalK` | `int` | 0 | Seçili taş sayısı; değişince `UpdateOptimalInfo` ve (bastırılmadıysa) `ScheduleOptimalApply`. |
 | `OptimalKMax` | `int` | 1 | `LastOptimalResult.CandidateCount`. |
@@ -132,7 +132,7 @@ Katalog listesindeki bir taş rengi.
 | `AssignedColors` | `ObservableCollection<AssignedItem>` | Kullanılan taşlar ve piksel sayıları. |
 | `IsStockBusy` | `bool` | Stok işlemi sürerken true (private set); değişince `CanUseStock` ve `IsBusy` bildirilir. |
 | `CanUseStock` | `bool` | `!IsStockBusy`; stok menü/butonlarını kilitler. |
-| `UseStockAware` | `bool` | Varsayılan `true` ("Stoğa göre" onay kutusu). Kalıcı saklanmaz; her açılışta açık başlar. Değişince `StockAwareTip` de bildirilir. |
+| `UseStockAware` | `bool` | Varsayılan `false` ("Stoğa göre" onay kutusu). Kalıcı saklanmaz; her açılışta kapalı başlar. Değişince `StockAwareTip` de bildirilir. |
 | `StockAwareTip` | `string` | `TipStockAware` metni; son stoğa göre çalışmanın raporu (`_stockAwareReport`) varsa altına eklenir. |
 | `_loadedStock` | `Dictionary<int, StockSheetService.StoneStock>?` | Açılışta ve her görsel/proje yüklemesinde `RefreshStockAsync` ile okunan stok; stoğa göre Mos bunu kullanır. Görsel/proje yüklenince önce null yapılır. |
 | `_stockOnHand` | `Dictionary<int, StockSheetService.StoneStock>?` | Son stoğa göre Mos'un veya Stok Kontrol düzeltmesinin kullandığı stok; taş sayısı kaydırıcısı aynı stoğa uyar. Yeni Mos, yeni görsel ve proje açma temizler. |
@@ -256,7 +256,7 @@ Katalog listesindeki bir taş rengi.
 - **N > 40 uyarısı** (`NWarningVisible`) oturumda yalnız bir kez gösterilir (`_nWarningShown`).
 - **Görüntü boyutu sınırı yok**: Taş dokulu görüntü hiçbir zaman bütün olarak oluşturulmaz (`MosaicView` karolarla çizer), bu yüzden N kaydırıcısında bellek sınırı ve "Değer Çok Büyük" uyarısı yoktur. Sınır yalnızca dışa aktarmada vardır ve `ExportStonePixels` N'yi düşürerek çözer. Mos sırasında `OutOfMemoryException` → `AlertMemoryTitle`.
 - N, ızgara ve ızgara rengi değişiklikleri anında uygulanır: `MosaicView` önbelleğini temizler, önce genel görünümü ve eldeki karoları gösterir, yeni karolar geldikçe keskinleşir.
-- **Stoğa göre (`UseStockAware`, varsayılan açık)**: Mos sonucu, Sheet'ten okunan stoğa (Bizdeki eksi diğer mozaik sütunları) göre `StockAwareAssigner` ile düzeltilir; stoğu yetmeyen taşın fazlası benzer taşlara taşınır. Aynı düzeltme taş sayısı kaydırıcısında (`_stockOnHand`) ve Stok Kontrol'den önce (`FixToStockAsync`) de uygulanır; Sheet'e son sayılar tek yazımda gider. Stok okunamazsa Mos düz çalışır.
+- **Stoğa göre (`UseStockAware`, varsayılan kapalı)**: Mos sonucu, Sheet'ten okunan stoğa (Bizdeki eksi diğer mozaik sütunları) göre `StockAwareAssigner` ile düzeltilir; stoğu yetmeyen taşın fazlası benzer taşlara taşınır. Aynı düzeltme taş sayısı kaydırıcısında (`_stockOnHand`) ve Stok Kontrol'den önce (`FixToStockAsync`) de uygulanır; Sheet'e son sayılar tek yazımda gider. Stok okunamazsa Mos düz çalışır.
 - **En az kullanım kuralı kapalı**: `StockOptions()` `MinUsage = 0` döndürür; çok az kullanılan taşlar düşürülmez. Kural yalnız `StockCompareRunner` test aracında `MOSAIR_MINUSAGE=1` ile açılır.
 - **Stok yükleme**: Açılışta (`LoadStockOnStartupAsync`) ve her görsel/proje yüklemesinde stok arka planda okunur; tooltip'lerde kg görünür, seçim değişmez.
 - **Geç biten arka plan işleri**: `LoadImage`, `OpenProject`, `RunMosaicAsync` ve `FixToStockAsync` `StartNewContent()` çağırır: bekleyen kaydırıcı uygulaması iptal edilir, `_contentVersion` artar. `ApplyOptimalKAsync`, `RunMosaicAsync`, `FixToStockAsync` ve `OpenProject`'in doku yüklemesi başlarken sürümü alır; bittiğinde sürüm değişmişse sonucu atar, ekrana yazmaz. Büyük bir Mos'un sonucu artık ayrı bir RS üretimi yüzünden kaybolmaz. Böylece başka bir görsel açıldıktan sonra eski mozaik geri gelmez.

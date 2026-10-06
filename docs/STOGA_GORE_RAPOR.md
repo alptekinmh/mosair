@@ -13,7 +13,7 @@
 
 **Güncel durum (v1.3.1):**
 - Özellik `feature`'a birleştirildi ve **v1.3.1** sürümüyle yayınlandı.
-- Tetikleyici bir **kutu**dur: Optimum'un yanında "Stoğa göre", varsayılan olarak **açık**. Bölüm 2'deki "ayrı düğme" önerisi uygulanmadı.
+- Tetikleyici bir **kutu**dur: Optimum'un yanında "Stoğa göre", v1.3.1'de varsayılan olarak **açıktı**; 2026-10-06'dan sonra (feature) uygulama açılırken **kapalı** gelir. Bölüm 2'deki "ayrı düğme" önerisi uygulanmadı.
 - Kutu açıkken:
   1. Stok uygulama açılırken ve her görsel ya da proje yüklendiğinde tablodan okunur (Bizdeki − diğer mozaikler).
   2. **Mos** (Optimum ya da klasik) sonucu daha Mos sırasında bu stoğa göre uydurulur: yetmeyen taşlar elde olduğu kadar kullanılır, kalan yer renkçe en yakın stoklu taşla doldurulur. Stok okunamazsa Mos stoğa bakmadan yapılır ve durum çubuğunda yazar.
@@ -190,7 +190,7 @@
 
 ## 8. Karar soruları
 
-> Verilen kararlar: (1) kutu korundu, varsayılan açık; (2) düzeltilmiş adetleri Stok Kontrol yazar; (3) en az kullanım kuralı kapatıldı. Diğer sorular açık.
+> Verilen kararlar: (1) kutu korundu (v1.3.1'de varsayılan açık, sonra kullanıcı isteğiyle varsayılan kapalı); (2) düzeltilmiş adetleri Stok Kontrol yazar; (3) en az kullanım kuralı kapatıldı. Diğer sorular açık.
 
 1. **Tetikleyici:** Ayrı düğme (önerilen) mi, bugünkü kutu mu?
 2. **Tabloya yazma:** Düğme tabloya yazmasın, "Stok Kontrol'e basın" desin (önerilen); yoksa kendisi mi yazsın?

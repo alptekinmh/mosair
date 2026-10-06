@@ -434,7 +434,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Stoga Gore" Margin="0"/>
-            <TextBlock Classes="body" Text="• Optimum'un yanindaki kutu; varsayilan olarak aciktir. Araclar > Stoga Gore Ayarla ile de acilip kapanir."/>
+            <TextBlock Classes="body" Text="• Optimum'un yanindaki kutu; uygulama acilirken kapalidir. Araclar > Stoga Gore Ayarla ile de acilip kapanir."/>
             <TextBlock Classes="body" Text="• Acikken Mos (Optimum ya da klasik) once normal yapilir, sonra sonuc stoga sigdirilir. Kullanilabilir stok: Bizdeki (kg) eksi diger mozaik sutunlarinin ayirdigi kg (bu projenin sutunu sayilmaz); 1 tas = 3,3 g."/>
             <TextBlock Classes="body" Text="• Stogu yetmeyen tas elde oldugu kadar kullanilir; kalan yer renkce en yakin stoklu tasla doldurulur. Degisiklikler en az fark edilecek yerlere gider, kenarlar korunur. Gerekirse en fazla 2 yeni tas turu eklenir; yetmezse arama adim adim genisler. Az kullanilan taslar cikarilmaz; stok yeterliyse mozaik degismez."/>
             <TextBlock Classes="body" Text="• Stok uygulama acilirken ve her gorsel ya da proje yuklenince okunur; Stok Cek bu stogu yenilemez. Tabloyu degistirdiyseniz gorseli ya da projeyi yeniden yukleyin. Stok ayari hic yapilmamissa kutu etkisizdir ve Mos her zamanki gibi yapilir; ayar var ama stok okunamazsa Mos stoga bakmadan yapilir ve durum cubugunda yazar."/>
@@ -446,8 +446,8 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Ornek Akis" Margin="0"/>
-            <TextBlock Classes="body" Text="Stoga gore acikken (varsayilan): 1. Mos yapin; mozaik stoga gore kurulur.  2. Sonucu ve Stoga gore ipucundaki raporu inceleyin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Stoga gore kapaliyken: 1. Stok Cek ile stogu biten taslari devre disi birakin.  2. Mos yapin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Kirmizi noktali taslar varsa onlari devre disi birakip tekrar Mos yapin ve kontrolu tekrarlayin.  5. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
+            <TextBlock Classes="body" Text="Stoga gore acikken: 1. Mos yapin; mozaik stoga gore kurulur.  2. Sonucu ve Stoga gore ipucundaki raporu inceleyin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Stoga gore kapaliyken (varsayilan): 1. Stok Cek ile stogu biten taslari devre disi birakin.  2. Mos yapin.  3. Stok Kontrol ile adetleri tabloya yazin.  4. Kirmizi noktali taslar varsa onlari devre disi birakip tekrar Mos yapin ve kontrolu tekrarlayin.  5. Uretimden sonra Stok Ekle ile kalan stogu tabloya isleyin."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Tablodaki sutun adi gorsel dosyasinin adidir; ornegin 7.jpg icin '7'. Gorsel bilinmiyorsa acilan .mos dosyasinin adi kullanilir."/>
           </StackPanel>
         </Border>
@@ -745,7 +745,7 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="By Stock" Margin="0"/>
-            <TextBlock Classes="body" Text="• The box next to Optimum; on by default. Tools > Fit to Stock also turns it on and off."/>
+            <TextBlock Classes="body" Text="• The box next to Optimum; off when the app starts. Tools > Fit to Stock also turns it on and off."/>
             <TextBlock Classes="body" Text="• When on, Mos (Optimum or classic) is made normally first, then the result is fitted to stock. Available stock: Bizdeki (kg) minus the kg set aside by the other mosaic columns (this project's column is not counted); 1 stone = 3.3 g."/>
             <TextBlock Classes="body" Text="• A stone without enough stock is used as far as its stock goes; the rest is filled with the closest-coloured stone in stock. Changes go where they are least visible and edges are protected. If needed, at most 2 new stone types are added; if that is not enough, the search widens step by step. Rarely used stones are not dropped; if stock is enough, the mosaic does not change."/>
             <TextBlock Classes="body" Text="• Stock is read when the app starts and whenever an image or project is loaded; Fetch Stock does not refresh it. If you changed the sheet, load the image or project again. If no stock sheet is set up, the box has no effect and Mos works as usual; if one is set up but stock cannot be read, Mos is made without it and the status bar says so."/>
@@ -757,8 +757,8 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <TextBlock Classes="h2" Text="Example Flow" Margin="0"/>
-            <TextBlock Classes="body" Text="With By stock on (default): 1. Run Mos; the mosaic is built to fit stock.  2. Review the result and the report in the By stock tooltip.  3. Check Stock to write the counts to the sheet.  4. After production, Add Stock to record the remaining stock in the sheet."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="With By stock off: 1. Fetch Stock to disable stones that ran out.  2. Run Mos.  3. Check Stock to write the counts to the sheet.  4. If stones get a red dot, disable them and run Mos again and repeat the check.  5. After production, Add Stock to record the remaining stock in the sheet."/>
+            <TextBlock Classes="body" Text="With By stock on: 1. Run Mos; the mosaic is built to fit stock.  2. Review the result and the report in the By stock tooltip.  3. Check Stock to write the counts to the sheet.  4. After production, Add Stock to record the remaining stock in the sheet."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="With By stock off (default): 1. Fetch Stock to disable stones that ran out.  2. Run Mos.  3. Check Stock to write the counts to the sheet.  4. If stones get a red dot, disable them and run Mos again and repeat the check.  5. After production, Add Stock to record the remaining stock in the sheet."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The column name in the sheet is the image file name; for example '7' for 7.jpg. If the image is not known, the name of the opened .mos file is used."/>
           </StackPanel>
         </Border>

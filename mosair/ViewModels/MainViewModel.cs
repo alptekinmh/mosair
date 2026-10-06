@@ -908,7 +908,7 @@ public bool UseLab
             }
         }
 
-        private bool _useOptimal = true;
+        private bool _useOptimal;        // off at start-up; Mos uses the classic algorithm until it is ticked
         private bool _lastRunOptimal;
         private int _optimalK;
         private int _optimalKMax = 1;
@@ -958,7 +958,7 @@ public bool UseLab
 
         // ===== Stock-aware Optimum ("Stoğa göre"): runs after Stok Kontrol =====
 
-        private bool _useStockAware = true;
+        private bool _useStockAware;     // off at start-up
         // Stock read by the last Stok Kontrol fix; the stone-count slider reuses it. Cleared by a new Mos,
         // a new image or an opened project.
         private Dictionary<int, StockSheetService.StoneStock>? _stockOnHand;

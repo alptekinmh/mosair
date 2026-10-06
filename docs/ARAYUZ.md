@@ -61,7 +61,7 @@
 |---|---|---|
 | 1 | Görsel yükle (PNG, JPG, JPEG, BMP, TIFF) | Görsel ikonu, **Dosya → Görsel Yükle**, `Ctrl/⌘+I` veya dosyayı pencereye sürükle-bırak |
 | 2 | Mozaik genişliğini cm olarak gir | Sol panelin üstündeki kutu |
-| 3 | Katalogda kullanılabilecek taşları seç; **Optimum** ve **Stoğa göre** kutularını kontrol et (ikisi de varsayılan açık) | Sol panel, araç çubuğu |
+| 3 | Katalogda kullanılabilecek taşları seç; **Optimum** ve **Stoğa göre** kutularını gerekirse işaretle (ikisi de varsayılan kapalı) | Sol panel, araç çubuğu |
 | 4 | Mozaikleştir | **Mos** düğmesi veya `Ctrl/⌘+M` |
 | 5 | İncele, gerekirse taş sayısını, pikselleri ve taş varyantlarını düzenle | Taş kaydırıcısı, canvas, Özellikler paneli |
 | 6 | (İsteğe bağlı) **Stok Kontrol** ile adetleri tabloya yaz | Stok ikonları |
@@ -140,8 +140,8 @@ Soldan sağa:
 | Stok Kontrol (pano) | Stok kontrol: adetleri tabloya yaz, stoğu yetmeyenleri işaretle | Adetler tabloya yazılır, kalan okunur | — | Tabloyu değiştirir |
 | Stok Sil (küp −) | Stok temizle: bu mozaiğin sütununu temizle (sağ tık: tüm mozaik sütunları) | Bu mozaiğin sütununu temizler | Sağ tık: **Bu mozaiğin sütununu temizle / Tüm mozaik sütunlarını temizle** | Onay ister |
 | Stok Ekle (küp +) | Stok ekle: Tahmini Kalan'ı Bizdeki'ye taşı, mozaik sütunlarını temizle | Tahmini Kalan → Bizdeki | — | Onay ister |
-| ☐ Optimum | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **açık** |
-| ☐ Stoğa göre | Özelliğin açıklaması; son Mos'un stok raporu da eklenir | Stoğa göre modunu aç/kapat | — | Varsayılan **açık** ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
+| ☐ Optimum | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **kapalı** |
+| ☐ Stoğa göre | Özelliğin açıklaması; son Mos'un stok raporu da eklenir | Stoğa göre modunu aç/kapat | — | Varsayılan **kapalı** ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
 | Taş ──●── N · öneri K | — | Taş çeşidi sayısını değiştirir | — | Yalnızca Optimum ile yapılmış bir Mos'tan sonra görünür |
 | mosairEXPORT (sağda) | mosairEXPORT | Masaüstü/mosairEXPORT'a JPEG | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |
 | ▾ (dışa aktar yanındaki) | — | mosairEXPORT / mosairEXPORT As | — | Mozaik yokken pasif |
@@ -267,7 +267,7 @@ Yeni görsel yüklemek, yeni Mos ve Optimum **Taş** sayısının değiştirilme
 
 ## 10. Optimum taş sayısı
 
-- **Ne yapar:** Görsel için kaç çeşit taş kullanılacağını kendisi bulur. **Optimum** kutusu işaretliyken (varsayılan) Mos'a basınca çalışır. İşaret kaldırılırsa klasik algoritma kullanılır.
+- **Ne yapar:** Görsel için kaç çeşit taş kullanılacağını kendisi bulur. **Optimum** kutusu işaretliyken Mos'a basınca çalışır. Kutu uygulama açılırken işaretsizdir; işaretsizken klasik algoritma kullanılır.
 - **Nasıl çalışır:** Önce katalogdaki bütün işaretli taşlarla en iyi sonuç hesaplanır. Sonra görüntüyü en az bozan taşlar tek tek çıkarılır. Renk farkı, detay ve kenarlar ile açık-koyu yapısı gözle fark edilmeyecek kadar korunurken kullanılabilecek en az taş sayısı **öneri** olarak seçilir.
 - **Taş kaydırıcısı:** Optimum ile yapılmış Mos'tan sonra görünür ve önerilen değerden başlar. Değer değişip kısa bir süre (yaklaşık 0,35 sn) sabit kalınca mozaik o taş sayısıyla yeniden kurulur; yanında `öneri K` yazar. Aynı ayar **Araçlar → Taş Sayısı** menüsünde de vardır: Önerilen Değere Dön, Bir Taş Artır, Bir Taş Azalt. Yeni bir görsel, proje ya da Mos başlatılırsa bekleyen yeniden kurma iptal edilir.
 - **Seçim hafızası:** Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalır. Kataloğa elle dokunmadıysanız bir sonraki Optimum Mos, önceki seçiminizin tamamından yeniden başlar.
@@ -317,7 +317,7 @@ Yeşil tablo ikonunun yanındaki **▾** okuna basıp **Stok Ayarları...**'nı 
 
 ### Stoğa göre (Optimum'un yanındaki kutu)
 
-Kutu varsayılan olarak **açıktır**; **Araçlar → Stoğa Göre Ayarla** ile de açılıp kapanır.
+Kutu uygulama açılırken **kapalıdır**; **Araçlar → Stoğa Göre Ayarla** ile de açılıp kapanır.
 
 - **İşaretliyken** Mos (Optimum ya da klasik) önce normal yapılır, sonra sonuç tablodaki stoğa sığdırılır. Kullanılabilir stok: **Bizdeki (kg) − diğer mozaik sütunlarının ayırdığı kg** (bu projenin sütunu sayılmaz), 1 taş = 3,3 g.
 - Stoğu yetmeyen taş elde olduğu kadar kullanılır; kalan yer renkçe en yakın stoklu taşla doldurulur. Değişiklikler görüntünün en az fark edilecek yerlerine yönlendirilir, kenarlar (yüz hatları, gözler gibi) korunur.
@@ -342,14 +342,14 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 
 ### Önerilen akış
 
-**Stoğa göre açıkken (varsayılan):**
+**Stoğa göre açıkken:**
 
 1. **Mos** yapın; mozaik stoğa göre kurulur. Gerekirse Taş kaydırıcısıyla oynayın.
 2. Sonucu ve **Stoğa göre** ipucundaki raporu inceleyin.
 3. **Stok Kontrol** ile adetleri tabloya yazın.
 4. Üretimden sonra **Stok Ekle** ile kalan stoğu tabloya işleyin.
 
-**Stoğa göre kapalıyken:**
+**Stoğa göre kapalıyken (varsayılan):**
 
 1. **Stok Çek** ile stoğu biten taşları devre dışı bırakın.
 2. **Mos** yapın.
