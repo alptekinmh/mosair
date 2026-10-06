@@ -80,9 +80,11 @@
   <DockPanel>
     <!-- ===== TITLE BAR: green "mosair" + Menu ===== -->
     <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Height="32"
-            Padding="0,0,142,0" BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1"
             PointerPressed="OnTitleBarPointerPressed">
-      <DockPanel>
+      <Panel>
+      <!-- Right margin keeps clear of the system window buttons -->
+      <DockPanel Margin="0,0,142,0">
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
                     VerticalAlignment="Center" Spacing="0">
           <TextBlock Text="mosair" FontWeight="Bold" FontSize="14"
@@ -171,11 +173,13 @@
             </MenuItem>
           </Menu>
         </StackPanel>
-        <!-- Name of the open file: the project once saved or opened, otherwise the loaded image -->
-        <TextBlock Text="{Binding DocumentTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"
-                   FontSize="12" Foreground="{DynamicResource FgSecondary}" TextTrimming="CharacterEllipsis"
-                   Margin="12,0" IsHitTestVisible="False"/>
       </DockPanel>
+      <!-- Name of the open file (the project once saved or opened, otherwise the loaded image), centred on the
+           whole window width independently of the menu -->
+      <TextBlock Text="{Binding DocumentTitle}" HorizontalAlignment="Center" VerticalAlignment="Center"
+                 FontSize="12" Foreground="{DynamicResource FgSecondary}" TextTrimming="CharacterEllipsis"
+                 MaxWidth="340" IsHitTestVisible="False"/>
+      </Panel>
     </Border>
 
     <!-- ===== TOOLBAR ===== -->

@@ -30,7 +30,8 @@ Bu belge **kablolamayı** anlatır. Kullanıcı gözünden kullanım için [ARAY
 Window
 └─ DockPanel
    ├─ [Top] Başlık çubuğu (Border, 32 px, PointerPressed=OnTitleBarPointerPressed)
-   │   ├─ (ortada) DocumentTitle: açık dosyanın adı (IsHitTestVisible=False, sürükleme bozulmaz)
+   │   ├─ Panel: DockPanel (Margin sağ 142 px, sistem pencere düğmeleri için) + üstünde DocumentTitle: açık dosyanın adı,
+   │   │   pencere genişliğinin tam ortasında (menüden bağımsız; MaxWidth 340, uzunsa "…"; IsHitTestVisible=False, sürükleme bozulmaz)
    │   └─ "mosair" logosu + Menu
    │       ├─ Dosya (MenuFile): menuLoadImage, menuOpenProject | menuSave, menuSaveAs | menuExport, Farklı Dışa Aktar
    │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır
