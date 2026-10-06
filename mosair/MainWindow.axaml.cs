@@ -462,24 +462,26 @@ public partial class MainWindow : Window
     }
 
 
+    // Zoom about the mouse: the image point under the cursor stays under the cursor.
     private void OnImageWheel(object? sender, PointerWheelEventArgs e)
     {
-        var mousePos = e.GetPosition(imageScroller);
+        e.Handled = true;
+        if (sender is not Control img) return;
+        var mouse = e.GetPosition(imageScroller);
+        var under = e.GetPosition(img);   // point under the cursor, in the image control's own coordinates
         double oldZoom = _vm.ZoomLevel;
         double factor = e.Delta.Y > 0 ? 1.25 : 0.8;
-        double newZoom = Math.Max(_vm.MinZoomLevel, Math.Min(20, oldZoom * factor));
+        _vm.ZoomLevel = oldZoom * factor;   // the view model clamps it
+        double ratio = _vm.ZoomLevel / oldZoom;
+        if (ratio == 1) return;
 
-        double pointX = imageScroller.Offset.X + mousePos.X;
-        double pointY = imageScroller.Offset.Y + mousePos.Y;
-
-        double ratio = newZoom / oldZoom;
-        _vm.ZoomLevel = newZoom;
-
+        // Let the new size reach the layout first; setting the offset before that clamps it to the old size.
+        imageScroller.UpdateLayout();
+        var moved = img.TranslatePoint(new Avalonia.Point(under.X * ratio, under.Y * ratio), imageScroller);
+        if (moved == null) return;
         imageScroller.Offset = new Avalonia.Vector(
-            Math.Max(0, pointX * ratio - mousePos.X),
-            Math.Max(0, pointY * ratio - mousePos.Y));
-
-        e.Handled = true;
+            Math.Max(0, imageScroller.Offset.X + moved.Value.X - mouse.X),
+            Math.Max(0, imageScroller.Offset.Y + moved.Value.Y - mouse.Y));
         UpdateNav();
     }
 
