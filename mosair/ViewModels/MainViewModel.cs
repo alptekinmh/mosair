@@ -1075,6 +1075,7 @@ public bool UseLab
 
         private async Task ApplyOptimalKAsync(int k)
         {
+            int version = _contentVersion;
             IsProcessing = true;
             var sw = Stopwatch.StartNew();
             try
@@ -1089,6 +1090,7 @@ public bool UseLab
                     rsBmp = BuildRsBitmap();
                 });
                 sw.Stop();
+                if (version != _contentVersion) { rsBmp?.Dispose(); return; } // another image or Mos took over
                 FinishMosaic(result, rsBmp, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                 if (stock != null)
@@ -1141,6 +1143,9 @@ public bool UseLab
             }
             else if (result != null)
             {
+                // No stone-texture image this time: drop the previous one so it is not shown for this mosaic.
+                MosaicData.rsBitmap?.Dispose();
+                MosaicData.rsBitmap = null;
                 _bitmapPixelWidth = result.Width;
                 _bitmapPixelHeight = result.Height;
             }
@@ -1363,6 +1368,7 @@ public bool UseLab
 
         public void LoadImage(string path)
         {
+            StartNewContent();
             ProjectService.CurrentPictureFileName = path;
             ProjectService.CurrentFileName = "";
             ProjectService.ForgetWpfState();
@@ -1475,6 +1481,7 @@ public bool UseLab
                 return;
             }
             if (!CanRunMosaic) return;
+            int version = StartNewContent();
 
             IsProcessing = true;
             Progress = 0;
@@ -1569,6 +1576,7 @@ public bool UseLab
                 });
 
                 sw.Stop();
+                if (version != _contentVersion) { rsBmp?.Dispose(); return; } // a new image or project was opened meanwhile
                 var res = MosaicEngine.LastOptimalResult;
                 if (optimal && res != null)
                 {
@@ -1643,6 +1651,7 @@ public bool UseLab
 
         public async void OpenProject(string filePath)
         {
+            int version = StartNewContent();
             var data = ProjectService.Open(filePath);
             if (data == null)
             {
@@ -1718,6 +1727,13 @@ public bool UseLab
                         rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
                     });
 
+                    if (version != _contentVersion)
+                    {
+                        // Another image or project was opened while this one was being drawn.
+                        rsBmp?.Dispose();
+                        IsProcessing = false;
+                        return;
+                    }
                     if (rsBmp != null)
                     {
                         MosaicData.rsBitmap?.Dispose();
@@ -2046,10 +2062,23 @@ public bool UseLab
         private System.Threading.CancellationTokenSource? _rsRegenerateCts;
         private readonly System.Threading.SemaphoreSlim _rsLock = new(1, 1);
 
+        // Bumped whenever the mosaic on screen is replaced (new image, opened project, new Mos). A background job
+        // that finishes under an older number belongs to a mosaic that is gone and drops its result.
+        private int _contentVersion;
+
+        // Cancels the waiting or running stone-texture rebuild and the pending stone-slider rebuild.
+        private int StartNewContent()
+        {
+            _rsRegenerateCts?.Cancel();
+            _optimalApplyCts?.Cancel();
+            return ++_contentVersion;
+        }
+
         private async void RegenerateRS()
         {
             if (!MosaicDone) return;
             if (MosaicData.arMA.Count == 0) return;
+            int version = _contentVersion;
 
             _rsRegenerateCts?.Cancel();
             var cts = new System.Threading.CancellationTokenSource();
@@ -2097,7 +2126,13 @@ public bool UseLab
                     rsBmp = StoneTextureService.GenerateRSBitmap(R, C, N, _showGrid, gw, gc);
                 });
 
-                if (!ct.IsCancellationRequested && rsBmp != null)
+                if (ct.IsCancellationRequested || version != _contentVersion)
+                {
+                    // Cancelled, or built from a mosaic that has since been replaced.
+                    rsBmp?.Dispose();
+                    rsBmp = null;
+                }
+                else if (rsBmp != null)
                 {
                     MosaicData.rsBitmap?.Dispose();
                     MosaicData.rsBitmap = rsBmp;

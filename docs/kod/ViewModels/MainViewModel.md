@@ -208,7 +208,7 @@ Katalog listesindeki bir taş rengi.
 | `ScheduleOptimalApply()` / `ApplyOptimalKAsync(k)` | 350 ms debounce sonra `MosaicEngine.ApplyOptimalK(k)` + `BuildRsBitmap` + `FinishMosaic`. |
 | `DisposeIfReplaced(old, current)` | Mos / Optimum taş sayısı değişiminden sonra motorun değiştirdiği eski `exportBitmap`'i UI iş parçacığında serbest bırakır. |
 | `BuildRsBitmap()` | Derz genişliği `max(1, N/11)` (ızgara açıksa), dokuları `N - gw`'ye boyutlar, `StoneTextureService.GenerateRSBitmap`. |
-| `FinishMosaic(result, rsBmp, elapsed)` | RS bitmap'i `MosaicData.rsBitmap`'e koyar; mozaik yeniden kurulduğu için `_stoneUndoStack`/`_stoneRedoStack`'i temizler ve `EditedPixelCount`'u günceller; `MosaicDone`, `FilterCatalogByUsedColors`, Optimum ise `_optimumAutoSelection` yakalar, `UsedColorInfo` ve `StatusCompleted`. |
+| `FinishMosaic(result, rsBmp, elapsed)` | RS bitmap'i `MosaicData.rsBitmap`'e koyar (RS üretilemediyse eskisini siler ki önceki mozaik görünmesin); mozaik yeniden kurulduğu için `_stoneUndoStack`/`_stoneRedoStack`'i temizler ve `EditedPixelCount`'u günceller; `MosaicDone`, `FilterCatalogByUsedColors`, Optimum ise `_optimumAutoSelection` yakalar, `UsedColorInfo` ve `StatusCompleted`. |
 | `RegenerateRS()` (`async void`) | N/ızgara/renk/varyant değişince RS bitmap'i 300 ms debounce, `SemaphoreSlim` kilidi ve iptal ile yeniden üretir; `AdjustZoomForBitmapChange`. |
 | `FilterCatalogByUsedColors()` | Kataloğu yalnız `arMB[0]`'da kullanılan kodlara indirger, `PopulatePaletteAndAssigned`. |
 | `PopulatePaletteAndAssigned()` | Seçili katalog sırasıyla `PaletteColors` ve `AssignedColors`'ı doldurur (piksel sayısı 0 olanlar atlanır, ama numara sayacı ilerler). |
@@ -234,6 +234,7 @@ Katalog listesindeki bir taş rengi.
 - **N > 40 uyarısı** (`NWarningVisible`) oturumda yalnız bir kez gösterilir (`_nWarningShown`).
 - **800M piksel sınırı**: `RegenerateRS`, `R·N·C·N > 800_000_000` ise RS üretmez; `StatusNTooLarge` ve `AlertNTooLargeTitle` gösterir. `OutOfMemoryException` → `AlertMemoryTitle`.
 - `RegenerateRS` 300 ms debounce, önceki çağrıyı iptal eder ve `_rsLock` ile aynı anda tek üretim yapar; mozaik yoksa hiçbir şey yapmaz.
+- **Geç biten arka plan işleri**: `LoadImage`, `OpenProject` ve `RunMosaicAsync` `StartNewContent()` çağırır: bekleyen/süren `RegenerateRS` ve bekleyen kaydırıcı uygulaması iptal edilir, `_contentVersion` artar. `RegenerateRS`, `ApplyOptimalKAsync`, `RunMosaicAsync` ve `OpenProject`'in RS üretimi başlarken sürümü alır; bittiğinde sürüm değişmişse sonucu atar (bitmap dispose edilir), ekrana yazmaz. Böylece başka bir görsel açıldıktan sonra eski mozaik geri gelmez.
 - **Undo/redo sırası**: Önce taş varyantı yığını (`_stoneUndoStack`/`_stoneRedoStack`) boşaltılır, o boşsa `PixelEditService` piksel düzenlemeleri geri alınır/yinelenir. Yeni `SelectStone` redo yığınını temizler.
 - **Genişlik 1.2 cm katı**: `UpdateDimensions` `WidthCm`'yi `round(WidthCm·10/12)·1.2`'ye (en az 2 taş = 2.4 cm) çeker; bir taş = 1 kaynak piksel olduğundan görsel genişliğini aşamaz.
 - **Kalıp koordinatı** (Özellikler paneli): 13 sütun × 26 satırlık bloklara göre hesaplanır; `xi = x mod 13`, `yi = y mod 26`, tek numaralı blok sütunlarında `yi = 25 - yi` (yılan sıralama). Not: kalıp **sayısı** (`MosaicEngine.CalculateDimensions`) ise genişlik ve yüksekliği 26'şar taşa bölerek hesaplanır; iki kural WPF'ten olduğu gibi alınmıştır.
