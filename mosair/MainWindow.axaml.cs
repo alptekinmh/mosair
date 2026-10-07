@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -347,6 +348,8 @@ public partial class MainWindow : Window
     // A newly loaded image starts fitted to the image area (Görsel Yükle, drag and drop, the new-image notice).
     private void LoadImageAndFit(string path)
     {
+        StopZoomGlide();
+        StopPanGlide();
         _vm.LoadImage(path);
         if (_vm.ImageLoaded) _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
     }
@@ -718,6 +721,8 @@ public partial class MainWindow : Window
 
     private void OnResetSize(object? sender, RoutedEventArgs e)
     {
+        StopZoomGlide();
+        StopPanGlide();
         _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
     }
 
@@ -732,26 +737,131 @@ public partial class MainWindow : Window
 
 
     // Zoom about the mouse: the image point under the cursor stays under the cursor.
+    // ----- Mouse-wheel zoom about the cursor; with "Yumuşak Fare Hareketi" it glides to the new zoom -----
+    // One wheel notch is ×1.25 (a touchpad's smaller steps zoom proportionally less). The point under the cursor
+    // stays put on every frame. Further notches during the glide add to its target.
+    private const double ZoomGlideSeconds = 0.07;   // time constant: ~95 % of the way after 0.2 s
+    private double _zoomTarget;
+    private bool _zoomGliding;
+    private Control? _zoomImg;
+    private Avalonia.Point _zoomMouse;                // cursor in the scroller
+    private Avalonia.Point _zoomAnchor;               // point under the cursor, in image pixels at zoom 1
+    private TimeSpan? _zoomLastFrame;
+
     private void OnImageWheel(object? sender, PointerWheelEventArgs e)
     {
         e.Handled = true;
         if (sender is not Control img) return;
-        var mouse = e.GetPosition(imageScroller);
+        double steps = Math.Clamp(e.Delta.Y, -4, 4);
+        if (steps == 0) return;
+        StopPanGlide();
         var under = e.GetPosition(img);   // point under the cursor, in the image control's own coordinates
-        double oldZoom = _vm.ZoomLevel;
-        double factor = e.Delta.Y > 0 ? 1.25 : 0.8;
-        _vm.ZoomLevel = oldZoom * factor;   // the view model clamps it
-        double ratio = _vm.ZoomLevel / oldZoom;
-        if (ratio == 1) return;
+        double from = _zoomGliding ? _zoomTarget : _vm.ZoomLevel;
+        _zoomTarget = Math.Clamp(from * Math.Pow(1.25, steps), _vm.MinZoomLevel, 20);
+        _zoomImg = img;
+        _zoomMouse = e.GetPosition(imageScroller);
+        _zoomAnchor = new Avalonia.Point(under.X / _vm.ZoomLevel, under.Y / _vm.ZoomLevel);
+        if (!_vm.SmoothMouse)
+        {
+            StopZoomGlide();
+            ApplyZoomAnchored(_zoomTarget);
+            return;
+        }
+        if (!_zoomGliding)
+        {
+            _zoomGliding = true;
+            _zoomLastFrame = null;
+            TopLevel.GetTopLevel(this)?.RequestAnimationFrame(ZoomGlideFrame);
+        }
+    }
 
+    private void ZoomGlideFrame(TimeSpan now)
+    {
+        if (!_zoomGliding) return;
+        double dt = _zoomLastFrame is { } last ? Math.Clamp((now - last).TotalSeconds, 0.001, 0.1) : 1 / 60.0;
+        _zoomLastFrame = now;
+        double cur = _vm.ZoomLevel;
+        double next = cur * Math.Pow(_zoomTarget / cur, 1 - Math.Exp(-dt / ZoomGlideSeconds));
+        bool done = Math.Abs(next / _zoomTarget - 1) < 0.002;
+        if (done) next = _zoomTarget;
+        ApplyZoomAnchored(next);
+        if (done || _vm.ZoomLevel == cur) { _zoomGliding = false; return; }
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(ZoomGlideFrame);
+    }
+
+    private void StopZoomGlide() => _zoomGliding = false;
+
+    // Sets the zoom and scrolls so that _zoomAnchor is again under _zoomMouse.
+    private void ApplyZoomAnchored(double zoom)
+    {
+        if (_zoomImg == null) return;
+        _vm.ZoomLevel = zoom;   // the view model clamps it
         // Let the new size reach the layout first; setting the offset before that clamps it to the old size.
         imageScroller.UpdateLayout();
-        var moved = img.TranslatePoint(new Avalonia.Point(under.X * ratio, under.Y * ratio), imageScroller);
+        var moved = _zoomImg.TranslatePoint(
+            new Avalonia.Point(_zoomAnchor.X * _vm.ZoomLevel, _zoomAnchor.Y * _vm.ZoomLevel), imageScroller);
         if (moved == null) return;
         imageScroller.Offset = new Avalonia.Vector(
-            Math.Max(0, imageScroller.Offset.X + moved.Value.X - mouse.X),
-            Math.Max(0, imageScroller.Offset.Y + moved.Value.Y - mouse.Y));
+            Math.Max(0, imageScroller.Offset.X + moved.Value.X - _zoomMouse.X),
+            Math.Max(0, imageScroller.Offset.Y + moved.Value.Y - _zoomMouse.Y));
         UpdateNav();
+    }
+
+    // ----- Right-drag pan: follows the pointer exactly; with "Yumuşak Fare Hareketi" it keeps gliding a little
+    // after the button is released, slowing down smoothly (no glide when the pointer had stopped) -----
+    private const double PanGlideSeconds = 0.12;      // time constant of the slow-down
+    private readonly Queue<(TimeSpan t, Avalonia.Point p)> _panSamples = new();
+    private readonly Stopwatch _panClock = Stopwatch.StartNew();
+    private Avalonia.Vector _panVelocity;              // px/s, in scroll offset direction
+    private bool _panGliding;
+    private TimeSpan? _panLastFrame;
+
+    private void RecordPanSample(Avalonia.Point p)
+    {
+        var t = _panClock.Elapsed;
+        _panSamples.Enqueue((t, p));
+        while (_panSamples.Count > 2 && t - _panSamples.Peek().t > TimeSpan.FromMilliseconds(80)) _panSamples.Dequeue();
+    }
+
+    private void StartPanGlide(Avalonia.Point releasedAt)
+    {
+        RecordPanSample(releasedAt);
+        var first = _panSamples.Peek();
+        double span = (_panClock.Elapsed - first.t).TotalSeconds;
+        _panSamples.Clear();
+        if (!_vm.SmoothMouse || span <= 0.005) return;
+        _panVelocity = new Avalonia.Vector((first.p.X - releasedAt.X) / span, (first.p.Y - releasedAt.Y) / span);
+        if (Math.Sqrt(_panVelocity.X * _panVelocity.X + _panVelocity.Y * _panVelocity.Y) < 150) return;
+        _panGliding = true;
+        _panLastFrame = null;
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(PanGlideFrame);
+    }
+
+    private void PanGlideFrame(TimeSpan now)
+    {
+        if (!_panGliding) return;
+        double dt = _panLastFrame is { } last ? Math.Clamp((now - last).TotalSeconds, 0.001, 0.1) : 1 / 60.0;
+        _panLastFrame = now;
+        var before = imageScroller.Offset;
+        imageScroller.Offset = new Avalonia.Vector(
+            Math.Max(0, before.X + _panVelocity.X * dt), Math.Max(0, before.Y + _panVelocity.Y * dt));
+        _panVelocity *= Math.Exp(-dt / PanGlideSeconds);
+        UpdateNav();
+        bool stuck = imageScroller.Offset == before;   // reached an edge
+        if (stuck || Math.Sqrt(_panVelocity.X * _panVelocity.X + _panVelocity.Y * _panVelocity.Y) < 20)
+        {
+            _panGliding = false;
+            return;
+        }
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(PanGlideFrame);
+    }
+
+    private void StopPanGlide() => _panGliding = false;
+
+    private void OnToggleSmoothMouse(object? sender, RoutedEventArgs e)
+    {
+        _vm.SmoothMouse = !_vm.SmoothMouse;
+        if (!_vm.SmoothMouse) { StopZoomGlide(); StopPanGlide(); }
     }
 
     private void OnScrollChanged(object? sender, ScrollChangedEventArgs e)
@@ -918,6 +1028,7 @@ public partial class MainWindow : Window
         if (_isPanning)
         {
             var current = e.GetPosition(imageScroller);
+            RecordPanSample(current);
             var dx = current.X - _panStart.X;
             var dy = current.Y - _panStart.Y;
             imageScroller.Offset = new Avalonia.Vector(
@@ -937,10 +1048,14 @@ public partial class MainWindow : Window
         if (sender is not Control img) return;
         var props = e.GetCurrentPoint(img).Properties;
 
+        StopZoomGlide();
+        StopPanGlide();
         if (props.IsRightButtonPressed)
         {
             _isPanning = true;
             _panStart = e.GetPosition(imageScroller);
+            _panSamples.Clear();
+            RecordPanSample(_panStart);
             _scrollStart = imageScroller.Offset;
             e.Pointer.Capture(img);
             e.Handled = true;
@@ -962,6 +1077,7 @@ public partial class MainWindow : Window
         {
             _isPanning = false;
             e.Pointer.Capture(null);
+            StartPanGlide(e.GetPosition(imageScroller));
             e.Handled = true;
         }
     }

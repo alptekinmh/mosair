@@ -1,6 +1,6 @@
 # MainWindow
 
-> Kaynak: `mosair/MainWindow.axaml`, `mosair/MainWindow.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/MainWindow.axaml`, `mosair/MainWindow.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -42,7 +42,8 @@ Window
    │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
    │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
-   │       ├─ Görünüm (MenuView): menuFitToScreen, Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
+   │       ├─ Görünüm (MenuView): menuFitToScreen, Yumuşak Fare Hareketi (MenuSmoothMouse; OnToggleSmoothMouse;
+   │       │     onay işareti SmoothMouse), Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
    │       │     InputGesture F4; onay işareti IsPropertiesPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
@@ -122,6 +123,13 @@ Window
 |---|---|---|---|
 | `_vm` | `MainViewModel` | yapıcıda | DataContext. |
 | `_isPanning`, `_panStart`, `_scrollStart` | `bool`, `Point`, `Vector` | `false` | Sağ tuşla kaydırma durumu. |
+| `ZoomGlideSeconds` | `const double` | 0,07 | Yumuşak zoom'un zaman sabiti (her karede kalan yolun `1 − e^(−dt/0,07)` kadarı alınır; ~0,2 sn'de %95). |
+| `_zoomTarget`, `_zoomGliding` | `double`, `bool` | 0, `false` | Yumuşak zoom'un hedefi ve sürüp sürmediği. |
+| `_zoomImg`, `_zoomMouse`, `_zoomAnchor` | `Control?`, `Point`, `Point` | — | Tekerleğin çevrildiği kontrol (`Image` ya da `MosaicView`), imlecin `imageScroller`'daki yeri ve imlecin altındaki noktanın zoom 1'deki görüntü koordinatı. |
+| `_zoomLastFrame`, `_panLastFrame` | `TimeSpan?` | `null` | Son animasyon karesinin zamanı (`RequestAnimationFrame`); kare aralığı 1 ms–100 ms'ye kırpılır, ilk karede 1/60 sn sayılır. |
+| `PanGlideSeconds` | `const double` | 0,12 | Kaydırma süzülmesinin yavaşlama zaman sabiti. |
+| `_panSamples`, `_panClock` | `Queue<(TimeSpan, Point)>`, `Stopwatch` | boş | Sürüklemenin son ~80 ms'lik konum örnekleri (en az 2 örnek tutulur); bırakma hızını bulmak için. |
+| `_panVelocity`, `_panGliding` | `Vector`, `bool` | 0, `false` | Süzülme hızı (px/sn, kaydırma ofseti yönünde) ve sürüp sürmediği. |
 | `_syncingScroll` | `bool` | `false` | Palet/Atanan sütunlarının kaydırma eşitlemesinde yeniden giriş kilidi. |
 | `_mosAnimTimer`, `_mosAnimFrame` | `DispatcherTimer?`, `int` | `null`, 0 | Mos düğmesi animasyonu (350 ms). |
 | `_exportAnimTimer`, `_exportAnimFrame` | `DispatcherTimer?`, `int` | `null`, 0 | Dışa aktarma ok animasyonu (90 ms, `ExportAnimOffsets`). |
@@ -226,10 +234,17 @@ Window
 | `OnWidthKeyDown` | Genişlik `TextBox` (`KeyDown`) | Enter'da `OnWidthChanged` ile aynı işlem. |
 | `OnColorCheckChanged` | `catalogListBox` satırındaki `CheckBox` (`Click`) | `ColorItem.IsExcluded` ayarlanır, `_vm.SyncColorExclusion(item)`. |
 | `OnCatalogSelectionChanged` | `catalogListBox` (`SelectionChanged`) | Yalnızca piksel düzenleme açıkken seçili katalog taşını kaynak yapar (`_vm.SetSourceFromCatalog`). |
-| `OnImageWheel` | Tuvaldeki `Image` veya `MosaicView` (`PointerWheelChanged`) | İmleç merkezli yakınlaştırma: ×1,25 / ×0,8 (sınırı `ZoomLevel` uygular, `MinZoomLevel`–20). İmlecin altındaki nokta kontrolün kendi koordinatında alınır; zoom'dan sonra `imageScroller.UpdateLayout()` ile yeni boyut yerleşime işlenir (yoksa ofset eski boyuta göre kırpılır), sonra o nokta `TranslatePoint` ile bulunup ofset imlecin altına gelecek kadar kaydırılır. Kenar boşluğu ve görüntü pencereden küçükken ortalanması da böylece doğru hesaplanır. Ardından `UpdateNav()`. |
-| `OnImagePointerPressed` | `Image` veya `MosaicView` (`PointerPressed`); gönderen herhangi bir `Control` olabilir | Sağ tuş: kaydırmayı başlatır, işaretçiyi yakalar. Sol/orta: `_vm.OnImagePressed(...)`; orta tuşla (düzenleme dışı) katalog seçimini temizler. |
-| `OnImagePointerMoved` | `Image` veya `MosaicView` (`PointerMoved`); gönderen herhangi bir `Control` olabilir | Kaydırma sürüyorsa ofseti günceller; değilse `_vm.OnImagePointerMoved` (özellikler paneli). |
-| `OnImagePointerReleased` | `Image` veya `MosaicView` (`PointerReleased`) | Kaydırmayı bitirir, yakalamayı bırakır. |
+| `OnImageWheel` | Tuvaldeki `Image` veya `MosaicView` (`PointerWheelChanged`) | İmleç merkezli yakınlaştırma. Adım `e.Delta.Y` ±4'e kırpılır (0 ise bir şey yapılmaz); hedef `1,25^adım` ile çarpılır, böylece fare tekerleğinin bir çentiği ×1,25 / ×0,8, dokunmatik yüzeyin kesirli adımları orantılı olarak daha az olur. Önce kaydırma süzülmesi durur. Hedef, süzülme sürüyorsa önceki hedeften, yoksa geçerli zoom'dan hesaplanır ve `[MinZoomLevel, 20]` aralığına kırpılır. `_zoomImg`, `_zoomMouse` ve `_zoomAnchor` (imlecin altındaki nokta ÷ geçerli zoom) kaydedilir. `SmoothMouse` kapalıysa zoom `ApplyZoomAnchored(hedef)` ile hemen uygulanır; açıksa süzülme yoksa başlatılır (`TopLevel.RequestAnimationFrame(ZoomGlideFrame)`). |
+| `ZoomGlideFrame(now)` | `RequestAnimationFrame` | Süzülme durdurulmuşsa çıkar. `next = cur · (hedef/cur)^(1 − e^(−dt/ZoomGlideSeconds))` (log ölçekte üstel yaklaşma); hedefe %0,2'den yakınsa hedefe oturur. `ApplyZoomAnchored(next)`; bittiyse ya da zoom değişmediyse (sınıra dayandı) süzülme biter, değilse sonraki kare istenir. |
+| `ApplyZoomAnchored(zoom)` | `OnImageWheel`, `ZoomGlideFrame` | `_vm.ZoomLevel = zoom` (sınırı VM uygular); `imageScroller.UpdateLayout()` ile yeni boyut yerleşime işlenir (yoksa ofset eski boyuta göre kırpılır); `_zoomAnchor · ZoomLevel` noktası `TranslatePoint` ile `imageScroller`'a çevrilip ofset bu nokta `_zoomMouse`'un altına gelecek kadar kaydırılır (negatif olmaz). Kenar boşluğu ve görüntü pencereden küçükken ortalanması da böylece doğru hesaplanır. Ardından `UpdateNav()`. |
+| `StopZoomGlide()` / `StopPanGlide()` | Görsele basma, `OnResetSize`, `LoadImageAndFit`, `OnToggleSmoothMouse` (kapatınca); `StopPanGlide` ayrıca `OnImageWheel` | Süzülmeyi durdurur (bekleyen kare hiçbir şey yapmadan çıkar). |
+| `RecordPanSample(p)` | Sürükleme başlarken, `OnImagePointerMoved` (kaydırma sürerken), bırakırken | Konumu zamanla birlikte kuyruğa ekler; 80 ms'den eski örnekleri (en az 2 kalacak şekilde) atar. |
+| `StartPanGlide(releasedAt)` | `OnImagePointerReleased` | Son örneği ekler; hız = (en eski örnek − bırakma noktası) / geçen süre (ofset yönünde). `SmoothMouse` kapalıysa, süre ≤ 5 ms ise ya da hız < 150 px/sn ise süzülmez; yoksa `PanGlideFrame` başlar. |
+| `PanGlideFrame(now)` | `RequestAnimationFrame` | Ofset `hız · dt` kadar kayar (negatif olmaz), hız `e^(−dt/PanGlideSeconds)` ile azalır, `UpdateNav()`. Ofset değişmediyse (kenar) ya da hız < 20 px/sn ise durur. |
+| `OnToggleSmoothMouse` | **Görünüm → Yumuşak Fare Hareketi** | `_vm.SmoothMouse` tersine çevrilir; kapatılınca süren süzülmeler durur. |
+| `OnImagePointerPressed` | `Image` veya `MosaicView` (`PointerPressed`); gönderen herhangi bir `Control` olabilir | Her basışta zoom ve kaydırma süzülmesini durdurur. Sağ tuş: kaydırmayı başlatır (örnek kuyruğu temizlenip ilk örnek eklenir), işaretçiyi yakalar. Sol/orta: `_vm.OnImagePressed(...)`; orta tuşla (düzenleme dışı) katalog seçimini temizler. |
+| `OnImagePointerMoved` | `Image` veya `MosaicView` (`PointerMoved`); gönderen herhangi bir `Control` olabilir | Kaydırma sürüyorsa konum örneğini kaydeder (`RecordPanSample`) ve ofseti günceller (imleci birebir izler); değilse `_vm.OnImagePointerMoved` (özellikler paneli). |
+| `OnImagePointerReleased` | `Image` veya `MosaicView` (`PointerReleased`) | Kaydırmayı bitirir, yakalamayı bırakır, `StartPanGlide` ile bırakma hızına göre süzülmeyi başlatır. |
 | `OnScrollChanged` | `imageScroller` (`ScrollChanged`) | `UpdateNav()` → `_vm.UpdateNavigator(...)`. |
 | `OnNavPointerPressed` / `OnNavPointerMoved` | `navPanel` | Tıklanan/sürüklenen noktayı görünümün merkezine getirir (`NavigateFromNav` → `_vm.NavigatorTarget`). Konum, kenarlığın içindeki içerik paneline (`NavContent`) göre alınır; `UpdateNav` da bu panelin boyutunu (`NavInnerSize`) gönderir. |
 | `OnSelectStone` | Özellikler paneli varyant düğmeleri (`Tag` = `Index`) | `_vm.SelectStone(index)`. |

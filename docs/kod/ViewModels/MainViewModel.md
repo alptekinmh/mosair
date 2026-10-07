@@ -1,5 +1,5 @@
 # MainViewModel
-> Kaynak: `mosair/ViewModels/MainViewModel.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/ViewModels/MainViewModel.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 Ana pencerenin tek view model'idir: görsel yükleme, mozaikleme (klasik M3 ve Optimum), taş dokulu görüntünün (RS) çizim kaynağı ve genel görünümü (`RenderSource`, `OverviewBitmap`; çizimi `MosaicView` yapar), zoom/navigator, renk kataloğu seçimi, piksel düzenleme, taş varyantı seçimi, proje aç/kaydet, dışa aktarma ve Google Sheet stok işlemlerinin (stoğa göre mozaik, "Stoğa göre" dahil) UI tarafındaki durumunu tutar. Ağır işi servislere (`MosaicEngine`, `StoneTextureService`, `ProjectService`, `StockSheetService`, `PixelEditService`) devreder; kendisi durum, iş sırası ve kullanıcıya gösterilen metinlerden sorumludur. Dosyada ayrıca katalog/palet/atama listelerinin satır modelleri (`ColorItem`, `PaletteItem`, `AssignedItem`, `StoneThumbItem`) bulunur.
@@ -178,6 +178,7 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 
 | Ad | Tip | Açıklama |
 |---|---|---|
+| `SmoothMouse` | `bool` | Yumuşak fare hareketi: tekerlekle zoom yeni değere kısa bir geçişle varır, sağ tuşla kaydırma bırakılınca süzülür (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz. Animasyonun kendisi `MainWindow`'dadır. **Görünüm → Yumuşak Fare Hareketi**'nin onay işareti buna bağlıdır. |
 | `WatchNewImages` | `bool` | İndirilenler / Masaüstüne gelen yeni JPEG/PNG için bildirim gösterilsin mi (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz; değişince `MainWindow.ApplyWatchNewImages` izleyiciyi başlatır/durdurur. **Dosya → Yeni Görselleri Bildir**'in onay işareti buna bağlıdır. |
 | `IsPropertiesPanelOpen` | `bool` | Özellikler paneli açık mı (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz; değişince `MainWindow.ApplyPropertiesPanel` sütunları ayarlar. Görünüm menüsündeki onay işareti buna bağlıdır. |
 | `HasSelection` | `bool` | Bir piksel (taş) seçili mi. Değişince `ShowImageInfo` ve `ShowStoneHint` bildirilir. `LoadImage`, `OpenProject` ve `ClearSelection` false yapar; `OnImagePressed` true. |

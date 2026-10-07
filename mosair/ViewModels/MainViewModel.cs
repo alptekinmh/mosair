@@ -1587,6 +1587,15 @@ public bool UseLab
             set { if (_isPropertiesPanelOpen == value) return; _isPropertiesPanelOpen = value; OnPropertyChanged(); }
         }
 
+        // Wheel zoom glides to the new zoom and a right-drag pan glides on after release (View menu; on at
+        // start-up, not remembered).
+        private bool _smoothMouse = true;
+        public bool SmoothMouse
+        {
+            get => _smoothMouse;
+            set { if (_smoothMouse == value) return; _smoothMouse = value; OnPropertyChanged(); }
+        }
+
         // Offer new JPEG/PNG files in Downloads and on the Desktop (File menu; on at start-up, not remembered).
         private bool _watchNewImages = true;
         public bool WatchNewImages

@@ -4,7 +4,7 @@
 > Kod tarafı için [`kod/`](kod/) klasörüne, belgelerin haritası için [README.md](README.md) dosyasına bakın.
 > Uygulama içindeki kılavuz (**Yardım → Kullanım Kılavuzu**, F1) bu dosyanın kısa özetidir; ikisi birbiriyle çelişmemelidir.
 >
-> Güncelleme: 2026-10-06 · Kapsadığı sürüm: v1.3.1
+> Güncelleme: 2026-10-07 · Kapsadığı sürüm: v1.3.1
 
 ## İçindekiler
 
@@ -109,6 +109,7 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Öğe | Kısayol | Ne yapar |
 |---|---|---|
 | Ekrana Sığdır | `Ctrl/⌘+0` | Görseli pencereye sığacak şekilde yakınlaştırır/uzaklaştırır |
+| Yumuşak Fare Hareketi | — | Açıkken (✓, varsayılan) tekerlekle yakınlaştırma kısa bir geçişle yapılır ve sağ tuşla sürükleme bırakılınca görüntü biraz süzülerek durur; kapalıyken yakınlaştırma anında olur, süzülme olmaz ([§5](#6-görsel-alanı-canvas)) |
 | Özellikler Paneli | `F4` | Sağdaki Özellikler panelini gizler / gösterir; açıkken ✓ ile işaretlidir ([§7](#7-özellikler-paneli-properties)) |
 
 ### Araçlar
@@ -209,8 +210,8 @@ Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı iş
 
 | İşlem | Nasıl |
 |---|---|
-| Yakınlaştır/uzaklaştır | Fare tekerleği; imlecin altındaki nokta sabit kalır. Her adım ×1,25. En fazla 20×, en az ekrana sığdırma ölçüsü (ama ‰1'den az değil; bkz. [§18](#18-bilinen-davranışlar-ve-sınırlamalar)). |
-| Kaydır (pan) | **Sağ tuşu basılı tutup sürükle** |
+| Yakınlaştır/uzaklaştır | Fare tekerleği; imlecin altındaki nokta sabit kalır. Her tekerlek adımı ×1,25; dokunmatik yüzeyin küçük adımları orantılı olarak daha az yakınlaştırır. **Görünüm → Yumuşak Fare Hareketi** açıkken (varsayılan) yeni zoom'a yaklaşık 0,2 sn'lik yumuşak bir geçişle varılır; geçiş sürerken gelen adımlar hedefe eklenir ve imlecin altındaki nokta her karede yerinde kalır. En fazla 20×, en az ekrana sığdırma ölçüsü (ama ‰1'den az değil; bkz. [§18](#18-bilinen-davranışlar-ve-sınırlamalar)). |
+| Kaydır (pan) | **Sağ tuşu basılı tutup sürükle**; görüntü imleci birebir izler. Yumuşak Fare Hareketi açıkken, hızlıca sürükleyip bırakınca görüntü aynı yönde kısa bir süre süzülür ve yavaşlayarak durur (yavaş bırakınca ya da kenara gelince süzülmez). Görsele tıklamak, yeni bir tekerlek adımı, Ekrana Sığdır ve yeni görsel yüklemek süzülmeyi durdurur. |
 | Taş seç | **Sol tık**: Özellikler paneli o taşı gösterir |
 | Piksel düzenle | Düzenleme modundayken sol tık ([§9](#9-piksel-düzenleme-ve-taş-varyantı)) |
 | Düzenleme modunu aç/kapat | **Orta tuş** (mozaik varken, mozaiğin üzerinde) |
@@ -604,8 +605,8 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 
 | Nerede | Tuş | İşlem |
 |---|---|---|
-| Canvas | Tekerlek | Yakınlaştır / uzaklaştır |
-| Canvas | Sağ tuş + sürükle | Kaydır |
+| Canvas | Tekerlek | Yakınlaştır / uzaklaştır (Yumuşak Fare Hareketi açıkken yumuşak geçişle) |
+| Canvas | Sağ tuş + sürükle | Kaydır (Yumuşak Fare Hareketi açıkken bırakınca kısa süre süzülür) |
 | Canvas | Sol tuş | Taş seç / piksel düzenle |
 | Canvas | Orta tuş | Piksel düzenleme modunu aç/kapat |
 | Mini harita | Sol tuş (tıkla/sürükle) | O bölgeye git |
@@ -664,7 +665,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - **Proje Kaydet** her zaman `Masaüstü/mosairPROJECT/<görsel adı>/` konumuna yazar; başka bir yerden açılmış bir projenin üzerine yazmaz. Belirli bir konuma kaydetmek için **Farklı Kaydet** kullanın.
 - Drive'dan açılan projeler (görselleriyle) bilgisayarda `%LOCALAPPDATA%\mosair\drive\` klasöründe kalır; uygulama bu klasörü temizlemez.
 - Drive'daki proje klasöründe görsel zaten varsa yeniden gönderilmez; aynı adlı ama değiştirilmiş bir görsel Drive'da güncellenmez.
-- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; Özellikler paneli de her açılışta açık başlar; **Yeni Görselleri Bildir** her açılışta işaretli başlar.
+- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; Özellikler paneli de her açılışta açık başlar; **Yeni Görselleri Bildir** ve **Yumuşak Fare Hareketi** her açılışta işaretli başlar.
 - Yeni görsel bildirimi yalnızca İndirilenler ve Masaüstü klasörlerinin kendisini izler; alt klasörlere (ör. `Masaüstü/mosairEXPORT`) gelen dosyalar için çıkmaz. Yalnızca `.jpg`, `.jpeg` ve `.png` dosyaları için çıkar (BMP, TIFF gibi biçimler bildirilmez, ama **Görsel Yükle** ile açılabilir). Her dosya için mosair açık kaldıkça yalnızca bir kez bildirim çıkar (tarayıcı dosyayı yeniden yazsa ya da aynı adla yeniden indirilse de). Birden çok mosair penceresi açıksa her biri kendi bildirimini gösterir. mosair kapalıyken gelen dosyalar sonradan bildirilmez; pencere simge durumundayken ya da başka bir pencerenin arkasındayken de bildirim mosair penceresinin içinde çıkar ve 7 sn sonra kapanır, bu yüzden görülmeyebilir. İzlenemeyen bir klasör (izin yok, ağ sürücüsü) sessizce atlanır.
 - Optimum **Taş** sayısı her değiştiğinde ve her yeni Mos'ta piksel düzenlemeleri sıfırlanır.
 - Bir proje açıldığında Optimum **Taş** kaydırıcısı görünmez; proje dosyası Optimum analizini içermez. Kaydırıcı için Optimum açıkken yeniden Mos yapın.

@@ -1,6 +1,6 @@
 # Loc
 
-> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -44,13 +44,13 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **276** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **277** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
 | `Stock*` | 57 | Google Sheet stok entegrasyonu: başlıklar, onaylar, sonuçlar, hata metinleri (`StockErr*`), ayar diyaloğu, açılışta stok yükleme (`StockLoadedOnStart`, `StockLoadOnStartFailed`) ve "Stoğa göre" sonuç/uyarı metinleri (`StockAware*`, `StockCountsWritten`) |
 | `Drive*` | 29 | Google Drive: ayar penceresi (`DriveSettingsTitle`, `DriveFolder*`, `DriveScriptUrl*`, `DriveSteps*`, `DriveCopyScript`, `DriveTest*`, `DriveScriptCopied`, `DriveSettingsNote`, `DriveSettingsSaved`), Drive'dan Aç proje tarayıcısı (`DriveOpen*`, `DriveRefresh`, `DriveShowInBrowser`, `DriveSearch`, `DriveSortNewest`, `DriveSortName`, `DriveNoMatch`), uyarı ve hata metinleri (`DriveNotConfigured`, `DriveErrDeploy`, `DriveNoMosaic`, `DriveFailed`) |
-| `Menu*` | 44 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Görünüm'deki `MenuPropertiesPanel`, Dosya'daki `MenuScreenshot`, `MenuWatchImages` ve `MenuDrive` alt menüsü (`MenuDriveSave`, `MenuDriveOpen`, `MenuDriveSettings`), Düzen'deki `MenuCancelWork` dahil) |
+| `Menu*` | 45 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Görünüm'deki `MenuPropertiesPanel` ve `MenuSmoothMouse`, Dosya'daki `MenuScreenshot`, `MenuWatchImages` ve `MenuDrive` alt menüsü (`MenuDriveSave`, `MenuDriveOpen`, `MenuDriveSettings`), Düzen'deki `MenuCancelWork` dahil) |
 | `Status*` | 32 | Durum çubuğu metinleri (çoğu biçim dizesi); yeni görsel bildiriminde **Aç** iş sürerken basılınca `StatusToastBusy`; Drive işlemleri için `StatusDriveSaving`, `StatusDriveSaved`, `StatusDriveListing`, `StatusDriveDownloading`; büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct`, ekran görüntüsü için `StatusScreenshotSaved` ve iptal metinleri (`StatusCancelling`, `StatusMosCancelled`, `StatusMosCancelledCleared`, `StatusStockFitCancelled`, `StatusStockCheckCancelled`, `StatusExportCancelled`) dahil |
 | `Tip*` | 27 | Araç çubuğu, stok düğmesi, Google Drive düğmesi (`TipDrive`), "Stoğa göre" kutusu (`TipStockAware`), durum çubuğundaki İptal düğmesi (`TipCancel`) ve Özellikler panelinin gizle/göster düğmeleriyle seçimi bırakma düğmesi (`TipPanelHide`, `TipPanelShow`, `TipClearSelection`) ipuçları |
 | `Alert*` | 17 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.; Drive uyarılarının başlığı `AlertDriveTitle`); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |

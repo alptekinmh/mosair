@@ -1,6 +1,6 @@
 # HelpWindow
 
-> Kaynak: `mosair/HelpWindow.axaml`, `mosair/HelpWindow.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/HelpWindow.axaml`, `mosair/HelpWindow.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -71,6 +71,7 @@ Klavye kısayolları bölümündeki tuş metinleri sabit değil, `Loc.Instance` 
 - Dil değişimi canlıdır: paneller `IsTr`/`IsEn` bağlamasıyla gizlenip gösterilir, pencere yeniden açılmaz.
 - Stok Yönetimi bölümü (`sec8` / `sec8en`) araç çubuğundaki açılır okları (Tablo: tabloyu aç / stok ayarları; Stok Çek: stoğu olmayanları kırmızıyla işaretle) ve Optimum'un yanındaki "Stoğa göre" kutusunu da anlatır.
 - Proje Yönetimi bölümünün (`sec5` / `sec5en`) `.mos` kartında, kısayol satırının altında **Google Drive** alt başlığı vardır: Drive ikonu ve menüsü, bir kezlik Apps Script kurulumu, Drive'a Kaydet (mosairPROJECT gibi proje klasörü + orijinal görsel) / Drive'dan Aç (önizlemeli kartlar, arama, sıralama, Yenile, Drive'da göster), güvenlik (`ALLOWED_FOLDERS`), boyut sınırı ve uygulama güncellenince script'in "Dağıtımları yönet → Yeni sürüm" ile güncellenmesi. Arayüz Yapısı bölümündeki toolbar ve Dosya menüsü satırları ile Fare Kontrolleri'ndeki Sol Tuş / Ok (▾) satırları da Drive ikonunu anar.
+- Arayüz Yapısı bölümünün menü metni Görünüm menüsündeki **Yumuşak Fare Hareketi** öğesini, Canvas kartı ve Tekerlek kısayol satırı yumuşak zoom ile sağ tuşla kaydırma sonrası süzülmeyi anlatır (TR ve EN).
 - Arayüz Yapısı bölümünün (`sec1` / `sec1en`) "Sag Panel — Properties" kartı, taş seçili değilken görünen görsel bilgisi kartlarını (önizleme ve dosya adı, Ayrıntılar: çözünürlük, megapiksel, en-boy oranı, dosya boyutu, tarih; renk çubuğuyla baskın renkler; en çok kullanılan taşlar; ✕ ile seçime dönüş) ve panelin gizlenip gösterilmesini (başlıktaki düğme, F4, Görünüm → Özellikler Paneli, sağ kenardaki şerit) de anlatır; menü paragrafında Görünüm menüsü Özellikler Paneli'ni de sayar. Dosya menüsü paragrafı **Yeni Görselleri Bildir**'i sayar; İpuçları bölümünde (`sec6` / `sec6en`) İndirilenler / Masaüstüne gelen yeni JPEG/PNG için çıkan "mosair'de açılsın mı?" bildirimini anlatan bir ipucu vardır.
 - Metinlerin tamamı XAML'a gömülüdür (`Loc` sözlüğünde değildir); yalnızca pencere başlığı ve kısayol tuşları `Loc`'tan gelir.
 
