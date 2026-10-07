@@ -660,16 +660,6 @@ namespace mosair.Services
             drl.arar[0].y2 = R;
             drl.arar[0].rgbM = targetColors;
 
-            drl dr = drl.arar[0];
-            for (int i = 0; i < R; i++)
-            {
-                for (int j = 0; j < C; j++)
-                {
-                    var d = new dr { x = j, y = i };
-                    dr.ar.Add(d);
-                }
-            }
-
             drl.dat = new int[R, C, 4];
             for (int j = 0; j < R; j++)
             {
