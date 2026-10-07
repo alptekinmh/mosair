@@ -1,6 +1,6 @@
 # StoneTextureService
 
-> Kaynak: `mosair/Services/StoneTextureService.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Services/StoneTextureService.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -12,6 +12,7 @@ Gerçek taş fotoğraflarını (`02_RS` klasörü) yükler ve mozaiği çizmek i
 |---|---|
 | `MosaicEngine` (`ApplyOptimalK`, `RunM3` sonu, stoğa göre düzeltme `FixToStock`) | `PopulateRandomIndices`, `LoadTextures` (yalnızca `prepareTextures` açıksa; `FixToStock` ayrıca mozaik değiştiyse veya `texturesAlways` ise); `MosaicEngine.Reset` içinde `Reset` |
 | `MainViewModel.RefreshMosaicView` | `CreateRenderSource` |
+| `MainViewModel.PadResult` | Dolgu taşı eklendikten sonra `EnsureTextures` (tam kalıba tamamlama) |
 | `MainViewModel.OpenProject` | `Reset`, ardından arka planda `LoadTextures` |
 | `MainViewModel.LoadImage` | `Reset` |
 | `MosaicRenderSource` | `LoadTextureSet` (palette olmayan taş için), `ResizeSet` |
@@ -48,6 +49,7 @@ Static sınıf, özel durum alanları:
 | `FindRSPath()` → `string?` | `02_RS` klasörünü bulur | `LoadTextures`, `FindFolderForCode` |
 | `PopulateRandomIndices(R, C)` | `MosaicData.arn`'ı `R*C` uzunlukta, `1..15` arası rastgele doku indeksiyle doldurur | `MosaicEngine`, `ProjectService.Open` |
 | `LoadTextures()` | `MosaicData.arMA`'daki her benzersiz kod adı için `LoadTextureSet` ile 16 doku yükler (paralel) ve sonucu yeni bir `_textures` sözlüğü olarak koyar. `02_RS` bulunamazsa sözlük boş kalır. | `MosaicEngine`, `MainViewModel.OpenProject` |
+| `EnsureTextures(codeName, color)` | Bir taşın dokuları `_textures`'ta yoksa `LoadTextureSet` ile yükleyip ekler. Mevcut sözlük değiştirilmez: içeriği kopyalanmış yeni bir sözlük atanır. Kod adı boşsa ya da dokular zaten varsa hiçbir şey yapmaz. Mos sırasında yüklenmeyen dolgu taşı için kullanılır. | `MainViewModel.PadResult` |
 | `LoadTextureSet(codeName, color)` → `List<byte[,,]>` (`internal`) | Bir taşın `1.jpg … 16.jpg` dokularını yükler; eksik dosya yerine 3×3 düz renk doku koyar | `LoadTextures`, `MosaicRenderSource` |
 | `FindFolderForCode(codeName)` → `string?` | Gerekirse yolu/klasör listesini hazırlayıp kod adının klasörünü döndürür | `MainViewModel` (`UpdatePropTexture`, `SelectStone`) |
 | `LoadSingleThumbnail(codeName, width, height)` → `SKBitmap?` | `1.jpg`'yi verilen boyuta küçültür | `ColorItem.ThumbnailBitmap` |
@@ -60,7 +62,7 @@ Static sınıf, özel durum alanları:
 ## Önemli davranışlar ve iş kuralları
 
 - **Çizim kuralları** (renk → kod eşlemesi, en yakın renk yedeği, varyant seçimi, ızgara) [MosaicRenderSource](./MosaicRenderSource.md) sayfasındadır. `RenderRegion` eski tek parça RS ile aynı yerde birebir aynı pikselleri üretir.
-- **Anlık görüntü güvenliği:** `_textures` yerinde değiştirilmez; `LoadTextures` ve `Reset` yeni sözlük atar. Küçültülmüş kopyalar servis düzeyinde tutulmaz, her `MosaicRenderSource` kendi önbelleğini tutar.
+- **Anlık görüntü güvenliği:** `_textures` yerinde değiştirilmez; `LoadTextures`, `EnsureTextures` ve `Reset` yeni sözlük atar. Küçültülmüş kopyalar servis düzeyinde tutulmaz, her `MosaicRenderSource` kendi önbelleğini tutar.
 - **Bellek sınırı:** Yalnızca `GenerateRSBitmap` için geçerlidir: toplam piksel `ImageService.MaxBitmapPixels`'ı (≈ 536,9 milyon; Skia'nın 2 GB sınırı) aşarsa `OutOfMemoryException` atılır. Ekran gösterimi karolarla çalıştığı için böyle bir sınırı yoktur; dışa aktarma da bu sınırın üstündeki görüntüyü `MosaicExporter` ile parça parça yazar, N'yi düşürmez.
 - `LoadTextures` dokuları `Parallel.ForEach` ile yükler; sonuçlar önce `ConcurrentDictionary`'de toplanıp sonra yeni sözlüğe aktarılır.
 

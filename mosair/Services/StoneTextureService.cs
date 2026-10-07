@@ -72,6 +72,15 @@ namespace mosair.Services
             _textures = textures;
         }
 
+        // Adds one stone's textures when they are not loaded yet (the filler stone added after Mos).
+        public static void EnsureTextures(string codeName, rgb color)
+        {
+            if (string.IsNullOrEmpty(codeName) || _textures.ContainsKey(codeName)) return;
+            var set = LoadTextureSet(codeName, color);
+            // A new dictionary, so a renderer reading the current one is never disturbed.
+            _textures = new Dictionary<string, List<byte[,,]>>(_textures) { [codeName] = set };
+        }
+
         // The 16 variant images of one stone (1.jpg .. 16.jpg); a missing image becomes a small solid tile.
         internal static List<byte[,,]> LoadTextureSet(string codeName, rgb color)
         {

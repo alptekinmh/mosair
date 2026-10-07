@@ -47,7 +47,7 @@ Window
    │       │     InputGesture F4; onay işareti IsPropertiesPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
-   │       │     | Optimum, Stoğa göre, Taş Sayısı ▸ (Önerilen / Artır / Azalt),
+   │       │     | Optimum, Stoğa göre, Kalıp Dolgu (OnTogglePadding; ✓ UsePadding), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
    │       │     Stok ▸ (Aç, Ayarlar | Çek ▸ (Devre dışı bırak / Kırmızıyla işaretle), Kontrol, Sil, Tümünü Sil, Ekle)
    │       └─ Yardım (MenuHelp): Kullanım Kılavuzu (F1)
    ├─ [Top] Araç çubuğu (toolbar)
@@ -69,7 +69,7 @@ Window
    └─ Ana içerik: Grid x:Name="mainGrid" (380 | 4 | * | 4 | 220; panel gizliyken son iki sütun 0 | 24)
        ├─ Sütun 0 — Sol panel
        │   ├─ Boyut satırı: WidthCm kutusu (InvDouble) + cm, StoneInfo / MouldInfo / OriginalInfo
-       │   ├─ Tümünü Seç / Tümünü Kaldır düğmeleri
+       │   ├─ Tümünü Seç / Tümünü Kaldır düğmeleri + Kalıp Dolgu ToggleButton (IsChecked=UsePadding, BtnPadding, ipucu TipPadding)
        │   └─ 3 sütun (başlıklar ColCatalog / ColMatch / ColAssigned)
        │       ├─ catalogListBox (CatalogColors): onay kutusu + renk + kod/ad + stok kg
        │       ├─ paletteScroll (PaletteColors): eşleşen renk kareleri
@@ -213,6 +213,7 @@ Window
 | `OnSelectInterpolation` | İnterpolasyon Flyout'u, `InterpolationMethods` düğmeleri (`Tag`) | `_vm.SelectedInterpolation`. |
 | `OnToggleOptimum` | Araçlar → Optimum | `_vm.UseOptimal` tersine çevrilir (toolbar'daki onay kutusu doğrudan bağlamadır). |
 | `OnToggleStockAware` | Araçlar → Stoğa göre (onay işareti `UseStockAware`'e bağlı) | `_vm.UseStockAware` tersine çevrilir (toolbar'daki "Stoğa göre" onay kutusu doğrudan bağlamadır). |
+| `OnTogglePadding` | Araçlar → Kalıp Dolgu (onay işareti `UsePadding`'e bağlı) | `_vm.UsePadding` tersine çevrilir (katalog üstündeki Kalıp Dolgu düğmesi doğrudan bağlamadır). |
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |
 | `OnStonesLess` | Araçlar → Taş Sayısı → Azalt | `OptimalK - 1` (en az 1). |

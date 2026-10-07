@@ -643,15 +643,226 @@ namespace mosair.Services
             LastOptimalResult = null;
             LastRunPool = null;
             LastStockResult = null;
+            ForgetPadding();
             _optSrc = null;
             _optCandidates = null;
             _optGamut = null;
+        }
+
+        // ===== Whole moulds: the finished mosaic is padded on the right and at the bottom =====
+        // The robot (WPF) can only make whole moulds of 26 × 26 stones (31.2 cm). After every Mos, Optimum stone
+        // count change and stock fit, the mosaic is filled up to the next whole mould with one filler stone: a
+        // catalog stone not used in the mosaic, with enough stock, whose colour is farthest from every stone used.
+        // The image keeps its place at the top left, so all stone coordinates stay the same. Mos itself never
+        // sees the padding: it is added last and taken off (RemovePadding) before a stock fit works on the mosaic.
+
+        public const int MouldStones = 26;
+
+        public static int UpToMould(int n) => (n + MouldStones - 1) / MouldStones * MouldStones;
+
+        // Stones the padding needs for an R × C mosaic (0 when it is already whole moulds).
+        public static int PaddingCount(int rows, int cols) => UpToMould(rows) * UpToMould(cols) - rows * cols;
+
+        // The mosaic's size before padding, and the filler stone; 0 / "" when the mosaic is not padded (also for
+        // an opened project, whose padding is simply part of its saved mosaic).
+        public static int UnpaddedRows { get; private set; }
+        public static int UnpaddedCols { get; private set; }
+        public static int FillerId { get; private set; }
+        public static string FillerCode { get; private set; } = "";
+        public static bool IsPadded => UnpaddedRows > 0;
+
+        public static void ForgetPadding()
+        {
+            UnpaddedRows = UnpaddedCols = FillerId = 0;
+            FillerCode = "";
+        }
+
+        // The filler for `count` stones: among the catalog stones that the mosaic does not use and that have at least
+        // `count` stones of stock, the one whose smallest colour difference (Lab ΔE) to the stones used is largest.
+        // Null when no stone qualifies.
+        public static rgb? ChooseFiller(int count, Func<int, int?> capacityOfId)
+        {
+            var usedIds = new HashSet<int>();
+            var used = new List<(double L, double A, double B)>();
+            if (MosaicData.arMA.Count > 0)
+                foreach (var c in MosaicData.arMA[0])
+                    if (c.numOfPixel > 0 && usedIds.Add(c.ID))
+                    {
+                        var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
+                        used.Add((lab.L, lab.A, lab.B));
+                    }
+
+            rgb? best = null;
+            double bestScore = double.MinValue;
+            foreach (var c in MosaicData.arRGBAll)
+            {
+                if (c.ID <= 0 || string.IsNullOrEmpty(c.codeName) || usedIds.Contains(c.ID)) continue;
+                if (capacityOfId(c.ID) is not int cap || cap < count) continue;
+                var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
+                double nearest = double.MaxValue;
+                foreach (var u in used)
+                {
+                    double dl = lab.L - u.L, da = lab.A - u.A, db = lab.B - u.B;
+                    nearest = Math.Min(nearest, Math.Sqrt(dl * dl + da * da + db * db));
+                }
+                if (nearest > bestScore) { bestScore = nearest; best = c; }
+            }
+            return best;
+        }
+
+        // Fills the mosaic up to whole moulds with `filler` (see above) and returns the new stone-colour bitmap.
+        // Every per-stone array grows to the padded size; the filler is added to the palettes with its count.
+        public static SKBitmap PadToMoulds(rgb filler)
+        {
+            int R = MosaicData.dataM3.GetLength(0), C = MosaicData.dataM3.GetLength(1);
+            int R2 = UpToMould(R), C2 = UpToMould(C);
+            if (R2 == R && C2 == C) return MosaicData.reducedBitmap!;
+            byte fb = (byte)filler.b, fg = (byte)filler.g, fr = (byte)filler.r;
+
+            MosaicData.dataM3 = GrowStones(MosaicData.dataM3, R2, C2, fb, fg, fr);
+            if (MosaicData.dataM1.GetLength(0) == R && MosaicData.dataM1.GetLength(1) == C)
+                MosaicData.dataM1 = GrowStones(MosaicData.dataM1, R2, C2, fb, fg, fr);
+            if (MosaicData.dataM3Backup.GetLength(0) == R && MosaicData.dataM3Backup.GetLength(1) == C)
+                MosaicData.dataM3Backup = GrowStones(MosaicData.dataM3Backup, R2, C2, fb, fg, fr);
+
+            var dat = new int[R2, C2, 4];
+            for (int i = 0; i < R2; i++)
+                for (int j = 0; j < C2; j++)
+                {
+                    if (i < R && j < C)
+                        for (int k = 0; k < 4; k++) dat[i, j, k] = drl.dat[i, j, k];
+                    else
+                    {
+                        dat[i, j, 0] = 1; dat[i, j, 1] = 1; dat[i, j, 2] = 1; dat[i, j, 3] = filler.ID;
+                    }
+                }
+            drl.dat = dat;
+
+            // Texture variants: kept for the image's stones, random (as after a Mos) for the filler.
+            var oldArn = MosaicData.arn;
+            var arn = new int[R2 * C2];
+            var rand = new Random();
+            for (int i = 0; i < R2; i++)
+                for (int j = 0; j < C2; j++)
+                    arn[i * C2 + j] = i < R && j < C && oldArn != null && oldArn.Length == R * C
+                        ? oldArn[i * C + j] : rand.Next(1, 16);
+            MosaicData.arn = arn;
+
+            foreach (var reg in drl.arar)
+            {
+                if (reg.x2 == C) reg.x2 = C2;
+                if (reg.y2 == R) reg.y2 = R2;
+            }
+
+            int count = R2 * C2 - R * C;
+            foreach (var lists in new[] { MosaicData.arMA, MosaicData.arMB, MosaicData.arMBR })
+            {
+                if (lists.Count == 0) continue;
+                var e = CloneRgb(filler);
+                e.numOfPixel = count;
+                e.reg = 1;
+                e.boolLeaveOut = false;
+                e.stokYetersiz = false;
+                e.u = lists[0].Count + 1;
+                e.uc = e.u;
+                e.ri = e.r; e.gi = e.g; e.bi = e.b;
+                e.dis = (e.r + e.g + e.b) / 3.0;
+                lists[0].Add(e);
+            }
+
+            UnpaddedRows = R;
+            UnpaddedCols = C;
+            FillerId = filler.ID;
+            FillerCode = filler.codeName;
+
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R2, C2));
+            // The previous export bitmap may be on screen; it is left to the finalizer (as in RebuildFromAssignment).
+            MosaicData.exportBitmap = MosaicData.reducedBitmap.Copy();
+            return MosaicData.reducedBitmap;
+        }
+
+        // Takes the padding off again (a crop at the top left), so a stock fit sees exactly the mosaic Mos made.
+        public static void RemovePadding()
+        {
+            if (!IsPadded) return;
+            int R = UnpaddedRows, C = UnpaddedCols;
+            int R2 = MosaicData.dataM3.GetLength(0), C2 = MosaicData.dataM3.GetLength(1);
+            int count = R2 * C2 - R * C;
+
+            MosaicData.dataM3 = CropStones(MosaicData.dataM3, R, C);
+            if (MosaicData.dataM1.GetLength(0) == R2 && MosaicData.dataM1.GetLength(1) == C2)
+                MosaicData.dataM1 = CropStones(MosaicData.dataM1, R, C);
+            if (MosaicData.dataM3Backup.GetLength(0) == R2 && MosaicData.dataM3Backup.GetLength(1) == C2)
+                MosaicData.dataM3Backup = CropStones(MosaicData.dataM3Backup, R, C);
+
+            var dat = new int[R, C, 4];
+            for (int i = 0; i < R; i++)
+                for (int j = 0; j < C; j++)
+                    for (int k = 0; k < 4; k++) dat[i, j, k] = drl.dat[i, j, k];
+            drl.dat = dat;
+
+            if (MosaicData.arn != null && MosaicData.arn.Length == R2 * C2)
+            {
+                var arn = new int[R * C];
+                for (int i = 0; i < R; i++) Array.Copy(MosaicData.arn, i * C2, arn, i * C, C);
+                MosaicData.arn = arn;
+            }
+
+            foreach (var reg in drl.arar)
+            {
+                if (reg.x2 == C2) reg.x2 = C;
+                if (reg.y2 == R2) reg.y2 = R;
+            }
+
+            // The filler's padding stones leave its palette entry (pixel edits may have used it inside as well).
+            foreach (var lists in new[] { MosaicData.arMA, MosaicData.arMB, MosaicData.arMBR })
+            {
+                if (lists.Count == 0) continue;
+                var e = lists[0].FindLast(c => c.ID == FillerId);
+                if (e == null) continue;
+                e.numOfPixel -= count;
+                if (e.numOfPixel <= 0) lists[0].Remove(e);
+            }
+
+            ForgetPadding();
+            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
+        }
+
+        private static byte[,,] GrowStones(byte[,,] src, int rows, int cols, byte b, byte g, byte r)
+        {
+            int R = src.GetLength(0), C = src.GetLength(1);
+            var dst = new byte[rows, cols, 3];
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                {
+                    if (i < R && j < C)
+                    {
+                        dst[i, j, 0] = src[i, j, 0]; dst[i, j, 1] = src[i, j, 1]; dst[i, j, 2] = src[i, j, 2];
+                    }
+                    else
+                    {
+                        dst[i, j, 0] = b; dst[i, j, 1] = g; dst[i, j, 2] = r;
+                    }
+                }
+            return dst;
+        }
+
+        private static byte[,,] CropStones(byte[,,] src, int rows, int cols)
+        {
+            var dst = new byte[rows, cols, 3];
+            for (int i = 0; i < rows; i++)
+                for (int j = 0; j < cols; j++)
+                {
+                    dst[i, j, 0] = src[i, j, 0]; dst[i, j, 1] = src[i, j, 1]; dst[i, j, 2] = src[i, j, 2];
+                }
+            return dst;
         }
 
         // --- Private pipeline methods ---
 
         private static void CreateSingleRegion(int targetColors, int R, int C)
         {
+            ForgetPadding();   // a mosaic built from scratch is not padded
             drl.arar.Clear();
             drl.arar.Add(new drl());
             drl.arar[0].x1 = 0;

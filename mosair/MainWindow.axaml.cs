@@ -232,6 +232,11 @@ public partial class MainWindow : Window
         _vm.UseStockAware = !_vm.UseStockAware;
     }
 
+    private void OnTogglePadding(object? sender, RoutedEventArgs e)
+    {
+        _vm.UsePadding = !_vm.UsePadding;
+    }
+
     private void OnStonesSuggested(object? sender, RoutedEventArgs e)
     {
         if (_vm.IsProcessing) return;

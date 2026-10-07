@@ -621,6 +621,8 @@ namespace mosair.ViewModels
                 await Task.Run(() =>
                 {
                     WorkCancellation.Token = cts.Token;
+                    // The fit works on the mosaic as Mos made it; the padding is added again below in every case.
+                    MosaicEngine.RemovePadding();
                     try
                     {
                         if (optimum)
@@ -638,21 +640,23 @@ namespace mosair.ViewModels
                         WorkCancellation.Token = default;
                         result = optimum ? MosaicEngine.ApplyOptimalK(k) : MosaicData.reducedBitmap;
                     }
+                    WorkCancellation.Token = default;
+                    result = PadResult(result, stock);
                 });
                 sw.Stop();
                 if (version != _contentVersion) return null; // a new image or project was opened meanwhile
                 if (cancelled)
                 {
-                    if (optimum)
-                    {
-                        FinishMosaic(result, sw.Elapsed);
-                        DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
-                    }
+                    FinishMosaic(result, sw.Elapsed);
+                    DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+                    ShowPadNote();
                     _stockCheckCancelled = true;
                     return null;
                 }
                 if (!fixedOk)
                 {
+                    FinishMosaic(result, sw.Elapsed);
+                    DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
                     Fail(Loc.Get("StockAwareCannotFix"));
                     return null;
                 }
@@ -1189,6 +1193,128 @@ public bool UseLab
         // The minimum-usage rule (dropping stones used only a few times) is switched off: MinUsage stays 0.
         private static StockAwareOptions StockOptions() => new();
 
+        // ----- Whole moulds (see MosaicEngine.PadToMoulds): the last step of every Mos, stone-count change and
+        // stock fit. The filler is chosen with the stock the fit used, otherwise the stock read with the image. -----
+        private string _padNote = "";
+        private bool _padAlert;
+
+        // "Kalıp Dolgu" (button above the catalog, Tools menu): pad to whole moulds. Off at start-up, not
+        // remembered. Switching it pads or un-pads the mosaic on screen at once.
+        private bool _usePadding;
+        public bool UsePadding
+        {
+            get => _usePadding;
+            set
+            {
+                if (_usePadding == value) return;
+                _usePadding = value;
+                OnPropertyChanged();
+                _ = ApplyPaddingChoiceAsync();
+            }
+        }
+
+        private async Task ApplyPaddingChoiceAsync()
+        {
+            // While a job runs the choice simply applies to its result / the next Mos.
+            if (!MosaicDone || IsProcessing || IsExporting) return;
+            int rows = MosaicData.dataM3.GetLength(0), cols = MosaicData.dataM3.GetLength(1);
+            if (_usePadding ? MosaicEngine.PaddingCount(rows, cols) == 0 : !MosaicEngine.IsPadded) return;
+            int version = _contentVersion;
+            if (_usePadding && _loadedStock == null && _stockOnHand == null && StockConfigured()) await RefreshStockAsync();
+            if (version != _contentVersion || IsProcessing || !MosaicDone) return;
+            var stock = _stockOnHand ?? _loadedStock;
+            bool pad = _usePadding;
+            var oldExport = MosaicData.exportBitmap;
+            SKBitmap? result = null;
+            IsProcessing = true;
+            try
+            {
+                await Task.Run(() =>
+                {
+                    if (pad) result = PadResult(MosaicData.reducedBitmap, stock);
+                    else
+                    {
+                        MosaicEngine.RemovePadding();
+                        result = MosaicData.reducedBitmap;
+                    }
+                });
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
+            if (version != _contentVersion || result == null) return;
+            string elapsed = ElapsedTime;
+            FinishMosaic(result, TimeSpan.Zero);
+            ElapsedTime = elapsed;
+            DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+            if (!pad) StatusText = Loc.Get("PadRemoved");
+            else if (_padNote.Length > 0)
+            {
+                StatusText = _padNote;
+                if (_padAlert) Alert(Loc.Get("PadTitle"), _padNote);
+                _padNote = "";
+                _padAlert = false;
+            }
+        }
+
+        private static bool StockConfigured() => !string.IsNullOrEmpty(StockSheetService.LoadConfig().SheetId);
+
+        // The stock to choose a filler from; read now when padding will be needed and it is not loaded yet.
+        private async Task<Dictionary<int, StockSheetService.StoneStock>?> PadStockAsync(
+            Dictionary<int, StockSheetService.StoneStock>? fitStock)
+        {
+            if (fitStock != null || !_usePadding) return fitStock;
+            if (MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width) == 0) return _loadedStock;
+            if (_loadedStock == null && StockConfigured()) await RefreshStockAsync();
+            return _loadedStock;
+        }
+
+        // Runs on the worker thread after the mosaic is built: pads it and returns the bitmap to show.
+        private SKBitmap? PadResult(SKBitmap? result, Dictionary<int, StockSheetService.StoneStock>? stock)
+        {
+            _padNote = "";
+            _padAlert = false;
+            if (result == null || !_usePadding) return result;
+            int need = MosaicEngine.PaddingCount(MosaicData.dataM3.GetLength(0), MosaicData.dataM3.GetLength(1));
+            if (need == 0) return result;
+            if (stock == null)
+            {
+                // Without stock the filler cannot be chosen (the person who pads works with the stock sheet).
+                _padNote = Loc.Fmt("PadNoStock", need.ToString("N0"));
+                _padAlert = StockConfigured();
+                return result;
+            }
+            var filler = MosaicEngine.ChooseFiller(need, id => stock.TryGetValue(id, out var s) ? s.Capacity : null);
+            if (filler == null)
+            {
+                _padNote = Loc.Fmt("PadNoStone", need.ToString("N0"));
+                _padAlert = true;
+                return result;
+            }
+            var padded = MosaicEngine.PadToMoulds(filler);
+            StoneTextureService.EnsureTextures(filler.codeName, filler);
+            string label = stock.TryGetValue(filler.ID, out var info)
+                ? string.Join(" ", new[] { $"#{filler.ID}", info.Code, info.Name.Trim() }.Where(x => x.Length > 0))
+                : $"#{filler.ID} {filler.codeName}";
+            _padNote = Loc.Fmt("PadDone", need.ToString("N0"), label);
+            return padded;
+        }
+
+        // UI thread, after the path's own status text: the padding result (and a dialog when it could not be done).
+        private void ShowPadNote()
+        {
+            if (_padNote.Length == 0) return;
+            StatusText += " · " + _padNote;
+            if (_padAlert) Alert(Loc.Get("PadTitle"), _padNote);
+            _padNote = "";
+            _padAlert = false;
+        }
+
+        // A stone of the padding (only for a mosaic padded in this session).
+        private static bool InPadding(int y, int x) =>
+            MosaicEngine.IsPadded && (y >= MosaicEngine.UnpaddedRows || x >= MosaicEngine.UnpaddedCols);
+
         // Runs on the worker thread.
         private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
             stock == null
@@ -1354,6 +1480,7 @@ public bool UseLab
                 SKBitmap? result = null;
                 var oldExport = MosaicData.exportBitmap;
                 var stock = UseStockAware ? _stockOnHand : null;
+                var padStock = stock ?? _stockOnHand ?? _loadedStock;
                 bool stockFitCancelled = false;
                 await Task.Run(() =>
                 {
@@ -1366,6 +1493,8 @@ public bool UseLab
                         WorkCancellation.Token = default;
                         result = MosaicEngine.ApplyOptimalK(k);
                     }
+                    WorkCancellation.Token = default;
+                    result = PadResult(result, padStock);
                 });
                 sw.Stop();
                 if (version != _contentVersion) return; // another image or Mos took over
@@ -1379,6 +1508,7 @@ public bool UseLab
                     // The sheet column still holds the counts from the last Stok Kontrol.
                     StatusText += " · " + Loc.Get("StockAwareRecheck");
                 }
+                ShowPadNote();
             }
             catch (Exception ex)
             {
@@ -1456,8 +1586,10 @@ public bool UseLab
         public double ImageDisplayHeight => _bitmapPixelHeight * _zoomLevel;
         public int BitmapPixelWidth => _bitmapPixelWidth;
         public int BitmapPixelHeight => _bitmapPixelHeight;
-        public int StoneColumns => (int)MosaicEngine.width;
-        public int StoneRows => (int)MosaicEngine.height;
+        // The mosaic's own size once there is one (padded to whole moulds, or an opened project); before Mos the
+        // image's stone size.
+        public int StoneColumns => MosaicDone ? MosaicData.dataM3.GetLength(1) : (int)MosaicEngine.width;
+        public int StoneRows => MosaicDone ? MosaicData.dataM3.GetLength(0) : (int)MosaicEngine.height;
         public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
 
 
@@ -1948,7 +2080,11 @@ public bool UseLab
             DimensionSize = $"{dim.WidthCm:F1} x {dim.HeightCm:F1} cm";
             DimensionArea = $"{dim.AreaM2:F2} m²";
             StoneInfo = Loc.Fmt("InfoStones", dim.StoneColumns, dim.StoneRows, dim.Stones);
-            MouldInfo = Loc.Fmt("InfoMoulds", dim.MouldColumns, dim.MouldRows, dim.Moulds);
+            // Whole moulds after padding (from the stone rows, which the mosaic really has).
+            int mouldCols = MosaicEngine.UpToMould(dim.StoneColumns) / MosaicEngine.MouldStones;
+            int mouldRows = MosaicEngine.UpToMould(dim.StoneRows) / MosaicEngine.MouldStones;
+            MouldInfo = Loc.Fmt("InfoMoulds", mouldCols, mouldRows, mouldCols * mouldRows,
+                (mouldCols * 31.2).ToString("F1"), (mouldRows * 31.2).ToString("F1"));
             OriginalInfo = Loc.Fmt("InfoOriginal", dim.OriginalWidth, dim.OriginalHeight);
         }
 
@@ -2032,6 +2168,7 @@ public bool UseLab
                 }
                 bool stockFixOk = true;
                 bool stockFitCancelled = false;
+                var padStock = await PadStockAsync(stock);
                 await Task.Run(() =>
                 {
                     WorkCancellation.Token = cts.Token;
@@ -2074,6 +2211,8 @@ public bool UseLab
                             result = MosaicData.reducedBitmap;
                         }
                     }
+                    WorkCancellation.Token = default;
+                    result = PadResult(result, padStock);
                 });
 
                 sw.Stop();
@@ -2112,6 +2251,7 @@ public bool UseLab
                         Alert(Loc.Get("StockAwareTitle"), Loc.Get("StockAwareCannotFix"));
                     }
                 }
+                ShowPadNote();
             }
             catch (Exception ex) when (IsCancellation(ex))
             {
@@ -2655,6 +2795,8 @@ public bool UseLab
             var usedCodes = new HashSet<string>();
             foreach (var r in MosaicData.arMB[0])
             {
+                // The filler stays unticked, so the next Mos does not use it inside the image.
+                if (MosaicEngine.IsPadded && r.ID == MosaicEngine.FillerId) continue;
                 if (!string.IsNullOrEmpty(r.codeName))
                     usedCodes.Add(r.codeName);
             }
@@ -2722,11 +2864,11 @@ public bool UseLab
         {
             if (!MosaicDone) return;
 
-            double sw = imageControlWidth / MosaicEngine.width;
+            int w = MosaicData.dataM3.GetLength(1);
+            int h = MosaicData.dataM3.GetLength(0);
+            double sw = imageControlWidth / w;
             int x = (int)(pointerX / sw);
             int y = (int)(pointerY / sw);
-            int w = (int)MosaicEngine.width;
-            int h = (int)MosaicEngine.height;
 
             if (x < 0 || x >= w || y < 0 || y >= h) return;
 
@@ -2797,7 +2939,12 @@ public bool UseLab
             HasSelection = true;
             UpdatePropTexture(codeName, y, x);
 
-            if (PixelEditService.IsPixelEditActive)
+            if (PixelEditService.IsPixelEditActive && InPadding(y, x))
+            {
+                // The padding is re-made after each stock fit; edits there would be lost.
+                StatusText = Loc.Get("PadNoEdit");
+            }
+            else if (PixelEditService.IsPixelEditActive)
             {
                 if (PixelEditService.IsSourcePixelMode)
                 {
@@ -2837,7 +2984,7 @@ public bool UseLab
 
             if (string.IsNullOrEmpty(codeName)) return;
 
-            int w = (int)MosaicEngine.width;
+            int w = MosaicData.dataM3.GetLength(1);
             int arnIndex = pixelY * w + pixelX;
             int stoneNum = (MosaicData.arn != null && arnIndex < MosaicData.arn.Length)
                 ? MosaicData.arn[arnIndex] : 0;
@@ -2881,7 +3028,7 @@ public bool UseLab
             if (string.IsNullOrEmpty(_selectedCodeName)) return;
             if (MosaicData.arn == null) return;
 
-            int w = (int)MosaicEngine.width;
+            int w = MosaicData.dataM3.GetLength(1);
             int arnIndex = _selectedPixelY * w + _selectedPixelX;
             if (arnIndex >= MosaicData.arn.Length) return;
 

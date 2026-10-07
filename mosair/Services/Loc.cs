@@ -336,7 +336,15 @@ namespace mosair.Services
 
             // Dimension info
             ["InfoStones"] = "{0} x {1} = {2} tas",
-            ["InfoMoulds"] = "{0} x {1} = {2} kalip",
+            ["InfoMoulds"] = "{0} x {1} = {2} kalip ({3} x {4} cm)",
+            ["PadTitle"] = "Kalıba tamamlama",
+            ["BtnPadding"] = "Kalıp Dolgu",
+            ["TipPadding"] = "Açıkken mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, mozaikte kullanılmayan, stoğu yeten ve renkçe en uzak taş konur. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
+            ["PadRemoved"] = "Kalıp dolgusu kaldırıldı",
+            ["PadDone"] = "Kalıba tamamlandı: {0} dolgu taşı ({1})",
+            ["PadNoStock"] = "Kalıba tamamlanamadı: dolgu taşını seçmek için stok bilgisi yok ({0} dolgu taşı gerekli)",
+            ["PadNoStone"] = "Kalıba tamamlanamadı: mozaikte kullanılmayan ve stoğu {0} taşa yeten bir taş yok",
+            ["PadNoEdit"] = "Dolgu alanı düzenlenemez",
             ["InfoOriginal"] = "(orj im = {0} x {1} pixels)",
 
             // Properties format
@@ -645,7 +653,15 @@ namespace mosair.Services
 
             // Dimension info
             ["InfoStones"] = "{0} x {1} = {2} stones",
-            ["InfoMoulds"] = "{0} x {1} = {2} molds",
+            ["InfoMoulds"] = "{0} x {1} = {2} molds ({3} x {4} cm)",
+            ["PadTitle"] = "Whole moulds",
+            ["BtnPadding"] = "Mould Fill",
+            ["TipPadding"] = "When on, the mosaic is filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with a stone not used in the mosaic, with enough stock and farthest in colour. These are real stones, so they are counted.",
+            ["PadRemoved"] = "Mould fill removed",
+            ["PadDone"] = "Filled to whole moulds: {0} filler stones ({1})",
+            ["PadNoStock"] = "Not filled to whole moulds: no stock information to choose the filler stone ({0} filler stones needed)",
+            ["PadNoStone"] = "Not filled to whole moulds: no stone unused in the mosaic has stock for {0} stones",
+            ["PadNoEdit"] = "The padding cannot be edited",
             ["InfoOriginal"] = "(orig img = {0} x {1} pixels)",
 
             // Properties format
