@@ -175,9 +175,9 @@ Window
 | `OnLoadImage` | `menuLoadImage`, toolbar Görüntü Yükle, Ctrl/⌘+I | Dosya seçici (`*.png, *.jpg, *.jpeg, *.bmp, *.tiff`) → `LoadImageAndFit`. |
 | `LoadImageAndFit(path)` | `OnLoadImage`, `OnDrop`, `OnToastOpen` | `_vm.LoadImage(path)`; görsel yüklendiyse (`_vm.ImageLoaded`) `_vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height)`: yeni görsel görsel alanına sığmış açılır (`LoadImage`'ın kurduğu `ZoomLevel = 2` ekranda kalmaz). |
 | `ApplySourceImageQuality()` | Kurucu, `ZoomLevel` değişimi (`PropertyChanged`) | Mos öncesi görseli gösteren `sourceImage` için `RenderOptions.BitmapInterpolationMode`: `ZoomLevel < 1` iken `HighQuality` (görsel kendi boyutundan küçük gösterilirken en yakın piksel ölçekleme pikselleri atlar, fotoğraf bozuk görünür), 1x ve üstünde `LowQuality` (pikseller keskin kalır). |
-| `OnOpenProject` | `menuOpenProject`, toolbar Proje Aç, Ctrl/⌘+O | `*.mos` seçici → `_vm.OpenProject` → `FitToWindow`. |
-| `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S | Masaüstü/mosairPROJECT kuralına göre kaydeder, kaynak görüntüyü kopyalar, 1,2 sn `saveCheckIcon` gösterir. |
-| `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S | `SaveAsDialog()` çağırır. |
+| `OnOpenProject` | `menuOpenProject`, toolbar Proje Aç, Ctrl/⌘+O | `*.mos` seçici → `await _vm.OpenProjectAsync(path)` (okuma arka planda, pencere donmaz) → `true` dönerse `FitToWindow`. |
+| `OnSaveProject` | `menuSave`, `saveProjectBtn`, Ctrl/⌘+S (`CanSaveProject`) | Masaüstü/mosairPROJECT kuralına göre `await _vm.SaveProjectAsync(mosPath)` (yazma arka planda); başarısızsa döner. Ardından kaynak görüntüyü (yoksa) `Task.Run` içinde kopyalar ve 1,2 sn `saveCheckIcon` gösterir. |
+| `OnSaveAsProject` | `menuSaveAs`, toolbar Farklı Kaydet, Ctrl/⌘+Shift+S (`CanSaveProject`) | `SaveAsDialog()` çağırır; o da seçilen yola `await _vm.SaveProjectAsync(fullPath)`. |
 | `OnScreenshot` | Araç çubuğundaki kamera düğmesi (dışa aktarmanın solunda) ve **Dosya → Ekran Görüntüsü Al** | Görsel alanını (`imageScroller`) ekranın gerçek ölçeğiyle (`RenderScaling`) `RenderTargetBitmap`'e çizer, kaydırma çubukları hariç yalnızca görünen kısmı (`Viewport`) alır; tuval rengini (`BgCanvas`) temadan bulur ve `_vm.SaveScreenshotAsync` ile `mosairEXPORT/tarih_saat__ad__ekran.png` olarak kaydeder. Mini harita ayrı bir katmanda olduğu için görüntüye girmez. Klasör oluşturulamazsa `ShowExportFolderError` uyarı gösterir (aynısı hızlı dışa aktarmada da). |
 | `OnDriveSave` | Toolbar'daki Drive ikonu, ok Flyout'u ve **Dosya → Google Drive → Drive'a Kaydet** (`CanUseDrive`) | `_vm.SaveToDriveAsync()`. |
 | `OnDriveOpen` | Ok Flyout'u ve **Dosya → Google Drive → Drive'dan Aç...** | `_vm.OpenFromDriveAsync()` `true` dönerse (proje açıldıysa) `_vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height)`; iptal ya da hatada zoom olduğu gibi kalır. |
@@ -279,8 +279,8 @@ Window
 | Z | Ctrl+Shift veya ⌘+Shift | `_vm.RedoPixelEdit()` | — |
 | I | `CmdKey` | `OnLoadImage` | — |
 | O | `CmdKey` | `OnOpenProject` | — |
-| S | `CmdKey` | `OnSaveProject` | `_vm.MosaicDone` |
-| S | `CmdKey` + Shift | `OnSaveAsProject` | `_vm.MosaicDone` |
+| S | `CmdKey` | `OnSaveProject` | `_vm.CanSaveProject` |
+| S | `CmdKey` + Shift | `OnSaveAsProject` | `_vm.CanSaveProject` |
 | E | `CmdKey` | `OnExportImage` (`DefaultExportQuality` ile) | `_vm.CanExport` |
 | 0 / NumPad0 | `CmdKey` | `OnResetSize` | — |
 | M | `CmdKey` | `OnRunMosaic` | (`RunMosaicAsync` içinde `CanRunMosaic`) |
@@ -295,7 +295,7 @@ Koşul sağlanmasa da Ctrl/⌘+S/E olayı `Handled` işaretlenir. Esc ise yalnı
 | İşlem | Hedef | Kural |
 |---|---|---|
 | Kaydet (`OnSaveProject`) | `Masaüstü/mosairPROJECT/<ad>/<ad>.mos` | `<ad>` = `ProjectService.CurrentPictureFileName` dosya adı (uzantısız), yoksa `mosair_project`. Klasörler yoksa oluşturulur. Kaynak görüntü `<ad><uzantı>` olarak aynı klasöre, **yalnızca orada yoksa** kopyalanır. Mevcut `.mos` sorulmadan üzerine yazılır. |
-| Farklı Kaydet (`SaveAsDialog`) | Seçilen `X/foo.mos` → **`X/foo/foo.mos`** | Önerilen ad kaynak görüntü adı. Seçilen klasörün içinde proje adıyla alt klasör açılır. Görüntü kopyalanmaz. |
+| Farklı Kaydet (`SaveAsDialog`) | Seçilen `X/foo.mos` → **`X/foo/foo.mos`** | Önerilen ad kaynak görüntü adı. Seçilen klasörün içinde proje adıyla alt klasör açılır. Görüntü yeniden adlandırılmadan, kendi adıyla ve yalnızca orada yoksa projenin yanına kopyalanır (`ProjectService.WriteSnapshot`; hızlı kayıt da aynısını yapar). |
 | Dışa aktar (`ExportQuickAsync`) | `Masaüstü/mosairEXPORT/<M.dd.yyyy>_<HH.mm.ss>__<ad>__<G>x<Y>.<jpeg\|png>` | `<ad>` kaynak görüntü adı ya da `mosair`; `<G>x<Y>` = `WidthCm` × `HeightCm` (tam sayıya yuvarlanmış). Uzantı `QuickExportExtension(quality)`: JPEG mümkünse ve tamponu kullanılabilir belleğin yarısını aşmıyorsa `jpeg`, değilse `png`. Klasör `GetExportDir()` ile oluşturulur. |
 | Farklı dışa aktar (`ExportAsAsync`) | Seçilen yol | JPEG veya PNG; biçim uzantıdan belirlenir (`ExportImageAsync`). |
 
@@ -334,9 +334,9 @@ Durum kalıcı değildir; pencere her açılışta panel açık başlar.
 
 ## Dikkat / bilinen sınırlamalar
 
-- Dosya menüsündeki `menuSave` ve `menuSaveAs` `MosaicDone`'a, `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir. Ekran Görüntüsü Al `ImageLoaded`'a, İşlemi İptal Et `CanCancel`'a bağlıdır. **Google Drive** alt menüsü, toolbar'daki Drive ikonu ve oku `CanUseDrive`'a bağlıdır (bir Drive işlemi sürerken pasif); mozaik yokken de etkindir, Drive'a Kaydet bu durumda `DriveNoMosaic` uyarısı verir.
+- Dosya menüsündeki `menuSave` ve `menuSaveAs` (ve toolbar'daki iki kaydet düğmesi) `CanSaveProject`'e (`MosaicDone && !IsSavingProject`; bir kayıt sürerken pasif), `menuExport` ve `menuExportAs` `CanExport`'a bağlıdır (ikisi de doğrudan dışa aktarmaz, yalnızca kalite alt menüsünü açar); toolbar ve klavye yoluyla aynı koşullar geçerlidir. Ekran Görüntüsü Al `ImageLoaded`'a, İşlemi İptal Et `CanCancel`'a bağlıdır. **Google Drive** alt menüsü, toolbar'daki Drive ikonu ve oku `CanUseDrive`'a bağlıdır (bir Drive işlemi sürerken pasif); mozaik yokken de etkindir, Drive'a Kaydet bu durumda `DriveNoMosaic` uyarısı verir.
 - Menüdeki İşlemi İptal Et'in `InputGesture="Escape"` değeri XAML'de sabittir ve yalnızca gösterimdir; Esc'yi `OnKeyDown` yakalar. Repo kuralı gereği her özellik üst menüde de bulunur (CLAUDE.md, "Menüler").
-- `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez.
+- `OnSaveProject` ve `SaveAsDialog` klasör oluşturma, kaydetme ve görsel kopyalamayı `try/catch` içinde yapar; disk/izin hatasında uygulama kapanmaz, `MainViewModel.ReportSaveFailed` "Proje kaydedilemedi" uyarısını gösterir ve ✓ simgesi gösterilmez. Proje dosyası arka planda önce `.part` olarak yazılıp sonra yerine taşındığından, yarıda kalan bir kayıt var olan projeyi bozmaz. Kayıt tıklandığı andaki mozaiği yazar.
 - Kayıt (`SpecialFolder.Desktop`) ve dışa aktarma (`SpecialFolder.DesktopDirectory`) farklı özel klasör sabitleri kullanır; çoğu sistemde aynı yeri gösterir ama tutarsızdır.
 - `OnRunMosaic`, `RunMosaicAsync` hiçbir şey yapmadan dönse bile `FitToWindow` çağırır.
 - `ShowHelp` her çağrıda yeni bir modal `HelpWindow` açar ve beklemez.

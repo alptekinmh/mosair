@@ -121,7 +121,33 @@ namespace mosair.Services
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
+        // A project ready to be written: everything copied out of the mosaic's live state, so it can be turned into
+        // JSON and written in the background while the user goes on working (CreateSnapshot on the UI thread,
+        // WriteSnapshot on a worker).
+        public sealed class ProjectSnapshot
+        {
+            internal ProjectSnapshot(ProjectData data, string? pictureSource)
+            {
+                Data = data;
+                PictureSource = pictureSource;
+            }
+
+            internal ProjectData Data { get; }
+            // The loaded image, copied next to the project; null when no image is loaded.
+            internal string? PictureSource { get; }
+        }
+
+        // Saves in one go (the snapshot and the file); used where blocking is fine (tools, tests).
         public static void Save(string filePath, double widthCm, double zoomLevel,
+            bool showGrid, bool showMouldLines, byte gcR, byte gcG, byte gcB,
+            int interpMethod)
+        {
+            WriteSnapshot(CreateSnapshot(widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod), filePath);
+            CurrentFileName = filePath;
+        }
+
+        // Copies what the project file needs (arrays, palettes, edits, settings). Fast: array copies only.
+        public static ProjectSnapshot CreateSnapshot(double widthCm, double zoomLevel,
             bool showGrid, bool showMouldLines, byte gcR, byte gcG, byte gcB,
             int interpMethod)
         {
@@ -226,40 +252,88 @@ namespace mosair.Services
                 });
             }
 
-            data.Arn = MosaicData.arn;
+            data.Arn = MosaicData.arn == null ? null : (int[])MosaicData.arn.Clone();
             data.Source = "mosair";
             data.WpfExtra = _wpfExtra;
 
+            string? picture = MosaicData.inputBitmap != null && !string.IsNullOrEmpty(CurrentPictureFileName)
+                ? CurrentPictureFileName : null;
+            return new ProjectSnapshot(data, picture);
+        }
+
+        // Writes the project file (and copies the loaded image next to it when that folder does not have it yet).
+        // Safe on a worker thread: it only uses the snapshot. The file is written under a temporary name and then
+        // moved over the target, so a failed or interrupted save leaves an existing project as it was.
+        // Does not change CurrentFileName; the caller does once the save has succeeded.
+        public static void WriteSnapshot(ProjectSnapshot snapshot, string filePath)
+        {
+            var data = snapshot.Data;
             string dir = Path.GetDirectoryName(filePath)!;
             Directory.CreateDirectory(dir);
 
-            if (MosaicData.inputBitmap != null && !string.IsNullOrEmpty(CurrentPictureFileName))
+            if (snapshot.PictureSource != null)
             {
-                string picDest = Path.Combine(dir, Path.GetFileName(CurrentPictureFileName));
-                if (!File.Exists(picDest))
-                {
-                    string? srcPath = FindOriginalImagePath();
-                    if (srcPath != null && File.Exists(srcPath))
-                        File.Copy(srcPath, picDest, true);
-                }
+                string picDest = Path.Combine(dir, Path.GetFileName(snapshot.PictureSource));
+                if (!File.Exists(picDest) && File.Exists(snapshot.PictureSource))
+                    File.Copy(snapshot.PictureSource, picDest, true);
                 data.PictureFileName = Path.GetFileName(picDest);
             }
 
-            byte[] json = JsonSerializer.SerializeToUtf8Bytes(data, JsonOpts);
-            File.WriteAllBytes(filePath, json);
-
-            CurrentFileName = filePath;
+            string part = filePath + ".part";
+            try
+            {
+                using (var fs = new FileStream(part, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
+                    JsonSerializer.Serialize(fs, data, JsonOpts);
+                File.Move(part, filePath, overwrite: true);
+            }
+            catch
+            {
+                try { File.Delete(part); } catch { }
+                throw;
+            }
         }
 
+        // A project read from disk and fully prepared (arrays rebuilt and, for WPF files, mirrored), but not yet
+        // put into the mosaic's live state. ReadProject runs on a worker; ApplyProject on the UI thread.
+        public sealed class LoadedProject
+        {
+            internal LoadedProject(ProjectData data, string filePath) { Data = data; FilePath = filePath; }
+
+            public ProjectData Data { get; }
+            public string FilePath { get; }
+            // The project's image beside the file ("" when the project names none; it may not exist).
+            public string PicturePath { get; internal set; } = "";
+            public byte[,,] DataM3 => _m3;
+
+            internal byte[,,] _m1 = null!, _m3 = null!, _m3f = null!, _m3b = null!;
+            internal int[,,] _dat = null!;
+            internal List<rgb> _all = new(), _rgb = new();
+            internal List<List<rgb>> _ma = new(), _mb = new(), _mbr = new();
+            internal List<PixelEditRecord> _edits = new();
+            internal List<drl> _regions = new();
+            internal int[]? _arn;     // null: pick new random texture variants
+        }
+
+        // Reads and opens a project in one go; used where blocking is fine (tools, tests).
         public static ProjectData? Open(string filePath)
+        {
+            var loaded = ReadProject(filePath);
+            if (loaded == null) return null;
+            ApplyProject(loaded);
+            return loaded.Data;
+        }
+
+        // Reads, parses and prepares a project without touching the live state (safe on a worker thread).
+        // Null when the file is missing or not a JSON project (e.g. an old WPF binary .mos).
+        public static LoadedProject? ReadProject(string filePath)
         {
             if (!File.Exists(filePath)) return null;
 
-            byte[] json = File.ReadAllBytes(filePath);
             ProjectData? data;
             try
             {
-                data = JsonSerializer.Deserialize<ProjectData>(json, JsonOpts);
+                using var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 20);
+                data = JsonSerializer.Deserialize<ProjectData>(fs, JsonOpts);
             }
             catch (JsonException)
             {
@@ -267,50 +341,23 @@ namespace mosair.Services
                 return null;
             }
             if (data == null) return null;
-            _wpfExtra = data.WpfExtra;
 
-            MosaicData.dataM1 =Unflatten3D(data.DataM1Flat, data.DataM1Dims);
-            MosaicData.dataM3 = Unflatten3D(data.DataM3Flat, data.DataM3Dims);
-            MosaicData.dataM3F = Unflatten3D(data.DataM3FFLat, data.DataM3FDims);
-            MosaicData.dataM3Backup = Unflatten3D(data.DataM3BackupFlat, data.DataM3BackupDims);
-            drl.dat = UnflattenInt3D(data.DrlDatFlat, data.DrlDatDims);
-
-            MosaicData.arRGBAll.Clear();
-            foreach (var c in data.ArRGBAll) MosaicData.arRGBAll.Add(c.ToRgb());
-            MosaicData.arRGB.Clear();
-            foreach (var c in data.ArRGB) MosaicData.arRGB.Add(c.ToRgb());
-
-            MosaicData.arMA.Clear();
-            foreach (var list in data.ArMA)
+            var p = new LoadedProject(data, filePath)
             {
-                var l = new List<rgb>();
-                foreach (var c in list) l.Add(c.ToRgb());
-                MosaicData.arMA.Add(l);
-            }
-            MosaicData.arMB.Clear();
-            foreach (var list in data.ArMB)
-            {
-                var l = new List<rgb>();
-                foreach (var c in list) l.Add(c.ToRgb());
-                MosaicData.arMB.Add(l);
-            }
-            MosaicData.arMBR.Clear();
-            foreach (var list in data.ArMBR)
-            {
-                var l = new List<rgb>();
-                foreach (var c in list) l.Add(c.ToRgb());
-                MosaicData.arMBR.Add(l);
-            }
-
-            MosaicData.arcs.Clear();
-            foreach (var c in MosaicData.arRGBAll)
-                MosaicData.arcs.Add(c.boolLeaveOut);
-
-            // Also drops the previous project's undo/redo history and leaves pixel-edit mode.
-            PixelEditService.Reset();
+                _m1 = Unflatten3D(data.DataM1Flat, data.DataM1Dims),
+                _m3 = Unflatten3D(data.DataM3Flat, data.DataM3Dims),
+                _m3f = Unflatten3D(data.DataM3FFLat, data.DataM3FDims),
+                _m3b = Unflatten3D(data.DataM3BackupFlat, data.DataM3BackupDims),
+                _dat = UnflattenInt3D(data.DrlDatFlat, data.DrlDatDims)
+            };
+            foreach (var c in data.ArRGBAll) p._all.Add(c.ToRgb());
+            foreach (var c in data.ArRGB) p._rgb.Add(c.ToRgb());
+            foreach (var list in data.ArMA) p._ma.Add(list.ConvertAll(c => c.ToRgb()));
+            foreach (var list in data.ArMB) p._mb.Add(list.ConvertAll(c => c.ToRgb()));
+            foreach (var list in data.ArMBR) p._mbr.Add(list.ConvertAll(c => c.ToRgb()));
             foreach (var ep in data.EditedPixels)
             {
-                PixelEditService.EditedPixels.Add(new PixelEditRecord
+                p._edits.Add(new PixelEditRecord
                 {
                     Y = ep.Y, X = ep.X,
                     Source = ep.Source.ToRgb(),
@@ -318,57 +365,84 @@ namespace mosair.Services
                     Original = ep.Original.ToRgb()
                 });
             }
+            foreach (var reg in data.Regions)
+                p._regions.Add(new drl(reg.X1, reg.Y1, reg.X2, reg.Y2) { rgbM = reg.RgbM });
+
+            // Texture variants must match this mosaic's size; otherwise (missing, or a leftover of another
+            // project) new random variants are picked when the project is applied, as after a Mos.
+            int rows = p._m3.GetLength(0), columns = p._m3.GetLength(1);
+            p._arn = data.Arn != null && data.Arn.Length == rows * columns ? data.Arn : null;
+
+            if (data.Source != "mosair")
+            {
+                FlipHorizontalInPlace(p._m1);
+                FlipHorizontalInPlace(p._m3);
+                FlipHorizontalInPlace(p._m3f);
+                FlipHorizontalInPlace(p._m3b);
+                FlipHorizontalIntInPlace(p._dat);
+                // Edited pixels and regions are in the same mirrored columns as the arrays (regions span [x1, x2)).
+                int cols = p._m3.GetLength(1);
+                foreach (var ep in p._edits)
+                    ep.X = cols - 1 - ep.X;
+                foreach (var reg in p._regions)
+                    (reg.x1, reg.x2) = (cols - reg.x2, cols - reg.x1);
+                // Stone texture variants are stored per pixel, row by row.
+                FlipRowsInPlace(p._arn, rows, cols);
+            }
+
+            if (data.PictureFileName != null)
+                p.PicturePath = Path.Combine(Path.GetDirectoryName(filePath)!, data.PictureFileName);
+            return p;
+        }
+
+        // Puts a read project into the live state (UI thread; fast, no file access).
+        public static void ApplyProject(LoadedProject p)
+        {
+            var data = p.Data;
+            _wpfExtra = data.WpfExtra;
+
+            MosaicData.dataM1 = p._m1;
+            MosaicData.dataM3 = p._m3;
+            MosaicData.dataM3F = p._m3f;
+            MosaicData.dataM3Backup = p._m3b;
+            drl.dat = p._dat;
+
+            MosaicData.arRGBAll.Clear();
+            MosaicData.arRGBAll.AddRange(p._all);
+            MosaicData.arRGB.Clear();
+            MosaicData.arRGB.AddRange(p._rgb);
+
+            MosaicData.arMA.Clear();
+            MosaicData.arMA.AddRange(p._ma);
+            MosaicData.arMB.Clear();
+            MosaicData.arMB.AddRange(p._mb);
+            MosaicData.arMBR.Clear();
+            MosaicData.arMBR.AddRange(p._mbr);
+
+            MosaicData.arcs.Clear();
+            foreach (var c in MosaicData.arRGBAll)
+                MosaicData.arcs.Add(c.boolLeaveOut);
+
+            // Also drops the previous project's undo/redo history and leaves pixel-edit mode.
+            PixelEditService.Reset();
+            PixelEditService.EditedPixels.AddRange(p._edits);
 
             drl.arar.Clear();
-            foreach (var reg in data.Regions)
-            {
-                drl.arar.Add(new drl(reg.X1, reg.Y1, reg.X2, reg.Y2) { rgbM = reg.RgbM });
-            }
+            drl.arar.AddRange(p._regions);
 
             MosaicEngine.width = data.Width;
             MosaicEngine.height = data.Height;
             MosaicEngine.rgbM = data.RgbM;
             MosaicData.N = data.N;
 
-            // Texture variants must match this mosaic's size; otherwise (missing, or a leftover of another
-            // project) pick new random variants as after a Mos.
-            int rows = MosaicData.dataM3.GetLength(0), columns = MosaicData.dataM3.GetLength(1);
-            if (data.Arn != null && data.Arn.Length == rows * columns)
-                MosaicData.arn = data.Arn;
+            if (p._arn != null)
+                MosaicData.arn = p._arn;
             else
-                StoneTextureService.PopulateRandomIndices(rows, columns);
+                StoneTextureService.PopulateRandomIndices(p._m3.GetLength(0), p._m3.GetLength(1));
 
-            if (data.Source != "mosair")
-            {
-                FlipHorizontalInPlace(MosaicData.dataM1);
-                FlipHorizontalInPlace(MosaicData.dataM3);
-                FlipHorizontalInPlace(MosaicData.dataM3F);
-                FlipHorizontalInPlace(MosaicData.dataM3Backup);
-                FlipHorizontalIntInPlace(drl.dat);
-                // Edited pixels and regions are in the same mirrored columns as the arrays (regions span [x1, x2)).
-                int cols = MosaicData.dataM3.GetLength(1);
-                foreach (var ep in PixelEditService.EditedPixels)
-                    ep.X = cols - 1 - ep.X;
-                foreach (var reg in drl.arar)
-                    (reg.x1, reg.x2) = (cols - reg.x2, cols - reg.x1);
-                // Stone texture variants are stored per pixel, row by row.
-                FlipRowsInPlace(MosaicData.arn, MosaicData.dataM3.GetLength(0), cols);
-            }
-
-            CurrentFileName = filePath;
-
-            if (data.PictureFileName != null)
-            {
-                string dir = Path.GetDirectoryName(filePath)!;
-                CurrentPictureFileName = Path.Combine(dir, data.PictureFileName);
-            }
-            else
-            {
-                // Don't carry over the previous image's name: the stock sheet column is keyed by it.
-                CurrentPictureFileName = "";
-            }
-
-            return data;
+            CurrentFileName = p.FilePath;
+            // Without a picture name, don't carry over the previous image's name: the stock sheet column is keyed by it.
+            CurrentPictureFileName = p.PicturePath;
         }
 
         // A catalog stone added to the palette on save has no palette number or pre-catalog color of its own.
@@ -377,13 +451,6 @@ namespace mosair.Services
             entry.U = u;
             entry.Reg = 1;
             entry.Ri = entry.R; entry.Gi = entry.G; entry.Bi = entry.B;
-        }
-
-        private static string? FindOriginalImagePath()
-        {
-            if (!string.IsNullOrEmpty(CurrentPictureFileName) && File.Exists(CurrentPictureFileName))
-                return CurrentPictureFileName;
-            return null;
         }
 
         private static byte[] Flatten3D(byte[,,] arr, out int[] dims)

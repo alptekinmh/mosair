@@ -287,12 +287,12 @@ public partial class MainWindow : Window
         else if (cmd && e.Key == Key.O) { OnOpenProject(this, new RoutedEventArgs()); e.Handled = true; }
         else if (cmd && e.Key == Key.S)
         {
-            if (_vm.MosaicDone) OnSaveProject(this, new RoutedEventArgs());
+            if (_vm.CanSaveProject) OnSaveProject(this, new RoutedEventArgs());
             e.Handled = true;
         }
         else if (cmdShift && e.Key == Key.S)
         {
-            if (_vm.MosaicDone) OnSaveAsProject(this, new RoutedEventArgs());
+            if (_vm.CanSaveProject) OnSaveAsProject(this, new RoutedEventArgs());
             e.Handled = true;
         }
         else if (cmd && e.Key == Key.E)
@@ -923,14 +923,14 @@ public partial class MainWindow : Window
             System.IO.Directory.CreateDirectory(folder);
 
             string mosPath = System.IO.Path.Combine(folder, baseName + ".mos");
-            if (!_vm.SaveProject(mosPath)) return;
+            if (!await _vm.SaveProjectAsync(mosPath)) return;
 
             if (!string.IsNullOrEmpty(srcImagePath) && System.IO.File.Exists(srcImagePath))
             {
                 string ext = System.IO.Path.GetExtension(srcImagePath);
                 string imgDest = System.IO.Path.Combine(folder, baseName + ext);
                 if (!System.IO.File.Exists(imgDest))
-                    System.IO.File.Copy(srcImagePath, imgDest);
+                    await Task.Run(() => System.IO.File.Copy(srcImagePath, imgDest));
             }
         }
         catch (Exception ex)
@@ -980,7 +980,7 @@ public partial class MainWindow : Window
                     string folder = System.IO.Path.Combine(dir, name);
                     System.IO.Directory.CreateDirectory(folder);
                     string fullPath = System.IO.Path.Combine(folder, name + ".mos");
-                    _vm.SaveProject(fullPath);
+                    await _vm.SaveProjectAsync(fullPath);
                 }
                 catch (Exception ex)
                 {
@@ -1007,8 +1007,8 @@ public partial class MainWindow : Window
             var path = files[0].TryGetLocalPath();
             if (path != null)
             {
-                _vm.OpenProject(path);
-                _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
+                if (await _vm.OpenProjectAsync(path))
+                    _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
             }
         }
     }

@@ -345,28 +345,18 @@ namespace mosair.ViewModels
             try
             {
                 // Written with the normal project format into a one-off folder, then sent; the folder (with the
-                // copy of the source image ProjectService.Save puts next to a project) is removed afterwards. The
+                // copy of the source image the project writer puts next to a project) is removed afterwards. The
                 // open file name (title bar, Ctrl+S target) is left as it was.
                 string tempDir = System.IO.Path.Combine(DriveService.CacheDir, "upload_" + Guid.NewGuid().ToString("N"));
-                string previous = ProjectService.CurrentFileName;
                 try
                 {
                     string temp = System.IO.Path.Combine(tempDir, name);
-                    double width = WidthCm, zoom = ZoomLevel;
-                    bool grid = ShowGrid;
-                    var gc = _gridColor;
-                    int interp = (int)SelectedInterpolation;
-                    try
-                    {
-                        // In the background, so a large project does not freeze the window.
-                        await Task.Run(() => ProjectService.Save(temp, width, zoom, grid, false, gc.R, gc.G, gc.B, interp));
-                    }
-                    finally
-                    {
-                        ProjectService.CurrentFileName = previous;
-                    }
+                    // The mosaic is copied here; the file is written in the background, so a large project does
+                    // not freeze the window.
+                    var snapshot = CreateProjectSnapshot();
+                    await Task.Run(() => ProjectService.WriteSnapshot(snapshot, temp));
                     byte[] bytes = await System.IO.File.ReadAllBytesAsync(temp);
-                    // ProjectService.Save copied the original image next to the project, as for mosairPROJECT.
+                    // WriteSnapshot copied the original image next to the project, as for mosairPROJECT.
                     string? imageName = string.IsNullOrEmpty(ProjectService.CurrentPictureFileName)
                         ? null : System.IO.Path.GetFileName(ProjectService.CurrentPictureFileName);
                     string? imagePath = imageName == null ? null : System.IO.Path.Combine(tempDir, imageName);
@@ -418,8 +408,7 @@ namespace mosair.ViewModels
             {
                 IsDriveBusy = false;
             }
-            OpenProject(path);
-            return true;
+            return await OpenProjectAsync(path);
         }
 
         // Stock last read from the configured sheet (at start-up and whenever an image or project is loaded).
@@ -1034,7 +1023,21 @@ public bool UseLab
 
         // Any work in progress (Mos, stock fit, stone-texture rebuild, stock sheet action, export): drives the
         // wave animation in the status bar.
-        public bool IsBusy => _isProcessing || _isStockBusy || _isExporting || _isDriveBusy;
+        public bool IsBusy => _isProcessing || _isStockBusy || _isExporting || _isDriveBusy || _isSavingProject;
+
+        // A project file is being written in the background (the save buttons wait for it).
+        private bool _isSavingProject;
+        public bool IsSavingProject
+        {
+            get => _isSavingProject;
+            private set
+            {
+                _isSavingProject = value;
+                OnPropertyChanged(); OnPropertyChanged(nameof(CanSaveProject)); OnPropertyChanged(nameof(IsBusy));
+            }
+        }
+
+        public bool CanSaveProject => MosaicDone && !_isSavingProject;
 
         public string DimensionInfo
         {
@@ -1103,6 +1106,7 @@ public bool UseLab
                 _mosaicDone = value;
                 OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(OptimalAvailable));
                 OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
+                OnPropertyChanged(nameof(CanSaveProject));
                 OnPropertyChanged(nameof(ShowTopStonesSection));
             }
         }
@@ -2159,22 +2163,47 @@ public bool UseLab
             EditedPixelCount = 0;
         }
 
-        // Returns false (after telling the user) when the file could not be written, e.g. disk full or no access.
-        public bool SaveProject(string filePath)
+        private ProjectService.ProjectSnapshot CreateProjectSnapshot() =>
+            ProjectService.CreateSnapshot(WidthCm, ZoomLevel, ShowGrid, false,
+                _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation);
+
+        // The mosaic is copied at once; turning it into JSON and writing the file happen in the background, so a
+        // large project does not freeze the window (the wave runs meanwhile; edits made meanwhile are not in this
+        // save). Returns false (after telling the user) when the file could not be written, e.g. disk full or no
+        // access, or when another save is still running.
+        public async Task<bool> SaveProjectAsync(string filePath)
         {
+            if (IsSavingProject) return false;
+            int version = _contentVersion;
+            string name = System.IO.Path.GetFileName(filePath);
+            ProjectService.ProjectSnapshot snapshot;
             try
             {
-                ProjectService.Save(filePath, WidthCm, ZoomLevel,
-                    ShowGrid, false,
-                    _gridColor.R, _gridColor.G, _gridColor.B,
-                    (int)SelectedInterpolation);
+                snapshot = CreateProjectSnapshot();
             }
             catch (Exception ex)
             {
                 ReportSaveFailed(ex);
                 return false;
             }
-            StatusText = Loc.Fmt("StatusSaved", System.IO.Path.GetFileName(filePath));
+            IsSavingProject = true;
+            StatusText = Loc.Fmt("StatusSavingProject", name);
+            try
+            {
+                await Task.Run(() => ProjectService.WriteSnapshot(snapshot, filePath));
+            }
+            catch (Exception ex)
+            {
+                ReportSaveFailed(ex);
+                return false;
+            }
+            finally
+            {
+                IsSavingProject = false;
+            }
+            // The saved file becomes the open project, unless another image or project was opened meanwhile.
+            if (version == _contentVersion) ProjectService.CurrentFileName = filePath;
+            StatusText = Loc.Fmt("StatusSaved", name);
             OnPropertyChanged(nameof(DocumentTitle));
             return true;
         }
@@ -2197,24 +2226,59 @@ public bool UseLab
             Alert(Loc.Get("AlertProjectTitle"), Loc.Fmt("AlertSaveFailed", ex.Message));
         }
 
-        public async void OpenProject(string filePath)
+        // Reading the file, parsing it, loading the project's image and building the stone-colour bitmap happen in
+        // the background; only the ready results are put into the live state. Returns true when the project was
+        // opened (false: could not be read, or another image/project was opened meanwhile).
+        public async Task<bool> OpenProjectAsync(string filePath)
         {
             int version = StartNewContent();
-            var data = ProjectService.Open(filePath);
-            if (data == null)
+            StatusText = Loc.Fmt("StatusOpeningProject", System.IO.Path.GetFileName(filePath));
+            IsProcessing = true;
+            ProjectService.LoadedProject? loaded = null;
+            SKBitmap? picture = null, stones = null;
+            try
             {
+                (loaded, picture, stones) = await Task.Run<(ProjectService.LoadedProject?, SKBitmap?, SKBitmap?)>(() =>
+                {
+                    var p = ProjectService.ReadProject(filePath);
+                    if (p == null) return (null, null, null);
+                    SKBitmap? pic = p.PicturePath.Length > 0 && System.IO.File.Exists(p.PicturePath)
+                        ? ImageService.LoadImage(p.PicturePath) : null;
+                    var m3 = p.DataM3;
+                    SKBitmap st = ImageService.FromByteArray(m3, m3.GetLength(0), m3.GetLength(1));
+                    return (p, pic, st);
+                });
+            }
+            catch (Exception)
+            {
+                // Unreadable file (no access, locked, damaged): reported as "could not open" below.
+                loaded = null;
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
+            if (version != _contentVersion)
+            {
+                // Another image or project was opened while this one was being read.
+                picture?.Dispose();
+                stones?.Dispose();
+                return false;
+            }
+            if (loaded == null)
+            {
+                picture?.Dispose();
+                stones?.Dispose();
                 StatusText = Loc.Get("StatusOpenFailed");
                 Alert(Loc.Get("AlertProjectTitle"), Loc.Get("AlertProjectOpenFailed"));
-                return;
+                return false;
             }
+            ProjectService.ApplyProject(loaded);
+            var data = loaded.Data;
             OnPropertyChanged(nameof(DocumentTitle));
 
-            if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName) &&
-                System.IO.File.Exists(ProjectService.CurrentPictureFileName))
-            {
-                var bmp = ImageService.LoadImage(ProjectService.CurrentPictureFileName);
-                if (bmp != null) MosaicData.inputBitmap = bmp;
-            }
+            // As before: a project whose image is missing keeps the previously loaded source image.
+            if (picture != null) MosaicData.inputBitmap = picture;
 
             WidthCm = data.WidthCm;
             GridColor = Color.FromRgb(data.GridColorR, data.GridColorG, data.GridColorB);
@@ -2225,7 +2289,7 @@ public bool UseLab
             int C = MosaicData.dataM3.GetLength(1);
 
             MosaicData.exportBitmap?.Dispose();
-            MosaicData.exportBitmap = ImageService.FromByteArray(MosaicData.dataM3, R, C);
+            MosaicData.exportBitmap = stones;
             _bitmapPixelWidth = C * _stonePixelSize;
             _bitmapPixelHeight = R * _stonePixelSize;
             OnPropertyChanged(nameof(BitmapPixelWidth));
@@ -2269,13 +2333,14 @@ public bool UseLab
                 // No stone images: the view keeps showing stone colours.
             }
             IsProcessing = false;
-            if (version != _contentVersion) return; // another image or project was opened meanwhile
+            if (version != _contentVersion) return true; // another image or project was opened meanwhile
             RefreshMosaicView();
 
             FitToWindow(_lastViewportWidth, _lastViewportHeight);
             StatusText = Loc.Fmt("StatusOpened", System.IO.Path.GetFileName(filePath));
             _loadedStock = null;
             _ = RefreshStockAsync();
+            return true;
         }
 
         // Export quality choices shown to the user as image sizes; internally the pixels per stone (N).

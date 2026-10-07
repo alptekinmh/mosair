@@ -83,8 +83,8 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 |---|---|---|---|
 | Görsel Yükle | `Ctrl/⌘+I` | Görsel seçme penceresini açar | Her zaman |
 | Proje Aç | `Ctrl/⌘+O` | `.mos` proje dosyası açar ([§12](#12-proje-kaydetme-ve-açma)) | Her zaman |
-| Proje Kaydet | `Ctrl/⌘+S` | Projeyi `Masaüstü/mosairPROJECT/<görsel adı>/` klasörüne kaydeder | Mozaik varken |
-| Proje Farklı Kaydet | `Ctrl/⌘+Shift+S` (macOS: `⌘+⇧+S`) | Konum ve ad sorarak kaydeder | Mozaik varken |
+| Proje Kaydet | `Ctrl/⌘+S` | Projeyi `Masaüstü/mosairPROJECT/<görsel adı>/` klasörüne kaydeder | Mozaik varken ve bir kayıt sürmüyorken |
+| Proje Farklı Kaydet | `Ctrl/⌘+Shift+S` (macOS: `⌘+⇧+S`) | Konum ve ad sorarak kaydeder | Mozaik varken ve bir kayıt sürmüyorken |
 | mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan varsayılan kaliteyle (listede **(varsayılan)** yazan seçenek) kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
 | mosairEXPORT As ▸ | — | Aynı alt menü; seçilen kaliteyle konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
 | Ekran Görüntüsü Al | — | Görsel alanında o an görüneni PNG olarak `mosairEXPORT` klasörüne kaydeder; araç çubuğundaki kamera ikonuyla aynı ([§4](#4-araç-çubuğu)) | Görsel yüklüyken |
@@ -144,8 +144,8 @@ Soldan sağa:
 |---|---|---|---|---|
 | Görsel Yükle | Görsel Yükle | Görsel seçer | — | Sürükle-bırak da olur |
 | Proje Aç | Proje Aç (.mos) | `.mos` açar | — | |
-| Proje Kaydet | Proje Kaydet | Kaydeder; ikon kısa süre yeşil ✓ olur | — | Mozaik yokken pasif |
-| Proje Farklı Kaydet | Proje Farklı Kaydet | Konum sorarak kaydeder | — | Mozaik yokken pasif |
+| Proje Kaydet | Proje Kaydet | Kaydeder; ikon kısa süre yeşil ✓ olur | — | Mozaik yokken ve bir kayıt sürerken pasif |
+| Proje Farklı Kaydet | Proje Farklı Kaydet | Konum sorarak kaydeder | — | Mozaik yokken ve bir kayıt sürerken pasif |
 | **Mos** | Mozaikleştir | Mozaikleştirir | — | Görsel yokken, işlem ya da dışa aktarma sürerken pasif; çalışırken ikon animasyonludur |
 | Kalem (Piksel Düzenle) | Piksel Düzenle (Orta Tuş), 1) Kaynak renk seç, 2) Hedef piksele uygula | Düzenleme modunu aç/kapat | Orta tuş da aynı işi yapar | Mozaik yokken pasif. Açıkken kalem turuncu olur, yanında `source → target` göstergesi çıkar |
 | Izgara | Izgara Göster/Gizle | Açılır panel: Grid ON/OFF, Grid Rengi (12 renk + seçilen rengin 7 tonu) | — | Görsel yüklenince ızgara rengi görselin parlaklığına göre otomatik gri tona ayarlanır. Açma/kapama ve renk değişikliği anında uygulanır. |
@@ -291,14 +291,14 @@ Canvas'ta bir taşa sol tıklayınca panel o taşın bilgilerini gösterir. **RE
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
 | Orta | İlerleme çubuğu (işlem sırasında), **✕ İptal** düğmesi (yalnızca iptal edilebilen bir iş sürerken), durum mesajı, geçen süre |
-| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje açılırken taş görüntülerinin yüklenmesi, stok tablosu işlemleri, Google Drive'a kaydetme, Drive klasörünü okuma ve Drive'dan indirme, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
+| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje kaydetme, proje açma ve ardından taş görüntülerinin yüklenmesi, stok tablosu işlemleri, Google Drive'a kaydetme, Drive klasörünü okuma ve Drive'dan indirme, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
 | Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`Zoom=2.0` biçiminde; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
 - Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
-- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), Google Drive işlemleri ("Drive'a kaydediliyor: …", "Drive'a kaydedildi: …", "Drive'dan indiriliyor: …", "Drive ayarları kaydedildi"; "Drive klasörü okunuyor..." Drive'dan Aç penceresinin içinde görünür), kayıt ve dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
+- Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), Google Drive işlemleri ("Drive'a kaydediliyor: …", "Drive'a kaydedildi: …", "Drive'dan indiriliyor: …", "Drive ayarları kaydedildi"; "Drive klasörü okunuyor..." Drive'dan Aç penceresinin içinde görünür), kayıt bilgisi ("Proje kaydediliyor: …" → "Kaydedildi: …", "Proje açılıyor: …"), dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 
 ### İptal düğmesi
@@ -438,9 +438,11 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 
 | İşlem | Davranış |
 |---|---|
-| **Proje Kaydet** (`Ctrl/⌘+S`) | `Masaüstü/mosairPROJECT/<görsel adı>/<görsel adı>.mos` olarak kaydeder. Orijinal görsel aynı klasöre kopyalanır (yoksa). Görsel adı yoksa `mosair_project` kullanılır. Kaydedince ikon kısa süre ✓ olur ve durum çubuğunda "Kaydedildi: …" yazar. |
+| **Proje Kaydet** (`Ctrl/⌘+S`) | `Masaüstü/mosairPROJECT/<görsel adı>/<görsel adı>.mos` olarak kaydeder. Orijinal görsel aynı klasöre kopyalanır (yoksa). Görsel adı yoksa `mosair_project` kullanılır. Dosya arka planda yazılır: pencere donmaz, bu sırada durum çubuğunda "Proje kaydediliyor: …" yazar ve dalga akar. Bitince ikon kısa süre ✓ olur ve "Kaydedildi: …" yazar. |
 | **Proje Farklı Kaydet** (`Ctrl/⌘+Shift+S`) | Seçilen ad için o adda bir klasör açar ve `.mos` dosyasını içine yazar; görsel `.mos`'un yanına kopyalanır (orada yoksa). |
-| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar. Mozaik önce taş renkleriyle görünür; taş görüntüleri arka planda yüklenince gerçek taş dokularıyla gösterilir (durum çubuğunda bu sırada "Acildi, tas dokulari yukleniyor..." yazar). Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
+| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar. Dosya arka planda okunur (durum çubuğunda "Proje açılıyor: …", dalga akar; pencere donmaz, önceki içerik okuma bitene kadar ekranda kalır, Mos ve dışa aktarma bu sırada pasiftir). Okuma bitince proje pencereye sığdırılarak gösterilir; mozaik önce taş renkleriyle görünür; taş görüntüleri arka planda yüklenince gerçek taş dokularıyla gösterilir (durum çubuğunda bu sırada "Acildi, tas dokulari yukleniyor..." yazar). Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
+
+**Kaydetme ve açma arka planda:** Kaydet'e basıldığı anda mozaiğin bir kopyası alınır (çok büyük mozaikte bile birkaç on milisaniye); dosyaya çevirme ve yazma arka planda yapılır. Yazma sürerken yapılan değişiklikler o kayda girmez, bir sonraki kayda girer. Dosya önce geçici bir adla (`<ad>.mos.part`) yazılır, bitince asıl dosyanın yerine konur; disk dolarsa, yazma hata verirse ya da uygulama bu sırada kapanırsa var olan proje bozulmaz. Bir kayıt sürerken Kaydet düğmeleri pasiftir. Ölçüm: 2,8 milyon taşlık (20 m, 62 MB) bir projede kaydetme pencereyi 23 ms, açma yaklaşık 1 ms bekletir (arka plan: 0,23 sn / 1,34 sn); önceden bu sürelerin tamamında pencere donuyordu.
 
 **Projede saklananlar:**
 
@@ -663,6 +665,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 ## 18. Bilinen davranışlar ve sınırlamalar
 
 - **Proje Kaydet** her zaman `Masaüstü/mosairPROJECT/<görsel adı>/` konumuna yazar; başka bir yerden açılmış bir projenin üzerine yazmaz. Belirli bir konuma kaydetmek için **Farklı Kaydet** kullanın.
+- Kaydetme tıklandığı andaki mozaiği yazar; yazma sürerken yapılan düzenlemeler o kayda girmez. Uygulama bir kayıt sırasında kapanırsa o kayıt yapılmamış olur (önceki dosya olduğu gibi kalır), proje klasöründe yarım bir `<ad>.mos.part` dosyası kalabilir; silinebilir.
 - Drive'dan açılan projeler (görselleriyle) bilgisayarda `%LOCALAPPDATA%\mosair\drive\` klasöründe kalır; uygulama bu klasörü temizlemez.
 - Drive'daki proje klasöründe görsel zaten varsa yeniden gönderilmez; aynı adlı ama değiştirilmiş bir görsel Drive'da güncellenmez.
 - Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; Özellikler paneli de her açılışta açık başlar; **Yeni Görselleri Bildir** ve **Yumuşak Fare Hareketi** her açılışta işaretli başlar.
