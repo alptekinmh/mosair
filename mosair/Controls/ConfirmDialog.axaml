@@ -28,9 +28,7 @@
                 Click="OnNoClick"/>
         <Button x:Name="YesButton"
                 MinWidth="90" Height="34"
-                FontSize="13" FontWeight="Medium"
-                Background="#3a7bfd" Foreground="#ffffff"
-                CornerRadius="4"
+                FontSize="13" Classes="primary"
                 Click="OnYesClick"/>
       </StackPanel>
     </StackPanel>

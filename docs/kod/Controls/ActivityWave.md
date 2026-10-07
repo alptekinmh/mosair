@@ -1,6 +1,6 @@
 # ActivityWave
 
-> Kaynak: `mosair/Controls/ActivityWave.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Controls/ActivityWave.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -21,7 +21,7 @@ Durum çubuğunun arka planında, bir işlem sürdüğü sürece soldan sağa ak
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
 | `IsActive` | `bool` (StyledProperty) | false | true olunca zamanlayıcı başlar ve dalga belirir; false olunca söner, tamamen sönünce zamanlayıcı durur |
-| `WaveColor` | `Color` (StyledProperty) | `#4ecb71` | Dalga rengi (durum yazısıyla aynı yeşil); `AffectsRender` |
+| `WaveColor` | `Color` (StyledProperty) | `#2D6BD9` | Dalga rengi; `AffectsRender`. `MainWindow` bunu `{DynamicResource AccentFill}` ile temanın vurgu mavisine bağlar |
 | `FadeSeconds` | const | 0,35 | Belirme ve sönme süresi |
 | `SpeedPxPerSecond` | const | 90 | Ön dalganın sağa akış hızı (px/sn); arka dalga bunun 0,6 katı |
 | `Wavelength` | const | 140 | Ön dalganın tepeleri arası mesafe (px); arka dalga 1,7 katı |
@@ -38,7 +38,7 @@ Yapıcıda `IsHitTestVisible = false`: fare olayları alttaki düğmelere geçer
 ## Dikkat
 
 - Genişlik değişince (pencere boyutu) dalga kendiliğinden tüm çubuğa yayılır; sabit piksel genişliği yoktur.
-- Renk temadan bağımsızdır; açık ve koyu temada aynı yeşil kullanılır. Yazıların okunur kalması için opaklık düşük tutulmuştur.
+- Renk `MainWindow`'da `AccentFill` tema anahtarına bağlıdır; tema değişince dalga da değişir (koyu `#2D6BD9`, açık `#1F5FCC`). Yazıların okunur kalması için opaklık düşük tutulmuştur.
 - İşlem durumunu yalnızca `IsBusy` belirler; ilerleme yüzdesini göstermez (o iş için ortadaki `ProgressBar` var).
 
 ## İlgili dosyalar

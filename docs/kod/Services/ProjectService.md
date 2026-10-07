@@ -49,6 +49,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `ShowGrid`, `ShowMouldLines` | `bool` | `false` | Görünüm ayarları |
 | `GridColorR/G/B` | `byte` | 0 | Izgara rengi |
 | `InterpolationMethod` | `int` | 0 | `InterpolationMethod` enum değeri |
+| `ImageAdjust` | `int[]?` | `null` | Görsel Ayarları: `[parlaklık, kontrast, doygunluk, gama]` (her biri −100…100). Hiçbir ayar yoksa yazılmaz (`WhenWritingNull`), böylece ayarsız projelerin dosyası değişmez. WPF bu alanı bilmez ve yok sayar. Açarken `ImageAdjustments.FromArray` ile okunur. |
 | `ZoomLevel` | `double` | 1 | Yakınlaştırma |
 | `WidthCm` | `double` | 0 | Mozaik genişliği (cm) |
 | `PictureFileName` | `string?` | `null` | Kaynak görselin yalnızca dosya adı (proje klasörüne göre) |
@@ -128,7 +129,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `CreateSnapshot(widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod)` → `ProjectSnapshot` | `MosaicData`, `MosaicEngine`, `drl` ve `PixelEditService.EditedPixels` durumunu `ProjectData`'ya kopyalar (palet enjeksiyonu dahil). Hızlıdır; UI iş parçacığında çağrılır. Dosyaya dokunmaz | `MainViewModel.CreateProjectSnapshot` (`SaveProjectAsync`, `SaveToDriveAsync`), `Save` |
+| `CreateSnapshot(widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod, imageAdjust = null)` → `ProjectSnapshot` | `MosaicData`, `MosaicEngine`, `drl` ve `PixelEditService.EditedPixels` durumunu `ProjectData`'ya kopyalar (palet enjeksiyonu dahil); `imageAdjust` (`MainViewModel.ImageAdjustArray`) `ImageAdjust` alanına yazılır. Hızlıdır; UI iş parçacığında çağrılır. Dosyaya dokunmaz | `MainViewModel.CreateProjectSnapshot` (`SaveProjectAsync`, `SaveToDriveAsync`), `Save` |
 | `WriteSnapshot(snapshot, filePath)` | Klasörü oluşturur, görseli (yoksa) yanına kopyalar ve `PictureFileName`'i yazar, JSON'u doğrudan bir `FileStream` ile `<dosya>.part`'a yazar, sonra `File.Move(..., overwrite: true)` ile hedefin üzerine taşır. Hata olursa `.part` silinir ve hata çağırana yükselir. Yalnızca anlık kopyayı kullanır, arka planda çalışabilir. `CurrentFileName`'i değiştirmez | `MainViewModel.SaveProjectAsync` ve `SaveToDriveAsync` (`Task.Run` içinde), `Save` |
 | `Save(filePath, widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod)` | `CreateSnapshot` + `WriteSnapshot`, ardından `CurrentFileName = filePath` (engelleyici) | Araçlar ve testler |
 | `ReadProject(filePath)` → `LoadedProject?` | Dosyayı akış olarak okuyup çözer, dizileri ve listeleri kurar, WPF dosyasında aynalar, görsel yolunu çözer. Global duruma dokunmaz; arka planda çalışabilir. Dosya yoksa veya JSON değilse `null`; G/Ç hataları (erişim yok, kilitli) çağırana yükselir | `MainViewModel.OpenProjectAsync` (`Task.Run` içinde), `Open` |

@@ -26,7 +26,11 @@ namespace mosair.Models
         // Bitmap'ler (Mat yerine SKBitmap)
         public static SKBitmap? reducedBitmap;
         public static SKBitmap? exportBitmap;
+        // The image Mos works from: the loaded image with the Görsel Ayarları adjustments applied (the same
+        // bitmap as sourceBitmap while nothing is adjusted).
         public static SKBitmap? inputBitmap;
+        // The loaded image exactly as read from the file.
+        public static SKBitmap? sourceBitmap;
         // The stone-texture image is never held whole: MosaicView draws it in tiles (MosaicRenderSource).
 
         // Sabitler

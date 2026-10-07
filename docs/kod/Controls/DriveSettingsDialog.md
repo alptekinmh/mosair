@@ -1,6 +1,6 @@
 # DriveSettingsDialog
 
-> Kaynak: `mosair/Controls/DriveSettingsDialog.axaml`, `mosair/Controls/DriveSettingsDialog.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Controls/DriveSettingsDialog.axaml`, `mosair/Controls/DriveSettingsDialog.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -39,8 +39,8 @@ Akış: **Dosya → Google Drive → Drive Klasörü Ayarları...** ya da toolba
 | `TestButton` | `Button` | — | `DriveTest`; `OnTest`. |
 | `ResultText` | `TextBlock` (`Classes="hint"`) | boş | Kopyalama ve deneme sonucu. |
 | `NoteText` | `TextBlock` | — | `DriveSettingsNote` (yalnızca bu bilgisayarda saklanır; güvenlik uyarısı); renk `FgWarn`. |
-| `CancelButton`, `SaveButton` | `Button` | — | `DlgCancel`, `DlgSave`; `OnCancelClick`, `OnSaveClick`. |
-| `HighlightBrush` | `static IBrush` (private) | `#3a7bfd` | Örneklerde girilecek kısmın rengi. |
+| `CancelButton`, `SaveButton` | `Button` | — | `DlgCancel`, `DlgSave`; `OnCancelClick`, `OnSaveClick`. `SaveButton` paylaşılan `Button.primary` stilini kullanır (vurgu mavisi; bkz. [App](../App.md)). |
+| `HighlightBrush` | `static IBrush` (private) | `#3a7bfd` | Örneklerde girilecek kısmın rengi (sabit; temayı izlemez). |
 
 Stiller: `TextBlock.hint` (11 pt, `FgSecondary`, sarmalı) ve `TextBlock.example` (11 pt, `FgMuted`, eş aralıklı yazı tipi, sarmalı); [StockSettingsDialog](StockSettingsDialog.md) ile aynı.
 

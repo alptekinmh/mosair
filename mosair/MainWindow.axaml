@@ -51,17 +51,22 @@
       <Setter Property="Background" Value="{DynamicResource BgHover}"/>
     </Style>
     <Style Selector="Button.mos-btn">
-      <Setter Property="Background" Value="#4ecb71"/>
+      <Setter Property="Background" Value="{DynamicResource AccentFill}"/>
       <Setter Property="Padding" Value="10,5"/>
       <Setter Property="CornerRadius" Value="6"/>
       <Setter Property="Cursor" Value="Hand"/>
       <Setter Property="FontWeight" Value="Bold"/>
       <Setter Property="FontSize" Value="13"/>
-      <Setter Property="Foreground" Value="#1a1a1e"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
       <Setter Property="BorderThickness" Value="0"/>
     </Style>
     <Style Selector="Button.mos-btn:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="#5dda80"/>
+      <Setter Property="Background" Value="{DynamicResource AccentFillHover}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+    </Style>
+    <Style Selector="Button.mos-btn:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource AccentFillPressed}"/>
+      <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
     </Style>
     <Style Selector="Button.mos-btn:disabled">
       <Setter Property="Opacity" Value="0.75"/>
@@ -70,9 +75,9 @@
       <Setter Property="Opacity" Value="1"/>
     </Style>
     <Style Selector="TextBlock.section-title">
-      <Setter Property="FontWeight" Value="Bold"/>
+      <Setter Property="FontWeight" Value="SemiBold"/>
       <Setter Property="FontSize" Value="11"/>
-      <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgMuted}"/>
       <Setter Property="Margin" Value="0,6,0,2"/>
     </Style>
     <!-- Cards of the properties panel's image information -->
@@ -96,7 +101,7 @@
         <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
                     VerticalAlignment="Center" Spacing="0">
           <TextBlock Text="mosair" FontWeight="Bold" FontSize="14"
-                     Foreground="#4ecb71" VerticalAlignment="Center"
+                     Foreground="{DynamicResource Brand}" VerticalAlignment="Center"
                      Margin="12,0,10,0" IsHitTestVisible="False"/>
           <Menu Background="Transparent" VerticalAlignment="Center">
             <MenuItem Header="{Binding [MenuFile], Source={x:Static svc:Loc.Instance}}">
@@ -134,6 +139,11 @@
             </MenuItem>
             <MenuItem Header="{Binding [MenuView], Source={x:Static svc:Loc.Instance}}">
               <MenuItem x:Name="menuFitToScreen" Header="{Binding [MenuFitToScreen], Source={x:Static svc:Loc.Instance}}" Click="OnResetSize"/>
+              <MenuItem Header="{Binding [MenuAdjustPanel], Source={x:Static svc:Loc.Instance}}" Click="OnToggleAdjustPanel">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding IsAdjustPanelOpen}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{Binding [MenuSmoothMouse], Source={x:Static svc:Loc.Instance}}" Click="OnToggleSmoothMouse">
                 <MenuItem.Icon>
                   <PathIcon Width="12" Height="12" IsVisible="{Binding SmoothMouse}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
@@ -246,7 +256,7 @@
             <Panel>
               <PathIcon x:Name="saveIcon" Width="18" Height="18" Foreground="{DynamicResource FgIcon}"
                         Data="M17,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,7 Z M12,19 C10.34,19 9,17.66 9,16 C9,14.34 10.34,13 12,13 C13.66,13 15,14.34 15,16 C15,17.66 13.66,19 12,19 Z M15,9 L5,9 L5,5 L15,5 Z"/>
-              <PathIcon x:Name="saveCheckIcon" Width="18" Height="18" Foreground="#4ecb71" IsVisible="False"
+              <PathIcon x:Name="saveCheckIcon" Width="18" Height="18" Foreground="{DynamicResource Success}" IsVisible="False"
                         Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
             </Panel>
           </Button>
@@ -262,19 +272,19 @@
                   ToolTip.Tip="{Binding [TipMosaicize], Source={x:Static svc:Loc.Instance}}">
             <StackPanel Orientation="Horizontal" Spacing="5">
               <Panel Width="16" Height="16">
-                <PathIcon Width="16" Height="16" Foreground="#1a1a1e"
+                <PathIcon Width="16" Height="16" Foreground="{DynamicResource OnAccent}"
                           IsVisible="{Binding !IsProcessing}"
                           Data="M2,2 L2,10 C2,10.5 2.5,11 3,11 L9,11 C9.5,11 10,10.5 10,10 L10,2 C10,1.5 9.5,1 9,1 L3,1 C2.5,1 2,1.5 2,2 Z M14,2 L14,10 C14,10.5 14.5,11 15,11 L21,11 C21.5,11 22,10.5 22,10 L22,2 C22,1.5 21.5,1 21,1 L15,1 C14.5,1 14,1.5 14,2 Z M2,14 L2,22 C2,22.5 2.5,23 3,23 L9,23 C9.5,23 10,22.5 10,22 L10,14 C10,13.5 9.5,13 9,13 L3,13 C2.5,13 2,13.5 2,14 Z M14,14 L14,22 C14,22.5 14.5,23 15,23 L21,23 C21.5,23 22,22.5 22,22 L22,14 C22,13.5 21.5,13 21,13 L15,13 C14.5,13 14,13.5 14,14 Z"/>
                 <Grid x:Name="mosAnimGrid" IsVisible="{Binding IsProcessing}"
                       ColumnDefinitions="7,2,7" RowDefinitions="7,2,7">
                   <Border x:Name="mosQ0" Grid.Row="0" Grid.Column="0"
-                          Background="#1a1a1e" CornerRadius="1.5" Opacity="0.15"/>
+                          Background="{DynamicResource OnAccent}" CornerRadius="1.5" Opacity="0.15"/>
                   <Border x:Name="mosQ1" Grid.Row="0" Grid.Column="2"
-                          Background="#1a1a1e" CornerRadius="1.5" Opacity="0.15"/>
+                          Background="{DynamicResource OnAccent}" CornerRadius="1.5" Opacity="0.15"/>
                   <Border x:Name="mosQ2" Grid.Row="2" Grid.Column="2"
-                          Background="#1a1a1e" CornerRadius="1.5" Opacity="0.15"/>
+                          Background="{DynamicResource OnAccent}" CornerRadius="1.5" Opacity="0.15"/>
                   <Border x:Name="mosQ3" Grid.Row="2" Grid.Column="0"
-                          Background="#1a1a1e" CornerRadius="1.5" Opacity="0.15"/>
+                          Background="{DynamicResource OnAccent}" CornerRadius="1.5" Opacity="0.15"/>
                 </Grid>
               </Panel>
               <TextBlock Text="Mos" VerticalAlignment="Center"/>
@@ -289,7 +299,7 @@
               <PathIcon Width="18" Height="18" Foreground="{DynamicResource FgIcon}"
                         IsVisible="{Binding !IsPixelEditActive}"
                         Data="M3,17.25 L3,21 L6.75,21 L17.81,9.94 L14.06,6.19 Z M20.71,7.04 C21.1,6.65 21.1,6.02 20.71,5.63 L18.37,3.29 C17.98,2.9 17.35,2.9 16.96,3.29 L15.13,5.12 L18.88,8.87 Z"/>
-              <PathIcon Width="18" Height="18" Foreground="#FF6600"
+              <PathIcon Width="18" Height="18" Foreground="{DynamicResource EditMode}"
                         IsVisible="{Binding IsPixelEditActive}"
                         Data="M3,17.25 L3,21 L6.75,21 L17.81,9.94 L14.06,6.19 Z M20.71,7.04 C21.1,6.65 21.1,6.02 20.71,5.63 L18.37,3.29 C17.98,2.9 17.35,2.9 16.96,3.29 L15.13,5.12 L18.88,8.87 Z"/>
             </Panel>
@@ -302,25 +312,25 @@
               <Border Width="8" Height="8" CornerRadius="4"
                       IsVisible="{Binding IsSourcePixelMode}">
                 <Border.Background>
-                  <SolidColorBrush Color="#FF6600"/>
+                  <SolidColorBrush Color="{DynamicResource EditMode}"/>
                 </Border.Background>
               </Border>
               <TextBlock Text="source" FontWeight="Bold" FontSize="10"
-                         IsVisible="{Binding IsSourcePixelMode}" Foreground="#FF6600"/>
+                         IsVisible="{Binding IsSourcePixelMode}" Foreground="{DynamicResource EditMode}"/>
               <TextBlock Text="source" FontWeight="Bold" FontSize="10"
-                         IsVisible="{Binding !IsSourcePixelMode}" Foreground="{DynamicResource BrdrSec}"/>
-              <PathIcon Width="10" Height="10" Foreground="{DynamicResource BrdrTer}"
+                         IsVisible="{Binding !IsSourcePixelMode}" Foreground="{DynamicResource FgDisabled}"/>
+              <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgMuted}"
                         Data="M8,4 L12,8 L8,12" Margin="0,1,0,0"/>
               <Border Width="8" Height="8" CornerRadius="4"
                       IsVisible="{Binding IsTargetPixelMode}">
                 <Border.Background>
-                  <SolidColorBrush Color="#FF6600"/>
+                  <SolidColorBrush Color="{DynamicResource EditMode}"/>
                 </Border.Background>
               </Border>
               <TextBlock Text="target" FontWeight="Bold" FontSize="10"
-                         IsVisible="{Binding IsTargetPixelMode}" Foreground="#FF6600"/>
+                         IsVisible="{Binding IsTargetPixelMode}" Foreground="{DynamicResource EditMode}"/>
               <TextBlock Text="target" FontWeight="Bold" FontSize="10"
-                         IsVisible="{Binding !IsTargetPixelMode}" Foreground="{DynamicResource BrdrSec}"/>
+                         IsVisible="{Binding !IsTargetPixelMode}" Foreground="{DynamicResource FgDisabled}"/>
             </StackPanel>
           </Border>
           <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
@@ -336,22 +346,22 @@
                             Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand">
                       <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="16" Height="16">
-                          <PathIcon Width="16" Height="16" IsVisible="{Binding ShowGrid}" Foreground="#4ecb71"
+                          <PathIcon Width="16" Height="16" IsVisible="{Binding ShowGrid}" Foreground="{DynamicResource AccentText}"
                                     Data="M2,2 H7 V7 H2 Z M9,2 H15 V7 H9 Z M17,2 H22 V7 H17 Z M2,9 H7 V15 H2 Z M9,9 H15 V15 H9 Z M17,9 H22 V15 H17 Z M2,17 H7 V22 H2 Z M9,17 H15 V22 H9 Z M17,17 H22 V22 H17 Z"/>
-                          <PathIcon Width="16" Height="16" IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource BrdrTer}"
+                          <PathIcon Width="16" Height="16" IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource FgMuted}"
                                     Data="M2,2 H7 V7 H2 Z M9,2 H15 V7 H9 Z M17,2 H22 V7 H17 Z M2,9 H7 V15 H2 Z M9,9 H15 V15 H9 Z M17,9 H22 V15 H17 Z M2,17 H7 V22 H2 Z M9,17 H15 V22 H9 Z M17,17 H22 V22 H17 Z"/>
                         </Panel>
                         <TextBlock Text="{Binding [LblGrid], Source={x:Static svc:Loc.Instance}}"
                                    FontSize="11" Foreground="{DynamicResource FgPrimary}" VerticalAlignment="Center"/>
                         <TextBlock FontSize="10" VerticalAlignment="Center"
-                                   IsVisible="{Binding ShowGrid}" Foreground="#4ecb71" Text="ON"/>
+                                   IsVisible="{Binding ShowGrid}" Foreground="{DynamicResource AccentText}" Text="ON"/>
                         <TextBlock FontSize="10" VerticalAlignment="Center"
-                                   IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource BrdrTer}" Text="OFF"/>
+                                   IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource FgMuted}" Text="OFF"/>
                       </StackPanel>
                     </Button>
                     <Border Height="1" Background="{DynamicResource BrdrMain}"/>
                     <StackPanel Orientation="Horizontal" Spacing="6">
-                      <TextBlock Text="{Binding [LblGridColor], Source={x:Static svc:Loc.Instance}}" FontSize="9" FontWeight="Bold"
+                      <TextBlock Text="{Binding [LblGridColor], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                                  Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center" Margin="2,0,0,0"/>
                       <Border Width="16" Height="16" CornerRadius="3"
                               BorderThickness="1.5" BorderBrush="{DynamicResource BrdrTer}">
@@ -409,9 +419,9 @@
               </Flyout>
             </Button.Flyout>
             <Panel>
-              <PathIcon Width="16" Height="16" IsVisible="{Binding ShowGrid}" Foreground="#4ecb71"
+              <PathIcon Width="16" Height="16" IsVisible="{Binding ShowGrid}" Foreground="{DynamicResource AccentText}"
                         Data="M2,2 H7 V7 H2 Z M9,2 H15 V7 H9 Z M17,2 H22 V7 H17 Z M2,9 H7 V15 H2 Z M9,9 H15 V15 H9 Z M17,9 H22 V15 H17 Z M2,17 H7 V22 H2 Z M9,17 H15 V22 H9 Z M17,17 H22 V22 H17 Z"/>
-              <PathIcon Width="16" Height="16" IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource BrdrTer}"
+              <PathIcon Width="16" Height="16" IsVisible="{Binding !ShowGrid}" Foreground="{DynamicResource FgMuted}"
                         Data="M2,2 H7 V7 H2 Z M9,2 H15 V7 H9 Z M17,2 H22 V7 H17 Z M2,9 H7 V15 H2 Z M9,9 H15 V15 H9 Z M17,9 H22 V15 H17 Z M2,17 H7 V22 H2 Z M9,17 H15 V22 H9 Z M17,17 H22 V22 H17 Z"/>
             </Panel>
           </Button>
@@ -443,12 +453,12 @@
                         Data="M3,20 C6,20 8,4 12,4 C16,4 14,16 18,16 C20,16 21,12 21,12"/>
               <TextBlock Text="{Binding SelectedInterpolation}" Foreground="{DynamicResource FgSecondary}"
                          FontSize="10" VerticalAlignment="Center"
-                         FontFamily="JetBrains Mono,Consolas,monospace"/>
+                         FontFamily="{StaticResource MonoFont}"/>
               <PathIcon Width="6" Height="6" Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"
                         Data="M2,3 L6,7 L10,3"/>
             </StackPanel>
           </Button>
-          <Border Width="1" Height="16" Background="{DynamicResource BrdrMain}" Margin="2,0"/>
+          <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
           <!-- Google Drive: save the project to the Drive folder; the arrow also opens from Drive and holds the
                folder settings (DriveService, Apps Script) -->
           <Button Classes="icon-btn" Click="OnDriveSave" IsEnabled="{Binding CanUseDrive}"
@@ -585,7 +595,7 @@
                             HorizontalContentAlignment="Left">
                       <StackPanel Orientation="Horizontal" Spacing="8">
                         <Panel Width="14" Height="14">
-                          <Ellipse Width="8" Height="8" Fill="#E53935" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                          <Ellipse Width="8" Height="8" Fill="{DynamicResource Danger}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Panel>
                         <TextBlock Text="{Binding [MenuStockFetchMark], Source={x:Static svc:Loc.Instance}}" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
                       </StackPanel>
@@ -647,7 +657,7 @@
               </Canvas>
             </Viewbox>
           </Button>
-          <Border Width="1" Height="16" Background="{DynamicResource BrdrMain}" Margin="2,0"/>
+          <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
           <!-- Optimum stone count -->
           <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="4,0,0,0"
                     ToolTip.Tip="{Binding [TipOptimum], Source={x:Static svc:Loc.Instance}}">
@@ -666,9 +676,9 @@
                        Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
             <Slider Value="{Binding OptimalK}" Minimum="1" Maximum="{Binding OptimalKMax}"
                     TickFrequency="1" IsSnapToTickEnabled="True" Width="160" VerticalAlignment="Center"/>
-            <TextBlock Text="{Binding OptimalK}" Foreground="#4ecb71" FontSize="13" FontWeight="Bold"
+            <TextBlock Text="{Binding OptimalK}" Foreground="{DynamicResource FgPrimary}" FontSize="13" FontWeight="SemiBold"
                        VerticalAlignment="Center" MinWidth="24"
-                       FontFamily="JetBrains Mono,Consolas,monospace"/>
+                       FontFamily="{StaticResource MonoFont}"/>
             <TextBlock Text="{Binding OptimalInfo}" FontSize="10" Foreground="{DynamicResource FgMuted}"
                        VerticalAlignment="Center"/>
           </StackPanel>
@@ -736,17 +746,17 @@
                 <Border Background="{DynamicResource BgPanel}" CornerRadius="6" Padding="4"
                         BorderBrush="{DynamicResource BrdrSec}" BorderThickness="1">
                   <StackPanel Spacing="2">
-                    <Button Click="OnSetLanguageTr" Padding="8,4" MinWidth="100"
+                    <Button Click="OnSetLanguageTr" Padding="8,5" MinWidth="100"
                             Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand">
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="TR" FontWeight="Bold" FontSize="11" Foreground="#4ecb71" Width="22"/>
+                        <TextBlock Text="TR" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource FgSecondary}" Width="22"/>
                         <TextBlock Text="Türkçe" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
                       </StackPanel>
                     </Button>
-                    <Button Click="OnSetLanguageEn" Padding="8,4" MinWidth="100"
+                    <Button Click="OnSetLanguageEn" Padding="8,5" MinWidth="100"
                             Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand">
                       <StackPanel Orientation="Horizontal" Spacing="8">
-                        <TextBlock Text="EN" FontWeight="Bold" FontSize="11" Foreground="#4a9eff" Width="22"/>
+                        <TextBlock Text="EN" FontWeight="SemiBold" FontSize="11" Foreground="{DynamicResource FgSecondary}" Width="22"/>
                         <TextBlock Text="English" FontSize="11" Foreground="{DynamicResource FgPrimary}"/>
                       </StackPanel>
                     </Button>
@@ -766,13 +776,13 @@
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,1,0,0" Height="28">
       <Panel>
       <!-- Wave that flows across the whole bar while any work is in progress -->
-      <ctrl:ActivityWave IsActive="{Binding IsBusy}"/>
+      <ctrl:ActivityWave IsActive="{Binding IsBusy}" WaveColor="{DynamicResource AccentFill}"/>
       <Grid ColumnDefinitions="*,Auto,*" Margin="8,3">
         <!-- Left: Used color info -->
         <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8"
                     VerticalAlignment="Center" IsVisible="{Binding MosaicDone}">
           <TextBlock Text="{Binding UsedColorInfo}" FontSize="11" FontWeight="SemiBold"
-                     Foreground="#4ecb71" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                     Foreground="{DynamicResource FgSecondary}" FontFamily="{StaticResource MonoFont}"/>
         </StackPanel>
         <!-- Center: Status + Progress -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6"
@@ -782,22 +792,22 @@
           <!-- Cancel: only while a cancellable job runs (Mos, stock fit, export); Esc does the same -->
           <Button Click="OnCancelWork" IsVisible="{Binding CanCancel}" VerticalAlignment="Center"
                   Padding="6,0" Height="20" MinHeight="0" CornerRadius="3" Cursor="Hand"
-                  Background="Transparent" BorderBrush="#E53935" BorderThickness="1"
+                  Background="Transparent" BorderBrush="{DynamicResource Danger}" BorderThickness="1"
                   ToolTip.Tip="{Binding [TipCancel], Source={x:Static svc:Loc.Instance}}">
-            <!-- Red, like the stock red dots, so it stands apart from the green status text -->
+            <!-- Red, like the stock red dots, so it stands apart from the neutral status text -->
             <StackPanel Orientation="Horizontal" Spacing="4">
-              <PathIcon Width="8" Height="8" Foreground="#E53935"
+              <PathIcon Width="8" Height="8" Foreground="{DynamicResource Danger}"
                         Data="M2,0 L6,4 L10,0 L12,2 L8,6 L12,10 L10,12 L6,8 L2,12 L0,10 L4,6 L0,2 Z"/>
               <TextBlock Text="{Binding [BtnCancel], Source={x:Static svc:Loc.Instance}}" FontSize="11"
-                         Foreground="#E53935" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                         Foreground="{DynamicResource DangerText}" FontWeight="SemiBold" VerticalAlignment="Center"/>
             </StackPanel>
           </Button>
           <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center"
-                     Foreground="#4ecb71" FontSize="11" FontWeight="SemiBold"
-                     FontFamily="JetBrains Mono,Consolas,monospace"/>
+                     Foreground="{DynamicResource FgSecondary}" FontSize="11"
+                     FontFamily="{StaticResource MonoFont}"/>
           <TextBlock Text="{Binding ElapsedTime}" VerticalAlignment="Center"
-                     Foreground="#4ecb71" FontSize="10"
-                     FontFamily="JetBrains Mono,Consolas,monospace"/>
+                     Foreground="{DynamicResource FgMuted}" FontSize="11"
+                     FontFamily="{StaticResource MonoFont}"/>
         </StackPanel>
         <!-- Right: Zoom + Fit -->
         <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4"
@@ -808,8 +818,8 @@
                       Data="M5,15 L3,15 L3,19 C3,20.1 3.9,21 5,21 L9,21 L9,19 L5,19 Z M5,5 L9,5 L9,3 L5,3 C3.9,3 3,3.9 3,5 L3,9 L5,9 Z M19,3 L15,3 L15,5 L19,5 L19,9 L21,9 L21,5 C21,3.9 20.1,3 19,3 Z M19,19 L15,19 L15,21 L19,21 C20.1,21 21,20.1 21,19 L21,15 L19,15 Z"/>
           </Button>
           <TextBlock Text="{Binding ZoomInfo}" VerticalAlignment="Center"
-                     Foreground="#4ecb71" FontWeight="Bold" FontSize="11"
-                     FontFamily="JetBrains Mono,Consolas,monospace" Margin="0,0,4,0"/>
+                     Foreground="{DynamicResource FgSecondary}" FontWeight="SemiBold" FontSize="11"
+                     FontFamily="{StaticResource MonoFont}" Margin="0,0,4,0"/>
         </StackPanel>
       </Grid>
       </Panel>
@@ -840,36 +850,36 @@
                 <TextBox Text="{Binding WidthCm, Converter={StaticResource InvDouble}}" Width="58"
                          FontSize="14" FontWeight="Bold" Padding="4,2"
                          Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgPrimary}"
-                         BorderBrush="{DynamicResource BrdrMain}" CornerRadius="3"
+                         BorderBrush="{DynamicResource BrdrMain}" CornerRadius="4"
                          LostFocus="OnWidthChanged"
                          KeyDown="OnWidthKeyDown"
                          GotFocus="OnWidthGotFocus"
                          TextInput="OnWidthTextInput"/>
-                <TextBlock Text="cm" VerticalAlignment="Center" Foreground="{DynamicResource BrdrTer}" FontSize="10"/>
+                <TextBlock Text="cm" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}" FontSize="11"/>
               </StackPanel>
               <Border Grid.Column="1" Width="1" Background="{DynamicResource BrdrMain}" Margin="8,2"/>
               <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0">
                 <TextBlock Text="{Binding DimensionSize}" FontSize="10"
-                           Foreground="{DynamicResource FgSecondary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
-                <TextBlock Text="{Binding DimensionArea}" FontSize="16" FontWeight="Bold"
-                           Foreground="#4ecb71" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           Foreground="{DynamicResource FgSecondary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Text="{Binding DimensionArea}" FontSize="16" FontWeight="SemiBold"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
               </StackPanel>
             </Grid>
             <!-- Stone / Mold / Original -->
             <Border Background="{DynamicResource BgInput}" CornerRadius="4" Padding="8,5">
               <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="2">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="&#x25A0;" Foreground="#4ecb71" FontSize="9"
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="&#x25A0;" Foreground="{DynamicResource AccentText}" FontSize="9"
                            VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StoneInfo}" FontSize="11"
-                           Foreground="{DynamicResource FgMenu}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           Foreground="{DynamicResource FgMenu}" FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="&#x25A3;" Foreground="{DynamicResource FgMuted}" FontSize="9"
                            VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MouldInfo}" FontSize="11"
-                           Foreground="{DynamicResource FgSecondary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="&#x25CB;" Foreground="{DynamicResource BrdrTer}" FontSize="9"
+                           Foreground="{DynamicResource FgSecondary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="2" Grid.Column="0" Text="&#x25CB;" Foreground="{DynamicResource FgMuted}" FontSize="9"
                            VerticalAlignment="Center" Margin="0,0,6,0"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OriginalInfo}" FontSize="10"
-                           Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
               </Grid>
             </Border>
           </StackPanel>
@@ -881,14 +891,14 @@
           <DockPanel>
             <StackPanel Orientation="Horizontal" Spacing="4" DockPanel.Dock="Left">
               <Button Content="{Binding [BtnSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll" FontSize="9" Padding="6,2"
-                      Background="{DynamicResource BgInput}" Foreground="#4a9eff" BorderBrush="{DynamicResource BrdrMain}"
+                      Background="{DynamicResource BgInput}" Foreground="{DynamicResource AccentText}" BorderBrush="{DynamicResource BrdrMain}"
                       BorderThickness="1" CornerRadius="3" FontWeight="SemiBold"/>
               <Button Content="{Binding [BtnDeselectAll], Source={x:Static svc:Loc.Instance}}" Click="OnDeselectAll" FontSize="9" Padding="6,2"
                       Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}" BorderBrush="{DynamicResource BrdrMain}"
                       BorderThickness="1" CornerRadius="3"/>
               <!-- Kalıp Dolgu: pad the mosaic to whole moulds -->
-              <ToggleButton IsChecked="{Binding UsePadding}" FontSize="9" Padding="6,2" Margin="6,0,0,0"
-                            BorderThickness="1" CornerRadius="3" BorderBrush="{DynamicResource BrdrMain}"
+              <ToggleButton Classes="chip" IsChecked="{Binding UsePadding}" FontSize="9" Padding="6,2" Margin="6,0,0,0"
+                            BorderThickness="1" CornerRadius="3"
                             Content="{Binding [BtnPadding], Source={x:Static svc:Loc.Instance}}"
                             ToolTip.Tip="{Binding [TipPadding], Source={x:Static svc:Loc.Instance}}"/>
             </StackPanel>
@@ -908,19 +918,19 @@
           <Border Grid.Column="0" Background="{DynamicResource BgBar}"
                   BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1" Padding="4,2" Height="20"
                   VerticalAlignment="Top">
-            <TextBlock Text="{Binding [ColCatalog], Source={x:Static svc:Loc.Instance}}" FontSize="9" FontWeight="Bold"
+            <TextBlock Text="{Binding [ColCatalog], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                        Foreground="{DynamicResource FgMuted}" HorizontalAlignment="Center"/>
           </Border>
           <Border Grid.Column="2" Background="{DynamicResource BgBar}"
                   BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1" Padding="4,2" Height="20"
                   VerticalAlignment="Top">
-            <TextBlock Text="{Binding [ColMatch], Source={x:Static svc:Loc.Instance}}" FontSize="9" FontWeight="Bold"
+            <TextBlock Text="{Binding [ColMatch], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                        Foreground="{DynamicResource FgMuted}" HorizontalAlignment="Center"/>
           </Border>
           <Border Grid.Column="4" Background="{DynamicResource BgBar}"
                   BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1" Padding="4,2" Height="20"
                   VerticalAlignment="Top">
-            <TextBlock Text="{Binding [ColAssigned], Source={x:Static svc:Loc.Instance}}" FontSize="9" FontWeight="Bold"
+            <TextBlock Text="{Binding [ColAssigned], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                        Foreground="{DynamicResource FgMuted}" HorizontalAlignment="Center"/>
           </Border>
 
@@ -944,14 +954,14 @@
                     </Style>
                   </StackPanel.Styles>
                   <Panel Width="6" VerticalAlignment="Center">
-                    <Ellipse Width="6" Height="6" Fill="#E53935" IsVisible="{Binding StockShort}"/>
+                    <Ellipse Width="6" Height="6" Fill="{DynamicResource Danger}" IsVisible="{Binding StockShort}"/>
                   </Panel>
                   <CheckBox IsChecked="{Binding IsSelected}"
                             Click="OnColorCheckChanged" Margin="0" Padding="0"
                             MinWidth="18" MaxWidth="18"/>
                   <TextBlock Text="{Binding ID}" FontSize="9" Foreground="{DynamicResource FgMuted}"
                              VerticalAlignment="Center" Width="14" TextAlignment="Right"
-                             FontFamily="JetBrains Mono,Consolas,monospace"/>
+                             FontFamily="{StaticResource MonoFont}"/>
                   <Panel Width="16" Height="14" VerticalAlignment="Center" Margin="2,0,1,0">
                     <ToolTip.Tip>
                       <StackPanel Spacing="4">
@@ -977,7 +987,7 @@
                   </Panel>
                   <TextBlock Text="{Binding CodeName}" FontSize="9" Foreground="{DynamicResource FgPrimary}"
                              VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
-                             FontFamily="JetBrains Mono,Consolas,monospace"/>
+                             FontFamily="{StaticResource MonoFont}"/>
                 </StackPanel>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -1022,16 +1032,16 @@
                                  FontWeight="Bold" Foreground="{Binding TextBrush}"
                                  VerticalAlignment="Center" TextAlignment="Right"
                                  MinWidth="20"
-                                 FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                 FontFamily="{StaticResource MonoFont}"/>
                       <TextBlock Grid.Column="1" Text="{Binding CodeName}" FontSize="9"
                                  FontWeight="Bold" Foreground="{Binding TextBrush}"
                                  VerticalAlignment="Center" Margin="4,0,0,0"
                                  TextTrimming="CharacterEllipsis"
-                                 FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                 FontFamily="{StaticResource MonoFont}"/>
                       <TextBlock Grid.Column="2" Text="{Binding PixelCount}" FontSize="9"
                                  FontWeight="Bold" Foreground="{Binding TextBrush}"
                                  VerticalAlignment="Center" HorizontalAlignment="Right"
-                                 FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                 FontFamily="{StaticResource MonoFont}"/>
                     </Grid>
                   </Border>
                 </DataTemplate>
@@ -1107,8 +1117,8 @@
                       Canvas.Top="{Binding NavViewTop}"
                       Width="{Binding NavViewWidth}"
                       Height="{Binding NavViewHeight}"
-                      BorderBrush="#4ecb71" BorderThickness="1.5"
-                      Background="#224ecb71" CornerRadius="1"/>
+                      BorderBrush="{DynamicResource AccentBorder}" BorderThickness="1.5"
+                      Background="{DynamicResource AccentSubtle}" CornerRadius="1"/>
             </Canvas>
           </Panel>
         </Border>
@@ -1134,16 +1144,79 @@
                     ToolTip.Tip="{Binding [TipPanelHide], Source={x:Static svc:Loc.Instance}}">
               <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgMuted}" Data="M3,11 L21,11 L21,13 L3,13 Z"/>
             </Button>
-            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
+            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                        Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
           </DockPanel>
+        </Border>
+
+        <!-- Görsel Ayarları: brightness, contrast, saturation, gamma of the loaded image (folds to its header) -->
+        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BgPanel}"
+                BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,1,0,0">
+          <StackPanel>
+            <Button Click="OnToggleAdjustPanel" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
+                    Background="{DynamicResource BgBar}" BorderThickness="0" CornerRadius="0" Padding="8,4" Cursor="Hand"
+                    ToolTip.Tip="{Binding [TipAdjust], Source={x:Static svc:Loc.Instance}}">
+              <DockPanel>
+                <PathIcon DockPanel.Dock="Right" Width="9" Height="9" Foreground="{DynamicResource FgMuted}"
+                          IsVisible="{Binding IsAdjustPanelOpen}" Data="M4.6,8.6 L12,16 L19.4,8.6 L20.8,10 L12,18.8 L3.2,10 Z"/>
+                <PathIcon DockPanel.Dock="Right" Width="9" Height="9" Foreground="{DynamicResource FgMuted}"
+                          IsVisible="{Binding !IsAdjustPanelOpen}" Data="M4.6,15.4 L12,8 L19.4,15.4 L20.8,14 L12,5.2 L3.2,14 Z"/>
+                <Ellipse DockPanel.Dock="Right" Width="6" Height="6" Fill="{DynamicResource AccentText}" Margin="0,0,8,0"
+                         VerticalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
+                <TextBlock Text="{Binding [AdjTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
+                           Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
+              </DockPanel>
+            </Button>
+            <StackPanel Margin="8,6,8,8" Spacing="2" IsVisible="{Binding IsAdjustPanelOpen}" IsEnabled="{Binding CanAdjust}">
+              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
+                <TextBlock Grid.Column="0" Text="{Binding [AdjBrightness], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgSecondary}"/>
+                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjBrightness}" Tag="AdjBrightness"
+                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
+                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
+                <TextBlock Grid.Column="2" Text="{Binding AdjBrightness}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
+              </Grid>
+              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
+                <TextBlock Grid.Column="0" Text="{Binding [AdjContrast], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgSecondary}"/>
+                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjContrast}" Tag="AdjContrast"
+                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
+                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
+                <TextBlock Grid.Column="2" Text="{Binding AdjContrast}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
+              </Grid>
+              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
+                <TextBlock Grid.Column="0" Text="{Binding [AdjSaturation], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgSecondary}"/>
+                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjSaturation}" Tag="AdjSaturation"
+                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
+                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
+                <TextBlock Grid.Column="2" Text="{Binding AdjSaturation}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
+              </Grid>
+              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
+                <TextBlock Grid.Column="0" Text="{Binding [AdjGamma], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgSecondary}"/>
+                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjGamma}" Tag="AdjGamma"
+                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
+                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
+                <TextBlock Grid.Column="2" Text="{Binding AdjGamma}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
+              </Grid>
+              <Button Content="{Binding [AdjReset], Source={x:Static svc:Loc.Instance}}" Click="OnAdjustReset" HorizontalAlignment="Right"
+                      FontSize="11" Padding="10,2" Margin="0,4,0,0" CornerRadius="4" BorderThickness="1"
+                      Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}"
+                      BorderBrush="{DynamicResource BrdrMain}" IsEnabled="{Binding IsAdjusted}"/>
+            </StackPanel>
+          </StackPanel>
         </Border>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
          <StackPanel>
           <!-- No image yet -->
           <StackPanel Margin="16,28" Spacing="8" HorizontalAlignment="Center" IsVisible="{Binding ShowNoImageHint}">
-            <PathIcon Width="28" Height="28" Foreground="{DynamicResource BrdrTer}" HorizontalAlignment="Center"
+            <PathIcon Width="28" Height="28" Foreground="{DynamicResource FgMuted}" HorizontalAlignment="Center"
                       Data="M19,3 L5,3 C3.9,3 3,3.9 3,5 L3,19 C3,20.1 3.9,21 5,21 L19,21 C20.1,21 21,20.1 21,19 L21,5 C21,3.9 20.1,3 19,3 Z M19,19 L5,19 L5,5 L19,5 Z M14.1,11.9 L11.3,15.5 L9.3,13.1 L6.5,16.7 L17.5,16.7 Z"/>
             <TextBlock Text="{Binding [PropNoImage], Source={x:Static svc:Loc.Instance}}" FontSize="10" TextWrapping="Wrap" TextAlignment="Center"
                        Foreground="{DynamicResource FgMuted}"/>
@@ -1158,7 +1231,7 @@
                          RenderOptions.BitmapInterpolationMode="HighQuality"/>
                   <Border HorizontalAlignment="Right" VerticalAlignment="Top" Margin="6" Padding="5,1" CornerRadius="3"
                           Background="#B0000000">
-                    <TextBlock Text="{Binding ImageInfoType}" FontSize="9" FontWeight="Bold" Foreground="#FFFFFF"/>
+                    <TextBlock Text="{Binding ImageInfoType}" FontSize="11" FontWeight="SemiBold" Foreground="#FFFFFF"/>
                   </Border>
                 </Panel>
                 <Border Background="{DynamicResource BgInput}" Padding="8,6">
@@ -1166,7 +1239,7 @@
                     <TextBlock Text="{Binding [PropImage], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
                     <TextBlock Text="{Binding ImageInfoName}" FontSize="11" FontWeight="SemiBold" TextWrapping="Wrap"
                                Foreground="{DynamicResource FgPrimary}"/>
-                    <TextBlock Text="{Binding [PropImageMissing], Source={x:Static svc:Loc.Instance}}" FontSize="10" Foreground="#E53935"
+                    <TextBlock Text="{Binding [PropImageMissing], Source={x:Static svc:Loc.Instance}}" FontSize="10" Foreground="{DynamicResource DangerText}"
                                IsVisible="{Binding !ImageInfoFound}"/>
                   </StackPanel>
                 </Border>
@@ -1180,23 +1253,23 @@
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding [PropResolution], Source={x:Static svc:Loc.Instance}}" FontSize="10"
                            Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding ImageInfoResolution}" FontSize="10" HorizontalAlignment="Right"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding [PropMegapixels], Source={x:Static svc:Loc.Instance}}" FontSize="10"
                            Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding ImageInfoMegapixels}" FontSize="10" HorizontalAlignment="Right"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding [PropAspect], Source={x:Static svc:Loc.Instance}}" FontSize="10"
                            Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ImageInfoAspect}" FontSize="10" HorizontalAlignment="Right"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding [PropFileSize], Source={x:Static svc:Loc.Instance}}" FontSize="10"
                            Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding ImageInfoSize}" FontSize="10" HorizontalAlignment="Right"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding [PropModified], Source={x:Static svc:Loc.Instance}}" FontSize="10"
                            Foreground="{DynamicResource FgMuted}" Margin="0,0,10,0"/>
                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ImageInfoDate}" FontSize="10" HorizontalAlignment="Right"
-                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 </Grid>
               </StackPanel>
             </Border>
@@ -1226,9 +1299,9 @@
                         <Ellipse Grid.Column="0" Width="12" Height="12" Fill="{Binding Brush}"
                                  Stroke="{DynamicResource BrdrTer}" StrokeThickness="1" Margin="0,0,8,0"/>
                         <TextBlock Grid.Column="1" Text="{Binding Hex}" FontSize="10" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource FgIcon}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                   Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
                         <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                   Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
                       </Grid>
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
@@ -1247,16 +1320,16 @@
                           <Border Grid.Column="0" Width="14" Height="12" CornerRadius="2" Background="{Binding Brush}"
                                   BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1" Margin="0,0,7,0"/>
                           <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="10" VerticalAlignment="Center"
-                                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                           <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
-                                     Margin="6,0,0,0" Foreground="#4ecb71" FontWeight="SemiBold" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                                     Margin="6,0,0,0" Foreground="{DynamicResource FgPrimary}" FontWeight="SemiBold" FontFamily="{StaticResource MonoFont}"/>
                         </Grid>
                         <Grid ColumnDefinitions="*,Auto">
                           <ProgressBar Grid.Column="0" Value="{Binding Percent}" Maximum="100" Height="4" MinHeight="4"
-                                       CornerRadius="2" VerticalAlignment="Center" Foreground="#4ecb71"
+                                       CornerRadius="2" VerticalAlignment="Center" Foreground="{DynamicResource AccentFill}"
                                        Background="{DynamicResource BgCanvas}"/>
-                          <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="9" Margin="8,0,0,0"
-                                     Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+                          <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11" Margin="8,0,0,0"
+                                     Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
                         </Grid>
                       </StackPanel>
                     </DataTemplate>
@@ -1265,7 +1338,7 @@
               </StackPanel>
             </Border>
 
-            <TextBlock Text="{Binding [PropStoneHint], Source={x:Static svc:Loc.Instance}}" FontSize="9" TextWrapping="Wrap" Margin="2,0"
+            <TextBlock Text="{Binding [PropStoneHint], Source={x:Static svc:Loc.Instance}}" FontSize="11" TextWrapping="Wrap" Margin="2,0"
                        Foreground="{DynamicResource FgMuted}" IsVisible="{Binding ShowStoneHint}"/>
           </StackPanel>
 
@@ -1291,10 +1364,10 @@
                 <StackPanel VerticalAlignment="Center" Spacing="1">
                   <TextBlock Text="{Binding PropStoneId}" FontSize="12"
                              FontWeight="Bold" Foreground="{DynamicResource FgPrimary}"
-                             FontFamily="JetBrains Mono,Consolas,monospace"/>
+                             FontFamily="{StaticResource MonoFont}"/>
                   <TextBlock Text="{Binding PropStoneName}" FontSize="10"
                              Foreground="{DynamicResource FgMuted}"
-                             FontFamily="JetBrains Mono,Consolas,monospace"/>
+                             FontFamily="{StaticResource MonoFont}"/>
                 </StackPanel>
               </StackPanel>
             </StackPanel>
@@ -1305,13 +1378,13 @@
               <TextBlock Text="{Binding [PropTexture], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
               <Border Width="80" Height="80" CornerRadius="4"
                       HorizontalAlignment="Left"
-                      BorderBrush="#4ecb71" BorderThickness="2"
+                      BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1"
                       ClipToBounds="True">
                 <Image Source="{Binding PropTextureBitmap}" Stretch="UniformToFill"/>
               </Border>
               <TextBlock Text="{Binding SelectedStoneText}"
                          FontSize="10" Foreground="{DynamicResource FgSecondary}"
-                         FontFamily="JetBrains Mono,Consolas,monospace"/>
+                         FontFamily="{StaticResource MonoFont}"/>
             </StackPanel>
 
             <!-- Stone Variants -->
@@ -1334,7 +1407,7 @@
                           <Image Source="{Binding Thumbnail}" Stretch="UniformToFill"/>
                         </Border>
                         <Border CornerRadius="3" BorderThickness="2"
-                                BorderBrush="#4ecb71"
+                                BorderBrush="{DynamicResource AccentBorder}"
                                 IsVisible="{Binding IsSelected}"/>
                         <Border CornerRadius="3" BorderThickness="1"
                                 BorderBrush="{DynamicResource BrdrTer}"
@@ -1351,7 +1424,7 @@
               <TextBlock Text="{Binding [PropRgb], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
               <TextBlock Text="{Binding PropRgbInfo}" FontSize="12"
                          FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"
-                         FontFamily="JetBrains Mono,Consolas,monospace"/>
+                         FontFamily="{StaticResource MonoFont}"/>
             </StackPanel>
 
             <!-- Coordinates -->
@@ -1363,13 +1436,13 @@
                 <TextBlock Grid.Row="0" Grid.Column="1"
                            Text="{Binding PropPixelCoord}" FontSize="11"
                            Foreground="{DynamicResource FgIcon}"
-                           FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           FontFamily="{StaticResource MonoFont}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding [PropMold], Source={x:Static svc:Loc.Instance}}"
                            FontSize="10" Foreground="{DynamicResource FgMuted}" Margin="0,0,8,0"/>
                 <TextBlock Grid.Row="1" Grid.Column="1"
                            Text="{Binding PropMouldCoord}" FontSize="11"
                            Foreground="{DynamicResource FgIcon}"
-                           FontFamily="JetBrains Mono,Consolas,monospace"/>
+                           FontFamily="{StaticResource MonoFont}"/>
               </Grid>
             </StackPanel>
 
@@ -1379,9 +1452,9 @@
               <TextBlock Text="{Binding [PropEditing], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
               <TextBlock Text="{Binding EditedPixelCountText}"
                          FontSize="11" Foreground="{DynamicResource FgIcon}"
-                         FontFamily="JetBrains Mono,Consolas,monospace"/>
+                         FontFamily="{StaticResource MonoFont}"/>
               <TextBlock Text="{Binding [PropUndoRedo], Source={x:Static svc:Loc.Instance}}"
-                         FontSize="9" Foreground="{DynamicResource BrdrTer}" Margin="0,2,0,0"/>
+                         FontSize="11" Foreground="{DynamicResource FgMuted}" Margin="0,2,0,0"/>
             </StackPanel>
 
           </StackPanel>
@@ -1394,22 +1467,41 @@
     <Border Grid.Column="4" Background="{DynamicResource BgBar}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
             IsVisible="{Binding !IsPropertiesPanelOpen}">
-      <Button Click="OnTogglePropertiesPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
-              Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
-              ToolTip.Tip="{Binding [TipPanelShow], Source={x:Static svc:Loc.Instance}}">
-        <StackPanel Spacing="10">
-          <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
-                    Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
-          <LayoutTransformControl HorizontalAlignment="Center">
-            <LayoutTransformControl.LayoutTransform>
-              <RotateTransform Angle="90"/>
-            </LayoutTransformControl.LayoutTransform>
-            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
-                       Foreground="{DynamicResource FgMuted}"/>
-          </LayoutTransformControl>
-        </StackPanel>
-      </Button>
+      <!-- Two tabs: Properties opens the panel; Görsel Ayarları opens it with the adjustments unfolded -->
+      <StackPanel>
+        <Button Click="OnTogglePropertiesPanel" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
+                Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
+                ToolTip.Tip="{Binding [TipPanelShow], Source={x:Static svc:Loc.Instance}}">
+          <StackPanel Spacing="10">
+            <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
+                      Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
+            <LayoutTransformControl HorizontalAlignment="Center">
+              <LayoutTransformControl.LayoutTransform>
+                <RotateTransform Angle="90"/>
+              </LayoutTransformControl.LayoutTransform>
+              <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource FgMuted}"/>
+            </LayoutTransformControl>
+          </StackPanel>
+        </Button>
+        <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="4,2"/>
+        <Button Click="OnShowAdjustPanel" HorizontalAlignment="Stretch"
+                HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
+                Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
+                ToolTip.Tip="{Binding [TipAdjustShow], Source={x:Static svc:Loc.Instance}}">
+          <StackPanel Spacing="6">
+            <Ellipse Width="6" Height="6" Fill="{DynamicResource AccentText}" HorizontalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
+            <LayoutTransformControl HorizontalAlignment="Center">
+              <LayoutTransformControl.LayoutTransform>
+                <RotateTransform Angle="90"/>
+              </LayoutTransformControl.LayoutTransform>
+              <TextBlock Text="{Binding [MenuAdjustPanel], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
+                         Foreground="{DynamicResource FgMuted}"/>
+            </LayoutTransformControl>
+          </StackPanel>
+        </Button>
+      </StackPanel>
     </Border>
 
     <!-- New image in Downloads / on the Desktop: open it? (closes by itself after 5 s; the count stops while the
@@ -1421,12 +1513,12 @@
             PointerEntered="OnToastPointerEntered" PointerExited="OnToastPointerExited">
       <StackPanel>
         <Grid ColumnDefinitions="Auto,*,Auto" Margin="10,10,6,8">
-          <Border Grid.Column="0" Width="56" Height="56" CornerRadius="5" ClipToBounds="True" VerticalAlignment="Top"
+          <Border Grid.Column="0" Width="56" Height="56" CornerRadius="4" ClipToBounds="True" VerticalAlignment="Top"
                   Background="{DynamicResource BgCanvas}" Margin="0,0,10,0">
             <Image x:Name="toastThumb" Stretch="UniformToFill"/>
           </Border>
           <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
-            <TextBlock x:Name="toastTitle" FontSize="10" FontWeight="Bold" Foreground="#4ecb71"/>
+            <TextBlock x:Name="toastTitle" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentText}"/>
             <TextBlock x:Name="toastName" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"
                        TextTrimming="CharacterEllipsis"/>
             <TextBlock Text="{Binding [ToastQuestion], Source={x:Static svc:Loc.Instance}}" FontSize="11"
@@ -1440,20 +1532,19 @@
           </Button>
         </Grid>
         <DockPanel Margin="10,0,10,10">
-          <TextBlock x:Name="toastSeconds" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="10"
-                     Foreground="{DynamicResource FgMuted}" FontFamily="JetBrains Mono,Consolas,monospace"/>
+          <TextBlock x:Name="toastSeconds" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="11"
+                     Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
             <Button Click="OnToastDismiss" Content="{Binding [ToastDismiss], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="12,0"
                     FontSize="11" VerticalContentAlignment="Center" CornerRadius="4"
                     Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}"/>
             <Button Click="OnToastOpen" Content="{Binding [ToastOpen], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="16,0"
-                    FontSize="11" FontWeight="SemiBold" VerticalContentAlignment="Center" CornerRadius="4"
-                    Background="#4ecb71" Foreground="#1a1a1e"/>
+                    FontSize="11" VerticalContentAlignment="Center" Classes="primary"/>
           </StackPanel>
         </DockPanel>
         <!-- Time left -->
         <ProgressBar x:Name="toastBar" Height="3" MinHeight="3" Maximum="100" Value="100" CornerRadius="0"
-                     Foreground="#4ecb71" Background="Transparent"/>
+                     Foreground="{DynamicResource AccentFill}" Background="Transparent"/>
       </StackPanel>
     </Border>
     </Grid>

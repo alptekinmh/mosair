@@ -1,6 +1,6 @@
 # AlertDialog
 
-> Kaynak: `mosair/Controls/AlertDialog.axaml`, `mosair/Controls/AlertDialog.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Controls/AlertDialog.axaml`, `mosair/Controls/AlertDialog.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -27,7 +27,7 @@ ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonu
 | (pencere) | `Window` | `Width=420`, `SizeToContent="Height"`, `CanResize="False"` | `WindowStartupLocation="CenterOwner"`, arka plan `BgCard` (tema rengi). |
 | `TitleText` | `TextBlock` | — | 16 pt, SemiBold başlık. |
 | `MessageText` | `SelectableTextBlock` | — | 13 pt, `TextWrapping="Wrap"` gövde metni; seçilip kopyalanabilir. En çok 460 px yüksekliğinde bir `ScrollViewer` içindedir: uzun raporlar (ör. büyük mozaikte Stoğa göre sonucu) pencereyi ekrandan taşırmaz, kaydırılır. |
-| `OkButton` | `Button` | `Content="Tamam"` | Sağa yaslı mavi (`#3a7bfd`) düğme; `Click="OnOkClick"`. |
+| `OkButton` | `Button` | `Content="Tamam"` | Sağa yaslı ana düğme (`Classes="primary"`, vurgu mavisi); `Click="OnOkClick"`. |
 
 ## Public API
 
@@ -44,7 +44,7 @@ ViewModel tüm uyarılarını (görüntü yok, dışa aktarma hatası, stok sonu
 
 ## Dikkat / bilinen sınırlamalar
 
-- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Onay düğmesi de temaya bağlı paylaşılan `Button.primary` stilini kullanır (vurgu mavisi, üzerine gelince/basınca koyulaşır; bkz. [App](../App.md)).
 - Escape/Enter tuşlarına özel bağlama yoktur.
 
 ## İlgili dosyalar

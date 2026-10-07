@@ -1,6 +1,6 @@
 # ConfirmDialog
 
-> Kaynak: `mosair/Controls/ConfirmDialog.axaml`, `mosair/Controls/ConfirmDialog.axaml.cs` · Güncelleme: 2026-10-04
+> Kaynak: `mosair/Controls/ConfirmDialog.axaml`, `mosair/Controls/ConfirmDialog.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -25,7 +25,7 @@ ViewModel, Google Sheet tablosunu değiştiren geri dönüşsüz stok işlemleri
 | `TitleText` | `TextBlock` | — | 16 pt başlık. |
 | `MessageText` | `TextBlock` | — | 13 pt, sarmalı gövde metni. |
 | `NoButton` | `Button` | — | Gri (`#3a3a42`), `Click="OnNoClick"`. |
-| `YesButton` | `Button` | — | Mavi (`#3a7bfd`), `Click="OnYesClick"`. |
+| `YesButton` | `Button` | — | Ana düğme (`Classes="primary"`, vurgu mavisi), `Click="OnYesClick"`. |
 
 ## Public API
 
@@ -43,7 +43,7 @@ ViewModel, Google Sheet tablosunu değiştiren geri dönüşsüz stok işlemleri
 
 ## Dikkat / bilinen sınırlamalar
 
-- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Onay düğmesi de temaya bağlı paylaşılan `Button.primary` stilini kullanır (vurgu mavisi, üzerine gelince/basınca koyulaşır; bkz. [App](../App.md)).
 - Klavye kısayolu (Enter = Evet, Esc = Hayır) tanımlı değildir.
 
 ## İlgili dosyalar

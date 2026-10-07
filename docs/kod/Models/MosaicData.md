@@ -1,6 +1,6 @@
 # MosaicData
 
-> Kaynak: `mosair/Models/MosaicData.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Models/MosaicData.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -28,7 +28,8 @@ Piksel dizileri `[satır, sütun, kanal]` düzenindedir ve kanal sırası **BGR*
 | `arMBR` | `List<List<rgb>>` | boş | `arMB`'nin kopyası (referans/yedek). |
 | `reducedBitmap` | `SKBitmap?` | `null` | Kaynak görüntünün taş ızgarasına küçültülmüş hali / ara sonuç. |
 | `exportBitmap` | `SKBitmap?` | `null` | Düz renkli mozaik bitmap'i (dokusuz). |
-| `inputBitmap` | `SKBitmap?` | `null` | Yüklenen orijinal görüntü. |
+| `inputBitmap` | `SKBitmap?` | `null` | Mos'un çalıştığı görüntü: yüklenen görüntüye Görsel Ayarları (parlaklık, kontrast, doygunluk, gama) uygulanmış kopya; hiçbir ayar yokken `sourceBitmap` ile aynı nesnedir. `MainViewModel.ApplyAdjustmentsAsync` değiştirir. |
+| `sourceBitmap` | `SKBitmap?` | `null` | Dosyadan okunduğu gibi yüklenen orijinal görüntü; ayarlar her seferinde bundan hesaplanır. `MainViewModel.LoadImage` ve `OpenProjectAsync` atar. |
 | `N` | `int` | 40 | Proje dosyasındaki taş başına piksel değeri; yalnızca WPF uyumluluğu için tutulur. `ProjectService.Open` dosyadan okur, `Save` aynen geri yazar. mosair'in görünümü (`MainViewModel.StonePixelSize`, sabit 100) ve dışa aktarma kalitesi bunu kullanmaz; Detay ayarı kaldırıldığı için başka hiçbir yer değiştirmez; bu yüzden bir proje açıldıktan sonra yapılan yeni Mos'lar da o projenin değeriyle kaydedilir (40'a dönmez). |
 | `arn` | `int[]` | `new int[3]` | Hücre başına doku varyantı indeksi (`R*C` uzunluk). `StoneTextureService.PopulateRandomIndices` yeniden ayırır. |
 

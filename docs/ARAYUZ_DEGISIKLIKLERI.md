@@ -1,0 +1,72 @@
+# Arayüz değişiklikleri
+
+> Tarih: 2026-10-07 · Kapsam: yalnızca görünüm (renk, yazı, tutarlılık) ve yeni Görsel Ayarları paneli. Davranış, algoritmalar ve proje/robot (WPF) dosya biçimi değişmedi (yalnızca projeye isteğe bağlı `ImageAdjust` alanı eklendi; WPF onu yok sayar).
+
+Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
+
+## 1. Vurgu rengi: yeşilden "Lapis" mavisine
+
+Önceden aynı anda dört vurgu rengi vardı: ana penceredeki nane yeşili `#4ecb71`, iletişim kutularındaki mavi `#3a7bfd`, "Tüm Renkleri Seç" yazısındaki `#4a9eff` ve işletim sisteminin vurgu rengi (işaret kutuları, kaydırıcılar, ilerleme çubuğu Windows/macOS ayarına göre renk alıyordu). Artık tek vurgu vardır:
+
+| Anahtar | Koyu tema | Açık tema | Kullanım |
+|---|---|---|---|
+| `AccentFill` | `#2D6BD9` | `#1F5FCC` | Mos düğmesi, iletişim kutularının ana düğmeleri, bildirimdeki **Aç**, ilerleme çubukları, işlem dalgası, Kalıp Dolgu açıkken |
+| `AccentFillHover` / `AccentFillPressed` | `#3672DE` / `#255DC0` | `#2766D4` / `#1A50AD` | Üzerine gelme / basılı |
+| `AccentText` | `#6FA3FF` | `#1D5BC4` | Izgara AÇIK ikonu, "Tüm Renkleri Seç", bildirim başlığı, kılavuz başlığı, Görsel Ayarları noktası |
+| `AccentBorder` / `AccentSubtle` | `#6FA3FF` / `#2D6BD9` %15 | `#1F5FCC` / `#1F5FCC` %12 | Mini harita çerçevesi ve dolgusu, seçili taş varyantı |
+
+Neden mavi: lapis klasik bir mozaik taşıdır; doğal taş fotoğrafları çoğunlukla sıcak tonlu olduğundan mavi çerçeve ve seçimler görüntünün üstünde hep seçilir; yeşil yalnızca "başarılı" anlamında kalır. Fluent temasının kendi vurgu rengi de aynı maviye sabitlendi (`App.axaml` → `FluentTheme.Palettes`).
+
+**Değişen yerler (eski → yeni):**
+
+- Mos düğmesi: `#4ecb71` zemin + `#1a1a1e` yazı → `AccentFill` + beyaz; üzerine gelme `#5dda80` → `AccentFillHover`, basılı durumu eklendi (`AccentFillPressed`).
+- İletişim kutularının onay düğmeleri (Uyarı, Onay, Stok Ayarları, Drive Ayarları, Drive'dan Aç) ve bildirimdeki **Aç**: `#3a7bfd` / `#4ecb71` → paylaşılan `Button.primary` stili (vurgu mavisi, üzerine gelince ve basınca koyulaşır, pasifken gri). Beyaz yazının okunurluğu 3,87'den 4,98 / 5,89'a çıktı.
+- İşlem dalgası, bildirim geri sayım çubuğu, en çok kullanılan taşlar çubuğu: yeşil → `AccentFill`.
+- Mini harita çerçevesi `#4ecb71` → `AccentBorder`, dolgusu `#224ecb71` → `AccentSubtle`; seçili varyant çerçevesi → `AccentBorder`.
+- Izgara AÇIK ikonu ve "ON" yazısı, ölçüler kutusundaki ■ işareti, "Tüm Renkleri Seç" (`#4a9eff`), bildirim başlığı → `AccentText`.
+- Kalıp Dolgu düğmesi: işletim sistemi rengi yerine `ToggleButton.chip` stili (kapalıyken nötr, açıkken `AccentFill`).
+
+## 2. Yeşil, kırmızı, turuncu artık anlam taşıyor
+
+| Anahtar | Koyu | Açık | Kullanım |
+|---|---|---|---|
+| `Success` | `#4CC27A` | `#17703D` | Kaydet ✓ işareti |
+| `Danger` | `#E53935` | `#E53935` | Stok eksik kırmızı noktaları, İptal düğmesi çerçevesi ve ✕ |
+| `DangerText` | `#F2665E` | `#B71C1C` | İptal yazısı, "Görsel dosyası bulunamadı" |
+| `EditMode` | `#FF7A29` | `#B23A0A` | Piksel düzenleme kalemi, kaynak/hedef (önceden `#FF6600`) |
+| `Brand` / `BrandFill` | `#6FAF6F` / `#3F7A3F` | `#356B35` / `#3F7A3F` | "mosair" yazısı (logodaki adaçayı yeşili; önceden nane yeşili `#4ecb71`), kılavuz başlığındaki logo kutusu |
+
+Google Drive ve Sheets ikonlarının kendi renkleri değişmedi.
+
+## 3. Nötr metinler ve okunurluk
+
+- Durum çubuğundaki kullanılan renk bilgisi, durum metni ve zoom yeşilden `FgSecondary`'ye, geçen süre `FgMuted`'a; alan (m²), Optimum taş sayısı ve en çok kullanılan taşların yüzdesi `FgPrimary`'ye döndü. Vurgu rengi yalnızca anlamı olan yerlerde kalır.
+- Açık temada yeşil yazılar 1,5:1 okunurluktaydı (en az 4,5 gerekir); artık hiçbir metin koda gömülü renk kullanmıyor, iki temada da okunur.
+- Soluk yazı `FgMuted`: koyu `#686870` → `#9294A0` (2,83 → ≥4,6), açık `#707078` → `#5C5F68`.
+- Kenarlık renkleri artık yazı rengi olarak kullanılmıyor: "cm", ızgara KAPALI, ○ işareti, geri al/yinele ipucu, "görsel yok" simgesi → `FgMuted`; pasif kaynak/hedef → `FgDisabled`.
+- Diğer tema değerleri de hafifçe yenilendi (yüzeyler biraz daha ayrışık, `BrdrTer` 3:1'e çıktı, yeni `BgPressed`, `FgDisabled`). Görsel alanı (`BgCanvas`) nötr gri kaldı; taş renkleri yanıltmasın diye renk katılmadı.
+- Kılavuz: başlık yeşilden `AccentText`'e, kısayol rozeti `#9898a0` zemin → `BgHover`/`FgPrimary`; numaralı adım rozetleri beyaz rakamlar okunsun diye koyulaştırıldı (`#43A047` → `#2E7D32`, `#FF8F00` → `#B45309`, `#E53935` → `#C62828`, `#FF6600` → `#C2410C`).
+
+## 4. Yazı boyutları ve tutarlılık
+
+- 9–10 px olan başlık ve açıklamalar 11 px'e çıktı: sütun başlıkları (Katalog Renk, Eşleşme, Atanan Renk), Izgara rengi etiketi, Properties ve Görsel Ayarları başlıkları, taş ipucu, geri al/yinele ipucu, dosya türü rozeti, en çok kullanılan taşların sayısı, bildirimin başlığı ve geri sayımı, durum çubuğundaki süre, "cm". Yoğun liste satırları (katalog, eşleşme, atanan) bilerek 9 px kaldı.
+- Bütün panel başlıkları tek stilde: 11 px SemiBold `FgMuted` (`section-title`); önceden üç farklı stil vardı. Kalın (Bold) yazı azaltıldı (alan, Optimum sayısı, zoom → SemiBold).
+- Eş aralıklı yazı tipi tek kaynakta (`MonoFont`: JetBrains Mono, Cascadia Mono, Consolas, Menlo, monospace); 38 ayrı tanımın yerini aldı ve macOS'te Menlo kullanılır.
+- Küçük temizlikler: araç çubuğundaki iki kısa ayırıcı (16 px) diğerleri gibi 24 px; dil menüsü öğelerinin dolgusu 8,5; genişlik kutusu ve bildirim önizlemesinin köşe yuvarlaklığı 4.
+
+## 5. Yeni: Görsel Ayarları paneli
+
+Sağ panelin altında, kendi başlığıyla açılıp kapanan **GÖRSEL AYARLARI** bölümü: Parlaklık, Kontrast, Doygunluk, Gama (−100…+100). Çift tık bir ayarı, **Sıfırla** hepsini sıfırlar; ayar varken başlıkta ve gizli panel şeridindeki yeni **Görsel Ayarları** sekmesinde mavi nokta yanar. **Görünüm → Görsel Ayarları** ile de açılır. Mos ayarlanmış görselden yapılır; dosya değişmez, ayarlar projeyle kaydedilir. Ayrıntı: [ARAYUZ.md → Görsel Ayarları](ARAYUZ.md#görsel-ayarları), kod: [ImageAdjustService](kod/Services/ImageAdjustService.md).
+
+## 6. Bilerek sonraya bırakılanlar
+
+- Yoğun listelerde (katalog, eşleşme, atanan) 16 px satır ve 9 px yazı: 11 px'e çıkarmak görünen satır sayısını ~%25 azaltır; sahibin kararı.
+- Kodda sabit kalan ve temayı izlemeyen birkaç renk: ipucundaki kg yeşil/kırmızı (`MainViewModel.KgOkBrush`/`KgShortBrush`), Stok/Drive ayar pencerelerindeki örnek adres vurgusu (`#3a7bfd`), ızgara rengi menüsündeki gri çerçeve.
+- Bütün düğmeler için ortak stil seti (`secondary`, `ghost`, menü öğesi), köşe ve yükseklik ölçeğinin (2/4/6/8 ve 24/28/32) her yere uygulanması.
+- Tek panel başlığı bileşeni (sabit yükseklik); Türkçe arayüzde "Properties" başlığının çevirisi.
+- Uygulama genelinde varsayılan yazı tipi (Windows ve macOS aynı görünsün diye) ve eş aralıklı yazı tipinin pakete eklenmesi.
+- macOS başlık çubuğu: pencere düğmelerinin "mosair" yazısıyla çakışıp çakışmadığı denetlenmeli.
+- Kullanım kılavuzunda Türkçe karakterler, kenar menüsünde seçili durum.
+- Durum mesajlarının sonuca göre renklenmesi (başarılı / uyarı / hata).
+- Bildirim gölgesinin açık temada hafifletilmesi.
+- Üzerine gelme / basılı görünümleri elle denenmedi; yalnızca derlendi ve koyu tema ekran görüntüsüyle kontrol edildi.

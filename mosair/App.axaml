@@ -4,53 +4,132 @@
              RequestedThemeVariant="Dark">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
 
-    <!-- Theme colours shared by every window (main window, dialogs, user guide). -->
+    <!-- Theme colours shared by every window (main window, dialogs, user guide). One accent ("Lapis" blue) for
+         actions, selection and focus; green only means success (stock OK, saved). See docs/ARAYUZ_DEGISIKLIKLERI.md. -->
     <Application.Resources>
     <ResourceDictionary>
+      <!-- Monospace text (stone codes, sizes, values); not theme dependent. -->
+      <FontFamily x:Key="MonoFont">JetBrains Mono, Cascadia Mono, Consolas, Menlo, monospace</FontFamily>
+
       <ResourceDictionary.ThemeDictionaries>
         <ResourceDictionary x:Key="Dark">
-          <Color x:Key="BgMain">#1a1a1e</Color>
-          <Color x:Key="BgBar">#1e1e22</Color>
-          <Color x:Key="BgPanel">#232328</Color>
-          <Color x:Key="BgInput">#18181c</Color>
-          <Color x:Key="BgCanvas">#2e2e34</Color>
-          <Color x:Key="BgCard">#2a2a30</Color>
-          <Color x:Key="BgHover">#3a3a42</Color>
-          <Color x:Key="BrdrMain">#333338</Color>
-          <Color x:Key="BrdrSec">#444444</Color>
-          <Color x:Key="BrdrTer">#555555</Color>
-          <Color x:Key="FgPrimary">#e8e8ec</Color>
-          <Color x:Key="FgSecondary">#9898a0</Color>
-          <Color x:Key="FgMuted">#686870</Color>
-          <Color x:Key="FgIcon">#b0b0b8</Color>
-          <Color x:Key="FgMenu">#c8c8cc</Color>
-          <Color x:Key="NavBg">#cc1a1a1e</Color>
-          <Color x:Key="FgWarn">#e0a050</Color>
+          <Color x:Key="BgMain">#18191C</Color>
+          <Color x:Key="BgBar">#1D1E22</Color>
+          <Color x:Key="BgPanel">#222328</Color>
+          <Color x:Key="BgInput">#16171A</Color>
+          <Color x:Key="BgCanvas">#2C2D31</Color>
+          <Color x:Key="BgCard">#2A2B31</Color>
+          <Color x:Key="BgHover">#33343B</Color>
+          <Color x:Key="BgPressed">#3C3D45</Color>
+          <Color x:Key="BrdrMain">#303137</Color>
+          <Color x:Key="BrdrSec">#41424A</Color>
+          <Color x:Key="BrdrTer">#6B6C76</Color>
+          <Color x:Key="FgPrimary">#ECECF0</Color>
+          <Color x:Key="FgSecondary">#B4B5BE</Color>
+          <Color x:Key="FgMuted">#9294A0</Color>
+          <Color x:Key="FgDisabled">#62636C</Color>
+          <Color x:Key="FgIcon">#B4B5BE</Color>
+          <Color x:Key="FgMenu">#D6D7DD</Color>
+          <Color x:Key="NavBg">#CC18191C</Color>
+          <Color x:Key="FgWarn">#E3A54F</Color>
+          <Color x:Key="Success">#4CC27A</Color>
+          <Color x:Key="Danger">#E53935</Color>
+          <Color x:Key="DangerText">#F2665E</Color>
+          <Color x:Key="EditMode">#FF7A29</Color>
+          <Color x:Key="Brand">#6FAF6F</Color>
+          <Color x:Key="BrandFill">#3F7A3F</Color>
+          <Color x:Key="AccentFill">#2D6BD9</Color>
+          <Color x:Key="AccentFillHover">#3672DE</Color>
+          <Color x:Key="AccentFillPressed">#255DC0</Color>
+          <Color x:Key="OnAccent">#FFFFFF</Color>
+          <Color x:Key="AccentText">#6FA3FF</Color>
+          <Color x:Key="AccentSubtle">#262D6BD9</Color>
+          <Color x:Key="AccentBorder">#6FA3FF</Color>
         </ResourceDictionary>
         <ResourceDictionary x:Key="Light">
-          <Color x:Key="BgMain">#f0f1f3</Color>
-          <Color x:Key="BgBar">#e4e5e8</Color>
-          <Color x:Key="BgPanel">#dddee2</Color>
-          <Color x:Key="BgInput">#ffffff</Color>
-          <Color x:Key="BgCanvas">#eaebef</Color>
-          <Color x:Key="BgCard">#e8e9ed</Color>
-          <Color x:Key="BgHover">#d0d1d6</Color>
-          <Color x:Key="BrdrMain">#c8c9ce</Color>
-          <Color x:Key="BrdrSec">#b0b1b6</Color>
-          <Color x:Key="BrdrTer">#a0a1a6</Color>
-          <Color x:Key="FgPrimary">#1a1a1e</Color>
-          <Color x:Key="FgSecondary">#505058</Color>
-          <Color x:Key="FgMuted">#707078</Color>
-          <Color x:Key="FgIcon">#505058</Color>
-          <Color x:Key="FgMenu">#2a2a30</Color>
-          <Color x:Key="NavBg">#ccf0f1f3</Color>
-          <Color x:Key="FgWarn">#a8640f</Color>
+          <Color x:Key="BgMain">#F3F4F6</Color>
+          <Color x:Key="BgBar">#E9EBEE</Color>
+          <Color x:Key="BgPanel">#E3E5E9</Color>
+          <Color x:Key="BgInput">#FFFFFF</Color>
+          <Color x:Key="BgCanvas">#E6E7EA</Color>
+          <Color x:Key="BgCard">#FBFBFC</Color>
+          <Color x:Key="BgHover">#D8DBE0</Color>
+          <Color x:Key="BgPressed">#CDD0D6</Color>
+          <Color x:Key="BrdrMain">#D0D3D9</Color>
+          <Color x:Key="BrdrSec">#BCC0C7</Color>
+          <Color x:Key="BrdrTer">#7D8089</Color>
+          <Color x:Key="FgPrimary">#1B1C20</Color>
+          <Color x:Key="FgSecondary">#464953</Color>
+          <Color x:Key="FgMuted">#5C5F68</Color>
+          <Color x:Key="FgDisabled">#8D9099</Color>
+          <Color x:Key="FgIcon">#464953</Color>
+          <Color x:Key="FgMenu">#2A2B31</Color>
+          <Color x:Key="NavBg">#CCF3F4F6</Color>
+          <Color x:Key="FgWarn">#8A5106</Color>
+          <Color x:Key="Success">#17703D</Color>
+          <Color x:Key="Danger">#E53935</Color>
+          <Color x:Key="DangerText">#B71C1C</Color>
+          <Color x:Key="EditMode">#B23A0A</Color>
+          <Color x:Key="Brand">#356B35</Color>
+          <Color x:Key="BrandFill">#3F7A3F</Color>
+          <Color x:Key="AccentFill">#1F5FCC</Color>
+          <Color x:Key="AccentFillHover">#2766D4</Color>
+          <Color x:Key="AccentFillPressed">#1A50AD</Color>
+          <Color x:Key="OnAccent">#FFFFFF</Color>
+          <Color x:Key="AccentText">#1D5BC4</Color>
+          <Color x:Key="AccentSubtle">#1F1F5FCC</Color>
+          <Color x:Key="AccentBorder">#1F5FCC</Color>
         </ResourceDictionary>
       </ResourceDictionary.ThemeDictionaries>
     </ResourceDictionary>
     </Application.Resources>
 
     <Application.Styles>
-        <FluentTheme />
+        <!-- Fluent's own accent (CheckBox, Slider, ProgressBar, ToggleButton, focus) follows the app's accent instead of
+             the operating system's. -->
+        <FluentTheme>
+          <FluentTheme.Palettes>
+            <ColorPaletteResources x:Key="Dark" Accent="#2D6BD9"/>
+            <ColorPaletteResources x:Key="Light" Accent="#1F5FCC"/>
+          </FluentTheme.Palettes>
+        </FluentTheme>
+
+        <!-- Primary action button (dialog OK/Save/Open, the notice's Open): accent fill with hover and pressed. -->
+        <Style Selector="Button.primary">
+          <Setter Property="Background" Value="{DynamicResource AccentFill}"/>
+          <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+          <Setter Property="BorderThickness" Value="0"/>
+          <Setter Property="CornerRadius" Value="4"/>
+          <Setter Property="FontWeight" Value="SemiBold"/>
+          <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+        <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource AccentFillHover}"/>
+          <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource AccentFillPressed}"/>
+          <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+        </Style>
+        <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource BgHover}"/>
+          <Setter Property="Foreground" Value="{DynamicResource FgDisabled}"/>
+        </Style>
+
+        <!-- Small toggle above the catalog (Kalıp Dolgu): neutral when off, accent fill when on. -->
+        <Style Selector="ToggleButton.chip">
+          <Setter Property="Background" Value="{DynamicResource BgInput}"/>
+          <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource BrdrMain}"/>
+        </Style>
+        <Style Selector="ToggleButton.chip:checked /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource AccentFill}"/>
+          <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+          <Setter Property="BorderBrush" Value="{DynamicResource AccentFill}"/>
+        </Style>
+        <Style Selector="ToggleButton.chip:checked:pointerover /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource AccentFillHover}"/>
+          <Setter Property="Foreground" Value="{DynamicResource OnAccent}"/>
+        </Style>
     </Application.Styles>
 </Application>

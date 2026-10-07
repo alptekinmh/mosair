@@ -53,6 +53,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ColorCatalogService.md](kod/Services/ColorCatalogService.md) | `colorsBas.txt` renk kataloğu |
 | [GamutMapper.md](kod/Services/GamutMapper.md) | Gamut eşleme yardımcıları |
 | [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
+| [ImageAdjustService.md](kod/Services/ImageAdjustService.md) | Görsel Ayarları: parlaklık, kontrast, doygunluk, gama |
 | [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokularını yükleme, çizim anlık görüntüsü kurma |
 | [MosaicRenderSource.md](kod/Services/MosaicRenderSource.md) | Taş dokulu görüntüyü (RS) istenen bölge ve detayda çizme (ekran karoları, dışa aktarma) |
 | [MosaicExporter.md](kod/Services/MosaicExporter.md) | Dışa aktarma: seçilen görüntü kalitesiyle (taş başına piksel) boyut sınırı olmadan JPEG/PNG yazma (büyük PNG akışla, büyük JPEG tek tamponla), dosya boyutu tahmini |

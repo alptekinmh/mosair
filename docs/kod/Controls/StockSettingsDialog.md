@@ -1,6 +1,6 @@
 # StockSettingsDialog
 
-> Kaynak: `mosair/Controls/StockSettingsDialog.axaml`, `mosair/Controls/StockSettingsDialog.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Controls/StockSettingsDialog.axaml`, `mosair/Controls/StockSettingsDialog.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -62,7 +62,7 @@ Stiller: `TextBlock.hint` (11 pt, `FgSecondary`, sarmalı) ve `TextBlock.example
 ## Dikkat / bilinen sınırlamalar
 
 - Pencere başlık çubuğundan kapatılırsa `ShowDialog<Config?>` `null` döner (iptal ile aynı).
-- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Yalnızca mavi onay düğmesi sabit renklidir.
+- Renkler `App.axaml`'daki tema anahtarlarından (`DynamicResource`) gelir; açık temada diyalog da açık görünür. Onay düğmesi de temaya bağlı paylaşılan `Button.primary` stilini kullanır (vurgu mavisi, üzerine gelince/basınca koyulaşır; bkz. [App](../App.md)). Örnek adresteki vurgu (`HighlightBrush`, `#3a7bfd`) hâlâ sabit renklidir ve temayı izlemez.
 - Boş değerler de kaydedilebilir; bu durumda stok komutları `MainViewModel.TryGetStockConfig` içinde `StockNotConfigured` uyarısı verir (Sheet ID her komut için, Script URL yalnızca tabloya yazan komutlar için zorunludur).
 
 ## İlgili dosyalar

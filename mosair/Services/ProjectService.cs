@@ -37,6 +37,8 @@ namespace mosair.Services
         public byte GridColorG { get; set; }
         public byte GridColorB { get; set; }
         public int InterpolationMethod { get; set; }
+        // Görsel Ayarları [brightness, contrast, saturation, gamma] (-100..100); absent when nothing was adjusted.
+        public int[]? ImageAdjust { get; set; }
         public double ZoomLevel { get; set; } = 1;
         public double WidthCm { get; set; }
         public string? PictureFileName { get; set; }
@@ -149,7 +151,7 @@ namespace mosair.Services
         // Copies what the project file needs (arrays, palettes, edits, settings). Fast: array copies only.
         public static ProjectSnapshot CreateSnapshot(double widthCm, double zoomLevel,
             bool showGrid, bool showMouldLines, byte gcR, byte gcG, byte gcB,
-            int interpMethod)
+            int interpMethod, int[]? imageAdjust = null)
         {
             var data = new ProjectData
             {
@@ -164,6 +166,7 @@ namespace mosair.Services
                 GridColorG = gcG,
                 GridColorB = gcB,
                 InterpolationMethod = interpMethod,
+                ImageAdjust = imageAdjust,
                 ZoomLevel = zoomLevel,
                 WidthCm = widthCm,
             };

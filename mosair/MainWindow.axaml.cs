@@ -701,6 +701,34 @@ public partial class MainWindow : Window
 
     private void OnClearSelection(object? sender, RoutedEventArgs e) => _vm.ClearSelection();
 
+    // Görsel Ayarları: fold/unfold (header, View menu), reset all, double-click a slider to reset that one.
+    private void OnToggleAdjustPanel(object? sender, RoutedEventArgs e)
+    {
+        _vm.IsAdjustPanelOpen = !_vm.IsAdjustPanelOpen;
+        if (_vm.IsAdjustPanelOpen && !_vm.IsPropertiesPanelOpen) _vm.IsPropertiesPanelOpen = true;
+    }
+
+    // From the folded strip: open the panel with the adjustments unfolded.
+    private void OnShowAdjustPanel(object? sender, RoutedEventArgs e)
+    {
+        _vm.IsAdjustPanelOpen = true;
+        _vm.IsPropertiesPanelOpen = true;
+    }
+
+    private void OnAdjustReset(object? sender, RoutedEventArgs e) => _vm.ResetAdjustments();
+
+    private void OnAdjustSliderReset(object? sender, TappedEventArgs e)
+    {
+        if (sender is not Slider { Tag: string prop }) return;
+        switch (prop)
+        {
+            case nameof(MainViewModel.AdjBrightness): _vm.AdjBrightness = 0; break;
+            case nameof(MainViewModel.AdjContrast): _vm.AdjContrast = 0; break;
+            case nameof(MainViewModel.AdjSaturation): _vm.AdjSaturation = 0; break;
+            case nameof(MainViewModel.AdjGamma): _vm.AdjGamma = 0; break;
+        }
+    }
+
     private void ApplyPropertiesPanel()
     {
         var col = mainGrid.ColumnDefinitions[4];

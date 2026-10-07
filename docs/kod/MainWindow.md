@@ -20,9 +20,9 @@ Bu belge **kablolamayı** anlatır. Kullanıcı gözünden kullanım için [ARAY
 |---|---|---|
 | `Width` × `Height` | 1200 × 800 (`MinWidth` 900, `MinHeight` 600) | Açılışta `WindowState="Maximized"`. |
 | `ExtendClientAreaToDecorationsHint` | `True` | Sistem başlık çubuğu yerine özel başlık çubuğu; `ExtendClientAreaTitleBarHeightHint="32"`. |
-| `Title` | `" "` | Başlık metni boş; marka adı başlık çubuğunda yeşil "mosair" olarak çizilir. |
+| `Title` | `" "` | Başlık metni boş; marka adı başlık çubuğunda "mosair" olarak, logodaki adaçayı yeşiliyle (`Brand`) çizilir. |
 | `Icon` | `avares://mosair/Assets/mosair-icon.png` | — |
-| `Window.Styles` | araç çubuğu düğmeleri, menü, `section-title`, `Border.info-card` … | `Border.info-card`: Özellikler panelindeki görsel bilgisi kartları (arka plan `BgInput`, kenarlık `BrdrMain` 1 px, `CornerRadius` 6, `Padding` 9,8). |
+| `Window.Styles` | araç çubuğu düğmeleri, menü, `section-title`, `Border.info-card` … | `Button.mos-btn`: `AccentFill` zemin, `OnAccent` yazı; üzerine gelince `AccentFillHover`, basınca `AccentFillPressed`. `TextBlock.section-title`: bütün panel başlıkları için 11 px SemiBold `FgMuted`. Renkler tema anahtarlarından gelir; koda gömülü vurgu rengi yoktur (marka ikonları ve ızgara rengi hariç; bkz. [App](App.md)). `Border.info-card`: Özellikler panelindeki görsel bilgisi kartları (arka plan `BgInput`, kenarlık `BrdrMain` 1 px, `CornerRadius` 6, `Padding` 9,8). |
 | `Window.Resources` | `InvDouble` | Tema renkleri (`BgMain`, `FgPrimary` …) `App.axaml`'da, uygulama düzeyinde tanımlıdır; bkz. [App](App.md). |
 
 ### Yerleşim ağacı
@@ -44,7 +44,8 @@ Window
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
    │       ├─ Görünüm (MenuView): menuFitToScreen, Yumuşak Fare Hareketi (MenuSmoothMouse; OnToggleSmoothMouse;
    │       │     onay işareti SmoothMouse), Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
-   │       │     InputGesture F4; onay işareti IsPropertiesPanelOpen)
+   │       │     InputGesture F4; onay işareti IsPropertiesPanelOpen), Görsel Ayarları (MenuAdjustPanel;
+   │       │     OnToggleAdjustPanel; onay işareti IsAdjustPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
    │       │     | Optimum, Stoğa göre, Kalıp Dolgu (OnTogglePadding; ✓ UsePadding), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
@@ -61,9 +62,9 @@ Window
    │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
    │           her biri "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; sağ tık = klasörü aç),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
-   ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
+   ├─ [Bottom] Durum çubuğu: Panel → ActivityWave (IsActive = IsBusy, WaveColor = AccentFill, arka plan dalgası) + Grid "*,Auto,*" (Margin 8,3)
    │   ├─ Sol: UsedColorInfo
-   │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (kırmızı `#E53935` çerçeve, ✕ simgesi ve BtnCancel yazısı; IsVisible = CanCancel,
+   │   ├─ Orta (soldan sağa): Progress (IsProcessing) + İptal düğmesi (`Danger` kırmızısı çerçeve ve ✕ simgesi, `DangerText` BtnCancel yazısı; IsVisible = CanCancel,
    │   │     ipucu TipCancel, Click=OnCancelWork) + StatusText + ElapsedTime
    │   └─ Sağ: ZoomInfo + Ekrana Sığdır düğmesi
    └─ Ana içerik: Grid x:Name="mainGrid" (380 | 4 | * | 4 | 220; panel gizliyken son iki sütun 0 | 24)
@@ -86,12 +87,19 @@ Window
        ├─ Sütun 3 — GridSplitter x:Name="propsSplitter" (panel gizliyken görünmez)
        ├─ Sütun 4 — Özellikler paneli (IsVisible = IsPropertiesPanelOpen)
        │   ├─ Başlık: PropTitle + sağda gizle düğmesi (▬, OnTogglePropertiesPanel, ipucu TipPanelHide)
+       │   ├─ [Bottom] Görsel Ayarları bölümü (BgPanel, üstte 1 px çizgi)
+       │   │   ├─ Başlık düğmesi (OnToggleAdjustPanel, ipucu TipAdjust): AdjTitle + IsAdjusted ise AccentText noktası
+       │   │   │     + aşağı/yukarı ok (IsAdjustPanelOpen)
+       │   │   └─ İçerik (IsVisible = IsAdjustPanelOpen, IsEnabled = CanAdjust): 4 satır Grid "72,*,32" —
+       │   │         etiket (AdjBrightness/AdjContrast/AdjSaturation/AdjGamma) · Slider −100…100 (Value ↔ aynı adlı
+       │   │         VM özelliği, Tag = özellik adı, DoubleTapped = OnAdjustSliderReset, ipucu TipAdjSlider) · değer;
+       │   │         altta AdjReset düğmesi (OnAdjustReset, IsEnabled = IsAdjusted)
        │   ├─ Görsel yokken (ShowNoImageHint): resim simgesi (PathIcon 28 px) + PropNoImage, ortalı
        │   ├─ Görsel bilgileri (ShowImageInfo = ImageLoaded && !HasSelection), kartlar (Margin 8, Spacing 8)
        │   │   ├─ Önizleme kartı (Border, CornerRadius 6, ClipToBounds): ImageInfoFound ise ImageInfoThumb
        │   │   │     (Stretch Uniform, MaxHeight 150, HighQuality) + sağ üstte ImageInfoType rozeti (#B0000000);
        │   │   │     altında BgInput şeridi: PropImage başlığı, ImageInfoName (sarmalı), !ImageInfoFound ise
-       │   │   │     kırmızı (#E53935) PropImageMissing
+       │   │   │     kırmızı (DangerText) PropImageMissing
        │   │   ├─ AYRINTILAR kartı (info-card; ImageInfoFound): Grid "Auto,*" × 5 satır — PropResolution/ImageInfoResolution,
        │   │   │     PropMegapixels/ImageInfoMegapixels, PropAspect/ImageInfoAspect, PropFileSize/ImageInfoSize,
        │   │   │     PropModified/ImageInfoDate (değerler sağa yaslı, eş aralıklı yazı tipi)
@@ -99,7 +107,7 @@ Window
        │   │   │     (Viewbox Stretch=Fill içinde yatay ItemsControl: ImageColorSegments → ColorSegment,
        │   │   │     Border Width = pay %, Height 1) + ImageColors → ImageColorItem satırları (Ellipse 12 px, Hex, Share)
        │   │   ├─ EN ÇOK KULLANILAN TAŞLAR kartı (info-card; ShowTopStonesSection): TopStones → TopStoneItem satırı
-       │   │   │     (renk kutusu, Name, yeşil Share) + ProgressBar (Value = Percent, 4 px, #4ecb71) ve Count
+       │   │   │     (renk kutusu, Name, Share) + ProgressBar (Value = Percent, 4 px, AccentFill) ve Count
        │   │   └─ PropStoneHint (ShowStoneHint)
        │   └─ Taş bilgileri (HasSelection)
        │       ├─ Renk örneği, PropStoneId / PropStoneName; RENK başlığının sağında ✕ (OnClearSelection, ipucu TipClearSelection)
@@ -107,14 +115,16 @@ Window
        │       ├─ Taş varyantları (PropStoneThumbs → OnSelectStone)
        │       ├─ RGB (PropRgbInfo), Koordinat (PropPixelCoord / PropMouldCoord)
        │       └─ Düzenleme bilgisi (IsPixelEditActive: SelectedStoneText, EditedPixelCountText, geri al/yinele ipucu)
-       ├─ Sütun 4 — Gizli panelin şeridi (IsVisible = !IsPropertiesPanelOpen): tüm şerit tek düğme (OnTogglePropertiesPanel,
-       │     ipucu TipPanelShow): ‹ oku + 90° döndürülmüş PropTitle (LayoutTransformControl)
+       ├─ Sütun 4 — Gizli panelin şeridi (IsVisible = !IsPropertiesPanelOpen): iki sekme alt alta —
+       │     (1) OnTogglePropertiesPanel (ipucu TipPanelShow): ‹ oku + 90° döndürülmüş PropTitle (LayoutTransformControl);
+       │     1 px ayırıcı; (2) OnShowAdjustPanel (ipucu TipAdjustShow): IsAdjusted ise AccentText noktası + döndürülmüş
+       │     MenuAdjustPanel
        └─ Sütun 0–4 (ColumnSpan 5) — toastPanel: yeni görsel bildirimi (IsVisible=False; sağ alt, Margin 0,0,12,12,
              Width 300, BgCard, CornerRadius 8, BoxShadow; PointerEntered/Exited = OnToastPointerEntered/Exited)
-             ├─ toastThumb (56×56, UniformToFill) · toastTitle (yeşil, kalın) · toastName (kısaltılır; ipucu tam yol)
+             ├─ toastThumb (56×56, UniformToFill) · toastTitle (AccentText, SemiBold) · toastName (kısaltılır; ipucu tam yol)
              │   · ToastQuestion · sağ üstte ✕ (OnToastDismiss, ipucu ToastDismiss)
-             ├─ toastSeconds (sol) · Kapat (ToastDismiss → OnToastDismiss) · Aç (ToastOpen, #4ecb71 → OnToastOpen)
-             └─ toastBar (ProgressBar, 3 px, 0–100; kalan süre)
+             ├─ toastSeconds (sol) · Kapat (ToastDismiss → OnToastDismiss) · Aç (ToastOpen, Classes="primary" → OnToastOpen)
+             └─ toastBar (ProgressBar, 3 px, 0–100, AccentFill; kalan süre)
 ```
 
 ### Özel alanlar (code-behind)
@@ -196,6 +206,10 @@ Window
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
 | `OnTogglePropertiesPanel` | Özellikler başlığındaki ▬ düğmesi, gizli panelin şeridi, **Görünüm → Özellikler Paneli**, F4 | `_vm.IsPropertiesPanelOpen` tersine çevrilir; sütun değişikliğini `ApplyPropertiesPanel` yapar. |
 | `OnClearSelection` | Özellikler → RENK başlığının yanındaki ✕ | `_vm.ClearSelection()` (taş seçimini bırakır, görsel bilgileri görünür). |
+| `OnToggleAdjustPanel` | Görsel Ayarları başlığı, **Görünüm → Görsel Ayarları** | `_vm.IsAdjustPanelOpen` tersine çevrilir; açılırken panel gizliyse `IsPropertiesPanelOpen = true`. |
+| `OnShowAdjustPanel` | Gizli panelin şeridindeki Görsel Ayarları sekmesi | `IsAdjustPanelOpen = true`, `IsPropertiesPanelOpen = true`. |
+| `OnAdjustReset` | Görsel Ayarları → Sıfırla | `_vm.ResetAdjustments()`. |
+| `OnAdjustSliderReset` | Bir ayar kaydırıcısına çift tık | Kaydırıcının `Tag`'indeki özelliği (`AdjBrightness` …) 0 yapar. |
 | `OnToggleWatchImages` | **Dosya → Yeni Görselleri Bildir** | `_vm.WatchNewImages` tersine çevrilir; izleyiciyi `ApplyWatchNewImages` başlatır/durdurur. |
 | `ApplyWatchNewImages()` | Yapıcı, `WatchNewImages` değişimi | true → `_imageWatcher.Start()`; false → `Stop()` ve `HideToast()`. |
 | `ShowImageToast(path, place)` | `ImageArrived` (UI iş parçacığında) | `WatchNewImages` kapalıysa ya da `path` açık görselin kendisiyse (`ProjectService.CurrentPictureFileName`, büyük/küçük harf duyarsız) hiçbir şey yapmaz. Başlık `ToastNewDownload`/`ToastNewDesktop`, ad + tam yol ipucu; eski küçük resmi dispose eder, yenisini `Bitmap.DecodeToWidth(stream, 112)` ile yükler (hata olursa boş). Süreyi `ToastTime`'a (7 sn) kurar, bildirimi gösterir, zamanlayıcıyı başlatır (yeni bildirim öncekinin yerine geçer). |

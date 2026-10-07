@@ -15,7 +15,7 @@ public class ActivityWave : Control
         AvaloniaProperty.Register<ActivityWave, bool>(nameof(IsActive));
 
     public static readonly StyledProperty<Color> WaveColorProperty =
-        AvaloniaProperty.Register<ActivityWave, Color>(nameof(WaveColor), Color.FromRgb(0x4e, 0xcb, 0x71));
+        AvaloniaProperty.Register<ActivityWave, Color>(nameof(WaveColor), Color.FromRgb(0x2d, 0x6b, 0xd9));   // the accent; MainWindow sets AccentFill
 
     public bool IsActive
     {

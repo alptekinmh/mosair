@@ -50,8 +50,8 @@
         <Button x:Name="CancelButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
                 Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}" CornerRadius="4"
                 Click="OnCancelClick"/>
-        <Button x:Name="OpenButton" MinWidth="90" Height="34" FontSize="13" FontWeight="Medium"
-                Background="#3a7bfd" Foreground="#ffffff" CornerRadius="4" IsEnabled="False"
+        <Button x:Name="OpenButton" MinWidth="90" Height="34" FontSize="13"
+                Classes="primary" IsEnabled="False"
                 Click="OnOpenClick"/>
       </StackPanel>
 

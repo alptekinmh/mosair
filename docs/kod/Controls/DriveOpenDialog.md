@@ -1,6 +1,6 @@
 # DriveOpenDialog
 
-> Kaynak: `mosair/Controls/DriveOpenDialog.axaml`, `mosair/Controls/DriveOpenDialog.axaml.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Controls/DriveOpenDialog.axaml`, `mosair/Controls/DriveOpenDialog.axaml.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 
@@ -46,7 +46,7 @@ Bir proje kartı. Yapıcı: `DriveFileRow(DriveService.DriveFile file, string na
 | `FileList` | `ListBox` | — | `ItemsPanel` = `WrapPanel` (yatay kaydırma kapalı). Kart şablonu: 176 px genişlik, 120 px önizleme alanı (`BgCanvas`, görsel `UniformToFill` ile kırpılır; görsel yoksa dört kareli `PathIcon` yer tutucu), altında ad (kalın, `…` ile kısaltılır) ve `Details`. Öğe kenar boşluğu 4, köşe yarıçapı 8. `SelectionChanged`, `DoubleTapped`. |
 | `MessageText` | `TextBlock` | — | Listenin ortasında durum: yüklenirken `StatusDriveListing`, klasör boşsa `DriveOpenEmpty`, aramayla eşleşme yoksa `DriveNoMatch`, hatada `DriveFailed`. |
 | `CancelButton` | `Button` | — | `DlgCancel`; `OnCancelClick`. |
-| `OpenButton` | `Button` | `IsEnabled="False"` | `DriveOpenButton` ("Aç"); bir kart seçilince etkin. `OnOpenClick`. |
+| `OpenButton` | `Button` | `IsEnabled="False"` | `DriveOpenButton` ("Aç"); bir kart seçilince etkin. `OnOpenClick`. Paylaşılan `Button.primary` stili (vurgu mavisi; pasifken gri). |
 
 ## Public API
 

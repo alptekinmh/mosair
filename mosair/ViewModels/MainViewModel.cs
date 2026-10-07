@@ -976,13 +976,13 @@ public bool UseLab
         public bool IsProcessing
         {
             get => _isProcessing;
-            set { _isProcessing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); }
+            set { _isProcessing = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(CanAdjust)); }
         }
 
         public bool IsExporting
         {
             get => _isExporting;
-            set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); }
+            set { _isExporting = value; OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(IsBusy)); OnPropertyChanged(nameof(CanAdjust)); }
         }
 
         // ===== Cancel button (status bar, also Esc) =====
@@ -1097,7 +1097,7 @@ public bool UseLab
             set
             {
                 _imageLoaded = value;
-                OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic));
+                OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanAdjust));
                 OnPropertyChanged(nameof(ShowImageInfo)); OnPropertyChanged(nameof(ShowNoImageHint));
             }
         }
@@ -1740,6 +1740,103 @@ public bool UseLab
             set { if (_watchNewImages == value) return; _watchNewImages = value; OnPropertyChanged(); }
         }
 
+        // ----- Görsel Ayarları: brightness, contrast, saturation and gamma of the loaded image -----
+        // Mos works from the adjusted copy (MosaicData.inputBitmap); the file on disk is not changed. The screen
+        // shows the adjusted image before Mos; after Mos a change only takes effect with the next Mos.
+        private ImageAdjustments _adjust;
+        private System.Threading.CancellationTokenSource? _adjustDelay;
+        private Task? _adjustTask;
+        private bool _adjustPanelOpen = true;
+
+        public int AdjBrightness { get => _adjust.Brightness; set => SetAdjust(_adjust with { Brightness = value }); }
+        public int AdjContrast { get => _adjust.Contrast; set => SetAdjust(_adjust with { Contrast = value }); }
+        public int AdjSaturation { get => _adjust.Saturation; set => SetAdjust(_adjust with { Saturation = value }); }
+        public int AdjGamma { get => _adjust.Gamma; set => SetAdjust(_adjust with { Gamma = value }); }
+        public bool IsAdjusted => !_adjust.IsNeutral;
+        public int[]? ImageAdjustArray => _adjust.ToArray();
+
+        public bool IsAdjustPanelOpen
+        {
+            get => _adjustPanelOpen;
+            set { if (_adjustPanelOpen == value) return; _adjustPanelOpen = value; OnPropertyChanged(); }
+        }
+
+        public bool CanAdjust => ImageLoaded && !IsProcessing && !IsExporting;
+
+        // Set from the sliders: applied after a short pause, so dragging does not recompute every step.
+        private void SetAdjust(ImageAdjustments a, bool apply = true)
+        {
+            a = new ImageAdjustments(Math.Clamp(a.Brightness, -100, 100), Math.Clamp(a.Contrast, -100, 100),
+                Math.Clamp(a.Saturation, -100, 100), Math.Clamp(a.Gamma, -100, 100));
+            if (a == _adjust) return;
+            _adjust = a;
+            OnPropertyChanged(nameof(AdjBrightness)); OnPropertyChanged(nameof(AdjContrast));
+            OnPropertyChanged(nameof(AdjSaturation)); OnPropertyChanged(nameof(AdjGamma));
+            OnPropertyChanged(nameof(IsAdjusted));
+            if (apply) ScheduleAdjust();
+        }
+
+        public void ResetAdjustments() => SetAdjust(default);
+
+        private async void ScheduleAdjust()
+        {
+            _adjustDelay?.Cancel();
+            var cts = new System.Threading.CancellationTokenSource();
+            _adjustDelay = cts;
+            try { await Task.Delay(150, cts.Token); }
+            catch (TaskCanceledException) { return; }
+            _adjustTask = ApplyAdjustmentsAsync();
+            await _adjustTask;
+        }
+
+        // Before Mos: a change still waiting for its pause is applied first, so Mos uses the sliders' values.
+        private async Task FlushAdjustmentsAsync()
+        {
+            if (_adjustDelay != null && !_adjustDelay.IsCancellationRequested)
+            {
+                _adjustDelay.Cancel();
+                _adjustTask = ApplyAdjustmentsAsync();
+            }
+            if (_adjustTask != null) await _adjustTask;
+        }
+
+        private async Task ApplyAdjustmentsAsync()
+        {
+            var source = MosaicData.sourceBitmap;
+            if (source == null) return;
+            int version = _contentVersion;
+            var a = _adjust;
+            SKBitmap adjusted;
+            Bitmap? display;
+            try
+            {
+                (adjusted, display) = await Task.Run(() =>
+                {
+                    var bmp = a.IsNeutral ? source : ImageAdjustService.Apply(source, a);
+                    return (bmp, (Bitmap?)ImageService.ToAvaloniaBitmap(bmp));
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                return;
+            }
+            // A newer image, project or setting took over meanwhile.
+            if (version != _contentVersion || a != _adjust || !ReferenceEquals(source, MosaicData.sourceBitmap))
+            {
+                if (!ReferenceEquals(adjusted, source)) adjusted.Dispose();
+                display?.Dispose();
+                return;
+            }
+            var old = MosaicData.inputBitmap;
+            MosaicData.inputBitmap = adjusted;
+            // The previous adjusted copy may still be read by a running job; it is left to the finalizer then.
+            if (old != null && !ReferenceEquals(old, source) && !ReferenceEquals(old, adjusted) && !IsProcessing && !IsExporting)
+                old.Dispose();
+            DisplayBitmap = display;
+            if (MosaicDone) StatusText = Loc.Get("AdjNeedsMos");
+        }
+
         // Back from a stone's details to the image's (the panel's x button).
         public void ClearSelection() => HasSelection = false;
 
@@ -2009,6 +2106,10 @@ public bool UseLab
             var bmp = MosaicEngine.LoadImage(path);
             if (bmp != null)
             {
+                // A new image starts without adjustments.
+                MosaicData.sourceBitmap = bmp;
+                _adjustDelay?.Cancel();
+                SetAdjust(default, apply: false);
                 _bitmapPixelWidth = bmp.Width;
                 _bitmapPixelHeight = bmp.Height;
                 OnPropertyChanged(nameof(BitmapPixelWidth));
@@ -2095,6 +2196,8 @@ public bool UseLab
                 Alert(Loc.Get("AlertMosaicTitle"), Loc.Get("AlertMosaicNoImage"));
                 return;
             }
+            if (!CanRunMosaic) return;
+            await FlushAdjustmentsAsync();
             if (!CanRunMosaic) return;
             int version = StartNewContent();
             // To put the previous mosaic back if this Mos is cancelled before it changes anything.
@@ -2305,7 +2408,7 @@ public bool UseLab
 
         private ProjectService.ProjectSnapshot CreateProjectSnapshot() =>
             ProjectService.CreateSnapshot(WidthCm, ZoomLevel, ShowGrid, false,
-                _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation);
+                _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation, ImageAdjustArray);
 
         // The mosaic is copied at once; turning it into JSON and writing the file happen in the background, so a
         // large project does not freeze the window (the wave runs meanwhile; edits made meanwhile are not in this
@@ -2417,8 +2520,16 @@ public bool UseLab
             var data = loaded.Data;
             OnPropertyChanged(nameof(DocumentTitle));
 
-            // As before: a project whose image is missing keeps the previously loaded source image.
-            if (picture != null) MosaicData.inputBitmap = picture;
+            // As before: a project whose image is missing keeps the previously loaded source image. The project's
+            // Görsel Ayarları come back with it (the adjusted copy is made in the background).
+            _adjustDelay?.Cancel();
+            if (picture != null)
+            {
+                MosaicData.sourceBitmap = picture;
+                MosaicData.inputBitmap = picture;
+            }
+            SetAdjust(ImageAdjustments.FromArray(data.ImageAdjust), apply: false);
+            if (picture != null && IsAdjusted) _adjustTask = ApplyAdjustmentsAsync();
 
             WidthCm = data.WidthCm;
             GridColor = Color.FromRgb(data.GridColorR, data.GridColorG, data.GridColorB);

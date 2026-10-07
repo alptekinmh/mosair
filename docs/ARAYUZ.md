@@ -17,6 +17,7 @@
 6. [Görsel alanı (canvas)](#6-görsel-alanı-canvas)
     - [Yeni görsel bildirimi](#yeni-görsel-bildirimi)
 7. [Özellikler paneli (Properties)](#7-özellikler-paneli-properties)
+    - [Görsel Ayarları](#görsel-ayarları)
 8. [Durum çubuğu](#8-durum-çubuğu)
 9. [Piksel düzenleme ve taş varyantı](#9-piksel-düzenleme-ve-taş-varyantı)
 10. [Optimum taş sayısı](#10-optimum-taş-sayısı)
@@ -112,6 +113,7 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Ekrana Sığdır | `Ctrl/⌘+0` | Görseli pencereye sığacak şekilde yakınlaştırır/uzaklaştırır |
 | Yumuşak Fare Hareketi | — | Açıkken (✓, varsayılan) tekerlekle yakınlaştırma kısa bir geçişle yapılır ve sağ tuşla sürükleme bırakılınca görüntü biraz süzülerek durur; kapalıyken yakınlaştırma anında olur, süzülme olmaz ([§5](#6-görsel-alanı-canvas)) |
 | Özellikler Paneli | `F4` | Sağdaki Özellikler panelini gizler / gösterir; açıkken ✓ ile işaretlidir ([§7](#7-özellikler-paneli-properties)) |
+| Görsel Ayarları | — | Sağ paneldeki **GÖRSEL AYARLARI** bölümünü açar / kapatır (açıkken ✓). Panel şeride gizliyse onu da açar ([Görsel Ayarları](#görsel-ayarları)) |
 
 ### Araçlar
 
@@ -243,7 +245,7 @@ Robot yalnızca tam kalıp üretebilir: bir kalıp 26 × 26 taş, yani 31,2 × 3
 | Görsel yükle | Dosyayı pencereye sürükle-bırak (PNG, JPG, JPEG, BMP, TIFF; ilk uygun dosya alınır) |
 | Ekrana sığdır | Durum çubuğundaki ⛶ düğmesi, `Ctrl/⌘+0` veya **Görünüm → Ekrana Sığdır**. Görsel yüklenince (Görsel Yükle, sürükle-bırak, yeni görsel bildirimindeki **Aç**), Mos ve Proje Aç sonrasında kendiliğinden uygulanır; yeni görsel her zaman görsel alanına sığmış olarak açılır. Mos öncesi görsel, kendi boyutundan küçük gösterilirken yumuşak (yüksek kaliteli) ölçeklenir; 1x ve üstünde pikseller keskin kalır. |
 
-**Mini harita (navigator):** Sağ üstteki 150×150 küçük görüntüdür. Yeşil çerçeve ekranda görünen bölgeyi gösterir. Tıklamak ya da sol tuşla sürüklemek o bölgeye götürür. Görsel yüklüyken görünür. Mos'tan önce yüklenen görseli, Mos'tan sonra mozaiğin taş renklerini gösterir.
+**Mini harita (navigator):** Sağ üstteki 150×150 küçük görüntüdür. Mavi (vurgu rengi) çerçeve ekranda görünen bölgeyi gösterir. Tıklamak ya da sol tuşla sürüklemek o bölgeye götürür. Görsel yüklüyken görünür. Mos'tan önce yüklenen görseli, Mos'tan sonra mozaiğin taş renklerini gösterir.
 
 **Taş dokulu görüntünün çizimi:** Mos'tan sonra canvas, mozaiği gerçek taş dokularıyla gösterir. Görüntü bir bütün olarak oluşturulmaz; yalnızca ekranda görünen kısım, parça parça ve yakınlaştırmaya uygun detayla çizilir:
 
@@ -266,7 +268,7 @@ mosair açıkken bilgisayarın **İndirilenler** (Downloads) ya da **Masaüstü*
 | Soru | "mosair'de açılsın mı?" |
 | **Aç** | Görseli **Görsel Yükle** ile yüklenmiş gibi açar ve görsel alanına sığdırır (açık mozaik kapanır; kaydedilmemiş değişiklikler için onay sorulmaz). Mos ya da dışa aktarma sürerken açmaz; durum çubuğunda "Bir işlem sürüyor; bitince açabilirsiniz." yazar ve bildirim açık kalır |
 | **Kapat** ve sağ üstteki **✕** | Bildirimi kapatır |
-| Geri sayım | Sol altta kalan süre (`7 sn` … `1 sn`), altta soldan sağa kısalan yeşil çubuk. Süre bitince bildirim kendiliğinden kapanır |
+| Geri sayım | Sol altta kalan süre (`7 sn` … `1 sn`), altta soldan sağa kısalan mavi çubuk. Süre bitince bildirim kendiliğinden kapanır |
 
 - Bildirim **7 saniye** görünür. Fare bildirimin üzerindeyken geri sayım durur, fare çıkınca kaldığı yerden devam eder.
 - Aynı anda tek bildirim vardır; yenisi gelirse öncekinin yerine geçer ve süre yeniden başlar.
@@ -279,10 +281,30 @@ mosair açıkken bilgisayarın **İndirilenler** (Downloads) ya da **Masaüstü*
 ### Gizleme ve gösterme
 
 - Panel başlığının sağ üst köşesindeki **▬** (simge durumuna küçült) düğmesi paneli gizler. Panel, pencerenin sağ kenarında 24 px'lik ince bir şeride döner; canvas genişler.
-- Şeritte üstte **‹** oku ve dikey yazılmış **Properties** başlığı vardır; şeridin herhangi bir yerine tıklamak paneli yeniden açar.
+- Şeritte iki sekme vardır. Üstteki **‹** oku ve dikey **Properties** yazısı paneli yeniden açar. İnce bir çizginin altındaki dikey **Görsel Ayarları** sekmesi paneli **GÖRSEL AYARLARI** bölümü açık olarak açar; görselde bir ayar yapılmışsa bu sekmenin üstünde küçük mavi bir nokta yanar.
 - Aynı işi `F4` ve **Görünüm → Özellikler Paneli** de yapar (menüde panel açıkken ✓ görünür).
 - Panel, gizlenmeden önceki genişliğiyle geri açılır. Gizliyken panel ayırıcısı sürüklenemez.
 - Panelin açık/gizli durumu kalıcı değildir; uygulama her açılışta panel açık başlar.
+
+### Görsel Ayarları
+
+Panelin en altında, kendi başlığıyla açılıp kapanan **GÖRSEL AYARLARI** bölümü vardır. Yüklenen görselin temel ayarlarını değiştirir; Mos bu ayarlanmış görselden yapılır.
+
+| Kaydırıcı | Aralık | Etkisi |
+|---|---|---|
+| Parlaklık | −100 … +100 | Görseli açar / koyulaştırır (en çok tüm aralığın %40'ı kadar) |
+| Kontrast | −100 … +100 | −100 düz gri, +100 üç kat daha sert geçişler |
+| Doygunluk | −100 … +100 | −100 siyah-beyaz, +100 iki kat canlı renkler |
+| Gama | −100 … +100 | Orta tonları açar (+) ya da koyulaştırır (−); siyah ve beyaz yerinde kalır |
+
+- Her kaydırıcının sağında değeri yazar; 0 değişiklik yok demektir. Bir kaydırıcıya **çift tıklamak** onu sıfırlar, **Sıfırla** düğmesi hepsini sıfırlar (hiçbir ayar yokken pasiftir).
+- Bir ayar 0'dan farklıysa bölüm başlığında ve gizli paneldeki şerit sekmesinde küçük **mavi bir nokta** yanar.
+- **Başlığa tıklamak** bölümü açar / kapatır (sağdaki ok yönü gösterir); **Görünüm → Görsel Ayarları** da aynı işi yapar. Uygulama her açılışta bölüm açık başlar.
+- Kaydırıcı bırakıldıktan kısa süre (≈0,15 sn) sonra ayar uygulanır; sürüklerken her adımda yeniden hesaplanmaz. 6000×6000 px bir görselde bir ayar yaklaşık 0,3 sn sürer.
+- **Mos'tan önce** görsel alanındaki görüntü hemen değişir. **Mos'tan sonra** ayar değişirse mozaik kendiliğinden değişmez; durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Mos'a basıldığında henüz uygulanmamış son ayar önce uygulanır.
+- Bir iş (Mos, dışa aktarma) sürerken kaydırıcılar pasiftir.
+- Diskteki görsel dosyası hiç değişmez. Ayarlar projeyle birlikte kaydedilir ve proje açılınca geri gelir (WPF bu bilgiyi kullanmaz). **Her yeni görsel ayarsız başlar.**
+- Görsel bilgileri kartları (önizleme, baskın renkler) dosyanın kendisini gösterir, ayarlanmış hâlini değil.
 
 ### Taş seçili değilken: görsel bilgileri
 
@@ -293,7 +315,7 @@ Görsel yüklenmemişse panelin ortasında bir resim simgesi ve "Görsel yüklen
 | Önizleme (GÖRSEL) | Üstte görselin küçük önizlemesi (en çok 150 px yükseklik, oranı korunur); sağ üst köşesinde dosya türü rozeti (`JPG`, `PNG`…). Altında **GÖRSEL** başlığı ve dosya adı (uzunsa alt satıra geçer). Açılan projenin görseli bilgisayarda yoksa önizleme ve rozet görünmez; adın altında kırmızı "Görsel dosyası bulunamadı" yazar ve diğer kartlar (Taşlar hariç) gösterilmez. |
 | AYRINTILAR | İki sütunlu tablo: **Çözünürlük** (`6000 × 4000 px`), **Megapiksel** (`24.0 MP`), **En-boy oranı** (yaygın oranlar `3:2`, `16:9`, `1:1` gibi; sadeleşmiş hâli 32'den büyükse `1.47:1` gibi), **Dosya boyutu** (KB / MB / GB), **Değiştirilme** (dosyanın son değiştirilme tarihi ve saati). |
 | BASKIN RENKLER | Üstte renklerin görseldeki paylarına göre yan yana dizildiği yatay bir renk çubuğu; 6 rengin dışında kalan kısım gri bir parça olarak gösterilir. Altında 6 satır: yuvarlak renk örneği, onaltılık kod (`#RRGGBB`) ve görseldeki payı (ör. `%18.4`). Görselin her yerinden eşit aralıklı yaklaşık 40.000 piksel okunur; benzer tonlar (kanal başına 16 seviye) tek renk sayılır ve gösterilen renk o grubun ortalamasıdır. |
-| EN ÇOK KULLANILAN TAŞLAR | Yalnızca Mos'tan (ya da proje açıldıktan) sonra: mozaikte en çok pikseli olan 5 taş. Her satırda renk kutusu, `#ID` ve taş kodu, sağda yeşil yüzde (mozaikteki bütün taşlar içindeki payı); altında bu paya göre dolan ince bir çubuk ve taş sayısı. Atanan sütunundaki ([§5](#üç-sütun)) değerlerden alınır. |
+| EN ÇOK KULLANILAN TAŞLAR | Yalnızca Mos'tan (ya da proje açıldıktan) sonra: mozaikte en çok pikseli olan 5 taş. Her satırda renk kutusu, `#ID` ve taş kodu, sağda yüzde (mozaikteki bütün taşlar içindeki payı); altında bu paya göre dolan ince bir çubuk ve taş sayısı. Atanan sütunundaki ([§5](#üç-sütun)) değerlerden alınır. |
 
 Ondalık ayırıcı, tarih biçimi ve binlik ayırıcı arayüz dilini değil, işletim sisteminin bölge ayarını izler. Mozaik varken kartların altında "Taş bilgileri için mozaikte bir taşa tıklayın." ipucu yazar.
 
@@ -305,7 +327,7 @@ Canvas'ta bir taşa sol tıklayınca panel o taşın bilgilerini gösterir. **RE
 |---|---|---|
 | RENK | Renk kutusu, `#ID`, taş kodu | **✕:** görsel bilgilerine dön |
 | DOKU | Seçili taşın o pikselde kullanılan doku görüntüsü ve varyant numarası | — |
-| VARYANTLAR | Aynı taşın bütün doku varyantları (küçük resimler); seçili olan yeşil çerçevelidir | **Tıkla:** o piksel için doku varyantını değiştirir. Geri alınabilir (`Ctrl/⌘+Z`). |
+| VARYANTLAR | Aynı taşın bütün doku varyantları (küçük resimler); seçili olan mavi çerçevelidir | **Tıkla:** o piksel için doku varyantını değiştirir. Geri alınabilir (`Ctrl/⌘+Z`). |
 | RGB | Pikselin R, G, B değerleri | — |
 | KOORDİNAT | Piksel `Y, X` ve kalıp içi `yi, xi` | — |
 | DÜZENLEME | Düzenlenen piksel sayısı, geri al/yinele kısayolları | Yalnızca piksel düzenleme açıkken görünür |
@@ -316,7 +338,7 @@ Canvas'ta bir taşa sol tıklayınca panel o taşın bilgilerini gösterir. **RE
 |---|---|
 | Sol | Mos'tan sonra kullanılan renk bilgisi (ör. "X renk arasından Y renk kullanıldı") |
 | Orta | İlerleme çubuğu (işlem sırasında), **✕ İptal** düğmesi (yalnızca iptal edilebilen bir iş sürerken), durum mesajı, geçen süre |
-| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje kaydetme, proje açma ve ardından taş görüntülerinin yüklenmesi, stok tablosu işlemleri, Google Drive'a kaydetme, Drive klasörünü okuma ve Drive'dan indirme, dışa aktarma) çubuğun başından sonuna yeşil bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
+| Arka plan | **İşlem dalgası:** herhangi bir işlem sürerken (Mos, stoğa göre düzeltme, Optimum taş sayısı değişimi, proje kaydetme, proje açma ve ardından taş görüntülerinin yüklenmesi, stok tablosu işlemleri, Google Drive'a kaydetme, Drive klasörünü okuma ve Drive'dan indirme, dışa aktarma) çubuğun başından sonuna mavi bir dalga akar. İşlem sürdükçe devam eder, bitince yavaşça söner. |
 | Sağ | **Ekrana Sığdır** düğmesi; zoom oranı (`Zoom=2.0` biçiminde; 0,1'in altında en fazla 3 ondalıkla) ve ekrandaki görüntü boyutu (px) |
 
 Ortadaki durum mesajında görülebilecekler:
@@ -610,6 +632,8 @@ Kaydetme arka planda yapılır. Dışa aktarma yarıda kalırsa (hata, disk dolu
 | 🌐 | Açılır listeden arayüz dilini **TR Türkçe** veya **EN English** yapar; menüler, ipuçları, mesajlar ve kullanım kılavuzu anında değişir |
 
 Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Türkçe ile açılır.
+
+**Renkler:** Arayüzde tek bir vurgu rengi vardır: **mavi** ("Lapis"; koyu temada `#2D6BD9`, açık temada `#1F5FCC`). Mos düğmesi, iletişim kutularının ana düğmeleri, bildirimdeki **Aç**, işaret kutuları, kaydırıcılar, ilerleme çubuğu, işlem dalgası, mini harita çerçevesi ve seçili taş varyantı bu rengi kullanır. **Yeşil** yalnızca "tamam / başarılı" anlamındadır (kaydedildi ✓, stoğu yeten kg); **kırmızı** stok eksikliği ve İptal, **turuncu** piksel düzenleme içindir. "mosair" yazısı logodaki adaçayı yeşilindedir. Durum çubuğundaki metinler ve değerler (alan, zoom, Optimum taş sayısı) nötr renktedir. Bütün renkler iki temada da okunur olacak şekilde ayarlanmıştır; değişikliklerin listesi [ARAYUZ_DEGISIKLIKLERI.md](ARAYUZ_DEGISIKLIKLERI.md) dosyasındadır.
 
 ## 15. Klavye kısayolları
 

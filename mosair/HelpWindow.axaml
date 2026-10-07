@@ -13,7 +13,7 @@
     <Style Selector="TextBlock.h1">
       <Setter Property="FontSize" Value="20"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="#4ecb71"/>
+      <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
       <Setter Property="Margin" Value="0,16,0,8"/>
     </Style>
     <Style Selector="TextBlock.h2">
@@ -31,8 +31,8 @@
     <Style Selector="TextBlock.shortcut-key">
       <Setter Property="FontSize" Value="11"/>
       <Setter Property="FontWeight" Value="Bold"/>
-      <Setter Property="Foreground" Value="#1a1a1e"/>
-      <Setter Property="Background" Value="#9898a0"/>
+      <Setter Property="Foreground" Value="{DynamicResource FgPrimary}"/>
+      <Setter Property="Background" Value="{DynamicResource BgHover}"/>
       <Setter Property="Padding" Value="4,1"/>
       <Setter Property="Margin" Value="0,0,4,0"/>
     </Style>
@@ -62,8 +62,8 @@
     <Border DockPanel.Dock="Top" Background="{DynamicResource BgPanel}" Padding="20,14"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
       <StackPanel Orientation="Horizontal" Spacing="12">
-        <Border Width="36" Height="36" CornerRadius="8" Background="#4ecb71" Padding="6">
-          <PathIcon Width="24" Height="24" Foreground="#1a1a1e"
+        <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource BrandFill}" Padding="6">
+          <PathIcon Width="24" Height="24" Foreground="#FFFFFF"
                     Data="M3,3 L3,10 L10,10 L10,3 Z M5,5 L8,5 L8,8 L5,8 Z M3,14 L3,21 L10,21 L10,14 Z M5,16 L8,16 L8,19 L5,19 Z M14,3 L14,10 L21,10 L21,3 Z M16,5 L19,5 L19,8 L16,8 Z M14,14 L14,21 L21,21 L21,14 Z M16,16 L19,16 L19,19 L16,19 Z"/>
         </Border>
         <StackPanel VerticalAlignment="Center">
@@ -194,7 +194,7 @@
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#43A047">
+                <Border Classes="icon-badge" Background="#2E7D32">
                   <TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14"
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
@@ -204,7 +204,7 @@
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF8F00">
+                <Border Classes="icon-badge" Background="#B45309">
                   <TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14"
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
@@ -214,7 +214,7 @@
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#E53935">
+                <Border Classes="icon-badge" Background="#C62828">
                   <TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14"
                              HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
@@ -252,13 +252,13 @@
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Ay/gunes dugmesi koyu ve acik tema arasinda gecer; dunya dugmesi dili Turkce / English yapar ve menuler, ipuclari ve bu kilavuz aninda degisir. Ikisi de kalici degildir: uygulama koyu tema ve Turkce ile acilir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Uyarilar kucuk bir pencerede cikar ve Anladim ile kapanir. Tabloyu degistiren stok islemleri once Evet / Hayir ile onay ister."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Araclar menusu toolbar'daki tum araclari icerir: Mozaiklestir, Piksel Duzenle, Izgara Goster, Izgara Rengi, Interpolasyon Yontemi, Optimum Tas Sayisi, Stoga Gore Ayarla, Tas Sayisi ve Stok. Acik olan secenekler ✓ ile isaretlidir; menu ve toolbar her zaman ayni durumu gosterir. Tas Sayisi yalnizca Optimum ile yapilan Mos'tan sonra, Stok ise bir stok islemi surmuyorken kullanilabilir."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="Dosya menusu: Gorsel Yukle, Proje Ac, Proje Kaydet, Proje Farkli Kaydet, mosairEXPORT ve mosairEXPORT As (ikisi de goruntu kalitesi seceneklerini acar), Ekran Goruntusu Al (kamera ikonuyla ayni), Yeni Gorselleri Bildir (isaretliyken Indirilenler'e ve Masaustune gelen yeni gorseller icin bildirim cikar), Google Drive (Drive'a Kaydet, Drive'dan Ac, Drive Klasoru Ayarlari). Duzenle: Tum Renkleri Sec / Kaldir ve Islemi Iptal Et (Esc; durum cubugundaki kirmizi Iptal dugmesiyle ayni, yalnizca iptal edilebilen bir is surerken etkin). Gorunum: Ekrana Sigdir, Yumusak Fare Hareketi (acikken tekerlekle zoom yumusak bir gecisle yapilir, sag tusla surukleme birakilinca goruntu biraz suzulur; kapaliyken zoom aninda olur), Ozellikler Paneli (F4; sagdaki paneli gizler/gosterir). Yardim: Kullanim Kilavuzu (F1). Kilavuz acikken ana pencere kullanilamaz; ayri bir Hakkinda penceresi yoktur."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Dosya menusu: Gorsel Yukle, Proje Ac, Proje Kaydet, Proje Farkli Kaydet, mosairEXPORT ve mosairEXPORT As (ikisi de goruntu kalitesi seceneklerini acar), Ekran Goruntusu Al (kamera ikonuyla ayni), Yeni Gorselleri Bildir (isaretliyken Indirilenler'e ve Masaustune gelen yeni gorseller icin bildirim cikar), Google Drive (Drive'a Kaydet, Drive'dan Ac, Drive Klasoru Ayarlari). Duzenle: Tum Renkleri Sec / Kaldir ve Islemi Iptal Et (Esc; durum cubugundaki kirmizi Iptal dugmesiyle ayni, yalnizca iptal edilebilen bir is surerken etkin). Gorunum: Ekrana Sigdir, Yumusak Fare Hareketi (acikken tekerlekle zoom yumusak bir gecisle yapilir, sag tusla surukleme birakilinca goruntu biraz suzulur; kapaliyken zoom aninda olur), Ozellikler Paneli (F4; sagdaki paneli gizler/gosterir), Gorsel Ayarlari (sag paneldeki ayar bolumunu acar/kapatir). Yardim: Kullanim Kilavuzu (F1). Kilavuz acikken ana pencere kullanilamaz; ayri bir Hakkinda penceresi yoktur."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#43A047"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="#2E7D32"/>
               <TextBlock Classes="h2" Text="Orta — Canvas (Gorsel Alani)" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Mozaik gorselin goruntulenip duzenledigi ana alandir. Mouse tekerlegi ile zoom yapin (imlecin altindaki nokta yerinde kalir; dokunmatik yuzeyde kucuk adimlar daha az yakinlastirir), sag tus ile surukleyerek pan yapin. Gorunum > Yumusak Fare Hareketi acikken (varsayilan) zoom kisa ve yumusak bir gecisle olur; hizlica surukleyip birakinca goruntu ayni yonde biraz suzulup yavaslayarak durur. Gorsele tiklamak ya da Ekrana Sigdir suzulmeyi durdurur. Gorseli dogrudan surukle-birak ile de yukleyebilirsiniz."/>
@@ -270,13 +270,14 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#FF8F00"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="#B45309"/>
               <TextBlock Classes="h2" Text="Sag Panel — Properties" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Secili tasin detaylarini gosterir: renk swatch'u, tas kodu, doku onizlemesi, RGB degerleri, piksel ve kalip koordinatlari."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Varyantlar bolumunde bir doku resmine tiklarsaniz o pikseldeki tasin dokusu degisir; bu degisiklik de Geri Al / Yinele ile geri alinabilir."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Tas secili degilken gorselin bilgileri kartlar halinde gorunur: onizleme (kosede dosya turu) ve dosya adi; AYRINTILAR (cozunurluk, megapiksel, en-boy orani, dosya boyutu, degistirilme tarihi); BASKIN RENKLER (renklerin paylarina gore dizildigi renk cubugu ve 6 rengin kodu ile yuzdesi); Mos'tan sonra EN COK KULLANILAN TASLAR (5 tas, yuzdesi, ince bir cubuk ve tas sayisi). RENK basliginin yanindaki x dugmesi tas seciminden gorsel bilgilerine doner."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Gizle / goster: panel basligindaki - dugmesi, F4 ya da Gorunum > Ozellikler Paneli paneli gizler; sag kenarda ince bir serit kalir, seride (ok) tiklayinca panel eski genisligiyle geri acilir. Uygulama her acilista panel acik baslar."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Gorsel Ayarlari: sag panelin altindaki GORSEL AYARLARI bolumunde Parlaklik, Kontrast, Doygunluk ve Gama kaydiricilari vardir (-100 ile +100 arasi, 0 = degisiklik yok). Basliga tiklayinca bolum acilir/kapanir; Gorunum > Gorsel Ayarlari da ayni isi yapar. Panel seride kapaliyken serideki Gorsel Ayarlari sekmesi paneli ayarlar acik olarak acar. Bir kaydiriciya cift tiklamak onu, Sifirla hepsini sifirlar; bir ayar degisikse baslikta ve seritte mavi bir nokta yanar. Mos'tan once gorsel ekranda hemen degisir; Mos ayarlanmis gorselden yapilir. Mos'tan sonra ayar degisirse mozaigi guncellemek icin yeniden Mos'a basin. Dosyanin kendisi degismez; ayarlar projeyle kaydedilir ve proje acilinca geri gelir. Her yeni gorsel ayarsiz baslar."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -285,7 +286,7 @@
               <Border Width="10" Height="10" CornerRadius="2" Background="{DynamicResource FgSecondary}"/>
               <TextBlock Classes="h2" Text="Alt — Durum Cubugu" Margin="0"/>
             </StackPanel>
-            <TextBlock Classes="body" Text="Solda: kullanilan renk sayisi. Ortada: ilerleme cubugu, islem durumu ve sure. Sagda: Ekrana Sigdir butonu, zoom orani (Zoom=2.0 gibi) ve ekrandaki goruntu boyutu. Acilista ve her gorsel/proje yuklenince stok okuma sonucu, Stoga gore aciksa Mos sonunda stok ozeti de burada yazar. Herhangi bir islem surerken (Mos, stoga gore duzeltme, stok islemleri, Google Drive islemleri, disa aktarma...) cubugun basindan sonuna yesil bir dalga akar; islem bitince soner. Dil degisince mesaj Hazir olur."/>
+            <TextBlock Classes="body" Text="Solda: kullanilan renk sayisi. Ortada: ilerleme cubugu, islem durumu ve sure. Sagda: Ekrana Sigdir butonu, zoom orani (Zoom=2.0 gibi) ve ekrandaki goruntu boyutu. Acilista ve her gorsel/proje yuklenince stok okuma sonucu, Stoga gore aciksa Mos sonunda stok ozeti de burada yazar. Herhangi bir islem surerken (Mos, stoga gore duzeltme, stok islemleri, Google Drive islemleri, disa aktarma...) cubugun basindan sonuna mavi bir dalga akar; islem bitince soner. Dil degisince mesaj Hazir olur."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Iptal: Mos, stoga gore duzeltme ya da disa aktarma surerken ilerleme cubugunun yaninda bir '✕ Iptal' dugmesi gorunur; Esc ve Duzenle > Islemi Iptal Et ayni isi yapar. Optimum Mos iptal edilirse onceki mozaik oldugu gibi kalir. Klasik Mos iptal edilirse yarim kalan mozaik kaldirilir ve yuklenen gorsel yeniden gosterilir. Mos'ta ya da Tas kaydiricisinda stoga gore duzeltme iptal edilirse mozaik stoga bakilmadan kalir. Stok Kontrol'deki duzeltme iptal edilirse mozaik eski haline doner ve tabloya bir sey yazilmaz. Disa aktarma iptal edilirse yarim dosya silinir. Tas kaydiricisi yalnizca stoga gore duzeltme calisirken iptal edilebilir. Stok tablosu islemleri, Google Drive islemleri ve proje acma iptal edilemez. Isin son adimlarinda (mozaigin yeniden kurulmasi, dokularin hazirlanmasi, disa aktarmada son kodlama) basilan iptal etkisizdir; is normal biter."/>
           </StackPanel>
         </Border>
@@ -350,28 +351,28 @@
             <TextBlock Classes="h2" Text="Nasil Kullanilir?" Margin="0"/>
             <StackPanel Spacing="6">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Modu Ac" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Orta fare tusuna, toolbar'daki kalem ikonuna veya Araclar > Piksel Duzenle'ye basin (once Mos yapilmis olmali). Toolbar'da 'source' turuncu yanar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Kaynak Rengi Sec" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Kullanmak istediginiz renkteki bir tasa sol tiklayin ya da soldaki katalogdan bir tas secin." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Hedef Piksele Uygula" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Degistirmek istediginiz tasa sol tiklayin. Renk aninda degisir; ayni kaynakla birden cok tas boyanabilir." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Geri Al / Yinele / Kapat" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Geri Al ve Yinele kisayollari duzenlemeleri geri alir. Modu kapatmak icin orta tusa ya da kalem ikonuna tekrar basin." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
@@ -528,21 +529,21 @@
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#43A047"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#2E7D32"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Mosaicize (Mos)" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Convert the image to mosaic stone colors; with Optimum on, the stone count is found automatically, and with By stock on, the result is fitted to stock" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF8F00"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#B45309"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Review and Edit" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Zoom into the result, change colors at pixel level" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#E53935"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C62828"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Save / Export" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Save as .mos project or export as PNG/JPEG" Classes="body" FontSize="11"/>
@@ -577,13 +578,13 @@
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The moon/sun button switches between dark and light theme; the globe button switches the language to Türkçe / English, and menus, tooltips and this guide change at once. Neither is remembered: the app starts in dark theme and Turkish."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Alerts appear in a small window and close with OK. Stock actions that change the sheet first ask for confirmation with Yes / No."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="The Tools menu contains every toolbar tool: Mosaicize, Pixel Edit, Show Grid, Grid Color, Interpolation Method, Optimum Stone Count, Fit to Stock, Stone Count and Stock. Active options are marked with ✓; the menu and toolbar always show the same state. Stone Count is available only after a Mos made with Optimum, and Stock only while no stock action is running."/>
-            <TextBlock Classes="body" Margin="0,4,0,0" Text="File menu: Load Image, Open Project, Save Project, Save Project As, mosairEXPORT and mosairEXPORT As (both open the image quality choices), Take Screenshot (same as the camera icon), Notify New Images (while ticked, new images in Downloads and on the Desktop are offered), Google Drive (Save to Drive, Open from Drive, Drive Folder Settings). Edit: Select / Deselect All Colors and Cancel Running Job (Esc; same as the red Cancel button in the status bar, enabled only while a cancellable job runs). View: Fit to Screen, Smooth Mouse Motion (when on, wheel zoom glides to the new zoom and a right-drag pan glides on briefly after release; when off, zoom is instant), Properties Panel (F4; hides/shows the right panel). Help: User Guide (F1). While the guide is open the main window cannot be used; there is no separate About window."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="File menu: Load Image, Open Project, Save Project, Save Project As, mosairEXPORT and mosairEXPORT As (both open the image quality choices), Take Screenshot (same as the camera icon), Notify New Images (while ticked, new images in Downloads and on the Desktop are offered), Google Drive (Save to Drive, Open from Drive, Drive Folder Settings). Edit: Select / Deselect All Colors and Cancel Running Job (Esc; same as the red Cancel button in the status bar, enabled only while a cancellable job runs). View: Fit to Screen, Smooth Mouse Motion (when on, wheel zoom glides to the new zoom and a right-drag pan glides on briefly after release; when off, zoom is instant), Properties Panel (F4; hides/shows the right panel), Image Adjustments (opens/folds the adjustments section of the right panel). Help: User Guide (F1). While the guide is open the main window cannot be used; there is no separate About window."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#43A047"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="#2E7D32"/>
               <TextBlock Classes="h2" Text="Center — Canvas (Image Area)" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="The main area where the mosaic image is displayed and edited. Use the mouse wheel to zoom (the point under the cursor stays put; small touchpad steps zoom less), right-click drag to pan. With View > Smooth Mouse Motion on (the default) zooming glides briefly to the new zoom, and after a quick drag the image glides on in the same direction and slows to a stop. Clicking the image or Fit to Screen stops the glide. You can also drag-and-drop images directly."/>
@@ -595,13 +596,14 @@
         <Border Classes="section-card">
           <StackPanel Spacing="4">
             <StackPanel Orientation="Horizontal" Spacing="6">
-              <Border Width="10" Height="10" CornerRadius="2" Background="#FF8F00"/>
+              <Border Width="10" Height="10" CornerRadius="2" Background="#B45309"/>
               <TextBlock Classes="h2" Text="Right Panel — Properties" Margin="0"/>
             </StackPanel>
             <TextBlock Classes="body" Text="Shows details of the selected stone: color swatch, stone code, texture preview, RGB values, pixel and mold coordinates."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Click a texture in Variants to change the stone texture at that pixel; this can also be undone and redone."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="While no stone is selected the image's details appear as cards: a preview (file type in the corner) and the file name; DETAILS (resolution, megapixels, aspect ratio, file size, date modified); DOMINANT COLORS (a bar of the colors by share and the 6 colors with code and share); after Mos, MOST USED STONES (5 stones with share, a thin bar and stone count). The x button next to COLOR goes back from a stone to the image details."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Hide / show: the - button in the panel header, F4 or View > Properties Panel hides the panel; a thin strip stays at the right edge, and clicking the strip (arrow) opens the panel again at its previous width. The panel is open each time the app starts."/>
+            <TextBlock Classes="body" Margin="0,4,0,0" Text="Image Adjustments: the IMAGE ADJUSTMENTS section at the bottom of the right panel has Brightness, Contrast, Saturation and Gamma sliders (-100 to +100, 0 = unchanged). Click its header to open/fold it; View > Image Adjustments does the same. While the panel is folded to the strip, the strip's Image Adjustments tab opens the panel with the adjustments open. Double-click a slider to reset it, Reset resets all; when something is adjusted a blue dot shows in the header and on the strip. Before Mos the image on screen changes at once; Mos works from the adjusted image. After Mos, press Mos again to apply a change. The file itself is not changed; the settings are saved with the project and come back when it is opened. Every new image starts unadjusted."/>
           </StackPanel>
         </Border>
         <Border Classes="section-card">
@@ -610,7 +612,7 @@
               <Border Width="10" Height="10" CornerRadius="2" Background="{DynamicResource FgSecondary}"/>
               <TextBlock Classes="h2" Text="Bottom — Status Bar" Margin="0"/>
             </StackPanel>
-            <TextBlock Classes="body" Text="Left: used color count. Center: progress bar, process status and duration. Right: Fit to Screen button, zoom factor (like Zoom=2.0) and on-screen image size. The stock read result at start-up and on each image/project load, and with By stock on the stock summary after a Mos, also appear here. While any work is in progress (Mos, stock fit, stock actions, Google Drive actions, export...) a green wave flows across the whole bar and fades out when the work ends. Changing the language resets the message to Ready."/>
+            <TextBlock Classes="body" Text="Left: used color count. Center: progress bar, process status and duration. Right: Fit to Screen button, zoom factor (like Zoom=2.0) and on-screen image size. The stock read result at start-up and on each image/project load, and with By stock on the stock summary after a Mos, also appear here. While any work is in progress (Mos, stock fit, stock actions, Google Drive actions, export...) a blue wave flows across the whole bar and fades out when the work ends. Changing the language resets the message to Ready."/>
             <TextBlock Classes="body" Margin="0,4,0,0" Text="Cancel: while a Mos, a stock fit or an export runs, a '✕ Cancel' button appears next to the progress bar; Esc and Edit > Cancel Running Job do the same. A cancelled Optimum Mos leaves the previous mosaic as it was. A cancelled classic Mos removes the half-built mosaic and shows the loaded image again. A cancelled stock fit in Mos or on the Stones slider leaves the mosaic without the stock fit. A cancelled fit inside Check Stock puts the mosaic back as it was and writes nothing to the sheet. A cancelled export deletes the partial file. The Stones slider can be cancelled only while a stock fit runs. Stock sheet actions, Google Drive actions and opening a project cannot be cancelled. Cancel pressed during the last steps of a job (rebuilding the mosaic, preparing textures, the final encoding of an export) has no effect; the job finishes normally."/>
           </StackPanel>
         </Border>
@@ -675,28 +677,28 @@
             <TextBlock Classes="h2" Text="How to Use" Margin="0"/>
             <StackPanel Spacing="6">
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="1" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Activate Mode" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Press the middle mouse button, the pencil icon in the toolbar, or Tools > Pixel Edit (a Mos must have run first). 'source' lights up orange in the toolbar." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Select Source Color" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Left-click on a stone with the color you want to use, or pick a stone from the catalog on the left." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="3" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Apply to Target Pixel" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="Left-click on the stone you want to change. The color changes instantly; you can paint several stones with the same source." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
-                <Border Classes="icon-badge" Background="#FF6600"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
+                <Border Classes="icon-badge" Background="#C2410C"><TextBlock Text="4" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Undo / Redo / Close" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
                   <TextBlock Text="The Undo and Redo shortcuts undo and redo edits. To turn the mode off, press the middle button or the pencil icon again." Classes="body" FontSize="11" TextWrapping="Wrap" MaxWidth="440"/>
