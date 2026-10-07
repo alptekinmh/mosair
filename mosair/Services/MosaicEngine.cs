@@ -377,22 +377,29 @@ namespace mosair.Services
             interpolationMethod = interpMethod;
 
 
-            // Resize input to stone dimensions
+            // Resize input to stone dimensions. Done once: every pass below starts from this same image (the
+            // resize is deterministic), so its stones and their distinct colours are kept for the whole run.
             MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
             int R = MosaicData.reducedBitmap.Height;
             int C = MosaicData.reducedBitmap.Width;
+            byte[,,] source = ImageService.ToByteArray(MosaicData.reducedBitmap);
+            WorkCancellation.Check();
+            var colors = new DistinctColors(source);
+            WorkCancellation.Check();
+            var (q0, q1, q2) = QueryCoordinates(colors);
 
             // Create single region covering entire image
             CreateSingleRegion(targetColors, R, C);
 
             // Init M3
+            WorkCancellation.Check();
             InitM3();
 
             // Generate initial palette (all RGB combos with step)
             GenerateInitialPalette();
 
             // Run M1 first pass
-            RunM1(R, C);
+            RunM1(R, C, colors, q0, q1, q2);
 
             // Copy M1 results to M3
             CopyM1ToM3(R, C);
@@ -404,10 +411,6 @@ namespace mosair.Services
                 numOfMinRGB = 0;
                 List<rgb> ar3 = MosaicData.arMA[reg];
 
-
-                var reducedForLoop = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
-                MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, reducedForLoop);
-
                 while (ar3.Count > dr.rgbM)
                 {
                     WorkCancellation.Check();
@@ -417,9 +420,7 @@ namespace mosair.Services
 
                     RemoveMinimalColors(reg);
 
-                    var reducedForIter = ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod);
-                    MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, reducedForIter);
-                    ProcessM3(reg, R, C);
+                    ProcessM3(reg, R, C, colors, q0, q1, q2);
 
                     numOfMinRGB += minRGBInc;
 
@@ -455,7 +456,10 @@ namespace mosair.Services
                     }
                 }
 
-                for (int i_ = 0; i_ < R; i_++)
+                // Each stone only reads and writes itself, so rows can go in parallel (same result).
+                WorkCancellation.Check();
+                System.Threading.Tasks.Parallel.For(0, R, i_ =>
+                {
                     for (int j_ = 0; j_ < C; j_++)
                     {
                         var key = (MosaicData.dataM3[i_, j_, 0], MosaicData.dataM3[i_, j_, 1], MosaicData.dataM3[i_, j_, 2],
@@ -467,7 +471,9 @@ namespace mosair.Services
                             MosaicData.dataM3[i_, j_, 2] = upd.nr;
                         }
                     }
+                });
             }
+            WorkCancellation.Check();
 
 
             // --- Section 3: Assign uc (combine identical colors) ---
@@ -502,7 +508,9 @@ namespace mosair.Services
                     }
                 }
 
-                for (int i_ = 0; i_ < R; i_++)
+                WorkCancellation.Check();
+                System.Threading.Tasks.Parallel.For(0, R, i_ =>
+                {
                     for (int j_ = 0; j_ < C; j_++)
                     {
                         var key = (MosaicData.dataM3[i_, j_, 0], MosaicData.dataM3[i_, j_, 1], MosaicData.dataM3[i_, j_, 2],
@@ -510,7 +518,9 @@ namespace mosair.Services
                         if (ucMap.TryGetValue(key, out int uc))
                             drl.dat[i_, j_, 3] = uc;
                     }
+                });
             }
+            WorkCancellation.Check();
 
             // u = uc
             for (int i = 0; i < MosaicData.arMB.Count; i++)
@@ -567,7 +577,9 @@ namespace mosair.Services
                     idMap[((byte)r.b, (byte)r.g, (byte)r.r, r.reg, r.u)] = r.ID;
                 }
 
-                for (int i_ = 0; i_ < R; i_++)
+                WorkCancellation.Check();
+                System.Threading.Tasks.Parallel.For(0, R, i_ =>
+                {
                     for (int j_ = 0; j_ < C; j_++)
                     {
                         var key = (MosaicData.dataM3[i_, j_, 0], MosaicData.dataM3[i_, j_, 1], MosaicData.dataM3[i_, j_, 2],
@@ -575,6 +587,7 @@ namespace mosair.Services
                         if (idMap.TryGetValue(key, out int id))
                             drl.dat[i_, j_, 3] = id;
                     }
+                });
 
                 byte e = 0;
                 for (int j = 0; j < ar.Count; j++)
@@ -583,6 +596,7 @@ namespace mosair.Services
 
 
             // Backup
+            WorkCancellation.Check();
             MosaicData.arMA = CloneNestedList(MosaicData.arMB);
             BackupM3(R, C);
 
@@ -691,11 +705,44 @@ namespace mosair.Services
             }
         }
 
-        private static void RunM1(int R, int C)
+        // The stones' colours as the distance sees them: (b, g, r), or (L, A, B) with Lab. One entry per distinct
+        // colour; the values are exactly the ones the per-stone loop used to compute.
+        private static (double[] q0, double[] q1, double[] q2) QueryCoordinates(DistinctColors colors)
         {
-            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.Resize(MosaicData.inputBitmap!, (int)width, (int)height, interpolationMethod));
-            byte[,,] data = ImageService.ToByteArray(MosaicData.reducedBitmap);
+            int n = colors.Count;
+            var q0 = new double[n]; var q1 = new double[n]; var q2 = new double[n];
+            System.Threading.Tasks.Parallel.For(0, n, u =>
+            {
+                double pb = colors.B[u], pg = colors.G[u], pr = colors.R[u];
+                if (boolLab)
+                {
+                    var lab = ColorMatcher.RgbToLab(pr, pg, pb);
+                    q0[u] = lab.L; q1[u] = lab.A; q2[u] = lab.B;
+                }
+                else
+                {
+                    q0[u] = pb; q1[u] = pg; q2[u] = pr;
+                }
+            });
+            return (q0, q1, q2);
+        }
 
+        // Nearest palette entry for every distinct colour (the same pick as comparing each stone with every entry).
+        private static int[] NearestPerColor(NearestColorIndex index, double[] q0, double[] q1, double[] q2)
+        {
+            var nearest = new int[q0.Length];
+            System.Threading.Tasks.Parallel.For(0, q0.Length, () => 0, (u, _, n) =>
+            {
+                if ((++n & 4095) == 0) WorkCancellation.Check();
+                nearest[u] = index.Find(q0[u], q1[u], q2[u]);
+                return n;
+            }, _ => { });
+            WorkCancellation.Check();
+            return nearest;
+        }
+
+        private static void RunM1(int R, int C, DistinctColors colors, double[] q0, double[] q1, double[] q2)
+        {
             int arCount = MosaicData.arRGB.Count;
             for (int i = 0; i < arCount; i++)
                 MosaicData.arRGB[i].numOfPixel = 0;
@@ -720,59 +767,35 @@ namespace mosair.Services
             }
 
             MosaicData.dataM1 = new byte[R, C, 3];
-            int[][] rowBestIdx = new int[R][];
+            var index = boolLab ? new NearestColorIndex(catL, catA, catBl, boolAv) : new NearestColorIndex(catBv, catG, catR, boolAv);
+            int[] nearest = NearestPerColor(index, q0, q1, q2);
+            var cb = new byte[arCount]; var cg = new byte[arCount]; var cr = new byte[arCount];
+            for (int k = 0; k < arCount; k++)
+            {
+                cb[k] = (byte)MosaicData.arRGB[k].b; cg[k] = (byte)MosaicData.arRGB[k].g; cr[k] = (byte)MosaicData.arRGB[k].r;
+            }
+            var counts = new int[Math.Max(1, arCount)];
 
-            System.Threading.Tasks.Parallel.For(0, R, i =>
+            System.Threading.Tasks.Parallel.For(0, R, () => new int[counts.Length], (i, _, local) =>
             {
                 WorkCancellation.Check();
-                rowBestIdx[i] = new int[C];
-                for (int j = 0; j < C; j++)
+                for (int j = 0, p = i * C; j < C; j++, p++)
                 {
-                    double min = double.MaxValue;
-                    int n = 0;
-                    double pb = data[i, j, 0], pg = data[i, j, 1], pr = data[i, j, 2];
-
-                    double pixL = 0, pixA = 0, pixB = 0;
-                    if (boolLab)
-                    {
-                        var lab = ColorMatcher.RgbToLab(pr, pg, pb);
-                        pixL = lab.L; pixA = lab.A; pixB = lab.B;
-                    }
-
-                    for (int k = 0; k < arCount; k++)
-                    {
-                        double db, dg, dr, av;
-                        if (boolLab)
-                        {
-                            db = pixL - catL[k]; dg = pixA - catA[k]; dr = pixB - catBl[k];
-                        }
-                        else
-                        {
-                            db = pb - catBv[k]; dg = pg - catG[k]; dr = pr - catR[k];
-                        }
-
-                        if (boolAv) av = (Math.Abs(db) + Math.Abs(dg) + Math.Abs(dr)) / 3.0;
-                        else av = db * db + dg * dg + dr * dr;
-
-                        if (av < min) { min = av; n = k; }
-                    }
-
-                    MosaicData.dataM1[i, j, 0] = (byte)MosaicData.arRGB[n].b;
-                    MosaicData.dataM1[i, j, 1] = (byte)MosaicData.arRGB[n].g;
-                    MosaicData.dataM1[i, j, 2] = (byte)MosaicData.arRGB[n].r;
-                    rowBestIdx[i][j] = n;
+                    int n = nearest[colors.PixelColor[p]];
+                    MosaicData.dataM1[i, j, 0] = cb[n];
+                    MosaicData.dataM1[i, j, 1] = cg[n];
+                    MosaicData.dataM1[i, j, 2] = cr[n];
+                    local[n]++;
                 }
-            });
+                return local;
+            }, local => { lock (counts) for (int k = 0; k < local.Length; k++) counts[k] += local[k]; });
 
-            for (int i = 0; i < R; i++)
-                for (int j = 0; j < C; j++)
+            for (int n = 0; n < arCount; n++)
+                if (counts[n] > 0)
                 {
-                    int n = rowBestIdx[i][j];
-                    MosaicData.arRGB[n].numOfPixel++;
+                    MosaicData.arRGB[n].numOfPixel += counts[n];
                     MosaicData.arRGB[n].n = n;
                 }
-
-            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM1, R, C));
         }
 
         private static void ProcessM1(int R, int C)
@@ -849,7 +872,7 @@ namespace mosair.Services
             }
         }
 
-        private static void ProcessM3(int reg, int R, int C)
+        private static void ProcessM3(int reg, int R, int C, DistinctColors colors, double[] q0, double[] q1, double[] q2)
         {
             List<rgb> ar = MosaicData.arMA[reg];
             int arCount = ar.Count;
@@ -875,74 +898,40 @@ namespace mosair.Services
                 arR[i] = r.r; arG[i] = r.g; arBv[i] = r.b;
             }
 
-            byte[,,] data = ImageService.ToByteArray(MosaicData.reducedBitmap!);
             int regId = reg + 1;
 
-            // Per-row results for thread-safe numOfPixel accumulation
-            int[][] rowBestIdx = new int[R][];
+            // Nearest palette colour once per distinct stone colour (not once per stone), found through a grid
+            // index instead of comparing with every palette entry; the pick is the same as before.
+            var index = boolLab ? new NearestColorIndex(arL, arA, arB_, boolAv) : new NearestColorIndex(arBv, arG, arR, boolAv);
+            int[] nearest = NearestPerColor(index, q0, q1, q2);
+            var pb = new byte[arCount]; var pg = new byte[arCount]; var pr = new byte[arCount];
+            for (int k = 0; k < arCount; k++) { pb[k] = (byte)ar[k].b; pg[k] = (byte)ar[k].g; pr[k] = (byte)ar[k].r; }
+            var counts = new int[Math.Max(1, arCount)];
 
-            System.Threading.Tasks.Parallel.For(0, R, i =>
+            System.Threading.Tasks.Parallel.For(0, R, () => new int[counts.Length], (i, _, local) =>
             {
                 WorkCancellation.Check();
-                rowBestIdx[i] = new int[C];
-                for (int j = 0; j < C; j++)
+                for (int j = 0, p = i * C; j < C; j++, p++)
                 {
-                    rowBestIdx[i][j] = -1;
                     if ((drl.dat[i, j, 0] == 1 || drl.dat[i, j, 1] == 1) && drl.dat[i, j, 2] == regId)
                     {
-                        double min = double.MaxValue;
-                        int n = 0;
-                        double pb = data[i, j, 0], pg = data[i, j, 1], pr = data[i, j, 2];
-
-                        double pixL = 0, pixA = 0, pixB = 0;
-                        if (boolLab)
-                        {
-                            var lab = ColorMatcher.RgbToLab(pr, pg, pb);
-                            pixL = lab.L; pixA = lab.A; pixB = lab.B;
-                        }
-
-                        for (int k = 0; k < arCount; k++)
-                        {
-                            double db, dg, dr, av;
-                            if (boolLab)
-                            {
-                                db = pixL - arL[k]; dg = pixA - arA[k]; dr = pixB - arB_[k];
-                            }
-                            else
-                            {
-                                db = pb - arBv[k]; dg = pg - arG[k]; dr = pr - arR[k];
-                            }
-
-                            if (boolAv) av = (Math.Abs(db) + Math.Abs(dg) + Math.Abs(dr)) / 3.0;
-                            else av = db * db + dg * dg + dr * dr;
-
-                            if (av < min) { min = av; n = k; }
-                        }
-
-                        MosaicData.dataM3[i, j, 0] = (byte)ar[n].b;
-                        MosaicData.dataM3[i, j, 1] = (byte)ar[n].g;
-                        MosaicData.dataM3[i, j, 2] = (byte)ar[n].r;
-                        rowBestIdx[i][j] = n;
+                        int n = nearest[colors.PixelColor[p]];
+                        MosaicData.dataM3[i, j, 0] = pb[n];
+                        MosaicData.dataM3[i, j, 1] = pg[n];
+                        MosaicData.dataM3[i, j, 2] = pr[n];
+                        local[n]++;
                     }
                 }
-            });
+                return local;
+            }, local => { lock (counts) for (int k = 0; k < local.Length; k++) counts[k] += local[k]; });
 
-            // Accumulate numOfPixel on main thread (thread-safe)
-            for (int i = 0; i < R; i++)
-            {
-                if (rowBestIdx[i] == null) continue;
-                for (int j = 0; j < C; j++)
+            // numOfPixel was set to 0 above; n records the entry's own index once it is used (as before).
+            for (int n = 0; n < arCount; n++)
+                if (counts[n] > 0)
                 {
-                    int n = rowBestIdx[i][j];
-                    if (n >= 0)
-                    {
-                        ar[n].numOfPixel++;
-                        ar[n].n = n;
-                    }
+                    ar[n].numOfPixel += counts[n];
+                    ar[n].n = n;
                 }
-            }
-
-            MosaicData.reducedBitmap = Swap(MosaicData.reducedBitmap, ImageService.FromByteArray(MosaicData.dataM3, R, C));
         }
 
         private static void RemoveMinimalColors(int reg)
@@ -982,7 +971,8 @@ namespace mosair.Services
                 colorToU.TryAdd(key, r.u);
             }
 
-            for (int i = 0; i < R; i++)
+            System.Threading.Tasks.Parallel.For(0, R, i =>
+            {
                 for (int j = 0; j < C; j++)
                 {
                     if (drl.dat[i, j, 2] != regId) continue;
@@ -990,6 +980,7 @@ namespace mosair.Services
                     if (colorToU.TryGetValue(key, out int uVal))
                         drl.dat[i, j, 3] = uVal;
                 }
+            });
         }
 
         private static void BackupM3(int R, int C)

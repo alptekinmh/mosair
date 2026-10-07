@@ -1,6 +1,6 @@
 # MosaicEngine
 
-> Kaynak: `mosair/Services/MosaicEngine.cs` · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Services/MosaicEngine.cs` · Güncelleme: 2026-10-07
 
 ## Amaç
 Mozaik üretiminin ana motoru. Yüklenen resmi taş ızgarası boyutuna küçültür ve her taş hücresine katalogdaki bir taş rengini atar. İki yolu vardır:
@@ -100,22 +100,25 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
    6. `prepareTextures` true ise taş dokuları hazırlanır: `StoneTextureService.PopulateRandomIndices` her taşa rastgele bir varyant verir, `LoadTextures` paletteki taşların orijinal dokularını yükler. Dokular burada küçültülmez; küçültme ve çizim, ekranda ve dışa aktarmada gerekince [MosaicRenderSource](./MosaicRenderSource.md) içinde yapılır.
 
 ### Klasik M1/M3 yolu (`RunM3`)
-1. Parametreler statik alanlara yazılır. Resim küçültülür. `CreateSingleRegion` tüm resmi kapsayan tek bir `drl` bölgesi kurar. `InitM3` çağrılır.
+1. Parametreler statik alanlara yazılır. Resim taş boyutuna **bir kez** küçültülür; bayt dizisi ve farklı renkleri ([`DistinctColors`](./NearestColorIndex.md)) çalışma boyunca saklanır. Önceden her M1/M3 turunda resim baştan küçültülüyordu; küçültme her seferinde aynı sonucu verdiği için bu gereksizdi. `QueryCoordinates` her farklı renk için mesafede kullanılacak koordinatları bir kez hesaplar: `(b, g, r)` ya da `boolLab` ise `RgbToLab(r, g, b)`. `CreateSingleRegion` tüm resmi kapsayan tek bir `drl` bölgesi kurar. `InitM3` çağrılır.
 2. **Katalog dışı başlangıç paleti** (`GenerateInitialPalette`): `0, RGBInc, 2·RGBInc, … < 255` adımlarıyla tüm R×G×B kombinasyonları oluşturulur. Bu renklerin katalogla ilgisi yoktur. `RGBInc` = 19 için 14³ = 2744 renk çıkar.
-3. **M1** (`RunM1`, paralel): Her piksel aktif katalogdaki en yakın renge atanır ve `dataM1`'e yazılır. Mesafe iki seçeneğe bağlıdır. Uzay `boolLab` ise Lab, değilse RGB'dir. Ölçü `boolAv` ise ortalama mutlak fark, değilse kare toplamıdır. Katalog renklerinin `numOfPixel` sayaçları da bu adımda güncellenir.
+3. **M1** (`RunM1`, paralel): Her piksel aktif katalogdaki en yakın renge atanır ve `dataM1`'e yazılır. Mesafe iki seçeneğe bağlıdır. Uzay `boolLab` ise Lab, değilse RGB'dir. Ölçü `boolAv` ise ortalama mutlak fark, değilse kare toplamıdır. En yakın renk her **farklı** piksel rengi için bir kez, [`NearestColorIndex`](./NearestColorIndex.md) ile bulunur (`NearestPerColor`) ve o renkteki tüm piksellere dağıtılır. Seçim, her pikseli her katalog rengiyle karşılaştıran eski döngüyle aynıdır: en küçük mesafe, eşitlikte en küçük sıra. Katalog renklerinin `numOfPixel` sayaçları da bu adımda güncellenir (iş parçacığı başına sayılıp toplanır). M1 sonucu ayrıca bitmap'e çevrilmez; `reducedBitmap` en sonda `dataM3`'ten üretilir.
 4. `CopyM1ToM3` çağrılır. M1 sonucu `dataM3` için başlangıç olur.
 5. **M3 azaltma döngüsü** (bölge başına, `ar3.Count > dr.rgbM` olduğu sürece):
    1. `minRGBInc` palet boyutuna göre belirlenir: 2000 ve üzeri için 5, 1000'den büyükse 2, aksi halde 1.
    2. `RemoveMinimalColors` çağrılır. `numOfPixel < numOfMinRGB` olan renkler silinir. Silme sonrası hedeften az renk kalacaksa renkler piksel sayısına göre sıralanır ve ilk `rgbM` tanesi tutulur. `WpfStyleRemoval` açıkken bu alt sınır uygulanmaz, yalnızca paletin boşalması engellenir.
-   3. Resim yeniden küçültülür ve `ProcessM3` çağrılır. Bölgedeki her piksel kalan ızgara paletinin en yakın rengine atanır (paralel). Mesafe M1'deki gibidir. Sayaçlar ana thread'de toplanır.
+   3. `ProcessM3` çağrılır. Bölgedeki her piksel kalan ızgara paletinin en yakın rengine atanır (paralel). Mesafe ve arama M1'deki gibidir: palet için her turda yeni bir `NearestColorIndex` kurulur, en yakın renk farklı renk başına bir kez bulunur. Sayaçlar iş parçacığı başına sayılıp toplanır; `n` alanı yalnızca kullanılan girdilere yazılır (eskisi gibi). Ara sonuç bitmap'e çevrilmez.
    4. `numOfMinRGB += minRGBInc` yapılır ve ilerleme `rgbM / ar3.Count · 100` olarak bildirilir.
-   5. İptal kontrol noktaları: her azaltma turunun başında, ayrıca `RunM1` ve `ProcessM3`'ün paralel döngülerinde satır başına (`WorkCancellation.Check`).
-6. `AssignColorNumbers`: Kalan renklere 1'den başlayarak `u` numarası verilir ve bölge numarası atanır. `drl.dat[..,3]` alanına `u` yazılır.
+   5. İptal kontrol noktaları: her azaltma turunun başında, en yakın renk aramasında her 4096 renkte bir ve arama bitince, ayrıca `RunM1` ve `ProcessM3`'ün paralel piksel döngülerinde satır başına (`WorkCancellation.Check`).
+   6. Hız: büyük mozaikte süreyi belirleyen bu aramaydı (varsayılan `RGBInc` = 10 ile palet 26³ = 17.576 renk). 6000×6000 px görselde, 28 iş parçacıklı bir bilgisayarda, tek başına çalıştırılarak ölçüldü (eski → yeni): 1.000 × 1.000 taş 6–15 sn → 1,3 sn; 20 m (1.667 × 1.667 ≈ 2,8 milyon taş) 37–46 sn → 1,8–2 sn; 2.500 × 2.500 taş (6,25 milyon) 58–60 sn → 2,5–3 sn. Sonuç bayt bayt aynıdır (RGB/Lab, ortalama/kare, `RGBInc` 5–32, 182 durumda karşılaştırıldı).
+6. `AssignColorNumbers`: Kalan renklere 1'den başlayarak `u` numarası verilir ve bölge numarası atanır. `drl.dat[..,3]` alanına `u` yazılır (satırlar paralel).
 7. `arMB = arMA` kopyası alınır.
 8. **Katalog eşleme (Bölüm 2)**: Her ızgara rengi için `ColorMatcher.FindCatalogDistances` ve `SelectNearest` çağrılır. Bunlar RGB kare mesafesiyle en yakın katalog taşını bulur. Rengin `r,g,b`, `ID`, `codeName` ve `name` alanları bu taşınkiyle değiştirilir. `dataM3` pikselleri `(b,g,r,reg,u)` anahtarıyla güncellenir.
 9. **Aynı renkleri birleştirme (Bölüm 3)**: RGB'si aynı olan girdilere ortak bir `uc` verilir. `drl.dat[..,3]` alanına `uc` yazılır, sonra `u = uc` yapılır.
 10. **Katalog koduna göre toplama (Bölüm 4)**: Katalog sırasıyla gezilir. `arMB[0]` içinde aynı `codeName`'e sahip girdiler tek girdide toplanır ve `numOfPixel` değerleri eklenir. Sıfır pikselli girdiler atılır.
 11. **ID yazımı (Bölüm 5)**: `drl.dat[..,3]` alanına katalog `ID` yazılır ve `u` değerleri 1'den yeniden numaralanır.
+
+    Bölüm 2, 3 ve 5'teki piksel geçişleri satır satır paraleldir: her taş yalnızca kendi değerlerini okuyup yazar ve sözlükler bu sırada yalnızca okunur, bu yüzden sonuç sıralı çalışmayla aynıdır. Bölümlerin arasında, tek bölge ve farklı renkler kurulduktan sonra ve yedeklemeden önce de `WorkCancellation.Check()` vardır; döngü sonrası adımlarda da İptal en geç birkaç yüz milisaniyede durdurur.
 12. `arMA` yedeklenir ve `BackupM3` çağrılır. Bitmap'ler üretilir, dokular hazırlanır (`PopulateRandomIndices` + `LoadTextures`) ve ilerleme 100 olarak bildirilir.
 
 ### Stoğa göre düzeltme (`FixToStock`, private)

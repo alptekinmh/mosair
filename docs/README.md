@@ -46,6 +46,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | Belge | İçerik |
 |---|---|
 | [MosaicEngine.md](kod/Services/MosaicEngine.md) | Mozaikleştirme algoritması (M1/M3), ölçü hesabı |
+| [NearestColorIndex.md](kod/Services/NearestColorIndex.md) | Klasik Mos için hızlı ve birebir aynı sonuçlu en yakın renk araması |
 | [OptimalPaletteService.md](kod/Services/OptimalPaletteService.md) | Optimum taş sayısını bulma |
 | [MosaicMetrics.md](kod/Services/MosaicMetrics.md) | Mozaik kalite ölçütleri |
 | [ColorMatcher.md](kod/Services/ColorMatcher.md) | Renk uzaklığı ve katalog eşleştirme |
