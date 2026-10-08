@@ -6,6 +6,7 @@ Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakıl
 
 ## 2026-10-08: Görsel Ayarları kendi sütununda, Photoshop gibi
 
+- **Drive'da orijinal ve ayarlar:** Görsel Ayarları kullanılan proje Drive'a kaydedilirken dokunulmamış orijinal de gönderiliyor ve Drive'daki proje klasörünün `orijinal` alt klasörüne konuyor; Drive'dan açınca orijinal de iniyor ve proje son kaydedilen ayarlarla açılıyor (kaydırıcılar kaldığı yerde). Script yeniden dağıtılmalı.
 - **Drive'da görsel yenileme:** Drive script'i artık Drive'daki proje görseli farklıysa (ör. Görsel Ayarları değiştiyse) onu yenisiyle değiştiriyor; önceden ilk kayıttaki görsel kalıyordu. Script yeniden dağıtılmalı (Dağıt → Dağıtımları yönet → düzenle → Yeni sürüm).
 
 - **Yer:** Görsel Ayarları, Özellikler panelinin altından çıkıp görsel alanı ile Özellikler arasında **kendi sütununa** taşındı. Sütun 300 px açılır, solundaki ayırıcıyla **260–600 px** genişletilebilir (uzun kaydırıcı = daha ince ayar); Özellikler paneli bundan etkilenmez. Başlıktaki ▬ ya da **Görünüm → Görsel Ayarları** sütunu 24 px'lik şeride indirir; şeride tıklayınca eski genişliğiyle açılır. Özellikler şeridi yine tek sekme.

@@ -93,8 +93,10 @@ namespace mosair.Services
 
         // Like mosairPROJECT on the desktop: <folderName>/<name> inside the Drive folder, with the original image
         // next to it (sent when given; the script keeps an image that is already there).
+        // originalName / original: with Görsel Ayarları the untouched original, kept in the project's "orijinal"
+        // subfolder on Drive (as on disk) so the project opens again with its settings.
         public static async Task SaveAsync(Config c, string folderName, string name, byte[] project,
-            string? imageName = null, byte[]? image = null)
+            string? imageName = null, byte[]? image = null, string? originalName = null, byte[]? original = null)
         {
             var payload = new Dictionary<string, object>
             {
@@ -107,6 +109,11 @@ namespace mosair.Services
             {
                 payload["imageName"] = imageName;
                 payload["image"] = Convert.ToBase64String(Gzip(image));
+            }
+            if (original != null && !string.IsNullOrEmpty(originalName))
+            {
+                payload["originalName"] = originalName;
+                payload["original"] = Convert.ToBase64String(Gzip(original));
             }
             using var doc = await PostAsync(c, payload);
         }
@@ -156,11 +163,27 @@ namespace mosair.Services
             string path = Path.Combine(dir, SafeName(file.Name).Length > 0 ? SafeName(file.Name) : "drive.mos");
             await File.WriteAllBytesAsync(path, project);
 
-            string? picture = PictureFileName(project);
+            string? picture = TopLevelString(project, "PictureFileName");
             if (!string.IsNullOrEmpty(picture))
             {
                 byte[] image = await GetAsync(c, file.Id, picture);
                 if (image.Length > 0) await File.WriteAllBytesAsync(Path.Combine(dir, SafeName(picture)), image);
+            }
+            // The original of an adjusted project ("orijinal/<name>"), so it opens with its Görsel Ayarları.
+            string? original = TopLevelString(project, "OriginalPictureFileName");
+            if (!string.IsNullOrEmpty(original))
+            {
+                var parts = original.Split('/');
+                if (parts.Length == 2 && parts[0] == ProjectService.OriginalFolder && SafeName(parts[1]).Length > 0)
+                {
+                    byte[] image = await GetAsync(c, file.Id, original);
+                    if (image.Length > 0)
+                    {
+                        string origDir = Path.Combine(dir, ProjectService.OriginalFolder);
+                        Directory.CreateDirectory(origDir);
+                        await File.WriteAllBytesAsync(Path.Combine(origDir, SafeName(parts[1])), image);
+                    }
+                }
             }
             return path;
         }
@@ -178,14 +201,14 @@ namespace mosair.Services
         private static string SafeName(string name) => string.Concat(name.Split(Path.GetInvalidFileNameChars()));
 
         // The "PictureFileName" of a .mos (read without loading the whole JSON tree).
-        private static string? PictureFileName(byte[] project)
+        private static string? TopLevelString(byte[] project, string property)
         {
             try
             {
                 var reader = new Utf8JsonReader(project, new JsonReaderOptions { AllowTrailingCommas = true });
                 while (reader.Read())
                     if (reader.TokenType == JsonTokenType.PropertyName && reader.CurrentDepth == 1 &&
-                        reader.ValueTextEquals("PictureFileName"))
+                        reader.ValueTextEquals(property))
                     {
                         reader.Read();
                         return reader.TokenType == JsonTokenType.String ? reader.GetString() : null;

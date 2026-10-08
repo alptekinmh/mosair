@@ -363,7 +363,13 @@ namespace mosair.ViewModels
                     string? imagePath = imageName == null ? null : System.IO.Path.Combine(tempDir, imageName);
                     byte[]? image = imagePath != null && System.IO.File.Exists(imagePath)
                         ? await System.IO.File.ReadAllBytesAsync(imagePath) : null;
-                    await DriveService.SaveAsync(config, baseName, name, bytes, imageName, image);
+                    // With Görsel Ayarları the picture is the adjusted image and the original sits in "orijinal":
+                    // it goes along, so the project opens from Drive with its settings.
+                    string? originalPath = imageName == null ? null
+                        : System.IO.Path.Combine(tempDir, ProjectService.OriginalFolder, imageName);
+                    byte[]? original = snapshot.HasAdjustedImage && originalPath != null && System.IO.File.Exists(originalPath)
+                        ? await System.IO.File.ReadAllBytesAsync(originalPath) : null;
+                    await DriveService.SaveAsync(config, baseName, name, bytes, imageName, image, imageName, original);
                 }
                 finally
                 {

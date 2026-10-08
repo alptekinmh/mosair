@@ -6,7 +6,7 @@
 
 Projeleri (`.mos`) orijinal görselleriyle birlikte bir Google Drive klasörüne kaydetmek ve oradan açmak. Uygulamada Google oturumu açılmaz: stok tablosundaki gibi, kullanıcının kendi hesabında yayınladığı küçük bir Apps Script web uygulamasına ([`Assets/mosair-drive.gs`](#apps-script-assetsmosair-drivegs)) JSON `POST` gönderilir; Drive'a script yazar ve okur. Dosyalar gidiş ve dönüşte gzip ile sıkıştırılır ve base64 olarak taşınır.
 
-Görsel Ayarları kullanılan projede gönderilen görsel, `ProjectService.WriteSnapshot`'ın proje yanına yazdığı **ayarlı** görseldir (`orijinal/` alt klasörü gönderilmez); Drive'daki görsel farklıysa script onu yenisiyle değiştirir (2026-10-08 sürümü). Klasör düzeni masaüstündeki **mosairPROJECT** ile aynıdır: her proje Drive klasörünün içinde görselin adını taşıyan bir alt klasöre konur; içinde `<ad>.mos` ve orijinal görsel bulunur.
+Görsel Ayarları kullanılan projede gönderilen görsel, `ProjectService.WriteSnapshot`'ın proje yanına yazdığı **ayarlı** görseldir; ayrıca dokunulmamış orijinal de gönderilir ve Drive'daki proje klasörünün `orijinal` alt klasörüne konur (yerel kayıttaki gibi). Böylece proje Drive'dan açılınca orijinal temel alınır ve kayıtlı ayarlar geri gelir (kaydırıcılar son kaydedildiği gibi). Drive'daki görsel ya da orijinal farklıysa script onu yenisiyle değiştirir (2026-10-08 sürümü). Klasör düzeni masaüstündeki **mosairPROJECT** ile aynıdır: her proje Drive klasörünün içinde görselin adını taşıyan bir alt klasöre konur; içinde `<ad>.mos` ve orijinal görsel bulunur.
 
 ## Nerede kullanılır
 
@@ -53,7 +53,7 @@ Görsel Ayarları kullanılan projede gönderilen görsel, `ProjectService.Write
 | `Http` | Paylaşılan `HttpClient`: yönlendirme açık (en fazla 5), zaman aşımı **10 dk** (büyük projeler) |
 | `GetAsync(c, fileId, imageName)` | `{ action: "get", fileId[, imageName] }`; `data` boşsa boş dizi, değilse base64 çözülüp gunzip edilmiş baytlar |
 | `SafeName(name)` | Geçersiz dosya adı karakterlerini atar |
-| `PictureFileName(project)` | `.mos` JSON'unun kök düzeyindeki `PictureFileName` değerini `Utf8JsonReader` ile (tüm ağacı yüklemeden) okur; yoksa ya da JSON bozuksa `null` |
+| `TopLevelString(project, property)` | `.mos` JSON'unun kök düzeyindeki bir metin alanını (`PictureFileName`, `OriginalPictureFileName`) `Utf8JsonReader` ile (tüm ağacı yüklemeden) okur; yoksa ya da JSON bozuksa `null` |
 | `Gzip` / `Gunzip` | `GZipStream` ile sıkıştırma (`CompressionLevel.Optimal`) ve açma |
 | `PostAsync` | İsteği gönderir, yanıtı yorumlar (aşağıda) |
 
@@ -67,11 +67,11 @@ Görsel Ayarları kullanılan projede gönderilen görsel, `ProjectService.Write
 | `IsConfigured(Config)` → `bool` | `FolderId` boş değil ve `ScriptUrl` boş değil | `MainViewModel.DriveConfigOrAsk`, `DriveSettingsDialog.OnTest` |
 | `ScriptCode()` → `string` | Derlemeye gömülü (`EmbeddedResource`) `mosair-drive.gs` kaynağını UTF-8 olarak okur; kaynak adı `mosair-drive.gs` ile biten ilk kaynak. Bulunamazsa `""`. | `DriveSettingsDialog.OnCopyScript` |
 | `PingAsync(Config)` → `string` | `{ action: "ping" }`; klasörün adını döndürür (bağlantıyı ve script'i dener) | `DriveSettingsDialog.OnTest`, `DriveOpenDialog.LoadAsync` |
-| `SaveAsync(Config, folderName, name, project, imageName = null, image = null)` | `{ action: "save", folderName, name, data[, imageName, image] }`; `data` ve `image` gzip'lenmiş baytların base64'ü. Görsel yalnızca hem `image` hem `imageName` verilmişse gönderilir. | `MainViewModel.SaveToDriveAsync` |
+| `SaveAsync(Config, folderName, name, project, imageName = null, image = null, originalName = null, original = null)` | `{ action: "save", folderName, name, data[, imageName, image][, originalName, original] }`; `data`, `image` ve `original` gzip'lenmiş baytların base64'ü. Görsel yalnızca hem `image` hem `imageName`, orijinal yalnızca hem `original` hem `originalName` verilmişse gönderilir (Görsel Ayarları kullanılan projede dokunulmamış orijinal). | `MainViewModel.SaveToDriveAsync` |
 | `ListAsync(Config)` → `List<DriveFile>` | `{ action: "list" }`; yanıttaki `files` dizisini `DriveFile` listesine çevirir (`folder` ve `imageId` yoksa `""`) | `DriveOpenDialog.LoadAsync` |
 | `ThumbnailsAsync(Config, ids)` → `Dictionary<string, byte[]>` | `{ action: "thumbs", ids }`; Drive'ın küçük resimlerini (PNG baytları) kimliğe göre döndürür; boş gelenler sözlüğe girmez. `ids` boşsa istek gönderilmez. | `DriveOpenDialog.LoadThumbnailsAsync` |
 | `FolderWebUrl(Config)` → `string` | `https://drive.google.com/drive/folders/` + `FolderId` (klasörün tarayıcı adresi) | `DriveOpenDialog.OnOpenInBrowser` |
-| `DownloadAsync(Config, DriveFile)` → `string` | Projeyi `GetAsync` ile alır, `CacheDir\<Folder ya da "_">\<ad>` olarak yazar (geçersiz karakterler atılır; ad boş kalırsa `drive.mos`). Sonra `.mos` içindeki `PictureFileName`'i okur; doluysa aynı proje klasöründeki o adlı dosyayı (`get` + `imageName`) indirip projenin yanına yazar. Projenin yolunu döndürür; eski dosyaların üzerine yazar. | `MainViewModel.OpenFromDriveAsync` |
+| `DownloadAsync(Config, DriveFile)` → `string` | Projeyi `GetAsync` ile alır, `CacheDir\<Folder ya da "_">\<ad>` olarak yazar (geçersiz karakterler atılır; ad boş kalırsa `drive.mos`). Sonra `.mos` içindeki `PictureFileName`'i okur; doluysa aynı proje klasöründeki o adlı dosyayı (`get` + `imageName`) indirip projenin yanına yazar. `OriginalPictureFileName` doluysa ve tam olarak `orijinal/<ad>` biçimindeyse (başka yol kabul edilmez) onu da indirip `CacheDir\<klasör>\orijinal\<ad>` olarak yazar; `OpenProjectAsync` böylece orijinali temel alır ve kayıtlı ayarları uygular. Projenin yolunu döndürür; eski dosyaların üzerine yazar. | `MainViewModel.OpenFromDriveAsync` |
 
 ## Önemli davranışlar ve iş kuralları
 
@@ -87,7 +87,7 @@ HTTP durum kodu ayrıca kontrol edilmez; yalnızca gövdeye bakılır.
 
 ### Sıkıştırma ve boyut
 
-Proje JSON'u ve görsel gzip ile sıkıştırılıp base64 ile gönderilir; script bunları açıp olağan dosyalar olarak saklar. İndirirken script dosyayı gzip'leyip base64 ile döndürür, uygulama açar. Drive'daki dosyalar her durumda sıkıştırılmamış, olağan `.mos` ve görsel dosyalarıdır (başka bir bilgisayarda doğrudan indirilip açılabilir). Apps Script büyük isteklere ve yanıtlara sınır koyar (yaklaşık 50 MB); sıkıştırma bu sınıra daha geç ulaşılmasını sağlar ama sınırı kaldırmaz. Görsel ilk kayıtta projeyle aynı istekte gider.
+Proje JSON'u ve görsel gzip ile sıkıştırılıp base64 ile gönderilir; script bunları açıp olağan dosyalar olarak saklar. İndirirken script dosyayı gzip'leyip base64 ile döndürür, uygulama açar. Drive'daki dosyalar her durumda sıkıştırılmamış, olağan `.mos` ve görsel dosyalarıdır (başka bir bilgisayarda doğrudan indirilip açılabilir). Apps Script büyük isteklere ve yanıtlara sınır koyar (yaklaşık 50 MB); sıkıştırma bu sınıra daha geç ulaşılmasını sağlar ama sınırı kaldırmaz. Görsel (ve ayarlı projede orijinal) her kayıtta projeyle aynı istekte gider; sınır proje + görsel + orijinalin toplamı için geçerlidir.
 
 ### Apps Script (`Assets/mosair-drive.gs`)
 
@@ -96,9 +96,9 @@ Proje JSON'u ve görsel gzip ile sıkıştırılıp base64 ile gönderilir; scri
 | `action` | Gövde | Ne yapar | Yanıt |
 |---|---|---|---|
 | `ping` | `folderId` | Klasörü açar | `{ status: "ok", folder: <klasör adı> }` |
-| `save` | `folderId`, `name`, `data`, isteğe bağlı `folderName`, `image`, `imageName` | Ad `.mos` ile bitmezse hata. `folderName` varsa hedef, klasörün içindeki o adlı alt klasördür (`subfolder`: `/` ve `\` `_` olur, boşsa `mosair_project`; yoksa oluşturulur). `data` açılıp `replaceFile` ile yazılır: hedefteki **aynı adlı** dosyalar not edilir, **önce** yenisi oluşturulur, ancak ondan sonra eskiler Drive çöp kutusuna taşınır (yazma başarısız olursa eski kopya yerinde kalır). `image` ve `imageName` verilmişse görsel açılır; hedefte o adda dosya yoksa ya da varsa ama boyutu farklıysa `replaceFile` ile yazılır (eskisi çöp kutusuna); boyutu aynıysa dokunulmaz. Böylece ayarları değişen projenin görseli Drive'da da yenilenir. | `{ status: "ok", id, name, folder }` |
+| `save` | `folderId`, `name`, `data`, isteğe bağlı `folderName`, `image`, `imageName`, `original`, `originalName` | Ad `.mos` ile bitmezse hata. `folderName` varsa hedef, klasörün içindeki o adlı alt klasördür (`subfolder`: `/` ve `\` `_` olur, boşsa `mosair_project`; yoksa oluşturulur). `data` açılıp `replaceFile` ile yazılır: hedefteki **aynı adlı** dosyalar not edilir, **önce** yenisi oluşturulur, ancak ondan sonra eskiler Drive çöp kutusuna taşınır (yazma başarısız olursa eski kopya yerinde kalır). `image` ve `imageName` verilmişse görsel açılır; hedefte o adda dosya yoksa ya da varsa ama boyutu farklıysa `replaceFile` ile yazılır (eskisi çöp kutusuna); boyutu aynıysa dokunulmaz. Böylece ayarları değişen projenin görseli Drive'da da yenilenir. `original` ve `originalName` verilmişse dokunulmamış orijinal, proje klasörünün `orijinal` alt klasörüne (`ORIGINAL_FOLDER` sabiti, `subfolder` ile; yoksa oluşturulur) aynı kuralla yazılır: yoksa ya da boyutu farklıysa `replaceFile`, aynıysa dokunulmaz. | `{ status: "ok", id, name, folder }` |
 | `list` | `folderId` | Klasörün kendisindeki ve bir alt düzeydeki proje klasörlerindeki adı `.mos` ile biten dosyalar (`addMos`), son değişikliğe göre en yeni üstte. Alt klasördeki her `.mos` için `imageId` = o klasördeki ilk `image/*` dosyası; kökteki `.mos` için `""`. | `{ status: "ok", folder, files: [{ id, name, folder, size, modified (ISO), imageId }] }` |
-| `get` | `folderId`, `fileId`, isteğe bağlı `imageName` | Adı `.mos` ile bitmeyen dosyayı reddeder; dosyanın klasörün kendisinde ya da bir proje klasöründe olduğunu (`parentInside`) denetler, değilse hata. `imageName` yoksa projeyi, varsa aynı klasördeki o adlı dosyayı gzip'leyip base64 döndürür; o dosya yoksa `data: ""`. | `{ status: "ok", name, data }` |
+| `get` | `folderId`, `fileId`, isteğe bağlı `imageName` | Adı `.mos` ile bitmeyen dosyayı reddeder; dosyanın klasörün kendisinde ya da bir proje klasöründe olduğunu (`parentInside`) denetler, değilse hata. `imageName` yoksa projeyi, varsa aynı klasördeki o adlı dosyayı gzip'leyip base64 döndürür; o dosya yoksa `data: ""`. `imageName` `orijinal/<ad>` ise dosya proje klasörünün `orijinal` alt klasöründen alınır (alt klasör ya da dosya yoksa `data: ""`); eğik çizgi içeren başka bir yol `Geçersiz dosya yolu` hatası verir. | `{ status: "ok", name, data }` |
 | `thumbs` | `folderId`, `ids` | Her kimlik için dosya klasörün içindeyse (`parentInside`) Drive küçük resmini (`getThumbnail`) base64 PNG olarak döndürür; küçük resim yoksa ya da dosya okunamazsa `""`; klasör dışındaki dosyalar atlanır. | `{ status: "ok", thumbs: { <id>: <base64> } }` |
 
 - **`ALLOWED_FOLDERS`** (isteğe bağlı script özelliği, Proje ayarları → Komut dosyası özellikleri): virgülle ayrılmış klasör kimlikleri. Tanımlıysa yalnızca bu klasörlerle çalışılır, diğerleri `Bu klasöre izin verilmiyor (ALLOWED_FOLDERS)` hatası alır.
@@ -124,6 +124,7 @@ Script kodu değiştiğinde (uygulamanın yeni bir sürümünden kopyalandığı
 - `LoadConfig` bozuk ayar dosyasını sessizce yok sayar.
 - Zaman aşımı 10 dk'dır; Drive işlemleri iptal edilemez.
 - `DownloadAsync` indirdiği dosyaları `CacheDir`'den silmez; aynı proje yeniden indirilince üzerine yazılır.
+- Script'in 2026-10-08'den önceki bir dağıtımı orijinali yok sayar ve `orijinal/<ad>` istemini tanımaz; proje o zaman Drive'dan ayarlı görselle ve sıfır kaydırıcılarla açılır. Orijinalin Drive'da saklanması için script yeni sürümle yeniden dağıtılmalıdır.
 - Görsel Drive'a yalnızca proje klasöründe o adda dosya yokken gönderilir; görsel değişip adı aynı kaldıysa Drive'daki eski görsel kalır.
 - `list` yalnızca bir alt düzeye bakar; daha derindeki projeler listelenmez. Bir proje klasöründe birden fazla görsel varsa önizleme için ilk bulunan kullanılır.
 - `FolderId` bağlantı dışı metinde en az 10 karakter ister; daha kısa bir kimlik "ayarlanmamış" sayılır.

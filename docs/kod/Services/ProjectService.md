@@ -68,6 +68,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `Data` (internal) | `ProjectData` | Yazılacak veri (`PictureFileName` henüz boş) |
 | `PictureSource` (internal) | `string?` | Yüklü görselin (orijinal dosyanın) yolu (`inputBitmap` varsa ve `CurrentPictureFileName` doluysa); yoksa `null` |
 | `AdjustedImage` (internal) | `SKBitmap?` | `adjust` verilmişse ve `inputBitmap` `sourceBitmap`'ten farklıysa `inputBitmap.Copy()` (canlı bitmap yazma sırasında değişebileceği için kopya); yoksa `null`. `WriteSnapshot` yazdıktan sonra serbest bırakır |
+| `HasAdjustedImage` | `bool` | `AdjustedImage` oluşturulduysa `true`; bitmap yazımdan sonra serbest bırakılsa da kalır (`SaveToDriveAsync` orijinalin de gönderileceğini buradan anlar). |
 | `OriginalMovedTo` | `string?` | Yazma sonrası: görsel kendi klasörüne kaydedildiyse ve ayarlı görsel onun yerine yazıldıysa orijinalin yeni yolu (`orijinal/<ad>`); değilse `null`. `SaveProjectAsync` bunu `CurrentPictureFileName`'e yazar |
 
 ### `LoadedProject` (açma ara nesnesi)

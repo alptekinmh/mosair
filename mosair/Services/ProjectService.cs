@@ -139,6 +139,7 @@ namespace mosair.Services
                 Data = data;
                 PictureSource = pictureSource;
                 AdjustedImage = adjustedImage;
+                HasAdjustedImage = adjustedImage != null;
             }
 
             internal ProjectData Data { get; }
@@ -147,6 +148,7 @@ namespace mosair.Services
             // A copy of the image with the Görsel Ayarları applied; null when nothing is adjusted. Written beside the
             // project in place of the original, which goes to the "orijinal" subfolder.
             internal SKBitmap? AdjustedImage { get; }
+            public bool HasAdjustedImage { get; }
             // Where the original is after the save when it was moved aside (the session keeps using it), else null.
             public string? OriginalMovedTo { get; internal set; }
         }

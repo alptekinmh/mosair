@@ -11,13 +11,17 @@
  *
  * Klasör düzeni (masaüstündeki mosairPROJECT ile aynı): her proje, Drive klasörünün içinde görselin adını
  * taşıyan bir alt klasöre kaydedilir; içinde <ad>.mos ve görsel bulunur (Görsel Ayarları kullanıldıysa ayarlı
- * hâli; değiştiyse her kayıtta yenilenir).
+ * hâli; değiştiyse her kayıtta yenilenir). Ayarlı projede orijinal görsel "orijinal" alt klasöründe durur.
  *
  * Güvenlik: Bu adresi bilen herkes, izin verilen klasöre .mos dosyası yazabilir ve oradan okuyabilir.
  * Adresi yalnızca güvendiğiniz kişilerle paylaşın. İsterseniz Proje ayarları → Komut dosyası özellikleri'ne
  * ALLOWED_FOLDERS adlı bir özellik ekleyip değerine izin verilen klasör ID'lerini virgülle yazın; o zaman
  * script yalnızca bu klasörlerle çalışır.
  */
+
+// The subfolder of a project folder that keeps the original image when the picture beside the project is the
+// adjusted one (Görsel Ayarları); the same name mosair uses on disk.
+var ORIGINAL_FOLDER = 'orijinal';
 
 function doPost(e) {
   try {
@@ -43,6 +47,16 @@ function doPost(e) {
         var same = existing.hasNext() && existing.next().getSize() === picture.getBytes().length;
         if (!same) replaceFile(target, imageName, picture);
       }
+      // With Görsel Ayarları the untouched original goes to the project's "orijinal" subfolder (as on disk), so
+      // the project opens again with its settings; replaced when it differs.
+      if (req.original && req.originalName) {
+        var originalName = String(req.originalName);
+        var original = unpack(req.original, originalName);
+        var originals = subfolder(target, ORIGINAL_FOLDER);
+        var kept = originals.getFilesByName(originalName);
+        var keptSame = kept.hasNext() && kept.next().getSize() === original.getBytes().length;
+        if (!keptSame) replaceFile(originals, originalName, original);
+      }
       return reply({ status: 'ok', id: file.getId(), name: file.getName(), folder: target.getName() });
     }
 
@@ -67,7 +81,17 @@ function doPost(e) {
       if (!parent) throw new Error('Dosya bu klasörde değil');
       var wanted = mos;
       if (req.imageName) {
-        var images = parent.getFilesByName(String(req.imageName));
+        // "7.jpg" next to the project, or "orijinal/7.jpg" in its originals subfolder (no other paths).
+        var parts = String(req.imageName).split('/');
+        var where = parent;
+        if (parts.length === 2 && parts[0] === ORIGINAL_FOLDER) {
+          var subs = parent.getFoldersByName(ORIGINAL_FOLDER);
+          if (!subs.hasNext()) return reply({ status: 'ok', name: '', data: '' });
+          where = subs.next();
+        } else if (parts.length !== 1) {
+          throw new Error('Geçersiz dosya yolu');
+        }
+        var images = where.getFilesByName(parts[parts.length - 1]);
         if (!images.hasNext()) return reply({ status: 'ok', name: '', data: '' });
         wanted = images.next();
       }
