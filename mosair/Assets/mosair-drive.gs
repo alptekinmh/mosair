@@ -10,7 +10,8 @@
  *  Kodu sonradan güncellerken: Dağıt → Dağıtımları yönet → düzenle → Sürüm: Yeni sürüm (adres değişmez).
  *
  * Klasör düzeni (masaüstündeki mosairPROJECT ile aynı): her proje, Drive klasörünün içinde görselin adını
- * taşıyan bir alt klasöre kaydedilir; içinde <ad>.mos ve orijinal görsel bulunur.
+ * taşıyan bir alt klasöre kaydedilir; içinde <ad>.mos ve görsel bulunur (Görsel Ayarları kullanıldıysa ayarlı
+ * hâli; değiştiyse her kayıtta yenilenir).
  *
  * Güvenlik: Bu adresi bilen herkes, izin verilen klasöre .mos dosyası yazabilir ve oradan okuyabilir.
  * Adresi yalnızca güvendiğiniz kişilerle paylaşın. İsterseniz Proje ayarları → Komut dosyası özellikleri'ne
@@ -33,9 +34,14 @@ function doPost(e) {
       if (!/\.mos$/i.test(name)) throw new Error('Dosya adı .mos ile bitmeli');
       var target = req.folderName ? subfolder(folder, String(req.folderName)) : folder;
       var file = replaceFile(target, name, unpack(req.data, name));
-      // Like mosairPROJECT: the original image is copied only when the folder does not have it yet.
-      if (req.image && req.imageName && !target.getFilesByName(req.imageName).hasNext()) {
-        target.createFile(unpack(req.image, String(req.imageName)));
+      // The project's picture (with Görsel Ayarları: the adjusted image). Replaced when it differs from the one
+      // already there (a changed adjustment), so Drive always has the picture that goes with the project.
+      if (req.image && req.imageName) {
+        var imageName = String(req.imageName);
+        var picture = unpack(req.image, imageName);
+        var existing = target.getFilesByName(imageName);
+        var same = existing.hasNext() && existing.next().getSize() === picture.getBytes().length;
+        if (!same) replaceFile(target, imageName, picture);
       }
       return reply({ status: 'ok', id: file.getId(), name: file.getName(), folder: target.getName() });
     }

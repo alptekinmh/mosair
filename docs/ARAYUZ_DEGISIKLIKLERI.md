@@ -6,6 +6,8 @@ Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakıl
 
 ## 2026-10-08: Görsel Ayarları kendi sütununda, Photoshop gibi
 
+- **Drive'da görsel yenileme:** Drive script'i artık Drive'daki proje görseli farklıysa (ör. Görsel Ayarları değiştiyse) onu yenisiyle değiştiriyor; önceden ilk kayıttaki görsel kalıyordu. Script yeniden dağıtılmalı (Dağıt → Dağıtımları yönet → düzenle → Yeni sürüm).
+
 - **Yer:** Görsel Ayarları, Özellikler panelinin altından çıkıp görsel alanı ile Özellikler arasında **kendi sütununa** taşındı. Sütun 300 px açılır, solundaki ayırıcıyla **260–600 px** genişletilebilir (uzun kaydırıcı = daha ince ayar); Özellikler paneli bundan etkilenmez. Başlıktaki ▬ ya da **Görünüm → Görsel Ayarları** sütunu 24 px'lik şeride indirir; şeride tıklayınca eski genişliğiyle açılır. Özellikler şeridi yine tek sekme.
 - **İki sekme** (Photoshop'un Light ve Hue/Saturation panelleri gibi):
   - **Işık:** Pozlama (±2.00 EV, iki ondalık), Parlaklık, Kontrast, **Parlak Alanlar**, **Gölgeler**, **Beyazlar**, **Siyahlar**, Gama.
