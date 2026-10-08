@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-08: Mos'tan önce dışa aktarma
+
+- Dışa aktarma (mosairEXPORT, mosairEXPORT As, `Ctrl/⌘+E`) artık Mos'tan önce de kullanılabilir: görsel, Görsel Ayarları uygulanmış hâliyle kendi çözünürlüğünde, Kalıp Dolgu açıksa dolgusuyla birlikte kaydedilir. Listede kalite seçenekleri yerine tek bir `Görsel: W × H px` seçeneği görünür.
+
 ## 2026-10-08: Kalıp Dolgu Mos'tan önce görselde çalışır
 
 - Görsel ekrandayken **Kalıp Dolgu**'ya basınca Mos yapılmadan görselin sağına ve altına tam kalıba kadar dolgu alanı eklenir ve dolgu taşının rengiyle boyanır (önceden dolgu yalnızca Mos'tan sonra mozaiğe ekleniyordu). Mos dolgu alanını hep bu taşla doldurur; görselin mozaiği değişmez.

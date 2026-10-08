@@ -585,8 +585,12 @@ public partial class MainWindow : Window
 
     private void UpdateExportChoiceTexts()
     {
+        // Before Mos only one choice is shown: the image at its own resolution (the qualities are stone sizes).
         foreach (var (item, quality, saveAs) in _exportChoices)
+        {
+            item.IsVisible = _vm.MosaicDone || quality == MainViewModel.DefaultExportQuality;
             item.Header = _vm.ExportChoiceLabel(quality, saveAs);
+        }
     }
 
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)

@@ -1090,6 +1090,7 @@ public bool UseLab
                 _imageLoaded = value;
                 OnPropertyChanged(); OnPropertyChanged(nameof(CanRunMosaic)); OnPropertyChanged(nameof(CanAdjust));
                 OnPropertyChanged(nameof(ShowImageInfo)); OnPropertyChanged(nameof(ShowNoImageHint));
+                OnPropertyChanged(nameof(CanExport));
             }
         }
 
@@ -2317,7 +2318,8 @@ public bool UseLab
         }
 
         public bool CanRunMosaic => ImageLoaded && !IsProcessing && !IsExporting;
-        public bool CanExport => MosaicDone && !IsProcessing && !IsExporting;
+        // A mosaic, or before Mos the image itself (with its Kalıp Dolgu padding when that is on).
+        public bool CanExport => (MosaicDone || (ImageLoaded && MosaicData.inputBitmap != null)) && !IsProcessing && !IsExporting;
 
         public ObservableCollection<ColorItem> CatalogColors { get; } = new();
         public ObservableCollection<PaletteItem> PaletteColors { get; } = new();
@@ -2910,13 +2912,19 @@ public bool UseLab
         public string QuickExportExtension(int n)
         {
             var src = _renderSource;
-            if (src == null) return "jpeg";
+            if (!MosaicDone || src == null) return "jpeg";
             return MosaicExporter.QuickExportUsesJpeg(MosaicExporter.ImageSize(src, n)) ? "jpeg" : "png";
         }
 
         // The text of one quality choice: image size in pixels and the estimated file size(s); no "N".
         public string ExportChoiceLabel(int n, bool saveAs)
         {
+            if (!MosaicDone)
+            {
+                // Before Mos there is one choice: the image at its own resolution.
+                var (iw, ih) = ImageExportSize();
+                return iw > 0 ? Loc.Fmt("ExportChoiceImage", iw.ToString("N0"), ih.ToString("N0")) : "";
+            }
             var src = _renderSource;
             if (src == null) return "";
             var size = MosaicExporter.ImageSize(src, n);
@@ -3029,6 +3037,11 @@ public bool UseLab
             NewImageWatcher.Ignore(path);   // not offered back as a new image
             if (IsExporting) return;
 
+            if (!MosaicDone && ImageLoaded && MosaicData.inputBitmap != null)
+            {
+                await ExportSourceImageAsync(path);
+                return;
+            }
             if (!MosaicDone || _renderSource == null)
             {
                 Alert(Loc.Get("AlertExportTitle"), Loc.Get("AlertExportNoMosaic"));
@@ -3105,6 +3118,55 @@ public bool UseLab
             finally
             {
                 EndCancellable(cts);
+                IsExporting = false;
+            }
+        }
+
+        // The image's export size before Mos: the image (adjustments applied) at its own resolution, grown to whole
+        // moulds while Kalıp Dolgu shows it padded.
+        private (int w, int h) ImageExportSize()
+        {
+            var img = MosaicData.inputBitmap;
+            if (img == null) return (0, 0);
+            return ((int)Math.Round(img.Width * PadScaleX), (int)Math.Round(img.Height * PadScaleY));
+        }
+
+        // Before Mos: saves the image as it is on screen (adjustments, and the padding in the filler's colour when
+        // Kalıp Dolgu is on), at the image's own resolution; no grid. JPEG quality 95, or PNG.
+        private async Task ExportSourceImageAsync(string path)
+        {
+            var img = MosaicData.inputBitmap!;
+            var (w, h) = ImageExportSize();
+            bool jpeg = !path.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
+            var pad = PadPreview && _previewFiller != null
+                ? new SKColor((byte)_previewFiller.r, (byte)_previewFiller.g, (byte)_previewFiller.b) : SKColors.Transparent;
+            string name = System.IO.Path.GetFileName(path);
+            IsExporting = true;
+            StatusText = Loc.Fmt("StatusExporting", name);
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using var bmp = new SKBitmap(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Premul));
+                    using (var canvas = new SKCanvas(bmp))
+                    {
+                        canvas.Clear(jpeg && pad == SKColors.Transparent ? SKColors.White : pad);
+                        canvas.DrawBitmap(img, 0, 0);
+                    }
+                    using var data = bmp.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 95);
+                    using var fs = System.IO.File.Create(path);
+                    data.SaveTo(fs);
+                });
+                StatusText = Loc.Fmt("StatusSaved", name);
+                FileSaved?.Invoke(path, SavedFileKind.Export);
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertExportTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+            }
+            finally
+            {
                 IsExporting = false;
             }
         }

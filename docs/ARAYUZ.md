@@ -89,7 +89,7 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Proje Aç | `Ctrl/⌘+O` | `.mos` proje dosyası açar ([§12](#12-proje-kaydetme-ve-açma)) | Her zaman |
 | Proje Kaydet | `Ctrl/⌘+S` | Projeyi `Masaüstü/mosairPROJECT/<görsel adı>/` klasörüne kaydeder | Mozaik varken ve bir kayıt sürmüyorken |
 | Proje Farklı Kaydet | `Ctrl/⌘+Shift+S` (macOS: `⌘+⇧+S`) | Konum ve ad sorarak kaydeder | Mozaik varken ve bir kayıt sürmüyorken |
-| mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan varsayılan kaliteyle (listede **(varsayılan)** yazan seçenek) kaydeder | Mozaik varken, işlem ya da dışa aktarma sürmüyorken |
+| mosairEXPORT ▸ | `Ctrl/⌘+E` | Alt menü: "Görüntü kalitesi seçiniz" ve 10 kalite seçeneği (görüntü boyutu ve tahmini dosya boyutuyla). Seçilen kaliteyle `Masaüstü/mosairEXPORT` klasörüne kaydeder ([§13](#13-dışa-aktarma-mosairexport)). Kısayol listeyi açmadan varsayılan kaliteyle (listede **(varsayılan)** yazan seçenek) kaydeder. Mos'tan önce görseli kaydeder ([§13](#13-dışa-aktarma-mosairexport)) | Görsel ya da mozaik varken, işlem ya da dışa aktarma sürmüyorken |
 | mosairEXPORT As ▸ | — | Aynı alt menü; seçilen kaliteyle konum, ad ve biçim (JPEG/PNG) sorarak dışa aktarır | mosairEXPORT ile aynı |
 | Ekran Görüntüsü Al | — | Görsel alanında o an görüneni PNG olarak `mosairEXPORT` klasörüne kaydeder; araç çubuğundaki kamera ikonuyla aynı ([§4](#4-araç-çubuğu)) | Görsel yüklüyken |
 | *(ayırıcı)* | | | |
@@ -643,6 +643,7 @@ Proje klasörleri, görselin gönderilip indirilmesi ve önizlemeler script'in g
 | `Ctrl/⌘+E` | Liste açılmadan, varsayılan görüntü kalitesiyle (listede **(varsayılan)** yazan seçenek) mosairEXPORT. |
 | **Dosya** menüsü → mosairEXPORT ▸ / mosairEXPORT As ▸ | Araç çubuğundaki listeyle aynı alt menüler. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
+| **Mos'tan önce** (görsel ekrandayken) | Listede tek seçenek vardır: `Görsel: W × H px`. Görsel, Görsel Ayarları uygulanmış hâliyle, kendi çözünürlüğünde kaydedilir; **Kalıp Dolgu** açıksa sağında ve altında dolgu alanı dolgu taşının rengiyle birlikte (ekrandaki gibi). Izgara çizilmez. mosairEXPORT JPEG (kalite 95), mosairEXPORT As seçilen biçimde yazar; dosya adı aynı kurala uyar. |
 | Dışa aktarma bitince | Sağ altta **DIŞA AKTARILDI** bildirimi: **Aç** (dosyayı açar) ve **Klasörü aç** (dosyayı klasöründe seçili gösterir); 7 sn sonra kaybolur ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)) |
 
 **Görüntü kalitesi listesi:** Her iki alt menünün başında pasif bir "Görüntü kalitesi seçiniz" başlığı, altında en düşükten en yükseğe 10 görüntü kalitesi vardır. Her seçenek yalnızca görüntünün piksel boyutunu ve tahmini dosya boyutunu gösterir:
@@ -707,7 +708,7 @@ Renk teması ve koyu/açık seçimi hatırlanır: kullanıcının bilgisayarınd
 | Süren işi iptal et (Mos, stoğa göre düzeltme, dışa aktarma; durum çubuğundaki ✕ İptal ve **Düzenle → İşlemi İptal Et** ile aynı) | `Esc` | `Esc` |
 | cm değerini uygula | `Enter` (cm kutusundayken) | `Enter` |
 
-Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapmaz. `F1`, `F4` ve `Esc` yalnızca başka tuş basılı değilken çalışır. `Esc` yalnızca iptal edilebilen bir iş sürerken bir şey yapar ([§8](#iptal-düğmesi)).
+Kaydet ve Farklı Kaydet kısayolları mozaik yokken bir şey yapmaz; Dışa Aktar mozaik yokken görseli kaydeder (görsel de yoksa bir şey yapmaz). `F1`, `F4` ve `Esc` yalnızca başka tuş basılı değilken çalışır. `Esc` yalnızca iptal edilebilen bir iş sürerken bir şey yapar ([§8](#iptal-düğmesi)).
 
 ## 16. Fare kontrolleri
 
