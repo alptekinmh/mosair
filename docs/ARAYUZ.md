@@ -179,7 +179,7 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 
 | Alan | Açıklama |
 |---|---|
-| **cm kutusu** | Mozaik genişliği. Varsayılan 93,6 cm. Virgül yazılırsa noktaya çevrilir. `Enter` veya kutudan çıkınca uygulanır. Kutuya tıklayınca içerik seçilir. |
+| **cm kutusu** | Mozaik genişliği. Varsayılan 93,6 cm. **Kalıp Dolgu** açıkken girilen değer görselin genişliğidir, kutu ise dolgudan sonraki toplam genişliği gösterir: ör. 150 girilince görsel 150 cm (125 taş) kalır, kutu **156** olur (5 kalıp × 31,2 cm). Yükseklik ve alan da dolgulu ölçüyü gösterir. Kalıp Dolgu kapatılınca kutu yine görselin genişliğine (150) döner. Kutu değiştirilmeden yeniden uygulanırsa görselin genişliği korunur; yeni bir değer yazılırsa o değer görselin yeni genişliği olur. Virgül yazılırsa noktaya çevrilir. `Enter` veya kutudan çıkınca uygulanır. Kutuya tıklayınca içerik seçilir. |
 | Yuvarlama | Bir taş 1,2 cm'dir; değer en yakın taş sayısına yuvarlanır (en az 2 taş). |
 | Üst sınır | Görselin piksel genişliğinden fazla taş istenirse genişlik o sınıra indirilir ve **Çözünürlük Yetersiz** uyarısı çıkar. |
 | `× Y cm = A m²` | cm kutusuyla aynı satırda ve aynı büyüklükte (16 px): gerçek yükseklik ve alan, kutudaki gibi noktalı yazılır. Ör. `93.6 × 93.6 cm = 0.88 m²`. Görsel yüklenmeden yalnızca kutu ve "cm" görünür. |
@@ -226,7 +226,7 @@ Robot yalnızca tam kalıp üretebilir: bir kalıp 26 × 26 taş, yani 31,2 × 3
 
 - **Örnek:** 99,6 cm = 83 taş (3 tam kalıp + 5 taş). Bir üste tamamlanınca 4 kalıp = 104 taş = 124,8 cm. Kare bir görselde mozaik 104 × 104 taş olur; dolgu 104² − 83² = **3.927 taş** (≈ 13 kg, taş başı 3,3 g). Yükseklik de aynı kurala göre, kendi taş sayısından tamamlanır.
 - **Tam kat ise** (ör. 93,6 cm = 78 taş = 3 kalıp, yükseklik de 26'nın katıysa) dolgu yapılmaz, mozaik bugünkü gibidir.
-- **Cm kutusu değişmez:** kullanıcı 99,6 girdiyse 99,6 kalır. Kalıp sayısı sol paneldeki kalıp kartında görünür (kalıplı ölçü = kalıp sayısı × 31,2 cm).
+- **Cm kutusu dolgulu ölçüyü gösterir:** kullanıcı 99,6 girdiyse görsel 99,6 cm (83 taş) kalır, kutu 124,8 olur (4 kalıp); yükseklik ve alan da dolgulu ölçüdür. Dışa aktarılan dosyanın adındaki ölçü de bu dolgulu ölçüdür. Projeye görselin kendi genişliği (99,6) kaydedilir. Kalıp sayısı sol paneldeki kalıp kartında görünür; Taş satırı görselin kendi taş sayısını gösterir.
 - **Dolgu taşı:** katalogdaki taşlardan (işaretli olup olmamasına bakılmaz) **görselin renklerine en uzak** olanı (görselden örneklenen renklere en küçük Lab ΔE farkı en büyük olan); Görsel Ayarları uygulanmış görsele bakılır. Böylece dolgu görselden kolayca ayırt edilir ve gerçek bir taşın rengi olduğu için Mos'ta doğrudan o taşa eşlenir. Mos'tan sonra mozaikte kullanılan taşlar aday olmaz (çok nadiren önizlemedekinden farklı bir taş çıkabilir). **Stok aranmaz**: stok bilgisi olmadan da dolgu yapılır; stok yüklüyse yalnızca taşın adı oradan yazılır.
 - **Ne zaman (açıkken):** her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve Stoğa göre düzeltmeden sonra en son adım olarak. Mos'un renk seçimi dolguyu hiç görmez; dolgu sonuca eklenir. Stok Kontrol'deki Stoğa göre düzeltme, mozaiği dolgusuz hâliyle düzeltir ve dolguyu yeniden ekler (dolgu taşı yeniden seçilir).
 - **Durum çubuğu:** "… · Kalıba tamamlandı: 3.927 dolgu taşı (#34 B134 …)".

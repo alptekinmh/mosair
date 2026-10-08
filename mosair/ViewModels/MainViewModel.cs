@@ -748,6 +748,11 @@ namespace mosair.ViewModels
         private Bitmap? _displayBitmap;
         private double _widthCm = 93.6;
         private double _heightCm;
+        // The width the image itself covers (what Mos works with). The width box shows it, or — with Kalıp Dolgu —
+        // the whole width after padding (e.g. 150 entered → the image is 150 cm, the box shows 156 = 5 moulds).
+        private double _imageWidthCm = 93.6;
+        // What UpdateDimensions last put in the box: a box still showing it was not edited by the user.
+        private double _shownWidthCm = double.NaN;
         private double _initialZoomLevel = 2;
         private double _minZoomLevel = 1.0;
         private double _lastViewportWidth;
@@ -1201,6 +1206,8 @@ public bool UseLab
                 if (_usePadding == value) return;
                 _usePadding = value;
                 OnPropertyChanged();
+                // The box switches between the image's width and the padded width (150 ↔ 156).
+                UpdateDimensions();
                 _ = ApplyPaddingChoiceAsync();
             }
         }
@@ -2428,34 +2435,42 @@ public bool UseLab
 
         public void UpdateDimensions()
         {
-            int numOfStones = Convert.ToInt32((WidthCm * 10.0) / 12.0);
+            // A box the user has edited gives the image's new width; otherwise the image keeps its width (the box
+            // may be showing the padded width).
+            if (double.IsNaN(_shownWidthCm) || Math.Abs(WidthCm - _shownWidthCm) >= 0.01) _imageWidthCm = WidthCm;
+            int numOfStones = Convert.ToInt32((_imageWidthCm * 10.0) / 12.0);
             if (numOfStones < 2) numOfStones = 2;
-            double roundedCm = numOfStones * 12 / 10.0;
-            WidthCm = roundedCm;
+            _imageWidthCm = numOfStones * 12 / 10.0;
 
-            if (!ImageLoaded) return;
-
-            if (MosaicData.inputBitmap != null)
+            if (ImageLoaded && MosaicData.inputBitmap != null)
             {
                 int maxStones = MosaicData.inputBitmap.Width;
                 double maxCm = maxStones * 12 / 10.0;
-                if (WidthCm > maxCm)
+                if (_imageWidthCm > maxCm)
                 {
-                    WidthCm = maxCm;
+                    _imageWidthCm = maxCm;
                     numOfStones = maxStones;
                     Alert(Loc.Get("AlertResolutionTitle"), Loc.Get("AlertResolutionBody"));
                 }
             }
+            // Kalıp Dolgu: the box shows the width after padding to whole moulds (31.2 cm each).
+            WidthCm = (_usePadding ? MosaicEngine.UpToMould(numOfStones) : numOfStones) * 12 / 10.0;
+            _shownWidthCm = WidthCm;
 
-            var dim = MosaicEngine.CalculateDimensions(WidthCm);
+            if (!ImageLoaded) return;
+
+            var dim = MosaicEngine.CalculateDimensions(_imageWidthCm);
             if (dim == null) return;
 
-            _heightCm = dim.HeightCm;
-            DimensionInfo = $"{dim.WidthCm:F1} cm x {dim.HeightCm:F1} cm = {dim.AreaM2:F2} m²";
+            // The size line follows the box: with Kalıp Dolgu the padded height and area.
+            double shownH = (_usePadding ? MosaicEngine.UpToMould(dim.StoneRows) : dim.StoneRows) * 12 / 10.0;
+            double shownArea = WidthCm * shownH / 10_000.0;
+            _heightCm = shownH;
+            DimensionInfo = $"{WidthCm:F1} cm x {shownH:F1} cm = {shownArea:F2} m²";
             // Same format as the width box (a dot), so the line reads "93.6 × 93.6 cm = 0.88 m²".
             var inv = System.Globalization.CultureInfo.InvariantCulture;
-            DimensionHeight = dim.HeightCm.ToString("0.0", inv);
-            DimensionArea = dim.AreaM2.ToString("0.00", inv) + " m²";
+            DimensionHeight = shownH.ToString("0.0", inv);
+            DimensionArea = shownArea.ToString("0.00", inv) + " m²";
             InfoStoneCols = dim.StoneColumns.ToString();
             InfoStoneRows = dim.StoneRows.ToString();
             InfoStoneTotal = dim.Stones.ToString("N0");
@@ -2692,7 +2707,7 @@ public bool UseLab
         }
 
         private ProjectService.ProjectSnapshot CreateProjectSnapshot() =>
-            ProjectService.CreateSnapshot(WidthCm, ZoomLevel, ShowGrid, false,
+            ProjectService.CreateSnapshot(_imageWidthCm, ZoomLevel, ShowGrid, false,
                 _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation, AdjustSettingsForSave);
 
         // The mosaic is copied at once; turning it into JSON and writing the file happen in the background, so a
@@ -2832,6 +2847,7 @@ public bool UseLab
             if (picture != null && IsAdjusted) _adjustTask = ApplyAdjustmentsAsync();
 
             WidthCm = data.WidthCm;
+            _shownWidthCm = double.NaN;   // the saved width is the image's own
             GridColor = Color.FromRgb(data.GridColorR, data.GridColorG, data.GridColorB);
             SelectedInterpolation = (InterpolationMethod)data.InterpolationMethod;
             ShowGrid = data.ShowGrid;
