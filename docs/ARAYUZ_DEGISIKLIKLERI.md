@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-08: Ekran görüntüsü yalnızca görseli kaydeder
+
+- Ekran görüntüsü artık görselin (ya da mozaiğin) çevresindeki boş tuval alanını kaydetmez; yalnızca görselin görünen kısmı kaydedilir.
+
 ## 2026-10-08: Anlık Mos elle seçilen taş sayısını korur
 
 - Optimum açıkken taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse, sonraki Anlık Mos'lar analizi yenileyip o sayıyla mozaik kurar (önceden her seferinde önerilen sayıya dönüyordu). Sağ tıkla önerilene dönülünce yine önerilen sayı izlenir.

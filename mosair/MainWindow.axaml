@@ -1135,7 +1135,7 @@
                       HorizontalScrollBarVisibility="Auto"
                       VerticalScrollBarVisibility="Auto"
                       ScrollChanged="OnScrollChanged">
-          <Panel Margin="4"
+          <Panel x:Name="imagePanel" Margin="4"
                  Width="{Binding ImageDisplayWidth}"
                  Height="{Binding ImageDisplayHeight}">
             <!-- Before Mos: the loaded image (smooth scaling while it is shown smaller than its size, set in code) -->

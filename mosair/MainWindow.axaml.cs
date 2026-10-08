@@ -434,8 +434,8 @@ public partial class MainWindow : Window
         return exportDir;
     }
 
-    // Screenshot of the image area exactly as it is on screen (visible part, zoom, grid), without the
-    // navigator and the scroll bars; saved as PNG in the mosairEXPORT folder.
+    // Screenshot of the image exactly as it is on screen (visible part, zoom, grid), without
+    // the canvas around it, the navigator and the scroll bars; saved as PNG in the mosairEXPORT folder.
     private async void OnScreenshot(object? sender, RoutedEventArgs e)
     {
         var viewport = imageScroller.Viewport;
@@ -444,8 +444,15 @@ public partial class MainWindow : Window
         var whole = new PixelSize(
             Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Width * scale)),
             Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Height * scale)));
-        int w = Math.Min(whole.Width, (int)Math.Round(viewport.Width * scale));
-        int h = Math.Min(whole.Height, (int)Math.Round(viewport.Height * scale));
+        // Only the image panel's part of the visible area (a small or centred image leaves the canvas around it).
+        var origin = imagePanel.TranslatePoint(new Point(0, 0), imageScroller) ?? new Point(0, 0);
+        double left = Math.Max(0, origin.X), top = Math.Max(0, origin.Y);
+        double right = Math.Min(viewport.Width, origin.X + imagePanel.Bounds.Width);
+        double bottom = Math.Min(viewport.Height, origin.Y + imagePanel.Bounds.Height);
+        int x0 = Math.Clamp((int)Math.Round(left * scale), 0, whole.Width);
+        int y0 = Math.Clamp((int)Math.Round(top * scale), 0, whole.Height);
+        int w = Math.Min(whole.Width, (int)Math.Round(right * scale)) - x0;
+        int h = Math.Min(whole.Height, (int)Math.Round(bottom * scale)) - y0;
         if (w <= 0 || h <= 0) return;
 
         byte[] pixels = new byte[w * h * 4];
@@ -455,10 +462,10 @@ public partial class MainWindow : Window
             unsafe
             {
                 fixed (byte* ptr = pixels)
-                    rtb.CopyPixels(new PixelRect(0, 0, w, h), (IntPtr)ptr, pixels.Length, w * 4);
+                    rtb.CopyPixels(new PixelRect(x0, y0, w, h), (IntPtr)ptr, pixels.Length, w * 4);
             }
         }
-        // Areas around a small image are transparent in the render; give them the canvas colour.
+        // Transparent pixels (if any) get the canvas colour.
         var bg = canvasBorder.Background is Avalonia.Media.ISolidColorBrush cb ? cb.Color
             : this.TryFindResource("BgCanvas", ActualThemeVariant, out var res) && res is Avalonia.Media.Color c
             ? c : Avalonia.Media.Color.FromRgb(0x2e, 0x2e, 0x34);
