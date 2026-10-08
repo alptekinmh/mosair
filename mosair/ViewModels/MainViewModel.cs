@@ -177,15 +177,6 @@ namespace mosair.ViewModels
         public IBrush ColorBrush => new SolidColorBrush(Color.FromRgb(R, G, B));
     }
 
-    // A common colour of the loaded image (properties panel).
-    public sealed record ImageColorItem(IBrush Brush, string Hex, string Share, double Percent);
-
-    // One part of the properties panel's colour bar; Width is the share in percent.
-    public sealed record ColorSegment(IBrush Brush, double Width);
-
-    // One of the stones with the most pixels in the mosaic (properties panel).
-    public sealed record TopStoneItem(IBrush Brush, string Name, string Count, string Share, double Percent);
-
     public class AssignedItem
     {
         public int Num { get; set; }
@@ -781,8 +772,6 @@ namespace mosair.ViewModels
         private bool _isExporting;
         private string _dimensionInfo = "";
         private string _dimensionArea = "";
-        private string _stoneInfo = "";
-        private string _mouldInfo = "";
 
         private string _elapsedTime = "";
         private string _statusText = Loc.Get("StatusReady");
@@ -1072,17 +1061,14 @@ public bool UseLab
             set { _dimensionHeight = value; OnPropertyChanged(); }
         }
 
-        public string StoneInfo
-        {
-            get => _stoneInfo;
-            set { _stoneInfo = value; OnPropertyChanged(); }
-        }
-
-        public string MouldInfo
-        {
-            get => _mouldInfo;
-            set { _mouldInfo = value; OnPropertyChanged(); }
-        }
+        // The left panel's stone and mould rows: columns × rows = total (totals with thousands separators).
+        private string _infoStoneCols = "", _infoStoneRows = "", _infoStoneTotal = "", _infoMouldCols = "", _infoMouldRows = "", _infoMouldTotal = "";
+        public string InfoStoneCols { get => _infoStoneCols; private set { _infoStoneCols = value; OnPropertyChanged(); } }
+        public string InfoStoneRows { get => _infoStoneRows; private set { _infoStoneRows = value; OnPropertyChanged(); } }
+        public string InfoStoneTotal { get => _infoStoneTotal; private set { _infoStoneTotal = value; OnPropertyChanged(); } }
+        public string InfoMouldCols { get => _infoMouldCols; private set { _infoMouldCols = value; OnPropertyChanged(); } }
+        public string InfoMouldRows { get => _infoMouldRows; private set { _infoMouldRows = value; OnPropertyChanged(); } }
+        public string InfoMouldTotal { get => _infoMouldTotal; private set { _infoMouldTotal = value; OnPropertyChanged(); } }
 
         public string ElapsedTime
         {
@@ -1117,7 +1103,6 @@ public bool UseLab
                 OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
                 OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
                 OnPropertyChanged(nameof(CanSaveProject));
-                OnPropertyChanged(nameof(ShowTopStonesSection));
             }
         }
 
@@ -1126,7 +1111,6 @@ public bool UseLab
         private int _optimalK;
         private int _optimalKMax = 1;
         private int _optimalKSuggested;
-        private string _optimalInfo = "";
         private bool _suppressOptimalApply;
         private System.Threading.CancellationTokenSource? _optimalApplyCts;
         // Catalog selection the user had before the last Optimum run, and the "used stones only" selection
@@ -1436,12 +1420,6 @@ public bool UseLab
             private set { _optimalKSuggested = value; OnPropertyChanged(); }
         }
 
-        public string OptimalInfo
-        {
-            get => _optimalInfo;
-            private set { _optimalInfo = value; OnPropertyChanged(); }
-        }
-
         public int OptimalK
         {
             get => _optimalK;
@@ -1450,16 +1428,8 @@ public bool UseLab
                 if (_optimalK == value) return;
                 _optimalK = value;
                 OnPropertyChanged();
-                UpdateOptimalInfo();
                 if (!_suppressOptimalApply) ScheduleOptimalApply();
             }
-        }
-
-        private void UpdateOptimalInfo()
-        {
-            var res = MosaicEngine.LastOptimalResult;
-            if (res == null || _optimalK < 1 || _optimalK > res.CandidateCount) { OptimalInfo = ""; return; }
-            OptimalInfo = Loc.Fmt("OptimumInfoFmt", res.KOptimal);
         }
 
         // Debounced so dragging the slider rebuilds the mosaic only once it settles.
@@ -1721,12 +1691,14 @@ public bool UseLab
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ShowImageInfo));
                 OnPropertyChanged(nameof(ShowStoneHint));
+                // A stone picked on the image (plain click or pixel edit) opens a closed Properties panel.
+                if (value) IsPropertiesPanelOpen = true;
             }
         }
 
         // Properties panel: open, or folded to a thin strip at the window's right edge (View menu, the panel's
         // minimize button and the strip's show button). Not remembered between runs.
-        private bool _isPropertiesPanelOpen = true;
+        private bool _isPropertiesPanelOpen;   // closed at start-up (a strip at the right edge)
         public bool IsPropertiesPanelOpen
         {
             get => _isPropertiesPanelOpen;
@@ -1818,6 +1790,31 @@ public bool UseLab
         private bool _liveMos;
         private bool _liveMosPending;
         private bool _showingRaw;
+        // A slider of the panel is being dragged; with Anlık Mos the Mos waits for the release.
+        private bool _adjustDragging;
+        private bool _changedWhileDragging;
+
+        public void SetAdjustDragging(bool dragging)
+        {
+            if (_adjustDragging == dragging) return;
+            _adjustDragging = dragging;
+            if (dragging) { _changedWhileDragging = false; return; }
+            // Released: one Mos with the final value (RunMosaicAsync applies a change still waiting first).
+            if (_changedWhileDragging && _liveMos)
+            {
+                _changedWhileDragging = false;
+                _ = RunLiveMosAsync();
+            }
+        }
+
+        // An Anlık Mos replacing a mosaic on screen is running: the window keeps showing a still picture of the
+        // previous mosaic meanwhile, so the image does not flash up between two mosaics.
+        private bool _liveMosBusy;
+        public bool LiveMosBusy
+        {
+            get => _liveMosBusy;
+            private set { if (_liveMosBusy == value) return; _liveMosBusy = value; OnPropertyChanged(); }
+        }
 
         public bool LiveMos
         {
@@ -1860,7 +1857,11 @@ public bool UseLab
             if (IsProcessing || IsExporting) { _liveMosPending = true; return; }
             _liveMosPending = false;
             bool first = !MosaicDone;
-            await RunMosaicAsync();
+            LiveMosBusy = MosaicDone && !_showingRaw;
+            // A stone count chosen with the Optimum slider (not the suggested one) is kept.
+            int? keepK = UseOptimal && OptimalAvailable && OptimalK != OptimalKSuggested ? OptimalK : null;
+            try { await RunMosaicAsync(keepK); }
+            finally { LiveMosBusy = false; }
             // The first mosaic changes the picture's size (stones instead of image pixels): fit it, as the Mos
             // button does. Later ones keep the view where it is.
             if (first && MosaicDone) FitToWindow(_lastViewportWidth, _lastViewportHeight);
@@ -2039,6 +2040,9 @@ public bool UseLab
 
         private async void ScheduleAdjust()
         {
+            // A change made while dragging gets its Mos at the release (SetAdjustDragging), not here.
+            bool duringDrag = _adjustDragging;
+            if (duringDrag) _changedWhileDragging = true;
             _adjustDelay?.Cancel();
             var cts = new System.Threading.CancellationTokenSource();
             _adjustDelay = cts;
@@ -2046,7 +2050,7 @@ public bool UseLab
             catch (TaskCanceledException) { return; }
             _adjustTask = ApplyAdjustmentsAsync();
             await _adjustTask;
-            if (_liveMos) await RunLiveMosAsync();
+            if (_liveMos && !duringDrag) await RunLiveMosAsync();
         }
 
         // Before Mos: a change still waiting for its pause is applied first, so Mos uses the sliders' values.
@@ -2130,18 +2134,8 @@ public bool UseLab
         public string ImageInfoAspect { get => _imageInfoAspect; private set { _imageInfoAspect = value; OnPropertyChanged(); } }
         public string ImageInfoDate { get => _imageInfoDate; private set { _imageInfoDate = value; OnPropertyChanged(); } }
 
-        public ObservableCollection<ImageColorItem> ImageColors { get; } = new();
-        public bool HasImageColors => ImageColors.Count > 0;
-
-        // The colour bar: the common colours side by side by share, the rest as one grey part.
-        public ObservableCollection<ColorSegment> ImageColorSegments { get; } = new();
-
-        public ObservableCollection<TopStoneItem> TopStones { get; } = new();
-        public bool HasTopStones => TopStones.Count > 0;
-        public bool ShowTopStonesSection => MosaicDone && HasTopStones;
-
-        // Name, preview, file type, size and date, pixel size, megapixels, aspect ratio and the most common colours
-        // of the loaded image (or of the image beside an opened project; "not found" when it is not there).
+        // Name, preview, file type, size and date, pixel size, megapixels and aspect ratio of the loaded image (or
+        // of the image beside an opened project; "not found" when it is not there).
         // The loaded image's overall colour (the canvas and the size block are tinted with it); null without an image.
         private Color? _imageAccent;
         public Color? ImageAccent
@@ -2169,8 +2163,6 @@ public bool UseLab
             string path = ProjectService.CurrentPictureFileName ?? "";
             var bmp = MosaicData.inputBitmap;
             ImageAccent = bmp != null ? AverageColor(bmp) : null;
-            ImageColors.Clear();
-            ImageColorSegments.Clear();
             var oldThumb = ImageInfoThumb;
             ImageInfoThumb = null;
             oldThumb?.Dispose();
@@ -2181,7 +2173,6 @@ public bool UseLab
             if (!found)
             {
                 ImageInfoType = ImageInfoSize = ImageInfoResolution = ImageInfoMegapixels = ImageInfoAspect = ImageInfoDate = "";
-                OnPropertyChanged(nameof(HasImageColors));
                 return;
             }
             ImageInfoType = file!.Extension.TrimStart('.').ToUpperInvariant();
@@ -2191,17 +2182,6 @@ public bool UseLab
             ImageInfoMegapixels = $"{(double)bmp.Width * bmp.Height / 1_000_000.0:0.0} MP";
             ImageInfoAspect = AspectText(bmp.Width, bmp.Height);
             ImageInfoThumb = MakeThumb(bmp, 360);
-
-            var colors = DominantColors(bmp, 6);
-            foreach (var item in colors) ImageColors.Add(item);
-            double rest = 100.0;
-            foreach (var item in colors)
-            {
-                ImageColorSegments.Add(new ColorSegment(item.Brush, item.Percent));
-                rest -= item.Percent;
-            }
-            if (rest > 0.5) ImageColorSegments.Add(new ColorSegment(new SolidColorBrush(Color.FromRgb(0x80, 0x80, 0x88), 0.35), rest));
-            OnPropertyChanged(nameof(HasImageColors));
         }
 
         private static string FormatFileSize(long bytes) =>
@@ -2231,50 +2211,6 @@ public bool UseLab
             {
                 return null;
             }
-        }
-
-        // The most common colours: about 40 000 evenly spread pixels, grouped by their top 4 bits per channel;
-        // each group is shown as the average of its pixels with its share of the samples.
-        private static List<ImageColorItem> DominantColors(SKBitmap bmp, int count)
-        {
-            int step = Math.Max(1, (int)Math.Sqrt((double)bmp.Width * bmp.Height / 40_000.0));
-            var n = new int[4096];
-            var sr = new long[4096]; var sg = new long[4096]; var sb = new long[4096];
-            int total = 0;
-            for (int y = step / 2; y < bmp.Height; y += step)
-                for (int x = step / 2; x < bmp.Width; x += step)
-                {
-                    var c = bmp.GetPixel(x, y);
-                    if (c.Alpha < 128) continue;
-                    int k = (c.Red >> 4) << 8 | (c.Green >> 4) << 4 | (c.Blue >> 4);
-                    n[k]++; sr[k] += c.Red; sg[k] += c.Green; sb[k] += c.Blue;
-                    total++;
-                }
-            var result = new List<ImageColorItem>();
-            if (total == 0) return result;
-            foreach (int k in Enumerable.Range(0, 4096).Where(k => n[k] > 0).OrderByDescending(k => n[k]).Take(count))
-            {
-                byte r = (byte)(sr[k] / n[k]), g = (byte)(sg[k] / n[k]), b = (byte)(sb[k] / n[k]);
-                double pct = 100.0 * n[k] / total;
-                result.Add(new ImageColorItem(new SolidColorBrush(Color.FromRgb(r, g, b)),
-                    $"#{r:X2}{g:X2}{b:X2}", $"%{pct:0.0}", pct));
-            }
-            return result;
-        }
-
-        // The five stones with the most pixels in the mosaic (from the "assigned" list), with their share.
-        private void UpdateTopStones()
-        {
-            TopStones.Clear();
-            long total = AssignedColors.Sum(a => (long)a.PixelCount);
-            foreach (var a in AssignedColors.OrderByDescending(a => a.PixelCount).Take(5))
-            {
-                double pct = total > 0 ? 100.0 * a.PixelCount / total : 0;
-                TopStones.Add(new TopStoneItem(new SolidColorBrush(Color.FromRgb(a.R, a.G, a.B)),
-                    a.ID > 0 ? $"#{a.ID} {a.CodeName}" : a.CodeName, a.PixelCount.ToString("N0"), $"%{pct:0.0}", pct));
-            }
-            OnPropertyChanged(nameof(HasTopStones));
-            OnPropertyChanged(nameof(ShowTopStonesSection));
         }
 
         public string PropStoneName
@@ -2352,10 +2288,6 @@ public bool UseLab
                 StatusText = Loc.Fmt("StatusError", ex.Message);
             }
 
-            Loc.Instance.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(Loc.Lang)) UpdateOptimalInfo();
-            };
             InitAdjustPanel();
         }
 
@@ -2472,14 +2404,20 @@ public bool UseLab
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             DimensionHeight = dim.HeightCm.ToString("0.0", inv);
             DimensionArea = dim.AreaM2.ToString("0.00", inv) + " m²";
-            StoneInfo = Loc.Fmt("InfoStones", dim.StoneColumns, dim.StoneRows, dim.Stones.ToString("N0"));
+            InfoStoneCols = dim.StoneColumns.ToString();
+            InfoStoneRows = dim.StoneRows.ToString();
+            InfoStoneTotal = dim.Stones.ToString("N0");
             // Whole moulds after padding (from the stone rows, which the mosaic really has).
             int mouldCols = MosaicEngine.UpToMould(dim.StoneColumns) / MosaicEngine.MouldStones;
             int mouldRows = MosaicEngine.UpToMould(dim.StoneRows) / MosaicEngine.MouldStones;
-            MouldInfo = Loc.Fmt("InfoMoulds", mouldCols, mouldRows, mouldCols * mouldRows);
+            InfoMouldCols = mouldCols.ToString();
+            InfoMouldRows = mouldRows.ToString();
+            InfoMouldTotal = (mouldCols * mouldRows).ToString("N0");
         }
 
-        public async Task RunMosaicAsync()
+        // keepK: with Optimum, build the mosaic with this stone count instead of the suggested one (Anlık Mos keeps a
+        // count chosen with the slider; clamped to the new analysis's range).
+        public async Task RunMosaicAsync(int? keepK = null)
         {
             if (!ImageLoaded)
             {
@@ -2561,6 +2499,7 @@ public bool UseLab
                 }
                 bool stockFixOk = true;
                 bool stockFitCancelled = false;
+                int appliedK = 0;   // the Optimum stone count the mosaic was built with
                 var padStock = await PadStockAsync(stock);
                 await Task.Run(() =>
                 {
@@ -2570,15 +2509,17 @@ public bool UseLab
                         // Cancelled here: nothing has changed yet (see RunOptimal).
                         result = MosaicEngine.RunOptimal(SelectedInterpolation,
                             progress => Dispatcher.UIThread.Post(() => Progress = progress),
-                            prepareTextures: stock == null);
-                        if (stock != null)
+                            prepareTextures: stock == null && keepK == null);
+                        var analysis = MosaicEngine.LastOptimalResult!;
+                        int k = keepK.HasValue ? Math.Clamp(keepK.Value, 1, analysis.CandidateCount) : analysis.KOptimal;
+                        appliedK = k;
+                        if (stock != null || keepK.HasValue)
                         {
-                            int k = MosaicEngine.LastOptimalResult!.KOptimal;
                             try { result = ApplyOptimalKFor(k, stock); }
                             catch (Exception e) when (IsCancellation(e))
                             {
                                 // Keep the plain Optimum mosaic, without the stock fit.
-                                stockFitCancelled = true;
+                                stockFitCancelled = stock != null;
                                 WorkCancellation.Token = default;
                                 result = MosaicEngine.ApplyOptimalK(k);
                             }
@@ -2617,9 +2558,8 @@ public bool UseLab
                     _suppressOptimalApply = true;
                     OptimalKMax = res.CandidateCount;
                     OptimalKSuggested = res.KOptimal;
-                    OptimalK = res.KOptimal;
+                    OptimalK = appliedK > 0 ? appliedK : res.KOptimal;
                     _suppressOptimalApply = false;
-                    UpdateOptimalInfo();
                 }
                 FinishMosaic(result, sw.Elapsed);
                 DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
@@ -3240,7 +3180,7 @@ public bool UseLab
             PaletteColors.Clear();
             AssignedColors.Clear();
 
-            if (MosaicData.arMB.Count == 0 || MosaicData.arMB[0].Count == 0) { UpdateTopStones(); return; }
+            if (MosaicData.arMB.Count == 0 || MosaicData.arMB[0].Count == 0) return;
 
             var mbByCode = new Dictionary<string, rgb>();
             foreach (var c in MosaicData.arMB[0])
@@ -3272,7 +3212,6 @@ public bool UseLab
                     R = (byte)c.r, G = (byte)c.g, B = (byte)c.b
                 });
             }
-            UpdateTopStones();
         }
 
         public void OnImagePointerMoved(double pointerX, double pointerY, double imageControlWidth, double imageControlHeight)

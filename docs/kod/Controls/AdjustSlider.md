@@ -11,6 +11,7 @@ Görsel Ayarları sütunundaki ince kaydırıcı. Photoshop'un ayar kaydırıcı
 | Dosya | Kullanım |
 |---|---|
 | [MainWindow](../MainWindow.md) | Görsel Ayarları sütununda her satırın veri şablonunda (`vm:AdjustParam`): `Minimum/Maximum/DefaultValue` → `Min/Max/Default`, `Value` → `SliderValue` (iki yönlü), `TrackBrush` → `Track`; `EmptyTrackBrush`, `ThumbBrush`, `ThumbBorderBrush` tema renklerinden (`BrdrTer`, `FgPrimary`, `BgInput`) |
+| [MainWindow](../MainWindow.md) | Araç çubuğundaki Optimum taş kaydırıcısı: `ShowValue=True`, `Value` → `OptimalK`, `Maximum` → `OptimalKMax`, `DefaultValue` → `OptimalKSuggested` (sağ tık önerilen sayıya döner), `ValueBrush` = `FgPrimary`. `DraggingChanged` burada da çağrılır; sürüklerken ayar değişmediği için Anlık Mos'a etkisi yoktur. |
 
 ## Yapı
 
@@ -23,14 +24,16 @@ Görsel Ayarları sütunundaki ince kaydırıcı. Photoshop'un ayar kaydırıcı
 | `EmptyTrackBrush` | `IBrush?` | — | `TrackBrush` yokken kullanılan düz iz rengi; ikisi de yoksa gri |
 | `ThumbBrush` | `IBrush?` | — | Üçgenin dolgusu (yoksa beyaz) |
 | `ThumbBorderBrush` | `IBrush?` | — | Üçgenin çerçevesi; odaktayken 1,5 px, değilse 1 px |
+| `ShowValue` | `bool` | false | Değeri izin üstüne, üçgenin hizasına yazar (araç çubuğundaki Optimum taş sayısı). Açıkken her şey 14 px aşağı kayar. |
+| `ValueBrush` | `IBrush?` | — | Değer yazısının rengi (yoksa `ThumbBrush`, o da yoksa beyaz) |
 
-Ölçüler: iz kontrolün üstünde 4 px yüksekliğinde (y = 3), köşeleri 2 px yuvarlak; iki uçta 6 px boşluk bırakılır ki üçgen dışarı taşmasın. Üçgen izin altında (y = 8), 10 px geniş, 8 px yüksek. Kontrolün yüksekliği 17 px; genişliği verilen alan kadar (sınırsızsa 120 px). Odaklanabilir; imleç el işaretidir.
+Ölçüler: iz kontrolün üstünde 4 px yüksekliğinde (y = 3), köşeleri 2 px yuvarlak; iki uçta 6 px boşluk bırakılır ki üçgen dışarı taşmasın. Üçgen izin altında (y = 8), 10 px geniş, 8 px yüksek. Kontrolün yüksekliği 17 px (`ShowValue` ile 31 px: üstte 11 px yarı kalın değer, üçgenin ortasına göre ortalanır ve kontrolün dışına taşmaz); genişliği verilen alan kadar (sınırsızsa 120 px). Odaklanabilir; imleç el işaretidir.
 
 ## Davranış
 
 | Giriş | Etki |
 |---|---|
-| Sol tık / sürükleme | Değeri imlecin yerine getirir (fare yakalanır) |
+| Sol tık / sürükleme | Değeri imlecin yerine getirir (fare yakalanır). Başlarken ve bırakılınca (ya da yakalama kaybolunca, `OnPointerCaptureLost`) statik `DraggingChanged(bool)` olayı çağrılır; `MainWindow` bunu `MainViewModel.SetAdjustDragging`'e iletir: Anlık Mos sürükleme bitene kadar bekler |
 | `Shift` basılı başlayan sürükleme | İnce ayar: başlangıç değerinden, imlecin kaydığı yolun dörtte biri kadar |
 | Sağ tık | `DefaultValue` (odağı da alır) |
 | Tekerlek | ±1 (`Ctrl` ile ±10); kontrol pasifken etkisiz |

@@ -58,7 +58,9 @@ Window
    │   │       Google Drive düğmesi (renkli Drive logosu; Click=OnDriveSave, CanUseDrive, ipucu TipDrive) + yanında 14 px açılır ok
    │   │       (Flyout: Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... → OnDriveSave / OnDriveOpen / OnDriveSettings),
    │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
-   │   │       Optimum onay kutusu, "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip) + Taş kaydırıcısı (OptimalAvailable)
+   │   │       "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip), Optimum onay kutusu + Taş kaydırıcısı
+   │   │       (ctrl:AdjustSlider ShowValue; Value ↔ OptimalK, Maximum ↔ OptimalKMax, DefaultValue ↔ OptimalKSuggested,
+   │   │       ipucu TipOptimalSlider; görünür: UseOptimal && OptimalAvailable, BoolConverters.And)
    │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
    │           her biri "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; sağ tık = klasörü aç),
    │           Tema düğmesi (iconDark / iconLight), Dil düğmesi (Flyout: TR / EN)
@@ -71,8 +73,10 @@ Window
        Özellikler 160–360 px; gizli sütun 24 px ve önündeki ayırıcı 0 px)
        ├─ Sütun 0 — Sol panel
        │   ├─ Boyut bölümü: tek satırda WidthCm kutusu (InvDouble, 16 px SemiBold mono) + (ImageLoaded iken)
-       │   │   "× DimensionHeight cm = DimensionArea" (aynı boyut; görsel yokken yalnızca "cm"); altında iki kart
-       │   │   (ImageLoaded iken): StoneInfo | MouldInfo (12 px mono, BgInput, CornerRadius 6)
+       │   │   "× DimensionHeight cm = DimensionArea" (aynı boyut; görsel yokken yalnızca "cm"); altında tek kart
+       │   │   (ImageLoaded iken; BgInput, CornerRadius 6): Grid "Auto,10,Auto,22,Auto,22,Auto" (sayılar etiketin hemen ardından başlar) × 2 satır —
+       │   │   InfoStonesLabel InfoStoneCols × InfoStoneRows = InfoStoneTotal / InfoMouldsLabel InfoMouldCols × InfoMouldRows = InfoMouldTotal
+       │   │   (12 px mono, sayılar sağa hizalı, toplam SemiBold)
        │   ├─ Tümünü Seç / Tümünü Kaldır düğmeleri + Kalıp Dolgu ToggleButton (IsChecked=UsePadding, BtnPadding, ipucu TipPadding)
        │   └─ 3 sütun (başlıklar ColCatalog / ColMatch / ColAssigned)
        │       ├─ catalogListBox (CatalogColors): onay kutusu + renk + kod/ad + stok kg
@@ -122,11 +126,6 @@ Window
        │   │   ├─ AYRINTILAR kartı (info-card; ImageInfoFound): Grid "Auto,*" × 5 satır — PropResolution/ImageInfoResolution,
        │   │   │     PropMegapixels/ImageInfoMegapixels, PropAspect/ImageInfoAspect, PropFileSize/ImageInfoSize,
        │   │   │     PropModified/ImageInfoDate (değerler sağa yaslı, eş aralıklı yazı tipi)
-       │   │   ├─ BASKIN RENKLER kartı (info-card; HasImageColors): 10 px yüksek, yuvarlatılmış renk çubuğu
-       │   │   │     (Viewbox Stretch=Fill içinde yatay ItemsControl: ImageColorSegments → ColorSegment,
-       │   │   │     Border Width = pay %, Height 1) + ImageColors → ImageColorItem satırları (Ellipse 12 px, Hex, Share)
-       │   │   ├─ EN ÇOK KULLANILAN TAŞLAR kartı (info-card; ShowTopStonesSection): TopStones → TopStoneItem satırı
-       │   │   │     (renk kutusu, Name, Share) + ProgressBar (Value = Percent, 4 px, AccentFill) ve Count
        │   │   └─ PropStoneHint (ShowStoneHint)
        │   └─ Taş bilgileri (HasSelection)
        │       ├─ Renk örneği, PropStoneId / PropStoneName; RENK başlığının sağında ✕ (OnClearSelection, ipucu TipClearSelection)
@@ -257,6 +256,8 @@ Window
 | `OnSelectInterpolation` | İnterpolasyon Flyout'u, `InterpolationMethods` düğmeleri (`Tag`) | `_vm.SelectedInterpolation`. |
 | `OnToggleOptimum` | Araçlar → Optimum | `_vm.UseOptimal` tersine çevrilir (toolbar'daki onay kutusu doğrudan bağlamadır). |
 | `OnToggleStockAware` | Araçlar → Stoğa göre (onay işareti `UseStockAware`'e bağlı) | `_vm.UseStockAware` tersine çevrilir (toolbar'daki "Stoğa göre" onay kutusu doğrudan bağlamadır). |
+| `OnAdjustSliderDragging` | `AdjustSlider.DraggingChanged` (kurucuda abone, pencere kapanınca bırakılır) | `_vm.SetAdjustDragging(dragging)`. |
+| `FreezeMosaicView` / `ReleaseMosaicFreeze` | `_vm.LiveMosBusy` true / false | Anlık Mos yeni mozaiği hazırlarken görsel alanının (`imageScroller`) o anki hâli `RenderTargetBitmap` ile `liveMosFreeze` görüntüsüne çizilir ve üstte gösterilir (Mos sürerken mozaik gizlenip görsel görünmesin). Bitişten 250 ms sonra (`_freezeTimer`; yeni mozaiğin karoları çizilsin) kaldırılır; bu arada yeni bir Anlık Mos başlarsa aynı görüntü kalır. |
 | `OnToggleLiveMos` | Araçlar → Anlık Mos (onay işareti `LiveMos`'a bağlı) | `_vm.LiveMos` tersine çevrilir (Görsel Ayarları sütunundaki Anlık Mos düğmesi doğrudan bağlamadır). |
 | `OnTogglePadding` | Araçlar → Kalıp Dolgu (onay işareti `UsePadding`'e bağlı) | `_vm.UsePadding` tersine çevrilir (katalog üstündeki Kalıp Dolgu düğmesi doğrudan bağlamadır). |
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
@@ -362,7 +363,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 - **Gizle:** o anki genişlik 24 px'ten büyükse `_propertiesWidth`'e saklanır; panel sütunu `MinWidth = MaxWidth = Width = 24`, ayırıcı sütunu 0 px ve `propsSplitter.IsVisible = false`. Yerine şerit görünür (XAML'de `!IsPropertiesPanelOpen`).
 - **Göster:** `MinWidth = 160`, `MaxWidth = 360`, `Width = _propertiesWidth` (başlangıçta 220), ayırıcı 4 px ve görünür.
 
-Durum kalıcı değildir; pencere her açılışta panel açık başlar.
+Durum kalıcı değildir; pencere her açılışta panel kapalı başlar (kurucu sonunda `ApplyPropertiesPanel()`, `IsPropertiesPanelOpen` varsayılanı false). Bir taş seçilince (`HasSelection = true`) ViewModel paneli açar.
 
 ### Görsel Ayarları sütunu
 

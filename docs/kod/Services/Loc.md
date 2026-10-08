@@ -55,19 +55,18 @@ Her iki sözlükte de **323** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Theme*` | 5 | **Görünüm → Tema** altındaki palet adları: `ThemeLapis`, `ThemePastel` (Adaçayı ve Lavanta), `ThemeGraphite` (Grafit ve Petrol), `ThemeTravertine` (Traverten), `ThemeInk` (Mürekkep ve Leylak) |
 | `Tip*` | 33 | Araç çubuğu, Görsel Ayarları (`TipAdjust` başlık, `TipAdjSlider` "Sağ tıklayınca sıfırlanır", `TipAdjustShow` gizli sütunun şeridi, `TipAdjColorize` Renklendir kutusu, `TipAdjLiveMos` Anlık Mos düğmesi), Kalıp Dolgu düğmesi (`TipPadding`), stok düğmesi, Google Drive düğmesi (`TipDrive`), "Stoğa göre" kutusu (`TipStockAware`), durum çubuğundaki İptal düğmesi (`TipCancel`) ve Özellikler panelinin gizle/göster düğmeleriyle seçimi bırakma düğmesi (`TipPanelHide`, `TipPanelShow`, `TipClearSelection`) ipuçları |
 | `Alert*` | 17 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.; Drive uyarılarının başlığı `AlertDriveTitle`); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |
-| `Prop*` | 24 | Özellikler paneli etiketleri ve biçimleri; taş seçili değilken görünen görsel bilgisi kartları (`PropImage`, `PropDetails` ve Ayrıntılar satırları `PropResolution`, `PropMegapixels`, `PropAspect`, `PropFileSize`, `PropModified`; `PropImageColors`, `PropTopStones`, `PropStoneHint`, `PropNoImage`, `PropImageMissing`) |
+| `Prop*` | 22 | Özellikler paneli etiketleri ve biçimleri; taş seçili değilken görünen görsel bilgisi kartları (`PropImage`, `PropDetails` ve Ayrıntılar satırları `PropResolution`, `PropMegapixels`, `PropAspect`, `PropFileSize`, `PropModified`; `PropStoneHint`, `PropNoImage`, `PropImageMissing`) |
 | `Adj*` | 26 | Görsel Ayarları sütunu: başlık `AdjTitle` ("GÖRSEL AYARLARI"), sekmeler `AdjTabLight` ("Işık") / `AdjTabColor` ("Ton/Doygunluk"), Anlık Mos düğmesi ve Araçlar menüsü `AdjLiveMos` ("Anlık Mos"), Işık satırları `AdjExposure`, `AdjBrightness`, `AdjContrast`, `AdjHighlights`, `AdjShadows`, `AdjWhites`, `AdjBlacks`, `AdjGamma`, renk satırları `AdjHue`, `AdjSaturation`, `AdjLightness`, renk aralıkları `AdjRange0`…`AdjRange6` ("Ana (tüm renkler)", "Kırmızılar", "Sarılar", "Yeşiller", "Camgöbekleri", "Maviler", "Eflatunlar"), `AdjColorize` ("Renklendir"), alttaki kısayol ipucu `AdjHint`, `AdjReset` ("Sıfırla"), Mos'tan sonra ayar değişince durum notu `AdjNeedsMos` |
 | `Toast*` | 11 | Sağ alt bildirim. Yeni görsel: başlıklar (`ToastNewDownload`, `ToastNewDesktop`), soru (`ToastQuestion`), düğmeler (`ToastOpen`, `ToastDismiss`). Kaydedilen dosya: başlıklar `ToastExported` ("DIŞA AKTARILDI"), `ToastScreenshotSaved` ("EKRAN GÖRÜNTÜSÜ KAYDEDİLDİ"), `ToastProjectSaved` ("PROJE KAYDEDİLDİ"), düğmeler `ToastOpenFile` ("Aç") ve `ToastShowFolder` ("Klasörü aç" / "Show in folder"). Geri sayım biçimi (`ToastSeconds`, `{0} sn` / `{0} s`) |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
 | `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, varsayılan kalitenin işareti `ExportDefaultQuality` = "(varsayılan)", `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
-| `Lbl*` | 6 | Sol panel etiketleri (`LblStockAware` dahil) |
+| `Lbl*` | 5 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
-| `Info*` | 2 | Sol paneldeki kartlar: `InfoStones` ("{0} × {1} = {2} taş") ve `InfoMoulds` ("{0} × {1} = {2} kalıp"); EN "stones" / "moulds". `InfoOriginal` kaldırıldı. |
+| `Info*` | 2 | Sol paneldeki taş/kalıp kartının satır adları: `InfoStonesLabel` ("Taş" / "Stones") ve `InfoMouldsLabel` ("Kalıp" / "Moulds"). `InfoStones`, `InfoMoulds` ve `InfoOriginal` kaldırıldı. |
 | `Pad*` | 6 | Tam kalıba tamamlama: diyalog başlığı `PadTitle`, durum notları `PadDone` ("Kalıba tamamlandı: {0} dolgu taşı ({1})"), `PadNoStock`, `PadNoStone`, kapatınca `PadRemoved` ("Kalıp dolgusu kaldırıldı"), dolgu alanında düzenleme engeli `PadNoEdit` |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
 | `Btn*` | 4 | Tümünü seç / seçimi kaldır, Kalıp Dolgu düğmesi ve Araçlar menüsündeki öğesi (`BtnPadding`: "Kalıp Dolgu" / "Mould Fill"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |
 | `Size*` | 3 | Dosya boyutu biçimleri (`SizeKB`, `SizeMB`, `SizeGB`; Drive'dan Aç kartları `SizeKB`/`SizeMB` kullanır) |
-| `OptimumInfoFmt` | 1 | Optimum bilgi metni |
 
 ## Public API
 

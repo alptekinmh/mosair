@@ -49,14 +49,6 @@ Katalog listesindeki bir taş rengi.
 | `RowBrush` | `IBrush` | Satır arka planı. |
 | `TextBrush` | `IBrush` | Parlaklık (`0.299R+0.587G+0.114B`) > 140 ise siyah, değilse beyaz yazı. |
 
-### `ImageColorItem` (record)
-Özellikler panelindeki "Baskın renkler" satırı: `Brush` (renk), `Hex` (`#RRGGBB`), `Share` (örneklerdeki payı, `%18.4` biçiminde; ondalık ayırıcı işletim sisteminin bölge ayarına göre), `Percent` (aynı pay, `double`).
-
-### `ColorSegment` (record)
-Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (yüzde payı). Çubuk `Viewbox Stretch=Fill` içinde çizildiği için genişlikler 100 üzerinden göreli ölçeklenir.
-
-### `TopStoneItem` (record)
-Özellikler panelindeki "En çok kullanılan taşlar" satırı: `Brush` (taş rengi), `Name` (`#ID CodeName`; ID yoksa yalnızca kod), `Count` (piksel sayısı, `N0` biçiminde binlik ayırıcılı), `Share` (mozaikteki bütün taşlar içindeki payı, `%12.3`), `Percent` (aynı pay, `double`; satırdaki `ProgressBar`'ın değeri).
 
 ### `StoneThumbItem` (`INotifyPropertyChanged`)
 Özellikler panelindeki taş varyantı küçük resmi: `Index` (0 tabanlı varyant), `DisplayIndex` (1 tabanlı), `Thumbnail` (44×44), `IsSelected` (değişince bildirilir).
@@ -120,7 +112,7 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `IsBusy` | `bool` (salt okunur) | `IsProcessing \|\| IsStockBusy \|\| IsExporting \|\| IsDriveBusy \|\| IsSavingProject`; durum çubuğundaki `ActivityWave` dalgasını sürer. Beş bayraktan biri değişince bildirilir. |
 | `IsSavingProject` | `bool` | Proje dosyası arka planda yazılırken true (private set); değişince `CanSaveProject` ve `IsBusy` bildirilir. |
 | `CanSaveProject` | `bool` (salt okunur) | `MosaicDone && !IsSavingProject`. Dosya menüsündeki Proje Kaydet / Farklı Kaydet, toolbar'daki iki kaydet düğmesi ve Ctrl/⌘+S, Ctrl/⌘+Shift+S buna bağlıdır; bir kayıt sürerken ikincisi başlatılamaz. `MosaicDone` değişince de bildirilir. |
-| `MosaicDone` | `bool` | Değişince `CanExport`, `OptimalAvailable`, `NavBitmap`, `ShowStoneHint`, `ShowTopStonesSection`, `CanSaveProject`, `ShowMosaicView` ve `ShowSourceView` bildirilir. |
+| `MosaicDone` | `bool` | Değişince `CanExport`, `OptimalAvailable`, `NavBitmap`, `ShowStoneHint`, `CanSaveProject`, `ShowMosaicView` ve `ShowSourceView` bildirilir. |
 | `CanRunMosaic` | `bool` | `ImageLoaded && !IsProcessing && !IsExporting`. |
 | `CanExport` | `bool` | `MosaicDone && !IsProcessing && !IsExporting`. |
 | `CanCancel` | `bool` (salt okunur) | `_workCts != null && !_workCts.IsCancellationRequested`: iptal edilebilir bir iş sürüyor ve henüz iptal istenmedi. Durum çubuğundaki İptal düğmesini gösterir, Esc'yi açar. `BeginCancellable`, `EndCancellable` ve `CancelWork` bildirir. |
@@ -144,10 +136,9 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 |---|---|---|---|
 | `UseOptimal` | `bool` | false | Mos'un Optimum (`MosaicEngine.RunOptimal`) mi M3 (`RunM3`) mü çalıştıracağı. |
 | `OptimalAvailable` | `bool` | — | `MosaicDone && _lastRunOptimal`; taş sayısı kaydırıcısını açar. |
-| `OptimalK` | `int` | 0 | Seçili taş sayısı; değişince `UpdateOptimalInfo` ve (bastırılmadıysa) `ScheduleOptimalApply`. |
+| `OptimalK` | `int` | 0 | Seçili taş sayısı; değişince (bastırılmadıysa) `ScheduleOptimalApply`. |
 | `OptimalKMax` | `int` | 1 | `LastOptimalResult.CandidateCount`. |
 | `OptimalKSuggested` | `int` | 0 | `LastOptimalResult.KOptimal`. |
-| `OptimalInfo` | `string` | `""` | `OptimumInfoFmt` ile önerilen taş sayısı. |
 | `_optimumUserSelection` | `bool[]?` | null | Son Optimum çalıştırmasından önceki kullanıcı katalog seçimi (`boolLeaveOut` dizisi). |
 | `_optimumAutoSelection` | `bool[]?` | null | Optimum sonrası uygulamanın uyguladığı "yalnız kullanılan taşlar" seçimi. |
 | `_suppressOptimalApply` | `bool` | false | `RunMosaicAsync` içinde `OptimalK` atanırken yeniden uygulamayı engeller. |
@@ -185,7 +176,7 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 |---|---|---|
 | `SmoothMouse` | `bool` | Yumuşak fare hareketi: tekerlekle zoom yeni değere kısa bir geçişle varır, sağ tuşla kaydırma bırakılınca süzülür (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz. Animasyonun kendisi `MainWindow`'dadır. **Görünüm → Yumuşak Fare Hareketi**'nin onay işareti buna bağlıdır. |
 | `WatchNewImages` | `bool` | İndirilenler / Masaüstüne gelen yeni JPEG/PNG için bildirim gösterilsin mi (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz; değişince `MainWindow.ApplyWatchNewImages` izleyiciyi başlatır/durdurur. **Dosya → Yeni Görselleri Bildir**'in onay işareti buna bağlıdır. |
-| `IsPropertiesPanelOpen` | `bool` | Özellikler paneli açık mı (varsayılan true, kalıcı değil). Aynı değer atanırsa bildirim yapılmaz; değişince `MainWindow.ApplyPropertiesPanel` sütunları ayarlar. Görünüm menüsündeki onay işareti buna bağlıdır. |
+| `IsPropertiesPanelOpen` | `bool` | Özellikler paneli açık mı (varsayılan false: her açılışta kapalı; kalıcı değil). `HasSelection` true olunca (taş seçildi) true yapılır. Aynı değer atanırsa bildirim yapılmaz; değişince `MainWindow.ApplyPropertiesPanel` sütunları ayarlar. Görünüm menüsündeki onay işareti buna bağlıdır. |
 | `LightParams` | `ObservableCollection<AdjustParam>` | Görsel Ayarları **Işık** sekmesinin 8 satırı: Pozlama (−200…200, `Divisor` 100 → ±2,00 EV), Parlaklık, Kontrast, Parlak Alanlar, Gölgeler, Beyazlar, Siyahlar, Gama (−100…100). Pozlama izinde siyahtan beyaza geçiş, diğerlerinde düz iz ([AdjustParam](AdjustParam.md)). |
 | `ColorParams` | `ObservableCollection<AdjustParam>` | **Ton/Doygunluk** sekmesinin 3 satırı: Ton (−180…180), Doygunluk, Açıklık (−100…100), seçili renk aralığının değerlerini gösterir; Renklendir açıkken Ton 0…360, Doygunluk 0…100 (varsayılan 25), Açıklık −100…100 olur ve Renklendir değerlerini gösterir. |
 | `AdjustRanges` | `ObservableCollection<AdjustRange>` | 7 renk aralığı yuvarlağı (Ana gökkuşağı geçişi, diğerleri kendi rengi); `IsSelected` seçili olanda, `IsUsed` kendi ayarı olan aralıkta (Ana hariç) true. |
@@ -197,9 +188,10 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `IsAdjustPanelOpen` | `bool` | Görsel Ayarları **sütunu** açık mı (varsayılan true, kalıcı değil); **Görünüm → Görsel Ayarları**'nın onay işareti. Değişince MainWindow sütunu 24 px şeride indirir ya da önceki genişliğine açar (`ApplyAdjustPanel`). |
 | `CanAdjust` | `bool` | `ImageLoaded && !IsExporting && (!IsProcessing \|\| LiveMos)`; kaydırıcılar buna göre etkin. Anlık Mos açıkken kendi Mos'u sürerken de kullanılabilir (sürükleme kesilmez; değişiklik sıraya girer). `ImageLoaded`, `IsProcessing`, `IsExporting` ve `LiveMos` değişince bildirilir. |
 | `LiveMos` | `bool` | **Anlık Mos** (sekmelerin yanındaki düğme, Araçlar menüsü). Başta false, kalıcı değil. Değişince `CanAdjust` bildirilir; açılırken ekranda eskimiş mozaik yerine görsel gösteriliyorsa (`_showingRaw`) `RunLiveMosAsync()` başlatılır. |
+| `LiveMosBusy` | `bool` | Ekrandaki bir mozaiğin yerine Anlık Mos'un Mos'u hazırlanıyor (`RunLiveMosAsync` içinde, başlarken `MosaicDone && !_showingRaw` ise true, bitince false). Pencere bu sürede önceki mozaiğin donmuş görüntüsünü gösterir (`MainWindow.FreezeMosaicView`). |
 | `ShowMosaicView` / `ShowSourceView` | `bool` | `MosaicDone && !_showingRaw` / tersi. Tuvalde `MosaicView` ile görsel (`sourceImage`) arasında seçim yapar. |
 | `SourceViewWidth`, `SourceViewHeight` | `double` | Görselin ekrandaki boyutu: normalde `ImageDisplayWidth/Height`; kalıba tamamlanmış bir mozaiğin yerine gösterilirken yalnızca dolgusuz kısım (`ImageDisplayWidth × UnpaddedCols / dataM3 sütun sayısı`, yükseklik için de aynı); görsel sol üste hizalanır, dolgu alanı boş kalır. |
-| `HasSelection` | `bool` | Bir piksel (taş) seçili mi. Değişince `ShowImageInfo` ve `ShowStoneHint` bildirilir. `LoadImage`, `OpenProjectAsync` ve `ClearSelection` false yapar; `OnImagePressed` true. |
+| `HasSelection` | `bool` | Bir piksel (taş) seçili mi. Değişince `ShowImageInfo` ve `ShowStoneHint` bildirilir; true olunca `IsPropertiesPanelOpen = true` (kapalı panel açılır). `LoadImage`, `OpenProjectAsync` ve `ClearSelection` false yapar; `OnImagePressed` true. |
 | `ShowImageInfo` | `bool` | `ImageLoaded && !HasSelection`: görsel bilgileri bölümü görünür. |
 | `ShowNoImageHint` | `bool` | `!ImageLoaded`: resim simgesi ve "Görsel yüklendiğinde…" (`PropNoImage`) ipucu. |
 | `ShowStoneHint` | `bool` | `MosaicDone && !HasSelection`: "Taş bilgileri için…" (`PropStoneHint`) ipucu. |
@@ -213,9 +205,6 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `ImageInfoMegapixels` | `string` | `x.x MP`. |
 | `ImageInfoAspect` | `string` | En-boy oranı (`AspectText`). |
 | `ImageInfoDate` | `string` | Dosyanın son değiştirilme zamanı (`LastWriteTime.ToString("g")`, bölge ayarına göre). |
-| `ImageColors` | `ObservableCollection<ImageColorItem>` | Görselin en sık 6 rengi (`DominantColors`); `HasImageColors` boş değilse true. |
-| `ImageColorSegments` | `ObservableCollection<ColorSegment>` | Renk çubuğu: `ImageColors`'ın her biri payı kadar; altı rengin toplamı %99,5'ten azsa kalanı tek, yarı saydam gri (`#808088`, opaklık 0,35) parça. |
-| `TopStones` | `ObservableCollection<TopStoneItem>` | `AssignedColors`'tan piksel sayısına göre ilk 5 taş (`UpdateTopStones`); `HasTopStones`, `ShowTopStonesSection` (= `MosaicDone && HasTopStones`). |
 | `PropStoneName`, `PropStoneId` | `string` | Taş kodu, `#ID`. |
 | `PropPixelCoord`, `PropMouldCoord` | `string` | `Y: .. X: ..` ve kalıp içi `yi: .. xi: ..`. |
 | `PropRgbInfo`, `PropColorBrush` | `string`, `IBrush` | Piksel rengi. |
@@ -232,10 +221,10 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `UsedColorInfo` | `string` | `StatusUsedColors` (toplam / kullanılan taş). |
 | `DimensionInfo` | `string` | Boyut/alan metni (XAML'e bağlı değil). |
 | `DimensionHeight`, `DimensionArea` | `string` | Sol paneldeki satırın yüksekliği ve alanı, genişlik kutusuyla aynı biçimde (invariant, nokta): `"93.6"`, `"0.88 m²"`. |
-| `StoneInfo`, `MouldInfo` | `string` | Sol paneldeki iki kart: `InfoStones` ("78 × 78 = 6.084 taş"; toplam `N0` ile binlik ayraçlı) ve `InfoMoulds` ("3 × 3 = 9 kalıp"). `MouldInfo` tam kalıp sayısını taş satır ve sütunlarından hesaplar (`UpToMould(n) / 26`). Eski `DimensionSize` ve `OriginalInfo` (orijinal piksel ölçüsü) kaldırıldı; piksel ölçüsü Özellikler panelinde. |
+| `InfoStoneCols`, `InfoStoneRows`, `InfoStoneTotal`, `InfoMouldCols`, `InfoMouldRows`, `InfoMouldTotal` | `string` | Sol paneldeki taş/kalıp kartının sayıları (ayrı ayrı, kart onları hizalı sütunlara koyar); toplamlar `N0` ile binlik ayraçlı. `MouldInfo` tam kalıp sayısını taş satır ve sütunlarından hesaplar (`UpToMould(n) / 26`). Eski `DimensionSize` ve `OriginalInfo` (orijinal piksel ölçüsü) kaldırıldı; piksel ölçüsü Özellikler panelinde. |
 | `PixelCoordInfo`, `PixelDetailInfo`, `PixelColorInfo`, `PixelScaleInfo` | `string` | Piksel bilgisi; `PixelDetailInfo`/`PixelColorInfo` `OnImagePressed`'de yazılır, hiçbiri XAML'e bağlı değil. |
 
-**Dil**: Constructor `Loc.Instance.PropertyChanged`'e abone olur; `Loc.Lang` değişince `UpdateOptimalInfo` çağrılır. Diğer metinler `RefreshLocalized` ile yenilenir.
+**Dil**: ViewModel'in ürettiği metinler `RefreshLocalized` ile yenilenir.
 
 ## Public API
 
@@ -252,8 +241,9 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `AdjustChanged(apply = true)` (private) | `_adjustVersion`'ı artırır, `IsAdjusted`'ı bildirir; `apply` ise `ScheduleAdjust()`. | Satır değişimi, Renklendir, sıfırlama, `SetAdjustSettings` (`apply: false`) |
 | `SetAdjustSettings(settings)` (private) | Bekleyen ayarı iptal eder, `_adjust = settings.Clone()`, satırları doldurur; uygulamaz. | `LoadImage` (nötr), `OpenProjectAsync` (projenin ayarı) |
 | `ResetAdjustments()` | `_adjust` yeni (nötr) ayar olur, satırlar doldurulur, `AdjustChanged()` (iki sekme ve Renklendir dahil hepsi sıfırlanır). | MainWindow (`OnAdjustReset`) |
-| `ScheduleAdjust()` (private, async void) | Önceki bekleyişi iptal eder, 150 ms bekler (kaydırıcı sürüklenirken her adımda hesaplanmasın), sonra `_adjustTask = ApplyAdjustmentsAsync()`; bitince `LiveMos` açıksa `RunLiveMosAsync()`. | `AdjustChanged` |
-| `RunLiveMosAsync()` (private) | Anlık Mos: `LiveMos` kapalıysa ya da görsel yoksa çıkar. Mos veya dışa aktarma sürüyorsa `_liveMosPending = true` yapıp çıkar. Değilse `RunMosaicAsync()`; o ana kadar mozaik yoktuysa (`first`) ardından `FitToWindow(_lastViewportWidth, _lastViewportHeight)` (ilk mozaik sığdırılır, sonrakiler görünümü korur). Bu arada yeni bir değişiklik sıraya girdiyse (`_liveMosPending`) bir Mos daha yapar. Mos o anki seçimlerle yapılır (Optimum, Stoğa göre, Kalıp Dolgu). | `ScheduleAdjust`, `LiveMos` |
+| `ScheduleAdjust()` (private, async void) | Önceki bekleyişi iptal eder, 150 ms bekler (kaydırıcı sürüklenirken her adımda hesaplanmasın), sonra `_adjustTask = ApplyAdjustmentsAsync()`; bitince `LiveMos` açıksa `RunLiveMosAsync()`. Değişiklik bir sürükleme sırasında geldiyse (`_adjustDragging`) Mos burada yapılmaz, `_changedWhileDragging` işaretlenir. | `AdjustChanged` |
+| `SetAdjustDragging(dragging)` | Görsel Ayarları kaydırıcılarından birinin sürüklenmesi başladı/bitti. Bitişte sürükleme sırasında değişiklik olduysa ve `LiveMos` açıksa tek bir `RunLiveMosAsync()` (Mos, bekleyen ayarı önce uygular). | `MainWindow.OnAdjustSliderDragging` (`AdjustSlider.DraggingChanged`) |
+| `RunLiveMosAsync()` (private) | Anlık Mos: `LiveMos` kapalıysa ya da görsel yoksa çıkar. Mos veya dışa aktarma sürüyorsa `_liveMosPending = true` yapıp çıkar. Değilse `LiveMosBusy` ayarlanır ve `RunMosaicAsync(keepK)` (bitince `LiveMosBusy = false`); `keepK`: Optimum işaretli, önceki mozaik Optimum'la yapılmış ve taş sayısı kaydırıcıyla önerilenden farklı seçilmişse o sayı (yeni analizde de korunur), değilse null; o ana kadar mozaik yoktuysa (`first`) ardından `FitToWindow(_lastViewportWidth, _lastViewportHeight)` (ilk mozaik sığdırılır, sonrakiler görünümü korur). Bu arada yeni bir değişiklik sıraya girdiyse (`_liveMosPending`) bir Mos daha yapar. Mos o anki seçimlerle yapılır (Optimum, Stoğa göre, Kalıp Dolgu). | `ScheduleAdjust`, `LiveMos` |
 | `SetShowingRaw(value)` (private) | `_showingRaw`'u ayarlar; `ShowMosaicView`, `ShowSourceView`, `SourceViewWidth/Height` ve `NavBitmap`'i bildirir. | `ApplyAdjustmentsAsync` (true), `FinishMosaic`, `LoadImage`, `OpenProjectAsync`, `ClearMosaic` (false) |
 | `FlushAdjustmentsAsync()` (private) | Henüz beklemede olan bir ayar varsa beklemeyi iptal edip hemen uygular; süren `_adjustTask`'ı bekler. | `RunMosaicAsync` (Mos son ayarla çalışsın) |
 | `ApplyAdjustmentsAsync()` (private) | `MosaicData.sourceBitmap` yoksa çıkar. Ayarın kopyası (`_adjust.Clone()`) ve `_adjustVersion` alınır. Arka planda ayar nötrse kaynağın kendisini, değilse `ImageAdjustService.Apply(source, a)` sonucunu ve ekran için `ImageService.ToAvaloniaBitmap`'i hazırlar (hata → `StatusError`). Bu arada içerik (`_contentVersion`), ayar (`_adjustVersion`) ya da kaynak değiştiyse sonuçları atar. Değilse `MosaicData.inputBitmap = ayarlı`; önceki ayarlı kopya, bir iş sürmüyorsa dispose edilir (sürüyorsa çöp toplayıcıya bırakılır). `DisplayBitmap` yenilenir; `MosaicDone` ve Anlık Mos kapalıysa `SetShowingRaw(true)` (eskimiş mozaik yerine ayarlanmış görsel gösterilir) ve durum `AdjNeedsMos` ("…Mos'a basın"). | `ScheduleAdjust`, `FlushAdjustmentsAsync`, `OpenProjectAsync` |
@@ -310,11 +300,9 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `ClearMosaic()` | İptal edilen klasik Mos'tan sonra: `MosaicEngine.Reset`, `RenderSource` ve `OverviewBitmap` null, `MosaicDone` false, `_lastRunOptimal` ve `_mosaicMadeThisSession` false, taş varyantı geri-al/yinele yığınları boş, `EditedPixelCount` 0, `SetShowingRaw(false)`. Tuvalde yüklenen görsel yeniden görünür. |
 | `DisposeIfReplaced(old, current)` | Mos / Optimum taş sayısı değişiminden sonra motorun değiştirdiği eski `exportBitmap`'i UI iş parçacığında serbest bırakır. |
 | `ClearSelection()` | `HasSelection = false`: taş bilgilerinden görsel bilgilerine döner. MainWindow `OnClearSelection`'dan çağrılır. |
-| `UpdateImageInfo()` (private) | Önce `ImageAccent = AverageColor(MosaicData.inputBitmap)` (görsel yoksa null). `ImageColors` ve `ImageColorSegments`'i temizler, eski `ImageInfoThumb`'ı dispose eder. `ImageInfoName`'i `ProjectService.CurrentPictureFileName`'den alır. Dosya diskte ve `MosaicData.inputBitmap` doluysa `ImageInfoFound = true` ve tür, boyut, tarih, çözünürlük, megapiksel, en-boy oranı, önizleme (`MakeThumb`) ile `DominantColors(bmp, 6)` doldurulur, renk çubuğu parçaları eklenir; değilse `ImageInfoFound = false` ve metin alanları boşaltılır. Sonunda `HasImageColors` bildirilir. `LoadImage` (görsel yüklendikten sonra) ve `OpenProjectAsync` (proje açılınca) çağırır. UI iş parçacığında, eş zamanlı çalışır. |
+| `UpdateImageInfo()` (private) | Önce `ImageAccent = AverageColor(MosaicData.inputBitmap)` (görsel yoksa null). Eski `ImageInfoThumb`'ı dispose eder. `ImageInfoName`'i `ProjectService.CurrentPictureFileName`'den alır. Dosya diskte ve `MosaicData.inputBitmap` doluysa `ImageInfoFound = true` ve tür, boyut, tarih, çözünürlük, megapiksel, en-boy oranı, önizleme (`MakeThumb`) doldurulur; değilse `ImageInfoFound = false` ve metin alanları boşaltılır. `LoadImage` (görsel yüklendikten sonra) ve `OpenProjectAsync` (proje açılınca) çağırır. UI iş parçacığında, eş zamanlı çalışır. |
 | `AspectText(w, h)` (private static) | Genişlik ve yüksekliği en büyük ortak bölenle sadeleştirir; iki sayı da 32 ya da daha küçükse `3:2` biçiminde, değilse `1.47:1` biçiminde (`G/Y`, iki ondalık) döndürür. |
 | `MakeThumb(bmp, maxWidth)` (private static) | `SKBitmap.Resize` (doğrusal süzme + mipmap) ile en çok `maxWidth` genişliğe küçültüp Avalonia `Bitmap`'e çevirir (`ImageService.ToAvaloniaBitmap`); büyütmez. Hata olursa `null`. |
-| `DominantColors(bmp, count)` (private static) | Görselden adım = `max(1, √(G·Y / 40 000))` aralıklı yaklaşık 40.000 piksel okur (`GetPixel`; alfa < 128 atlanır), her pikseli kanal başına üst 4 bitle 4096 gruptan birine koyar; en kalabalık `count` grubun ortalama rengini, `#RRGGBB` kodunu ve örneklerdeki yüzdesini döndürür. Örnek yoksa boş liste. |
-| `UpdateTopStones()` (private) | `TopStones`'u `AssignedColors`'ın piksel sayısına göre ilk 5'iyle yeniden doldurur; pay, `AssignedColors`'taki bütün piksel sayılarının toplamına göre hesaplanır; `HasTopStones` ve `ShowTopStonesSection` bildirilir. `PopulatePaletteAndAssigned` çağırır (liste dolunca ve `arMB` boşken erken dönüşte). |
 | `FormatFileSize(bytes)` (private static) | Görsel dosyası boyutu: 1 GB ve üstü `SizeGB` (iki ondalık), 1 MB ve üstü `SizeMB` (bir ondalık), altı `SizeKB` (en az 1). |
 | `FormatBytes(bytes)` (static) | Dosya/bellek boyutu metni: 1 GB ve üstü `SizeGB` (bir ondalık, ör. "2.8 GB"), altı `SizeMB` (tam sayı, en az 1). Ondalık ayırıcı ve binlik ayırıcılar işletim sisteminin bölge ayarına göredir. |
 | `RefreshMosaicView()` | Mozaik varsa `StoneTextureService.CreateRenderSource()` ile yeni `RenderSource` kurar ve `OverviewBitmap`'i üretir. `MosaicView` kaynak değişince bütün karoları atar. |
@@ -336,8 +324,8 @@ Baskın renkler kartındaki renk çubuğunun bir parçası: `Brush` ve `Width` (
 | `ShowStockMarks(stock, counts)` | Okunan stoktan kırmızı nokta (kullanım > `Capacity`) ve kalan kg hesaplar. |
 | `SetStockAwareReport(text)` | `_stockAwareReport` yazar ve `StockAwareTip`'i bildirir. |
 | `AppendStartupStatus(message)` | Durum çubuğu `StatusReady` ise mesajı yazar, değilse mevcut uyarının (ör. atlanan katalog satırları) sonuna `" · "` ile ekler. |
-| `FilterCatalogByUsedColors()` | Kataloğu yalnız `arMB[0]`'da kullanılan kodlara indirger, `PopulatePaletteAndAssigned`. Dolgu taşı (`IsPadded` iken `FillerId`) işaretlenmez: sonraki Mos onu görselin içinde kullanmasın. Atanan listesinde ve en çok kullanılan taşlarda ise dolgu da görünür (gerçek taştır). |
-| `PopulatePaletteAndAssigned()` | Seçili katalog sırasıyla `PaletteColors` ve `AssignedColors`'ı doldurur (piksel sayısı 0 olanlar atlanır, ama numara sayacı ilerler); sonunda `UpdateTopStones()`. |
+| `FilterCatalogByUsedColors()` | Kataloğu yalnız `arMB[0]`'da kullanılan kodlara indirger, `PopulatePaletteAndAssigned`. Dolgu taşı (`IsPadded` iken `FillerId`) işaretlenmez: sonraki Mos onu görselin içinde kullanmasın. Atanan listesinde ise dolgu da görünür (gerçek taştır). |
+| `PopulatePaletteAndAssigned()` | Seçili katalog sırasıyla `PaletteColors` ve `AssignedColors`'ı doldurur (piksel sayısı 0 olanlar atlanır, ama numara sayacı ilerler). |
 | `UpdatePropTexture(codeName, y, x)` | Seçili varyant dokusunu (80×80) ve 1–16 arası küçük resimleri (44×44) yükler. |
 | `AutoSelectGridColor(bmp)` | Görselin ortalama parlaklığına göre gri tonlardan derz rengi seçer (< 100 → ton 2, > 155 → ton 4, aksi 3). |
 | `RecalcUsedColorInfo()` | `UsedColorInfo`'yu yeniden hesaplar. |

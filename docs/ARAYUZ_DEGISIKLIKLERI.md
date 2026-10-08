@@ -4,6 +4,33 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-08: Anlık Mos elle seçilen taş sayısını korur
+
+- Optimum açıkken taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse, sonraki Anlık Mos'lar analizi yenileyip o sayıyla mozaik kurar (önceden her seferinde önerilen sayıya dönüyordu). Sağ tıkla önerilene dönülünce yine önerilen sayı izlenir.
+
+## 2026-10-08: Özellikler paneli kapalı başlar
+
+- Uygulama açılınca Özellikler paneli kapalı (sağ kenarda şerit) gelir; şerit, F4 ya da **Görünüm → Özellikler Paneli** ile açılır; görselde bir taş seçilince de (normal tıklama ya da piksel düzenleme) kendiliğinden açılır.
+
+## 2026-10-08: Taş ve kalıp tek kartta
+
+- Sol paneldeki yan yana iki kart (`250 × 444 = 111,000 …` kesiliyordu) tek karta, iki hizalı satıra dönüştü: **Taş** `250 × 444 = 111.000`, **Kalıp** `10 × 18 = 180`. Sayılar sağa hizalı, 8 haneli taş toplamı da sığar.
+
+## 2026-10-08: Optimum taş kaydırıcısı
+
+- Araç çubuğunda **Stoğa göre** ile **Optimum** yer değiştirdi (önce Stoğa göre, sonra Optimum).
+- Taş kaydırıcısı Optimum'un hemen sağında, yalnızca Optimum işaretliyken (ve Optimum ile yapılmış bir Mos'tan sonra) görünür. Görsel Ayarları'ndaki üçgenli kaydırıcı kullanılıyor; seçili taş sayısı üçgenin üstünde yazar, sağ tık önerilen sayıya döner.
+- Kaydırıcının yanındaki "Taş" etiketi, sayı ve `öneri K` yazısı kaldırıldı.
+
+## 2026-10-08: Özellikler panelinden iki kart kaldırıldı
+
+- Taş seçili değilken görünen **Baskın Renkler** ve **En Çok Kullanılan Taşlar** kartları kaldırıldı; panelde önizleme ve Ayrıntılar kalıyor. (Aşağıdaki eski notlarda bu kartlardan söz edilen yerler o günün durumunu anlatır.)
+
+## 2026-10-08: Anlık Mos sürüklemeyi bekler
+
+- Anlık Mos açıkken bir Görsel Ayarları kaydırıcısı sürüklenirken artık her adımda Mos yapılmıyor; fare bırakılınca son değerle bir kez yapılıyor.
+- Yeni mozaik hazırlanırken önceki mozaik ekranda kalıyor (donmuş görüntü); arada görsel görünüp kaybolmuyor.
+
 ## 2026-10-08: Renk temaları (Görünüm → Tema)
 
 - **Görünüm → Tema** alt menüsü: beş renk teması — **Lapis** (varsayılan, önceki renkler), **Adaçayı ve Lavanta** (pastel), **Grafit ve Petrol**, **Traverten**, **Mürekkep ve Leylak**; seçili olanda ✓. Her biri koyu ve açık çalışır (araç çubuğundaki ☾/☀ ya da aynı alt menüdeki **Açık Tema**). Renkler anında değişir.

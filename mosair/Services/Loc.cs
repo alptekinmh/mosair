@@ -172,8 +172,7 @@ namespace mosair.Services
             ["LblInterp"] = "Interp",
             ["LblOptimum"] = "Optimum",
             ["TipOptimum"] = "Optimum taş sayısını otomatik bul",
-            ["LblStones"] = "Taş",
-            ["OptimumInfoFmt"] = "öneri {0}",
+            ["TipOptimalSlider"] = "Taş çeşidi sayısı (sağ tık: önerilen sayı)",
 
             // Google Sheet stock
             ["TipStockSheet"] = "Stok tablosunu tarayıcıda aç (yanındaki ok: tabloyu aç / stok tablosu ayarları)",
@@ -270,8 +269,6 @@ namespace mosair.Services
             ["PropAspect"] = "En-boy oranı",
             ["PropFileSize"] = "Dosya boyutu",
             ["PropModified"] = "Değiştirilme",
-            ["PropImageColors"] = "BASKIN RENKLER",
-            ["PropTopStones"] = "EN ÇOK KULLANILAN TAŞLAR",
             ["PropStoneHint"] = "Taş bilgileri için mozaikte bir taşa tıklayın.",
             ["PropNoImage"] = "Görsel yüklendiğinde bilgileri burada görünür.",
             ["PropImageMissing"] = "Görsel dosyası bulunamadı",
@@ -379,8 +376,8 @@ namespace mosair.Services
             ["DlgImages"] = "Gorseller",
 
             // Dimension info
-            ["InfoStones"] = "{0} × {1} = {2} taş",
-            ["InfoMoulds"] = "{0} × {1} = {2} kalıp",
+            ["InfoStonesLabel"] = "Taş",
+            ["InfoMouldsLabel"] = "Kalıp",
             ["PadTitle"] = "Kalıba tamamlama",
             ["BtnPadding"] = "Kalıp Dolgu",
             ["TipPadding"] = "Açıkken mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, mozaikte kullanılmayan, stoğu yeten ve renkçe en uzak taş konur. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
@@ -532,8 +529,7 @@ namespace mosair.Services
             ["LblInterp"] = "Interp",
             ["LblOptimum"] = "Optimum",
             ["TipOptimum"] = "Find the optimum stone count automatically",
-            ["LblStones"] = "Stones",
-            ["OptimumInfoFmt"] = "suggested {0}",
+            ["TipOptimalSlider"] = "Number of stone colours (right-click: the suggested count)",
 
             // Google Sheet stock
             ["TipStockSheet"] = "Open the stock sheet in the browser (arrow next to it: open sheet / stock sheet settings)",
@@ -630,8 +626,6 @@ namespace mosair.Services
             ["PropAspect"] = "Aspect ratio",
             ["PropFileSize"] = "File size",
             ["PropModified"] = "Modified",
-            ["PropImageColors"] = "DOMINANT COLORS",
-            ["PropTopStones"] = "MOST USED STONES",
             ["PropStoneHint"] = "Click a stone in the mosaic to see its details.",
             ["PropNoImage"] = "The image's details appear here once an image is loaded.",
             ["PropImageMissing"] = "Image file not found",
@@ -739,8 +733,8 @@ namespace mosair.Services
             ["DlgImages"] = "Images",
 
             // Dimension info
-            ["InfoStones"] = "{0} × {1} = {2} stones",
-            ["InfoMoulds"] = "{0} × {1} = {2} moulds",
+            ["InfoStonesLabel"] = "Stones",
+            ["InfoMouldsLabel"] = "Moulds",
             ["PadTitle"] = "Whole moulds",
             ["BtnPadding"] = "Mould Fill",
             ["TipPadding"] = "When on, the mosaic is filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with a stone not used in the mosaic, with enough stock and farthest in colour. These are real stones, so they are counted.",

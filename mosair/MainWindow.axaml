@@ -697,30 +697,33 @@
             </Viewbox>
           </Button>
           <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
-          <!-- Optimum stone count -->
-          <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="4,0,0,0"
-                    ToolTip.Tip="{Binding [TipOptimum], Source={x:Static svc:Loc.Instance}}">
-            <TextBlock Text="{Binding [LblOptimum], Source={x:Static svc:Loc.Instance}}" FontSize="11"
-                       Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>
-          </CheckBox>
           <!-- Stock-aware: after Optimum, keep every stone within its "Bizdeki (kg)" stock -->
-          <CheckBox IsChecked="{Binding UseStockAware}" VerticalAlignment="Center" Margin="2,0,0,0"
+          <CheckBox IsChecked="{Binding UseStockAware}" VerticalAlignment="Center" Margin="4,0,0,0"
                     ToolTip.Tip="{Binding StockAwareTip}">
             <TextBlock Text="{Binding [LblStockAware], Source={x:Static svc:Loc.Instance}}" FontSize="11"
                        Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>
           </CheckBox>
-          <StackPanel Orientation="Horizontal" Spacing="6" Margin="6,0,0,0" VerticalAlignment="Center"
-                      IsVisible="{Binding OptimalAvailable}">
-            <TextBlock Text="{Binding [LblStones], Source={x:Static svc:Loc.Instance}}" FontSize="11"
-                       Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
-            <Slider Value="{Binding OptimalK}" Minimum="1" Maximum="{Binding OptimalKMax}"
-                    TickFrequency="1" IsSnapToTickEnabled="True" Width="160" VerticalAlignment="Center"/>
-            <TextBlock Text="{Binding OptimalK}" Foreground="{DynamicResource FgPrimary}" FontSize="13" FontWeight="SemiBold"
-                       VerticalAlignment="Center" MinWidth="24"
-                       FontFamily="{StaticResource MonoFont}"/>
-            <TextBlock Text="{Binding OptimalInfo}" FontSize="10" Foreground="{DynamicResource FgMuted}"
-                       VerticalAlignment="Center"/>
-          </StackPanel>
+          <!-- Optimum stone count -->
+          <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="2,0,0,0"
+                    ToolTip.Tip="{Binding [TipOptimum], Source={x:Static svc:Loc.Instance}}">
+            <TextBlock Text="{Binding [LblOptimum], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                       Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>
+          </CheckBox>
+          <!-- The stone count of an Optimum Mos, while Optimum is ticked: the Görsel Ayarları slider with the value
+               above its triangle; right-click goes back to the suggested count -->
+          <ctrl:AdjustSlider Minimum="1" Maximum="{Binding OptimalKMax}" Value="{Binding OptimalK}"
+                             DefaultValue="{Binding OptimalKSuggested}" ShowValue="True"
+                             EmptyTrackBrush="{DynamicResource BrdrTer}" ThumbBrush="{DynamicResource FgPrimary}"
+                             ThumbBorderBrush="{DynamicResource BgInput}" ValueBrush="{DynamicResource FgPrimary}"
+                             Width="160" Margin="4,0,0,0" VerticalAlignment="Center"
+                             ToolTip.Tip="{Binding [TipOptimalSlider], Source={x:Static svc:Loc.Instance}}">
+            <ctrl:AdjustSlider.IsVisible>
+              <MultiBinding Converter="{x:Static BoolConverters.And}">
+                <Binding Path="UseOptimal"/>
+                <Binding Path="OptimalAvailable"/>
+              </MultiBinding>
+            </ctrl:AdjustSlider.IsVisible>
+          </ctrl:AdjustSlider>
         </StackPanel>
         <!-- Right: Export -->
         <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="1"
@@ -881,7 +884,7 @@
     <Border Grid.Column="0" Background="{DynamicResource BgPanel}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,1,0">
       <DockPanel>
-        <!-- Row 1: Dimensions: "[width] × height cm = area m²", then stones and moulds as two cards -->
+        <!-- Row 1: Dimensions: "[width] × height cm = area m²", then stones and moulds in one card -->
         <Border x:Name="dimsBorder" DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="10,8"
                 BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
           <Border.Transitions>
@@ -913,20 +916,37 @@
                            Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
               </StackPanel>
             </StackPanel>
-            <Grid ColumnDefinitions="*,8,*" IsVisible="{Binding ImageLoaded}">
-              <Border Grid.Column="0" Background="{DynamicResource BgInput}" CornerRadius="6" Padding="10,6"
-                      BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
-                <TextBlock Text="{Binding StoneInfo}" FontSize="12" Foreground="{DynamicResource FgPrimary}"
-                           FontFamily="{StaticResource MonoFont}" TextTrimming="CharacterEllipsis"
-                           ToolTip.Tip="{Binding StoneInfo}"/>
-              </Border>
-              <Border Grid.Column="2" Background="{DynamicResource BgInput}" CornerRadius="6" Padding="10,6"
-                      BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
-                <TextBlock Text="{Binding MouldInfo}" FontSize="12" Foreground="{DynamicResource FgPrimary}"
-                           FontFamily="{StaticResource MonoFont}" TextTrimming="CharacterEllipsis"
-                           ToolTip.Tip="{Binding MouldInfo}"/>
-              </Border>
-            </Grid>
+            <!-- Stones and moulds as two aligned rows ("Taş  250 × 444 = 111.000"); the columns size to the
+                 numbers, so even an 8-digit stone count shows in full -->
+            <Border IsVisible="{Binding ImageLoaded}" Background="{DynamicResource BgInput}" CornerRadius="6"
+                    Padding="10,5" BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
+              <Grid ColumnDefinitions="Auto,10,Auto,22,Auto,22,Auto" RowDefinitions="Auto,Auto" RowSpacing="3">
+                <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding [InfoStonesLabel], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                           Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="0" Grid.Column="2" Text="{Binding InfoStoneCols}" HorizontalAlignment="Right" FontSize="12"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="0" Grid.Column="3" Text="×" HorizontalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="0" Grid.Column="4" Text="{Binding InfoStoneRows}" HorizontalAlignment="Right" FontSize="12"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="0" Grid.Column="5" Text="=" HorizontalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="0" Grid.Column="6" Text="{Binding InfoStoneTotal}" HorizontalAlignment="Right" FontSize="12"
+                           FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding [InfoMouldsLabel], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                           Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
+                <TextBlock Grid.Row="1" Grid.Column="2" Text="{Binding InfoMouldCols}" HorizontalAlignment="Right" FontSize="12"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="1" Grid.Column="3" Text="×" HorizontalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="1" Grid.Column="4" Text="{Binding InfoMouldRows}" HorizontalAlignment="Right" FontSize="12"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="1" Grid.Column="5" Text="=" HorizontalAlignment="Center" FontSize="12"
+                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Grid.Row="1" Grid.Column="6" Text="{Binding InfoMouldTotal}" HorizontalAlignment="Right" FontSize="12"
+                           FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+              </Grid>
+            </Border>
           </StackPanel>
         </Border>
 
@@ -1146,11 +1166,14 @@
                               BitmapWidth="{Binding BitmapPixelWidth}"
                               BitmapHeight="{Binding BitmapPixelHeight}"
                               StoneColumns="{Binding StoneColumns}"
-                              StoneRows="{Binding StoneRows}"
+                              StoneRows="{Binding InfoStoneRows}"
                               GridColor="{Binding GridColor}"
                               IsHitTestVisible="False"/>
           </Panel>
         </ScrollViewer>
+        <!-- While an Anlık Mos replaces the mosaic: a still picture of the previous one (MainWindow.FreezeMosaicView) -->
+        <Image x:Name="liveMosFreeze" IsVisible="False" IsHitTestVisible="False" Stretch="Fill"
+               HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
         <!-- Mini Map / Navigator -->
         <Border x:Name="navPanel"
@@ -1401,70 +1424,6 @@
                 <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding ImageInfoDate}" FontSize="10" HorizontalAlignment="Right"
                            TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
                 </Grid>
-              </StackPanel>
-            </Border>
-
-            <Border Classes="info-card" IsVisible="{Binding HasImageColors}">
-              <StackPanel Spacing="7">
-                <TextBlock Text="{Binding [PropImageColors], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
-                <!-- The colours side by side by share -->
-                <Border Height="10" CornerRadius="5" ClipToBounds="True">
-                  <Viewbox Stretch="Fill">
-                    <ItemsControl ItemsSource="{Binding ImageColorSegments}">
-                      <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal"/></ItemsPanelTemplate>
-                      </ItemsControl.ItemsPanel>
-                      <ItemsControl.ItemTemplate>
-                        <DataTemplate x:DataType="vm:ColorSegment">
-                          <Border Width="{Binding Width}" Height="1" Background="{Binding Brush}"/>
-                        </DataTemplate>
-                      </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                  </Viewbox>
-                </Border>
-                <ItemsControl ItemsSource="{Binding ImageColors}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:ImageColorItem">
-                      <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,2">
-                        <Ellipse Grid.Column="0" Width="12" Height="12" Fill="{Binding Brush}"
-                                 Stroke="{DynamicResource BrdrTer}" StrokeThickness="1" Margin="0,0,8,0"/>
-                        <TextBlock Grid.Column="1" Text="{Binding Hex}" FontSize="10" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
-                        <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
-                                   Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
-                      </Grid>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </StackPanel>
-            </Border>
-
-            <Border Classes="info-card" IsVisible="{Binding ShowTopStonesSection}">
-              <StackPanel Spacing="7">
-                <TextBlock Text="{Binding [PropTopStones], Source={x:Static svc:Loc.Instance}}" Classes="section-title" Margin="0"/>
-                <ItemsControl ItemsSource="{Binding TopStones}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:TopStoneItem">
-                      <StackPanel Spacing="3" Margin="0,2,0,4">
-                        <Grid ColumnDefinitions="Auto,*,Auto">
-                          <Border Grid.Column="0" Width="14" Height="12" CornerRadius="2" Background="{Binding Brush}"
-                                  BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1" Margin="0,0,7,0"/>
-                          <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="10" VerticalAlignment="Center"
-                                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
-                          <TextBlock Grid.Column="2" Text="{Binding Share}" FontSize="10" VerticalAlignment="Center"
-                                     Margin="6,0,0,0" Foreground="{DynamicResource FgPrimary}" FontWeight="SemiBold" FontFamily="{StaticResource MonoFont}"/>
-                        </Grid>
-                        <Grid ColumnDefinitions="*,Auto">
-                          <ProgressBar Grid.Column="0" Value="{Binding Percent}" Maximum="100" Height="4" MinHeight="4"
-                                       CornerRadius="2" VerticalAlignment="Center" Foreground="{DynamicResource AccentFill}"
-                                       Background="{DynamicResource BgCanvas}"/>
-                          <TextBlock Grid.Column="1" Text="{Binding Count}" FontSize="11" Margin="8,0,0,0"
-                                     Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
-                        </Grid>
-                      </StackPanel>
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
               </StackPanel>
             </Border>
 

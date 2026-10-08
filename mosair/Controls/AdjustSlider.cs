@@ -11,6 +11,7 @@ namespace mosair.Controls
     // colour gradient) with a small triangle under it. Whole-number values.
     //   drag / click: set the value · Shift + drag: fine (a quarter of the speed) · wheel: ±1 (Ctrl ±10)
     //   arrows: ±1 (Shift ±10) · right-click or Delete: back to DefaultValue
+    // With ShowValue the value is written above the track, over the triangle (the toolbar's Optimum stone count).
     public class AdjustSlider : Control
     {
         public static readonly StyledProperty<double> MinimumProperty =
@@ -29,6 +30,10 @@ namespace mosair.Controls
             AvaloniaProperty.Register<AdjustSlider, IBrush?>(nameof(ThumbBrush));
         public static readonly StyledProperty<IBrush?> ThumbBorderBrushProperty =
             AvaloniaProperty.Register<AdjustSlider, IBrush?>(nameof(ThumbBorderBrush));
+        public static readonly StyledProperty<bool> ShowValueProperty =
+            AvaloniaProperty.Register<AdjustSlider, bool>(nameof(ShowValue));
+        public static readonly StyledProperty<IBrush?> ValueBrushProperty =
+            AvaloniaProperty.Register<AdjustSlider, IBrush?>(nameof(ValueBrush));
 
         public double Minimum { get => GetValue(MinimumProperty); set => SetValue(MinimumProperty, value); }
         public double Maximum { get => GetValue(MaximumProperty); set => SetValue(MaximumProperty, value); }
@@ -39,41 +44,62 @@ namespace mosair.Controls
         public IBrush? EmptyTrackBrush { get => GetValue(EmptyTrackBrushProperty); set => SetValue(EmptyTrackBrushProperty, value); }
         public IBrush? ThumbBrush { get => GetValue(ThumbBrushProperty); set => SetValue(ThumbBrushProperty, value); }
         public IBrush? ThumbBorderBrush { get => GetValue(ThumbBorderBrushProperty); set => SetValue(ThumbBorderBrushProperty, value); }
+        public bool ShowValue { get => GetValue(ShowValueProperty); set => SetValue(ShowValueProperty, value); }
+        public IBrush? ValueBrush { get => GetValue(ValueBrushProperty); set => SetValue(ValueBrushProperty, value); }
 
         private const double Pad = 6;         // keeps the triangle inside at both ends
         private const double TrackTop = 3, TrackHeight = 4;
         private const double ThumbHalf = 5, ThumbTop = 8, ThumbHeight = 8;
+        private const double ValueHeight = 14, ValueFontSize = 11;
+        // Everything moves down by the value's line when it is shown.
+        private double Top => ShowValue ? ValueHeight : 0;
 
         private bool _dragging;
         private bool _fine;
+
+        // A drag with the left button started (true) or ended (false) on any of these sliders. Anlık Mos waits
+        // for the release instead of running at every step of the drag.
+        public static event Action<bool>? DraggingChanged;
         private double _fineStartX, _fineStartValue;
 
         static AdjustSlider()
         {
             AffectsRender<AdjustSlider>(ValueProperty, MinimumProperty, MaximumProperty, TrackBrushProperty, EmptyTrackBrushProperty,
-                ThumbBrushProperty, ThumbBorderBrushProperty);
+                ThumbBrushProperty, ThumbBorderBrushProperty, ValueBrushProperty);
+            AffectsMeasure<AdjustSlider>(ShowValueProperty);
             FocusableProperty.OverrideDefaultValue<AdjustSlider>(true);
             CursorProperty.OverrideDefaultValue<AdjustSlider>(new Cursor(StandardCursorType.Hand));
         }
 
         protected override Size MeasureOverride(Size availableSize) =>
-            new(double.IsInfinity(availableSize.Width) ? 120 : availableSize.Width, ThumbTop + ThumbHeight + 1);
+            new(double.IsInfinity(availableSize.Width) ? 120 : availableSize.Width, Top + ThumbTop + ThumbHeight + 1);
 
         private double Fraction => Maximum > Minimum ? Math.Clamp((Value - Minimum) / (Maximum - Minimum), 0, 1) : 0;
 
         public override void Render(DrawingContext context)
         {
             double w = Math.Max(1, Bounds.Width - 2 * Pad);
-            var track = new Rect(Pad, TrackTop, w, TrackHeight);
+            double top = Top;
+            var track = new Rect(Pad, top + TrackTop, w, TrackHeight);
             context.DrawRectangle(TrackBrush ?? EmptyTrackBrush ?? Brushes.Gray, null, track, 2, 2);
 
             double x = Pad + Fraction * w;
+            if (ShowValue)
+            {
+                var text = new FormattedText(Value.ToString("0", System.Globalization.CultureInfo.CurrentCulture),
+                    System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
+                    new Typeface(FontFamily.Default, FontStyle.Normal, FontWeight.SemiBold), ValueFontSize,
+                    ValueBrush ?? ThumbBrush ?? Brushes.White);
+                // Centred over the triangle, kept inside the control at both ends.
+                double tx = Math.Clamp(x - text.Width / 2, 0, Math.Max(0, Bounds.Width - text.Width));
+                context.DrawText(text, new Point(tx, Math.Max(0, ValueHeight - text.Height - 1)));
+            }
             var geo = new StreamGeometry();
             using (var g = geo.Open())
             {
-                g.BeginFigure(new Point(x, ThumbTop), true);
-                g.LineTo(new Point(x + ThumbHalf, ThumbTop + ThumbHeight));
-                g.LineTo(new Point(x - ThumbHalf, ThumbTop + ThumbHeight));
+                g.BeginFigure(new Point(x, top + ThumbTop), true);
+                g.LineTo(new Point(x + ThumbHalf, top + ThumbTop + ThumbHeight));
+                g.LineTo(new Point(x - ThumbHalf, top + ThumbTop + ThumbHeight));
                 g.EndFigure(true);
             }
             var pen = ThumbBorderBrush != null ? new Pen(ThumbBorderBrush, IsFocused ? 1.5 : 1) : null;
@@ -107,6 +133,7 @@ namespace mosair.Controls
             double px = e.GetPosition(this).X;
             _fineStartX = px;
             _fineStartValue = Value;
+            DraggingChanged?.Invoke(true);
             if (!_fine) SetFromX(px);
             e.Pointer.Capture(this);
             e.Handled = true;
@@ -130,9 +157,22 @@ namespace mosair.Controls
         {
             base.OnPointerReleased(e);
             if (!_dragging) return;
-            _dragging = false;
+            EndDrag();
             e.Pointer.Capture(null);
             e.Handled = true;
+        }
+
+        // The capture can also be lost without a release (window deactivated, another capture).
+        protected override void OnPointerCaptureLost(PointerCaptureLostEventArgs e)
+        {
+            base.OnPointerCaptureLost(e);
+            if (_dragging) EndDrag();
+        }
+
+        private void EndDrag()
+        {
+            _dragging = false;
+            DraggingChanged?.Invoke(false);
         }
 
         protected override void OnPointerWheelChanged(PointerWheelEventArgs e)

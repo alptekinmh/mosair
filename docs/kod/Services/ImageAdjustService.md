@@ -99,7 +99,7 @@ Test aracıyla 17 kontrol yapıldı, hepsi geçti:
 - Her ayar değişiminde tam çözünürlüklü yeni bir kopya oluşur (görsel kadar bellek). `MainViewModel` önceki kopyayı, bir iş sürmüyorsa hemen bırakır.
 - Pozlama görselin kodlanmış (gama uygulanmış) değerleri üzerinde çarpılır; fotoğraf programlarındaki doğrusal ışık hesabının yaklaşık karşılığıdır.
 - Bölgesel ışık ayarları ton eğrisi olduğu için üç kanala ayrı ayrı uygulanır; çok büyük değerlerde renk tonu hafifçe kayabilir.
-- Görsel bilgileri kartları (baskın renkler, önizleme) ayarlanmamış dosyayı gösterir.
+- Görsel bilgileri kartları (önizleme, ayrıntılar) ayarlanmamış dosyayı gösterir.
 
 ## İlgili dosyalar
 

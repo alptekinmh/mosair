@@ -59,8 +59,13 @@ public partial class MainWindow : Window
         ActualThemeVariantChanged += (_, _) => ApplyImageTint();
         // Görünüm ▸ Tema: the saved choice is already applied (App); keep the menu and the tint in step.
         ThemeService.Changed += OnThemeChanged;
+        // Anlık Mos waits for the release of a dragged Görsel Ayarları slider.
+        Controls.AdjustSlider.DraggingChanged += OnAdjustSliderDragging;
+        Closed += (_, _) => Controls.AdjustSlider.DraggingChanged -= OnAdjustSliderDragging;
         Closed += (_, _) => ThemeService.Changed -= OnThemeChanged;
         UpdateThemeUi();
+        // The Properties panel starts closed (only its strip shows).
+        ApplyPropertiesPanel();
         AddHandler(PointerPressedEvent, OnWindowPointerPressedCommit, RoutingStrategies.Tunnel, handledEventsToo: true);
         _imageWatcher.ImageArrived += (path, place) => Dispatcher.UIThread.Post(() => ShowImageToast(path, place));
         _vm.FileSaved += (path, kind) => Dispatcher.UIThread.Post(() => ShowSavedToast(path, kind));
@@ -97,6 +102,11 @@ public partial class MainWindow : Window
             if (e.PropertyName == nameof(MainViewModel.IsAdjustPanelOpen)) ApplyAdjustPanel();
             if (e.PropertyName == nameof(MainViewModel.WatchNewImages)) ApplyWatchNewImages();
             if (e.PropertyName == nameof(MainViewModel.ZoomLevel)) ApplySourceImageQuality();
+            if (e.PropertyName == nameof(MainViewModel.LiveMosBusy))
+            {
+                if (_vm.LiveMosBusy) FreezeMosaicView();
+                else ReleaseMosaicFreeze();
+            }
             if (e.PropertyName == nameof(MainViewModel.IsProcessing))
             {
                 if (_vm.IsProcessing) StartMosAnim();
@@ -243,6 +253,45 @@ public partial class MainWindow : Window
     }
 
     private void OnToggleLiveMos(object? sender, RoutedEventArgs e) => _vm.LiveMos = !_vm.LiveMos;
+
+    private void OnAdjustSliderDragging(bool dragging) => _vm.SetAdjustDragging(dragging);
+
+    // ----- Anlık Mos: the previous mosaic stays on screen until the new one is there -----
+    // Mos hides the mosaic while it works (the image would show); a still picture of the image area as it is now
+    // covers that time. Removed shortly after the new mosaic is up, so its tiles have been drawn.
+    private DispatcherTimer? _freezeTimer;
+
+    private void FreezeMosaicView()
+    {
+        _freezeTimer?.Stop();
+        if (liveMosFreeze.IsVisible) return;   // still showing the previous Mos's picture
+        double scale = RenderScaling;
+        var size = new PixelSize(
+            Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Width * scale)),
+            Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Height * scale)));
+        var rtb = new Avalonia.Media.Imaging.RenderTargetBitmap(size, new Vector(96 * scale, 96 * scale));
+        rtb.Render(imageScroller);
+        (liveMosFreeze.Source as IDisposable)?.Dispose();
+        liveMosFreeze.Source = rtb;
+        liveMosFreeze.Width = imageScroller.Bounds.Width;
+        liveMosFreeze.Height = imageScroller.Bounds.Height;
+        liveMosFreeze.IsVisible = true;
+    }
+
+    private void ReleaseMosaicFreeze()
+    {
+        if (!liveMosFreeze.IsVisible) return;
+        _freezeTimer ??= new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, (_, _) =>
+        {
+            _freezeTimer!.Stop();
+            if (_vm.LiveMosBusy) return;
+            liveMosFreeze.IsVisible = false;
+            (liveMosFreeze.Source as IDisposable)?.Dispose();
+            liveMosFreeze.Source = null;
+        });
+        _freezeTimer.Stop();
+        _freezeTimer.Start();
+    }
 
     private void OnTogglePadding(object? sender, RoutedEventArgs e)
     {
