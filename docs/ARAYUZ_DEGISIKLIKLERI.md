@@ -1,8 +1,27 @@
 # Arayüz değişiklikleri
 
-> Tarih: 2026-10-07 · Kapsam: yalnızca görünüm (renk, yazı, tutarlılık) ve yeni Görsel Ayarları paneli. Davranış, algoritmalar ve proje/robot (WPF) dosya biçimi değişmedi (yalnızca projeye isteğe bağlı `ImageAdjust` alanı eklendi; WPF onu yok sayar).
+> Tarih: 2026-10-07, 2026-10-08 · Kapsam: yalnızca görünüm (renk, yazı, tutarlılık) ve yeni Görsel Ayarları paneli. Davranış, algoritmalar ve proje/robot (WPF) dosya biçimi değişmedi (yalnızca projeye isteğe bağlı `ImageAdjust` alanı eklendi; WPF onu yok sayar).
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
+
+## 2026-10-08: Görsel Ayarları kendi sütununda, Photoshop gibi
+
+- **Yer:** Görsel Ayarları, Özellikler panelinin altından çıkıp görsel alanı ile Özellikler arasında **kendi sütununa** taşındı. Sütun 300 px açılır, solundaki ayırıcıyla **260–600 px** genişletilebilir (uzun kaydırıcı = daha ince ayar); Özellikler paneli bundan etkilenmez. Başlıktaki ▬ ya da **Görünüm → Görsel Ayarları** sütunu 24 px'lik şeride indirir; şeride tıklayınca eski genişliğiyle açılır. Özellikler şeridi yine tek sekme.
+- **İki sekme** (Photoshop'un Light ve Hue/Saturation panelleri gibi):
+  - **Işık:** Pozlama (±2.00 EV, iki ondalık), Parlaklık, Kontrast, **Parlak Alanlar**, **Gölgeler**, **Beyazlar**, **Siyahlar**, Gama.
+  - **Ton/Doygunluk:** **Ana** ve altı renk aralığı (Kırmızılar, Sarılar, Yeşiller, Camgöbekleri, Maviler, Eflatunlar) için **Ton** (±180°), **Doygunluk**, **Açıklık**; kendi ayarı olan aralıkta nokta; **Renklendir** (görselin tamamı tek tonda).
+- **Satır düzeni:** solda ad, sağda yazılabilir **değer kutusu** (`Enter` ile uygulanır), altında tam genişlikte kaydırıcı.
+- **Yeni kaydırıcı** (`AdjustSlider`): ince iz ve altında **küçük üçgen tutamaç** (Fluent kaydırıcısının yuvarlak tutamacı yerine). Ton, Doygunluk, Açıklık ve Pozlama izleri renk geçişlidir. `Shift` + sürükle dört kat yavaş ince ayar; tekerlek ±1 (`Ctrl` ±10); ok tuşları; sağ tık ya da `Delete` sıfırlar (ilk sürümde çift tıktı). Değer kutusuna yazılan sayı `Enter`'la ya da başka bir yere tıklanınca uygulanır.
+- **Anlık Mos:** sekmelerin yanında (ince bir çizgiden sonra) Kalıp Dolgu gibi basılı/basılı değil görünen bir düğme; **Araçlar → Anlık Mos** ile de açılır, her açılışta kapalıdır. Açıkken her ayar değişikliğinden sonra Mos kendiliğinden yapılır (Mos sürerken yapılan değişiklik sıraya girer; kaydırıcılar bu sırada kullanılabilir kalır; ilk mozaik pencereye sığdırılır). Kapalıyken mozaik varsa bir ayar değişince eskimiş mozaik yerine ayarlanmış görsel gösterilir ve bir sonraki Mos'a kadar öyle kalır.
+- **Ayarlı görsel kaydı:** ayar kullanılıyorsa Kaydet / Farklı Kaydet / Drive'a Kaydet `.mos`'un yanına görselin **ayarlı hâlini** orijinalin adıyla yazar (WPF ve robot proje klasöründeki ilk görseli kullandığı için onu görür); dokunulmamış orijinal `orijinal/<ad>` alt klasörüne kopyalanır ve projeye `OriginalPictureFileName` yazılır. Ayarsız kayıt orijinali geri koyar. Proje açılınca orijinal temel alınıp ayarlar yeniden uygulanır; `orijinal` kopyası yoksa (ör. Drive) ayarlı görsel temel alınır ve kaydırıcılar sıfırdan başlar.
+- **Kaydedilen dosya bildirimi:** sağ alttaki bildirim kutusu artık mosair'in yazdığı dosyalar için de çıkar (7 sn, fare üzerindeyken durur, ✕ kapatır). Dışa aktarma bitince **DIŞA AKTARILDI**, ekran görüntüsünden sonra **EKRAN GÖRÜNTÜSÜ KAYDEDİLDİ**: dosya adı, klasörün yolu, **Klasörü aç** (dosyayı Dosya Gezgini / Finder'da seçili gösterir) ve **Aç** (varsayılan programla açar); 64 MB'a kadar dosyalarda önizleme. Proje kaydından sonra **PROJE KAYDEDİLDİ**: **Kapat** ve **Klasörü aç**, önizleme olarak mozaiğin küçük görüntüsü. Drive'a kayıt için çıkmaz. Ayrıntı: [ARAYUZ.md → Kaydedilen dosya bildirimi](ARAYUZ.md#kaydedilen-dosya-bildirimi).
+- Proje dosyasına yeni `Adjust` nesnesi yazılır (ayar yoksa yazılmaz); ilk sürümün `ImageAdjust` dizisi hâlâ okunur. WPF ikisini de yok sayar.
+- Ayrıntı: [ARAYUZ.md → Görsel Ayarları](ARAYUZ.md#görsel-ayarları); kod: [ImageAdjustService](kod/Services/ImageAdjustService.md), [AdjustSlider](kod/Controls/AdjustSlider.md), [AdjustParam](kod/ViewModels/AdjustParam.md).
+- **Sol panel ölçü bölümü:** tek satır `[genişlik] × yükseklik cm = alan m²` (hepsi 16 px, kutudaki gibi noktalı; ör. `93.6 × 93.6 cm = 0.88 m²`), altında iki kart: `78 × 78 = 6.084 taş` ve `3 × 3 = 9 kalıp`. Eski ■ ▣ ○ satırları, kalıp satırındaki parantezli cm ölçüsü ve orijinal piksel ölçüsü (`orj im = …`) kaldırıldı; piksel ölçüsü Özellikler panelinde. Görsel yüklenmeden yalnızca kutu ve "cm" görünür.
+- **Proje Aç:** dosya seçme penceresi, varsa Masaüstü/mosairPROJECT klasöründe açılır.
+- **Görsele uyan arka plan:** görsel ya da proje yüklenince görsel alanı ve ölçü bölümü, görselin ortalama renginin sakin bir tonunu alır (tonu korunur, doygunluk düşük; koyu temada koyu, açık temada açık), 0,4 sn'lik yumuşak geçişle; tema değişince uyar, görsel yokken tema renkleri. Her zaman açık. Ekran görüntüsünün saydam kenarları da bu renkle dolar.
+
+## 2026-10-07
 
 ## 1. Vurgu rengi: yeşilden "Lapis" mavisine
 

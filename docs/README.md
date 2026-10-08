@@ -39,7 +39,8 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 
 | Belge | İçerik |
 |---|---|
-| [MainViewModel.md](kod/ViewModels/MainViewModel.md) | Arayüz durumu ve komutlar: görsel, Mos, Optimum, katalog, stok, Google Drive, piksel düzenleme, özellikler paneli |
+| [MainViewModel.md](kod/ViewModels/MainViewModel.md) | Arayüz durumu ve komutlar: görsel, Mos, Optimum, katalog, stok, Google Drive, piksel düzenleme, özellikler paneli, görsel ayarları |
+| [AdjustParam.md](kod/ViewModels/AdjustParam.md) | Görsel Ayarları satır ve renk aralığı görünüm modelleri |
 
 ### Servisler
 
@@ -53,7 +54,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ColorCatalogService.md](kod/Services/ColorCatalogService.md) | `colorsBas.txt` renk kataloğu |
 | [GamutMapper.md](kod/Services/GamutMapper.md) | Gamut eşleme yardımcıları |
 | [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
-| [ImageAdjustService.md](kod/Services/ImageAdjustService.md) | Görsel Ayarları: parlaklık, kontrast, doygunluk, gama |
+| [ImageAdjustService.md](kod/Services/ImageAdjustService.md) | Görsel Ayarları: ışık (pozlama, kontrast, parlak alanlar, gölgeler, beyazlar, siyahlar, gama) ve ton/doygunluk (renk aralıkları, renklendir) |
 | [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokularını yükleme, çizim anlık görüntüsü kurma |
 | [MosaicRenderSource.md](kod/Services/MosaicRenderSource.md) | Taş dokulu görüntüyü (RS) istenen bölge ve detayda çizme (ekran karoları, dışa aktarma) |
 | [MosaicExporter.md](kod/Services/MosaicExporter.md) | Dışa aktarma: seçilen görüntü kalitesiyle (taş başına piksel) boyut sınırı olmadan JPEG/PNG yazma (büyük PNG akışla, büyük JPEG tek tamponla), dosya boyutu tahmini |
@@ -81,6 +82,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [Controls/MosaicView.md](kod/Controls/MosaicView.md) | Mos'tan sonra taş dokulu mozaiği karolarla gösterme: yalnızca görünen kısım, zoom'a göre detay |
 | [Controls/GridOverlay.md](kod/Controls/GridOverlay.md) | Izgara çizimi |
 | [Controls/ActivityWave.md](kod/Controls/ActivityWave.md) | Durum çubuğundaki işlem dalgası animasyonu |
+| [Controls/AdjustSlider.md](kod/Controls/AdjustSlider.md) | Görsel Ayarları'nın ince kaydırıcısı (üçgen tutamaç, renk geçişli iz, ince ayar) |
 | [Converters/InvariantDoubleConverter.md](kod/Converters/InvariantDoubleConverter.md) | cm kutusu için sayı dönüştürücü |
 
 ## Mimari özet

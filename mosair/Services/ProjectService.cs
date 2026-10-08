@@ -37,11 +37,17 @@ namespace mosair.Services
         public byte GridColorG { get; set; }
         public byte GridColorB { get; set; }
         public int InterpolationMethod { get; set; }
-        // Görsel Ayarları [brightness, contrast, saturation, gamma] (-100..100); absent when nothing was adjusted.
+        // Görsel Ayarları of the first version: [brightness, contrast, saturation, gamma]; read for older
+        // projects, no longer written.
         public int[]? ImageAdjust { get; set; }
+        // Görsel Ayarları (light and hue/saturation settings); absent when nothing was adjusted.
+        public ImageAdjustSettings? Adjust { get; set; }
         public double ZoomLevel { get; set; } = 1;
         public double WidthCm { get; set; }
         public string? PictureFileName { get; set; }
+        // Set when the picture beside the project is the image with its Görsel Ayarları applied (what WPF and the
+        // robot use): the untouched original is then kept in a subfolder, e.g. "orijinal/7.jpg".
+        public string? OriginalPictureFileName { get; set; }
         public int[]? Arn { get; set; }
         public string? Source { get; set; }
 
@@ -128,16 +134,26 @@ namespace mosair.Services
         // WriteSnapshot on a worker).
         public sealed class ProjectSnapshot
         {
-            internal ProjectSnapshot(ProjectData data, string? pictureSource)
+            internal ProjectSnapshot(ProjectData data, string? pictureSource, SKBitmap? adjustedImage)
             {
                 Data = data;
                 PictureSource = pictureSource;
+                AdjustedImage = adjustedImage;
             }
 
             internal ProjectData Data { get; }
-            // The loaded image, copied next to the project; null when no image is loaded.
+            // The loaded image (its original file), copied next to the project; null when no image is loaded.
             internal string? PictureSource { get; }
+            // A copy of the image with the Görsel Ayarları applied; null when nothing is adjusted. Written beside the
+            // project in place of the original, which goes to the "orijinal" subfolder.
+            internal SKBitmap? AdjustedImage { get; }
+            // Where the original is after the save when it was moved aside (the session keeps using it), else null.
+            public string? OriginalMovedTo { get; internal set; }
         }
+
+        // The subfolder that keeps the untouched original next to an adjusted picture. WPF looks for the picture
+        // only in the project folder itself, so it uses the adjusted one.
+        public const string OriginalFolder = "orijinal";
 
         // Saves in one go (the snapshot and the file); used where blocking is fine (tools, tests).
         public static void Save(string filePath, double widthCm, double zoomLevel,
@@ -151,7 +167,7 @@ namespace mosair.Services
         // Copies what the project file needs (arrays, palettes, edits, settings). Fast: array copies only.
         public static ProjectSnapshot CreateSnapshot(double widthCm, double zoomLevel,
             bool showGrid, bool showMouldLines, byte gcR, byte gcG, byte gcB,
-            int interpMethod, int[]? imageAdjust = null)
+            int interpMethod, ImageAdjustSettings? adjust = null)
         {
             var data = new ProjectData
             {
@@ -166,7 +182,7 @@ namespace mosair.Services
                 GridColorG = gcG,
                 GridColorB = gcB,
                 InterpolationMethod = interpMethod,
-                ImageAdjust = imageAdjust,
+                Adjust = adjust,
                 ZoomLevel = zoomLevel,
                 WidthCm = widthCm,
             };
@@ -262,7 +278,12 @@ namespace mosair.Services
 
             string? picture = MosaicData.inputBitmap != null && !string.IsNullOrEmpty(CurrentPictureFileName)
                 ? CurrentPictureFileName : null;
-            return new ProjectSnapshot(data, picture);
+            // With adjustments the adjusted image is saved as the project's picture (copied now: the live one can
+            // be replaced while the file is written in the background).
+            SKBitmap? adjusted = picture != null && adjust != null && MosaicData.inputBitmap != null &&
+                                 !ReferenceEquals(MosaicData.inputBitmap, MosaicData.sourceBitmap)
+                ? MosaicData.inputBitmap.Copy() : null;
+            return new ProjectSnapshot(data, picture, adjusted);
         }
 
         // Writes the project file (and copies the loaded image next to it when that folder does not have it yet).
@@ -277,10 +298,36 @@ namespace mosair.Services
 
             if (snapshot.PictureSource != null)
             {
-                string picDest = Path.Combine(dir, Path.GetFileName(snapshot.PictureSource));
-                if (!File.Exists(picDest) && File.Exists(snapshot.PictureSource))
-                    File.Copy(snapshot.PictureSource, picDest, true);
-                data.PictureFileName = Path.GetFileName(picDest);
+                string name = Path.GetFileName(snapshot.PictureSource);
+                string picDest = Path.Combine(dir, name);
+                string origDest = Path.Combine(dir, OriginalFolder, name);
+                try
+                {
+                    if (snapshot.AdjustedImage != null)
+                    {
+                        // The original first (it may be the very file about to be replaced), then the adjusted image.
+                        if (!File.Exists(origDest) && File.Exists(snapshot.PictureSource))
+                        {
+                            Directory.CreateDirectory(Path.GetDirectoryName(origDest)!);
+                            File.Copy(snapshot.PictureSource, origDest);
+                        }
+                        if (SamePath(snapshot.PictureSource, picDest)) snapshot.OriginalMovedTo = origDest;
+                        WriteImage(snapshot.AdjustedImage, picDest);
+                        data.OriginalPictureFileName = OriginalFolder + "/" + name;
+                    }
+                    else if (File.Exists(origDest))
+                    {
+                        // No adjustments now, but an earlier save left the adjusted image here: the original back.
+                        if (!SamePath(origDest, picDest)) File.Copy(origDest, picDest, true);
+                    }
+                    else if (!File.Exists(picDest) && File.Exists(snapshot.PictureSource))
+                        File.Copy(snapshot.PictureSource, picDest, true);
+                }
+                finally
+                {
+                    snapshot.AdjustedImage?.Dispose();
+                }
+                data.PictureFileName = name;
             }
 
             string part = filePath + ".part";
@@ -307,6 +354,8 @@ namespace mosair.Services
             public string FilePath { get; }
             // The project's image beside the file ("" when the project names none; it may not exist).
             public string PicturePath { get; internal set; } = "";
+            // The untouched original kept in the "orijinal" subfolder ("" when the picture itself is the original).
+            public string OriginalPicturePath { get; internal set; } = "";
             public byte[,,] DataM3 => _m3;
 
             internal byte[,,] _m1 = null!, _m3 = null!, _m3f = null!, _m3b = null!;
@@ -396,7 +445,35 @@ namespace mosair.Services
 
             if (data.PictureFileName != null)
                 p.PicturePath = Path.Combine(Path.GetDirectoryName(filePath)!, data.PictureFileName);
+            if (data.OriginalPictureFileName != null)
+                p.OriginalPicturePath = Path.Combine(Path.GetDirectoryName(filePath)!, data.OriginalPictureFileName);
             return p;
+        }
+
+        private static bool SamePath(string a, string b) =>
+            string.Equals(Path.GetFullPath(a), Path.GetFullPath(b), StringComparison.OrdinalIgnoreCase);
+
+        // The adjusted picture, in the original's format when Skia can write it (JPEG at quality 95 or PNG; other
+        // formats as PNG under the same name: WPF and mosair read images by content). Written under a temporary
+        // name and moved over the target.
+        private static void WriteImage(SKBitmap bitmap, string path)
+        {
+            string ext = Path.GetExtension(path).ToLowerInvariant();
+            var format = ext is ".jpg" or ".jpeg" ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png;
+            string part = path + ".part";
+            try
+            {
+                using (var image = SKImage.FromBitmap(bitmap))
+                using (var encoded = image.Encode(format, 95))
+                using (var fs = new FileStream(part, FileMode.Create, FileAccess.Write, FileShare.None, 1 << 20))
+                    encoded.SaveTo(fs);
+                File.Move(part, path, overwrite: true);
+            }
+            catch
+            {
+                try { File.Delete(part); } catch { }
+                throw;
+            }
         }
 
         // Puts a read project into the live state (UI thread; fast, no file access).

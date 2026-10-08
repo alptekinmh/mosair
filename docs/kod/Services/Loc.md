@@ -1,6 +1,6 @@
 # Loc
 
-> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-07
+> Kaynak: `mosair/Services/Loc.cs` · Güncelleme: 2026-10-08
 
 ## Amaç
 
@@ -11,7 +11,7 @@ Uygulamanın Türkçe/İngilizce arayüz metinlerini sağlayan basit yerelleşti
 | Çağıran | Kullanım |
 |---|---|
 | `MainWindow.axaml`, `HelpWindow.axaml` | `{Binding [Anahtar], Source={x:Static svc:Loc.Instance}}` indeksleyici bağlaması; `IsTr`/`IsEn` ile dile göre görünürlük; `KeyMod*` kısayol metinleri |
-| `MainWindow.axaml.cs` | Dışa aktarma listesinin kodla kurulan öğeleri (`MenuExport`, `MenuExportAs`, `ExportChooseQuality` bağlamaları); yeni görsel bildiriminin başlığı ve geri sayımı (`ToastNewDownload` / `ToastNewDesktop`, `ToastSeconds`) ve `StatusToastBusy`; dil menüsü: `Loc.Instance.Lang = "tr"` / `"en"`, ardından `MainViewModel.RefreshLocalized()` |
+| `MainWindow.axaml.cs` | Dışa aktarma listesinin kodla kurulan öğeleri (`MenuExport`, `MenuExportAs`, `ExportChooseQuality` bağlamaları); sağ alt bildirimin başlıkları, düğme metinleri ve geri sayımı (`ToastNewDownload` / `ToastNewDesktop`, `ToastQuestion`, `ToastExported`, `ToastScreenshotSaved`, `ToastProjectSaved`, `ToastOpen`, `ToastOpenFile`, `ToastShowFolder`, `ToastDismiss`, `ToastSeconds`) ve `StatusToastBusy`; dil menüsü: `Loc.Instance.Lang = "tr"` / `"en"`, ardından `MainViewModel.RefreshLocalized()` |
 | `MainViewModel` | Durum, uyarı, dışa aktarma seçeneği, stok ve Google Drive metinleri için `Loc.Get` / `Loc.Fmt`; `PropertyChanged` ile `Lang` değişimini dinler |
 | `HelpWindow.axaml.cs` | `Loc.Instance.Lang`'a göre TR/EN bölümleri seçer |
 | `AlertDialog`, `ConfirmDialog`, `StockSettingsDialog`, `DriveSettingsDialog`, `DriveOpenDialog` | Düğme ve etiket metinleri |
@@ -44,7 +44,7 @@ Bu metinler yalnızca gösterim içindir; gerçek tuş bağlamaları başka yerd
 
 ### Anahtar grupları
 
-Her iki sözlükte de **298** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
+Her iki sözlükte de **323** anahtar vardır ve anahtar kümeleri birebir aynıdır. Gruplar önek ile ayrılır:
 
 | Önek | Sayı | İçerik |
 |---|---|---|
@@ -52,16 +52,16 @@ Her iki sözlükte de **298** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Drive*` | 29 | Google Drive: ayar penceresi (`DriveSettingsTitle`, `DriveFolder*`, `DriveScriptUrl*`, `DriveSteps*`, `DriveCopyScript`, `DriveTest*`, `DriveScriptCopied`, `DriveSettingsNote`, `DriveSettingsSaved`), Drive'dan Aç proje tarayıcısı (`DriveOpen*`, `DriveRefresh`, `DriveShowInBrowser`, `DriveSearch`, `DriveSortNewest`, `DriveSortName`, `DriveNoMatch`), uyarı ve hata metinleri (`DriveNotConfigured`, `DriveErrDeploy`, `DriveNoMosaic`, `DriveFailed`) |
 | `Menu*` | 46 | Menü başlıkları ve öğeleri (Dosya, Düzen, Görünüm, Araçlar, Stok, Yardım…; `MenuStockAware`, Görünüm'deki `MenuPropertiesPanel`, `MenuAdjustPanel` ("Görsel Ayarları"; şeritteki sekme de bunu yazar) ve `MenuSmoothMouse`, Dosya'daki `MenuScreenshot`, `MenuWatchImages` ve `MenuDrive` alt menüsü (`MenuDriveSave`, `MenuDriveOpen`, `MenuDriveSettings`), Düzen'deki `MenuCancelWork` dahil) |
 | `Status*` | 34 | Durum çubuğu metinleri (çoğu biçim dizesi); arka planda proje kaydetme/açma için `StatusSavingProject` ("Proje kaydediliyor: {0}") ve `StatusOpeningProject` ("Proje açılıyor: {0}"); yeni görsel bildiriminde **Aç** iş sürerken basılınca `StatusToastBusy`; Drive işlemleri için `StatusDriveSaving`, `StatusDriveSaved`, `StatusDriveListing`, `StatusDriveDownloading`; büyük dışa aktarmanın yüzde ilerlemesi için `StatusExportingPct`, ekran görüntüsü için `StatusScreenshotSaved` ve iptal metinleri (`StatusCancelling`, `StatusMosCancelled`, `StatusMosCancelledCleared`, `StatusStockFitCancelled`, `StatusStockCheckCancelled`, `StatusExportCancelled`) dahil |
-| `Tip*` | 31 | Araç çubuğu, Görsel Ayarları (`TipAdjust` başlık, `TipAdjSlider` "Çift tıklayınca sıfırlanır", `TipAdjustShow` şerit sekmesi), Kalıp Dolgu düğmesi (`TipPadding`), stok düğmesi, Google Drive düğmesi (`TipDrive`), "Stoğa göre" kutusu (`TipStockAware`), durum çubuğundaki İptal düğmesi (`TipCancel`) ve Özellikler panelinin gizle/göster düğmeleriyle seçimi bırakma düğmesi (`TipPanelHide`, `TipPanelShow`, `TipClearSelection`) ipuçları |
+| `Tip*` | 33 | Araç çubuğu, Görsel Ayarları (`TipAdjust` başlık, `TipAdjSlider` "Sağ tıklayınca sıfırlanır", `TipAdjustShow` gizli sütunun şeridi, `TipAdjColorize` Renklendir kutusu, `TipAdjLiveMos` Anlık Mos düğmesi), Kalıp Dolgu düğmesi (`TipPadding`), stok düğmesi, Google Drive düğmesi (`TipDrive`), "Stoğa göre" kutusu (`TipStockAware`), durum çubuğundaki İptal düğmesi (`TipCancel`) ve Özellikler panelinin gizle/göster düğmeleriyle seçimi bırakma düğmesi (`TipPanelHide`, `TipPanelShow`, `TipClearSelection`) ipuçları |
 | `Alert*` | 17 | Uyarı diyaloğu başlık/gövde çiftleri (`*Title` / `*Body`, `*Failed` vb.; Drive uyarılarının başlığı `AlertDriveTitle`); `AlertMemoryBody` yalnızca cm değerini küçültmeyi önerir |
 | `Prop*` | 24 | Özellikler paneli etiketleri ve biçimleri; taş seçili değilken görünen görsel bilgisi kartları (`PropImage`, `PropDetails` ve Ayrıntılar satırları `PropResolution`, `PropMegapixels`, `PropAspect`, `PropFileSize`, `PropModified`; `PropImageColors`, `PropTopStones`, `PropStoneHint`, `PropNoImage`, `PropImageMissing`) |
-| `Adj*` | 7 | Görsel Ayarları bölümü: başlık `AdjTitle` ("GÖRSEL AYARLARI"), kaydırıcı etiketleri `AdjBrightness`, `AdjContrast`, `AdjSaturation`, `AdjGamma`, `AdjReset` ("Sıfırla"), Mos'tan sonra ayar değişince durum notu `AdjNeedsMos` |
-| `Toast*` | 6 | Yeni görsel bildirimi: başlıklar (`ToastNewDownload`, `ToastNewDesktop`), soru (`ToastQuestion`), düğmeler (`ToastOpen`, `ToastDismiss`), geri sayım biçimi (`ToastSeconds`, `{0} sn` / `{0} s`) |
+| `Adj*` | 26 | Görsel Ayarları sütunu: başlık `AdjTitle` ("GÖRSEL AYARLARI"), sekmeler `AdjTabLight` ("Işık") / `AdjTabColor` ("Ton/Doygunluk"), Anlık Mos düğmesi ve Araçlar menüsü `AdjLiveMos` ("Anlık Mos"), Işık satırları `AdjExposure`, `AdjBrightness`, `AdjContrast`, `AdjHighlights`, `AdjShadows`, `AdjWhites`, `AdjBlacks`, `AdjGamma`, renk satırları `AdjHue`, `AdjSaturation`, `AdjLightness`, renk aralıkları `AdjRange0`…`AdjRange6` ("Ana (tüm renkler)", "Kırmızılar", "Sarılar", "Yeşiller", "Camgöbekleri", "Maviler", "Eflatunlar"), `AdjColorize` ("Renklendir"), alttaki kısayol ipucu `AdjHint`, `AdjReset` ("Sıfırla"), Mos'tan sonra ayar değişince durum notu `AdjNeedsMos` |
+| `Toast*` | 11 | Sağ alt bildirim. Yeni görsel: başlıklar (`ToastNewDownload`, `ToastNewDesktop`), soru (`ToastQuestion`), düğmeler (`ToastOpen`, `ToastDismiss`). Kaydedilen dosya: başlıklar `ToastExported` ("DIŞA AKTARILDI"), `ToastScreenshotSaved` ("EKRAN GÖRÜNTÜSÜ KAYDEDİLDİ"), `ToastProjectSaved` ("PROJE KAYDEDİLDİ"), düğmeler `ToastOpenFile` ("Aç") ve `ToastShowFolder` ("Klasörü aç" / "Show in folder"). Geri sayım biçimi (`ToastSeconds`, `{0} sn` / `{0} s`) |
 | `Dlg*` | 10 | Diyalog düğmeleri (`DlgYes`, `DlgNo`…) ve dosya diyaloğu başlıkları |
 | `Export*` | 10 | Dışa aktarma listesi ve uyarıları: alt menü başlığı (`ExportChooseQuality`), seçenek metinleri (`ExportDimsPx`, `ExportChoiceQuick`, `ExportChoiceAs`, `ExportChoiceAsPngOnly`, varsayılan kalitenin işareti `ExportDefaultQuality` = "(varsayılan)", `ExportEstimating`), JPEG uyarı/onayları (`ExportJpegTooLarge`, `ExportJpegMemoryConfirm`, `ExportJpegFailed`) |
 | `Lbl*` | 6 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
-| `Info*` | 3 | Boyut bilgisi biçimleri; `InfoMoulds` tam kalıp sayısını ve kalıplı ölçüyü verir ("{0} x {1} = {2} kalip ({3} x {4} cm)") |
+| `Info*` | 2 | Sol paneldeki kartlar: `InfoStones` ("{0} × {1} = {2} taş") ve `InfoMoulds` ("{0} × {1} = {2} kalıp"); EN "stones" / "moulds". `InfoOriginal` kaldırıldı. |
 | `Pad*` | 6 | Tam kalıba tamamlama: diyalog başlığı `PadTitle`, durum notları `PadDone` ("Kalıba tamamlandı: {0} dolgu taşı ({1})"), `PadNoStock`, `PadNoStone`, kapatınca `PadRemoved` ("Kalıp dolgusu kaldırıldı"), dolgu alanında düzenleme engeli `PadNoEdit` |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
 | `Btn*` | 4 | Tümünü seç / seçimi kaldır, Kalıp Dolgu düğmesi ve Araçlar menüsündeki öğesi (`BtnPadding`: "Kalıp Dolgu" / "Mould Fill"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |

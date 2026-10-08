@@ -1,12 +1,12 @@
 # DriveService
 
-> Kaynak: `mosair/Services/DriveService.cs` (+ `mosair/Assets/mosair-drive.gs`) · Güncelleme: 2026-10-06
+> Kaynak: `mosair/Services/DriveService.cs` (+ `mosair/Assets/mosair-drive.gs`) · Güncelleme: 2026-10-08
 
 ## Amaç
 
 Projeleri (`.mos`) orijinal görselleriyle birlikte bir Google Drive klasörüne kaydetmek ve oradan açmak. Uygulamada Google oturumu açılmaz: stok tablosundaki gibi, kullanıcının kendi hesabında yayınladığı küçük bir Apps Script web uygulamasına ([`Assets/mosair-drive.gs`](#apps-script-assetsmosair-drivegs)) JSON `POST` gönderilir; Drive'a script yazar ve okur. Dosyalar gidiş ve dönüşte gzip ile sıkıştırılır ve base64 olarak taşınır.
 
-Klasör düzeni masaüstündeki **mosairPROJECT** ile aynıdır: her proje Drive klasörünün içinde görselin adını taşıyan bir alt klasöre konur; içinde `<ad>.mos` ve orijinal görsel bulunur.
+Görsel Ayarları kullanılan projede gönderilen görsel, `ProjectService.WriteSnapshot`'ın proje yanına yazdığı **ayarlı** görseldir (`orijinal/` alt klasörü gönderilmez); Drive klasöründe görsel zaten varsa script onu değiştirmez. Klasör düzeni masaüstündeki **mosairPROJECT** ile aynıdır: her proje Drive klasörünün içinde görselin adını taşıyan bir alt klasöre konur; içinde `<ad>.mos` ve orijinal görsel bulunur.
 
 ## Nerede kullanılır
 

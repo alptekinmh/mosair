@@ -1,6 +1,6 @@
 # ProjectService
 
-> Kaynak: `mosair/Services/ProjectService.cs` · Güncelleme: 2026-10-07
+> Kaynak: `mosair/Services/ProjectService.cs` · Güncelleme: 2026-10-08
 
 ## Amaç
 
@@ -49,10 +49,12 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `ShowGrid`, `ShowMouldLines` | `bool` | `false` | Görünüm ayarları |
 | `GridColorR/G/B` | `byte` | 0 | Izgara rengi |
 | `InterpolationMethod` | `int` | 0 | `InterpolationMethod` enum değeri |
-| `ImageAdjust` | `int[]?` | `null` | Görsel Ayarları: `[parlaklık, kontrast, doygunluk, gama]` (her biri −100…100). Hiçbir ayar yoksa yazılmaz (`WhenWritingNull`), böylece ayarsız projelerin dosyası değişmez. WPF bu alanı bilmez ve yok sayar. Açarken `ImageAdjustments.FromArray` ile okunur. |
+| `ImageAdjust` | `int[]?` | `null` | Görsel Ayarları'nın ilk sürümü: `[parlaklık, kontrast, doygunluk, gama]`. Artık yazılmaz; yalnızca eski projeler için okunur (`Adjust` yoksa `ImageAdjustSettings.FromLegacy`). |
+| `Adjust` | `ImageAdjustSettings?` | `null` | Görsel Ayarları: Işık (pozlama, parlaklık, kontrast, parlak alanlar, gölgeler, beyazlar, siyahlar, gama) ve Ton/Doygunluk (7 renk aralığı için ton/doygunluk/açıklık, Renklendir) değerleri, iç içe JSON nesnesi olarak ([ImageAdjustService](ImageAdjustService.md)). Hiçbir ayar yoksa yazılmaz (`WhenWritingNull`), böylece ayarsız projelerin dosyası değişmez. WPF bu alanı bilmez ve yok sayar. |
 | `ZoomLevel` | `double` | 1 | Yakınlaştırma |
 | `WidthCm` | `double` | 0 | Mozaik genişliği (cm) |
-| `PictureFileName` | `string?` | `null` | Kaynak görselin yalnızca dosya adı (proje klasörüne göre) |
+| `PictureFileName` | `string?` | `null` | Proje yanındaki görselin yalnızca dosya adı (proje klasörüne göre). Görsel Ayarları kullanılıyorsa bu dosya **ayarlı** görseldir (WPF ve robot onu kullanır) |
+| `OriginalPictureFileName` | `string?` | `null` | Yalnızca proje yanındaki görsel ayarlıysa: dokunulmamış orijinalin yeri, `"orijinal/<ad>"` (`OriginalFolder` alt klasörü; WPF alt klasörlere bakmaz) |
 | `Arn` | `int[]?` | `null` | Taş başına doku varyant indeksi (`MosaicData.arn`) |
 | `Source` | `string?` | `null` | mosair her zaman `"mosair"` yazar; yön düzeltmesi bu işarete bakar |
 | `WpfExtra` | `Dictionary<string, JsonElement>?` | `null` | `[JsonExtensionData]`: tanınmayan (WPF'e özgü) tüm alanlar |
@@ -64,7 +66,9 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | Ad | Tip | Açıklama |
 |---|---|---|
 | `Data` (internal) | `ProjectData` | Yazılacak veri (`PictureFileName` henüz boş) |
-| `PictureSource` (internal) | `string?` | Yüklü görselin yolu (`inputBitmap` varsa ve `CurrentPictureFileName` doluysa); yoksa `null` |
+| `PictureSource` (internal) | `string?` | Yüklü görselin (orijinal dosyanın) yolu (`inputBitmap` varsa ve `CurrentPictureFileName` doluysa); yoksa `null` |
+| `AdjustedImage` (internal) | `SKBitmap?` | `adjust` verilmişse ve `inputBitmap` `sourceBitmap`'ten farklıysa `inputBitmap.Copy()` (canlı bitmap yazma sırasında değişebileceği için kopya); yoksa `null`. `WriteSnapshot` yazdıktan sonra serbest bırakır |
+| `OriginalMovedTo` | `string?` | Yazma sonrası: görsel kendi klasörüne kaydedildiyse ve ayarlı görsel onun yerine yazıldıysa orijinalin yeni yolu (`orijinal/<ad>`); değilse `null`. `SaveProjectAsync` bunu `CurrentPictureFileName`'e yazar |
 
 ### `LoadedProject` (açma ara nesnesi)
 
@@ -75,6 +79,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `Data` | `ProjectData` | Çözülen JSON |
 | `FilePath` | `string` | Açılan `.mos` yolu |
 | `PicturePath` | `string` | Proje klasörüne göre çözülmüş görsel yolu; dosyada ad yoksa `""` (dosya diskte olmayabilir) |
+| `OriginalPicturePath` | `string` | `OriginalPictureFileName` proje klasörüne göre çözülmüş hâli; alan yoksa `""` (dosya diskte olmayabilir) |
 | `DataM3` | `byte[,,]` | Hazır `dataM3` (çağıran arka planda taş renkli bitmap'i bundan üretir) |
 | `_m1`, `_m3`, `_m3f`, `_m3b`, `_dat` (internal) | diziler | Kurulmuş (WPF dosyasında aynalanmış) `dataM1/M3/M3F/M3Backup` ve `drl.dat` |
 | `_all`, `_rgb`, `_ma`, `_mb`, `_mbr` (internal) | `rgb` listeleri | `arRGBAll`, `arRGB`, `arMA/arMB/arMBR` |
@@ -129,8 +134,8 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
-| `CreateSnapshot(widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod, imageAdjust = null)` → `ProjectSnapshot` | `MosaicData`, `MosaicEngine`, `drl` ve `PixelEditService.EditedPixels` durumunu `ProjectData`'ya kopyalar (palet enjeksiyonu dahil); `imageAdjust` (`MainViewModel.ImageAdjustArray`) `ImageAdjust` alanına yazılır. Hızlıdır; UI iş parçacığında çağrılır. Dosyaya dokunmaz | `MainViewModel.CreateProjectSnapshot` (`SaveProjectAsync`, `SaveToDriveAsync`), `Save` |
-| `WriteSnapshot(snapshot, filePath)` | Klasörü oluşturur, görseli (yoksa) yanına kopyalar ve `PictureFileName`'i yazar, JSON'u doğrudan bir `FileStream` ile `<dosya>.part`'a yazar, sonra `File.Move(..., overwrite: true)` ile hedefin üzerine taşır. Hata olursa `.part` silinir ve hata çağırana yükselir. Yalnızca anlık kopyayı kullanır, arka planda çalışabilir. `CurrentFileName`'i değiştirmez | `MainViewModel.SaveProjectAsync` ve `SaveToDriveAsync` (`Task.Run` içinde), `Save` |
+| `CreateSnapshot(widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod, adjust = null)` → `ProjectSnapshot` | `MosaicData`, `MosaicEngine`, `drl` ve `PixelEditService.EditedPixels` durumunu `ProjectData`'ya kopyalar (palet enjeksiyonu dahil); `adjust` (`MainViewModel.AdjustSettingsForSave`, bağımsız kopya ya da `null`) `Adjust` alanına yazılır. Hızlıdır; UI iş parçacığında çağrılır. Dosyaya dokunmaz | `MainViewModel.CreateProjectSnapshot` (`SaveProjectAsync`, `SaveToDriveAsync`), `Save` |
+| `WriteSnapshot(snapshot, filePath)` | Klasörü oluşturur, görseli yanına koyar (aşağıda "Ayarlı görsel") ve `PictureFileName`'i yazar, JSON'u doğrudan bir `FileStream` ile `<dosya>.part`'a yazar, sonra `File.Move(..., overwrite: true)` ile hedefin üzerine taşır. Hata olursa `.part` silinir ve hata çağırana yükselir. Yalnızca anlık kopyayı kullanır, arka planda çalışabilir. `CurrentFileName`'i değiştirmez | `MainViewModel.SaveProjectAsync` ve `SaveToDriveAsync` (`Task.Run` içinde), `Save` |
 | `Save(filePath, widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod)` | `CreateSnapshot` + `WriteSnapshot`, ardından `CurrentFileName = filePath` (engelleyici) | Araçlar ve testler |
 | `ReadProject(filePath)` → `LoadedProject?` | Dosyayı akış olarak okuyup çözer, dizileri ve listeleri kurar, WPF dosyasında aynalar, görsel yolunu çözer. Global duruma dokunmaz; arka planda çalışabilir. Dosya yoksa veya JSON değilse `null`; G/Ç hataları (erişim yok, kilitli) çağırana yükselir | `MainViewModel.OpenProjectAsync` (`Task.Run` içinde), `Open` |
 | `ApplyProject(loaded)` | Hazır veriyi global duruma koyar: `_wpfExtra`, diziler, katalog ve paletler, `arcs`, `PixelEditService.Reset()` + düzenlemeler, bölgeler, `MosaicEngine.width/height/rgbM`, `MosaicEngine.ForgetPadding()` (açılan projenin dolgusu mozaiğin sıradan bir parçasıdır), `MosaicData.N`, `arn` (ya da yeni rastgele varyantlar), `CurrentFileName`, `CurrentPictureFileName`. Dosya erişimi yok, hızlıdır | `MainViewModel.OpenProjectAsync`, `Open` |
@@ -153,6 +158,13 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 - **Doğrulama (2026-10-07).** Eski (tek adımlı) ve yeni kod 9 projeyle (5 gerçek proje, WPF kaynaklı aynalanan, düzenlenmiş pikselli, görseli eksik, varyantı kayıtsız) ve 2,8 milyon taşlık bir projeyle karşılaştırıldı: kaydedilen dosyalar bayt bayt aynı, açılan durum alan alan aynı (yalnızca varyantı kayıtsız dosyanın rastgele varyantları farklı; bu her açılışta zaten farklıdır). Süreler: 2,8 milyon taş (62 MB) / 6,25 milyon taş (140 MB) için kaydetme pencerede 23 / 45 ms + arka planda 0,23 / 0,35 sn; açma arka planda 1,34 / 1,72 sn + pencerede yaklaşık 1 ms. Eski kod bu sürelerin tamamında pencereyi donduruyordu.
 - **Palet enjeksiyonu (yalnızca dosyada).** Düzenlenen bir pikselin `Source` rengi `ArMA[0]`'da yoksa, `MosaicData.arRGBAll`'dan bulunur ve `ArMA[0]`'a (varsa `ArMB[0]`'a da) eklenir: `BoolLeaveOut = false`, `NumOfPixel` en az 1, `MarkAsPaletteEntry` ile `U = sıra no`, `Reg = 1`, `Ri/Gi/Bi = R/G/B`. Böylece WPF bu taşı paletinde görür. Bellekteki `MosaicData.arMA` değişmez.
 - **Görsel kopyalama.** `inputBitmap` varsa ve `CurrentPictureFileName` doluysa (anlık kopyada `PictureSource`), `WriteSnapshot` görseli proje klasöründe yoksa oraya kopyalar; `PictureFileName` yalnızca dosya adını tutar. `ReadProject` bu adı proje klasörüne göre çözer, `ApplyProject` `CurrentPictureFileName`'e yazar; alan yoksa `CurrentPictureFileName = ""` yapılır (stok sütunu bu ada göre seçildiği için önceki görselin adı taşınmaz).
+- **Ayarlı görsel (Görsel Ayarları).** Anlık kopyada `AdjustedImage` varsa `WriteSnapshot`:
+  1. Orijinali (`PictureSource`) önce `orijinal/<ad>`'a kopyalar (orada yoksa; orijinal, birazdan üzerine yazılacak dosyanın kendisi olabilir).
+  2. Ayarlı görseli `.mos`'un yanına orijinalin adıyla yazar (`WriteImage`: `.jpg`/`.jpeg` için JPEG kalite 95, diğerleri aynı adla PNG içeriği; `<ad>.part` + `File.Move`). Kaynak bu dosyanın kendisiyse `OriginalMovedTo` doldurulur.
+  3. `OriginalPictureFileName = "orijinal/<ad>"` yazar; ayarlar `Adjust`'ta kalır.
+
+  Ayar yoksa ve klasörde `orijinal/<ad>` varsa (önceki kayıt ayarlıydı) orijinal yeniden `.mos`'un yanına kopyalanır; ayar yoksa ve böyle bir kopya yoksa eski kural geçerlidir (görsel yoksa kopyalanır). Böylece proje klasöründe her zaman tek görsel bulunur ve WPF onu kullanır.
+- **Ayarlı projeyi açma.** `MainViewModel.OpenProjectAsync` `OriginalPicturePath` diskte varsa onu temel alır, `CurrentPictureFileName`'i ona çevirir ve `Adjust`'ı yeniden uygular. `OriginalPictureFileName` yazılı ama kopya yoksa (ör. Drive'dan açılan proje; Drive'a yalnızca proje yanındaki görsel gider) ayarlı görsel temel alınır ve ayarlar sıfırlanır (ikinci kez uygulanmasın diye). Alan yoksa (eski projeler) eskisi gibi.
 - **Düzleştirme.** 3B diziler `Buffer.BlockCopy` ile tek boyutlu diziye çevrilir; `byte[]` JSON'da base64 olarak yazılır. `Unflatten3D` veri yoksa `byte[3,3,3]`, `UnflattenInt3D` ise `int[1,1,4]` döner (Reset varsayılanlarıyla aynı).
 - `ApplyProject`, `MosaicData.arcs`'ı `arRGBAll[i].boolLeaveOut` değerlerinden yeniden kurar. `PixelEditService.Reset()` ile önceki projenin düzenlemelerini, geri al/yinele geçmişini ve düzenleme modunu sıfırlar, sonra `PixelEditService.EditedPixels`'i dosyadan doldurur.
 - **Doku varyantları.** `Arn` dosyada varsa ve uzunluğu `satır × sütun` ise kullanılır. Yoksa ya da boyut uymuyorsa `StoneTextureService.PopulateRandomIndices` ile Mos sonrasındaki gibi yeni rastgele varyantlar seçilir; önceki projeden kalan dizi asla kullanılmaz.

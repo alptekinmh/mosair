@@ -34,7 +34,7 @@ Avalonia `Application` sınıfı. Uygulama genelindeki temayı (Fluent, koyu) y�
 | Anahtar | Koyu | Açık | Kullanım |
 |---|---|---|---|
 | `BgMain` / `BgBar` / `BgPanel` | `#18191C` / `#1D1E22` / `#222328` | `#F3F4F6` / `#E9EBEE` / `#E3E5E9` | Pencere, çubuklar, paneller |
-| `BgInput` / `BgCard` / `BgCanvas` | `#16171A` / `#2A2B31` / `#2C2D31` | `#FFFFFF` / `#FBFBFC` / `#E6E7EA` | Giriş/kart, iletişim kutusu, görsel alanı (nötr gri; taş renkleri yanıltmasın diye) |
+| `BgInput` / `BgCard` / `BgCanvas` | `#16171A` / `#2A2B31` / `#2C2D31` | `#FFFFFF` / `#FBFBFC` / `#E6E7EA` | Giriş/kart, iletişim kutusu, görsel alanı (nötr gri; taş renkleri yanıltmasın diye). Görsel yüklenince MainWindow görsel alanını ve ölçü bölümünü görselin rengine uyan sakin bir tonla boyar (`ApplyImageTint`); `BgCanvas` / `BgBar` görsel yokken kullanılır. |
 | `BgHover` / `BgPressed` | `#33343B` / `#3C3D45` | `#D8DBE0` / `#CDD0D6` | Üzerine gelme / basılı |
 | `BrdrMain` / `BrdrSec` / `BrdrTer` | `#303137` / `#41424A` / `#6B6C76` | `#D0D3D9` / `#BCC0C7` / `#7D8089` | Ayırıcılar, çerçeveler; artık yazı rengi olarak kullanılmaz |
 | `FgPrimary` / `FgSecondary` / `FgMuted` / `FgDisabled` | `#ECECF0` / `#B4B5BE` / `#9294A0` / `#62636C` | `#1B1C20` / `#464953` / `#5C5F68` / `#8D9099` | Metin; Muted en az 4,6:1 okunurluk |

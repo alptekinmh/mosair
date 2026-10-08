@@ -4,7 +4,7 @@
 > Kod tarafı için [`kod/`](kod/) klasörüne, belgelerin haritası için [README.md](README.md) dosyasına bakın.
 > Uygulama içindeki kılavuz (**Yardım → Kullanım Kılavuzu**, F1) bu dosyanın kısa özetidir; ikisi birbiriyle çelişmemelidir.
 >
-> Güncelleme: 2026-10-07 · Kapsadığı sürüm: v1.3.1
+> Güncelleme: 2026-10-08 · Kapsadığı sürüm: v1.3.1
 
 ## İçindekiler
 
@@ -16,8 +16,9 @@
     - [Tam kalıba tamamlama](#tam-kalıba-tamamlama)
 6. [Görsel alanı (canvas)](#6-görsel-alanı-canvas)
     - [Yeni görsel bildirimi](#yeni-görsel-bildirimi)
-7. [Özellikler paneli (Properties)](#7-özellikler-paneli-properties)
+    - [Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)
     - [Görsel Ayarları](#görsel-ayarları)
+7. [Özellikler paneli (Properties)](#7-özellikler-paneli-properties)
 8. [Durum çubuğu](#8-durum-çubuğu)
 9. [Piksel düzenleme ve taş varyantı](#9-piksel-düzenleme-ve-taş-varyantı)
 10. [Optimum taş sayısı](#10-optimum-taş-sayısı)
@@ -44,19 +45,20 @@
 │   ☐ Stoğa göre  Taş ──●── N öneri K      … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Durum çubuğu: kullanılan renk │ ilerleme ✕İptal durum süre │ Ekrana Sığdır · zoom │
-├───────────────────────┬───────────────────────────────────┬──────────────────────┤
-│ SOL PANEL             │ GÖRSEL ALANI (canvas)             │ ÖZELLİKLER PANELİ  ▬ │
-│ cm · ölçü · alan      │                       ┌─────────┐ │ taş seçiliyken:      │
-│ taş / kalıp / orijinal│                       │Mini     │ │ RENK · DOKU          │
-│ [Tümünü Seç][Kaldır]  │                       │harita   │ │ VARYANTLAR · RGB     │
-│ Katalog│Eşleşme│Atanan│                       └─────────┘ │ KOORDİNAT; değilse:  │
-│        │       │      │                                   │ GÖRSEL · RENKLER     │
-└───────────────────────┴───────────────────────────────────┴──────────────────────┘
+├───────────────────────┬──────────────────────┬──────────────────┬───────────────┤
+│ SOL PANEL             │ GÖRSEL ALANI         │ GÖRSEL AYARLARI ▬│ ÖZELLİKLER  ▬ │
+│ [cm] × Y cm = m²      │          ┌─────────┐ │ [Işık][Ton/Doyg.]│ taş seçiliyken│
+│ [taş kartı][kalıp k.] │          │Mini     │ │ Pozlama:   [0.00]│ RENK · DOKU   │
+│ [Tümünü Seç][Kaldır]  │          │harita   │ │ ───────▲──────── │ VARYANTLAR    │
+│ Katalog│Eşleşme│Atanan│          └─────────┘ │ Kontrast:  [ +17]│ RGB …;        │
+│        │       │      │                      │ ─────────▲────── │ değilse:      │
+│        │       │      │                      │ …        [Sıfırla]│ GÖRSEL·RENKLER│
+└───────────────────────┴──────────────────────┴──────────────────┴───────────────┘
 ```
 
 - Uygulama ekranı kaplayacak şekilde (büyütülmüş) açılır; pencere en az 900×600 px olabilir.
-- Paneller arasındaki ince çizgiler (ayırıcılar) sürüklenerek genişlik değiştirilebilir. Sol panel 220–380 px, sağ panel 160–360 px arasında ayarlanır.
-- Sağdaki Özellikler paneli gizlenebilir (başlığındaki **▬** düğmesi, `F4` ya da **Görünüm → Özellikler Paneli**); gizliyken yerinde ince bir şerit kalır ([§7](#7-özellikler-paneli-properties)).
+- Paneller arasındaki ince çizgiler (ayırıcılar) sürüklenerek genişlik değiştirilebilir. Sol panel 220–380 px, Görsel Ayarları sütunu 260–600 px (başta 300 px), Özellikler paneli 160–360 px arasında ayarlanır.
+- Görsel alanının sağında iki ayrı sütun vardır: **Görsel Ayarları** ([§6](#görsel-ayarları)) ve **Özellikler** ([§7](#7-özellikler-paneli-properties)). İkisi de başlığındaki **▬** düğmesiyle (Özellikler ayrıca `F4`, ikisi de **Görünüm** menüsünden) birbirinden bağımsız gizlenir; gizliyken yerinde 24 px'lik ince bir şerit kalır.
 - Pencere kendi başlık çubuğunu kullanır: boş bir yerinden sürükleyerek pencere taşınır, **çift tıklayınca** pencere büyür ya da eski boyutuna döner.
 - Başlık çubuğunun ortasında **açık dosyanın adı** yazar: görsel yüklenince fotoğrafın adı (ör. `st1.jpg`), proje kaydedilince ya da açılınca projenin adı (ör. `st1.mos`). Farklı Kaydet ile yeni adla kaydedilince yeni ad görünür.
 - Araç çubuğundaki düğmelerin üzerine gelince kısa bir ipucu (tooltip) çıkar; ipuçlarının metni [§4](#4-araç-çubuğu)'teki tabloda özetlenmiştir.
@@ -113,7 +115,7 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 | Ekrana Sığdır | `Ctrl/⌘+0` | Görseli pencereye sığacak şekilde yakınlaştırır/uzaklaştırır |
 | Yumuşak Fare Hareketi | — | Açıkken (✓, varsayılan) tekerlekle yakınlaştırma kısa bir geçişle yapılır ve sağ tuşla sürükleme bırakılınca görüntü biraz süzülerek durur; kapalıyken yakınlaştırma anında olur, süzülme olmaz ([§5](#6-görsel-alanı-canvas)) |
 | Özellikler Paneli | `F4` | Sağdaki Özellikler panelini gizler / gösterir; açıkken ✓ ile işaretlidir ([§7](#7-özellikler-paneli-properties)) |
-| Görsel Ayarları | — | Sağ paneldeki **GÖRSEL AYARLARI** bölümünü açar / kapatır (açıkken ✓). Panel şeride gizliyse onu da açar ([Görsel Ayarları](#görsel-ayarları)) |
+| Görsel Ayarları | — | **Görsel Ayarları** sütununu gizler (şeride indirir) / gösterir; açıkken ✓ ([Görsel Ayarları](#görsel-ayarları)) |
 
 ### Araçlar
 
@@ -128,6 +130,7 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | İnterpolasyon Yöntemi ▸ | — | Area, Nearest, Linear, Cubic, Lanczos4, LinearExact, NearestExact |
 | Optimum Taş Sayısı | — | Optimum modunu açar/kapatır ([§10](#10-optimum-taş-sayısı)) |
 | Stoğa Göre Ayarla | — | **Stoğa göre** kutusunu açar/kapatır ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
+| Anlık Mos | — | Açıkken (✓) her görsel ayarı değişikliğinden sonra Mos kendiliğinden yapılır; Görsel Ayarları sütunundaki **Anlık Mos** düğmesiyle aynıdır ([Görsel Ayarları](#görsel-ayarları)) |
 | Kalıp Dolgu | — | Tam kalıba tamamlamayı açar/kapatır (✓); katalog üstündeki **Kalıp Dolgu** düğmesiyle aynıdır ([§5](#tam-kalıba-tamamlama)) |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum ile yapılmış bir Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir; başka zaman pasiftir |
 | Stok ▸ | — | Stok Tablosunu Aç, Stok Ayarları..., Stok Çek ▸ (Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle), Stok Kontrol, Bu mozaiğin sütununu temizle, Tüm mozaik sütunlarını temizle, Stok Ekle ([§11](#11-stok-yönetimi-google-sheets)). Bir stok işlemi sürerken pasiftir. |
@@ -163,7 +166,7 @@ Soldan sağa:
 | ☐ Optimum | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **kapalı** |
 | ☐ Stoğa göre | Özelliğin açıklaması; son Mos'un stok raporu da eklenir | Stoğa göre modunu aç/kapat | — | Varsayılan **kapalı** ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
 | Taş ──●── N · öneri K | — | Taş çeşidi sayısını değiştirir | — | Yalnızca Optimum ile yapılmış bir Mos'tan sonra görünür |
-| Ekran görüntüsü (kamera, dışa aktarmanın solunda) | Ekran görüntüsü: görsel alanında şu an görünen kısmı PNG olarak mosairEXPORT klasörüne kaydeder | Görsel alanında o an ne görünüyorsa (mozaik ya da yüklenen görsel, aynı zoom, ızgara dahil) yakalar; mini harita ve kaydırma çubukları girmez. Görüntü pencereden küçükse kenarlar tuval rengiyle dolar. Yüksek çözünürlüklü ekranlarda ekranın gerçek piksel yoğunluğuyla kaydedilir. Dosya: `mosairEXPORT/tarih_saat__görselAdı__ekran.png`; durum çubuğu dosya adını yazar. | — | Görsel yokken pasif |
+| Ekran görüntüsü (kamera, dışa aktarmanın solunda) | Ekran görüntüsü: görsel alanında şu an görünen kısmı PNG olarak mosairEXPORT klasörüne kaydeder | Görsel alanında o an ne görünüyorsa (mozaik ya da yüklenen görsel, aynı zoom, ızgara dahil) yakalar; mini harita ve kaydırma çubukları girmez. Görüntü pencereden küçükse kenarlar görsel alanının o anki rengiyle (görsele uyan ton) dolar. Yüksek çözünürlüklü ekranlarda ekranın gerçek piksel yoğunluğuyla kaydedilir. Dosya: `mosairEXPORT/tarih_saat__görselAdı__ekran.png`; durum çubuğu dosya adını yazar ve sağ altta **Aç** / **Klasörü aç** düğmeli bildirim çıkar ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)). | — | Görsel yokken pasif |
 | mosairEXPORT (sağda) | Dışa aktar: mosairEXPORT / mosairEXPORT As, görüntü kalitesi seçerek (boyut bilgisiyle). Sağ tık: klasörü aç | Liste açar: **mosairEXPORT ▸** / **mosairEXPORT As ▸**, her birinde görüntü kalitesi seçenekleri ([§13](#13-dışa-aktarma-mosairexport)); tıklama doğrudan kaydetmez | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |
 | ☾ / ☀ | Tema Değiştir | Koyu/açık tema | — | |
 | 🌐 | Dil | Açılır liste: TR Türkçe / EN English | — | |
@@ -179,10 +182,11 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 | **cm kutusu** | Mozaik genişliği. Varsayılan 93,6 cm. Virgül yazılırsa noktaya çevrilir. `Enter` veya kutudan çıkınca uygulanır. Kutuya tıklayınca içerik seçilir. |
 | Yuvarlama | Bir taş 1,2 cm'dir; değer en yakın taş sayısına yuvarlanır (en az 2 taş). |
 | Üst sınır | Görselin piksel genişliğinden fazla taş istenirse genişlik o sınıra indirilir ve **Çözünürlük Yetersiz** uyarısı çıkar. |
-| `G x Y cm` ve `m²` | Gerçek mozaik ölçüsü ve alanı |
-| ■ satırı | Taş sayısı: `sütun x satır = toplam taş` |
-| ▣ satırı | Kalıp sayısı ve kalıplı ölçü: `sütun x satır = toplam kalıp (G x Y cm)`. Taş sütun ve satır sayısı 26'ya bölünüp yukarı yuvarlanır; cm, kalıp sayısı × 31,2'dir. Ör. 99,6 cm (83 × 83 taş) → `4 x 4 = 16 kalip (124.8 x 124.8 cm)`. Mozaik Mos'tan sonra bu ölçüye tamamlanır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). |
-| ○ satırı | Orijinal görselin piksel ölçüsü |
+| `× Y cm = A m²` | cm kutusuyla aynı satırda ve aynı büyüklükte (16 px): gerçek yükseklik ve alan, kutudaki gibi noktalı yazılır. Ör. `93.6 × 93.6 cm = 0.88 m²`. Görsel yüklenmeden yalnızca kutu ve "cm" görünür. |
+| Taş kartı | Altta solda: `sütun × satır = toplam taş`, toplam binlik ayraçla (ör. `78 × 78 = 6.084 taş`). |
+| Kalıp kartı | Altta sağda: `sütun × satır = toplam kalıp` (ör. `3 × 3 = 9 kalıp`). Taş sütun ve satır sayısı 26'ya bölünüp yukarı yuvarlanır; ör. 99,6 cm (83 × 83 taş) → `4 × 4 = 16 kalıp`. **Kalıp Dolgu** açıksa mozaik Mos'tan sonra bu kalıp sayısına tamamlanır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). |
+
+Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
 
 ### Tüm Renkleri Seç / Tüm Renkleri Kaldır
 
@@ -221,7 +225,7 @@ Robot yalnızca tam kalıp üretebilir: bir kalıp 26 × 26 taş, yani 31,2 × 3
 
 - **Örnek:** 99,6 cm = 83 taş (3 tam kalıp + 5 taş). Bir üste tamamlanınca 4 kalıp = 104 taş = 124,8 cm. Kare bir görselde mozaik 104 × 104 taş olur; dolgu 104² − 83² = **3.927 taş** (≈ 13 kg, taş başı 3,3 g). Yükseklik de aynı kurala göre, kendi taş sayısından tamamlanır.
 - **Tam kat ise** (ör. 93,6 cm = 78 taş = 3 kalıp, yükseklik de 26'nın katıysa) dolgu yapılmaz, mozaik bugünkü gibidir.
-- **Cm kutusu değişmez:** kullanıcı 99,6 girdiyse 99,6 kalır. Kalıplı ölçü sol paneldeki ▣ satırında görünür.
+- **Cm kutusu değişmez:** kullanıcı 99,6 girdiyse 99,6 kalır. Kalıp sayısı sol paneldeki kalıp kartında görünür (kalıplı ölçü = kalıp sayısı × 31,2 cm).
 - **Dolgu taşı:** katalogdaki taşlardan (işaretli olup olmamasına bakılmaz) **mozaikte hiç kullanılmayan** ve **stoğu dolgu taşı sayısına yeten** taşlar arasından, mozaikte kullanılan bütün taşlara renkçe **en uzak** olanı (kullanılan taşlara en küçük Lab ΔE farkı en büyük olan). Böylece dolgu mozaikteki hiçbir renge karışmaz. Stok, Stoğa göre düzeltmenin okuduğu stok ya da görsel/proje yüklenirken okunan stoktur (Bizdeki − diğer mozaiklerin ayırdığı).
 - **Ne zaman (açıkken):** her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve Stoğa göre düzeltmeden sonra en son adım olarak. Mos'un renk seçimi dolguyu hiç görmez; dolgu sonuca eklenir. Stok Kontrol'deki Stoğa göre düzeltme, mozaiği dolgusuz hâliyle düzeltir ve dolguyu yeniden ekler (dolgu taşı yeniden seçilir).
 - **Durum çubuğu:** "… · Kalıba tamamlandı: 3.927 dolgu taşı (#34 B134 …)".
@@ -273,38 +277,82 @@ mosair açıkken bilgisayarın **İndirilenler** (Downloads) ya da **Masaüstü*
 - Bildirim **7 saniye** görünür. Fare bildirimin üzerindeyken geri sayım durur, fare çıkınca kaldığı yerden devam eder.
 - Aynı anda tek bildirim vardır; yenisi gelirse öncekinin yerine geçer ve süre yeniden başlar.
 - Tarayıcılar dosyayı önce geçici bir adla (`.crdownload`, `.part`) yazıp indirme bitince asıl adına çevirir; bildirim indirme bittikten ve dosya tamamen yazıldıktan sonra çıkar (en çok 30 sn beklenir).
-- O an mosair'de açık olan görselin kendisi için ve mosair'in kendi kaydettiği dosyalar için (dışa aktarma, ekran görüntüsü) bildirim çıkmaz.
+- O an mosair'de açık olan görselin kendisi için ve mosair'in kendi kaydettiği dosyalar için (dışa aktarma, ekran görüntüsü) yeni görsel bildirimi çıkmaz; bunlar için aşağıdaki [kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi) çıkar.
 - **Dosya → Yeni Görselleri Bildir** işareti kaldırılınca klasörler izlenmez ve açık bildirim kapanır. Tercih kalıcı değildir; uygulama her açılışta işaretli başlar.
+
+### Kaydedilen dosya bildirimi
+
+Aynı sağ alt bildirim kutusu, mosair bir dosyayı yazınca da çıkar. Görünüşü ve davranışı aynıdır: **7 saniye** görünür, fare üzerindeyken geri sayım durur, sağ üstteki **✕** kapatır, aynı anda tek bildirim vardır (yenisi öncekinin yerine geçer).
+
+| Ne zaman | Başlık | Altında | Düğmeler |
+|---|---|---|---|
+| Dışa aktarma bitince (**mosairEXPORT** ve **mosairEXPORT As**, araç çubuğu, Dosya menüsü, `Ctrl/⌘+E`) | **DIŞA AKTARILDI** | Dosya adı (üzerinde beklenince tam yol) ve klasörün yolu | **Klasörü aç**, **Aç** |
+| Ekran görüntüsü kaydedilince | **EKRAN GÖRÜNTÜSÜ KAYDEDİLDİ** | Dosya adı ve klasörün yolu | **Klasörü aç**, **Aç** |
+| Proje kaydedilince (**Proje Kaydet**, **Proje Farklı Kaydet**) | **PROJE KAYDEDİLDİ** | `.mos` dosyasının adı ve klasörün yolu | **Kapat**, **Klasörü aç** |
+
+- **Aç**: dosyayı işletim sisteminin o dosya türü için varsayılan programıyla açar (ör. Fotoğraflar, Önizleme).
+- **Klasörü aç**: dosyanın bulunduğu klasörü açar ve dosyayı seçili gösterir (Windows'ta Dosya Gezgini, macOS'ta Finder); diğer sistemlerde yalnızca klasörü açar.
+- Küçük resim: dışa aktarılan görüntünün ya da ekran görüntüsünün önizlemesidir; 64 MB'tan büyük dosyalarda (çok büyük dışa aktarmalar) önizleme yüklenmez, kutu boş kalır. Proje kaydında mozaiğin küçük görüntüsü gösterilir.
+- Dışa aktarma iptal edilir ya da başarısız olursa, kayıt başarısız olursa bildirim çıkmaz. **Drive'a Kaydet** için bildirim çıkmaz (dosya Drive'dadır).
+
+### Görsel Ayarları
+
+Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ayar panelleri gibi çalışır. Yüklenen görselin ışığını ve renklerini değiştirir; Mos bu ayarlanmış görselden yapılır. Açılan görsel dosyasının kendisi değişmez; proje kaydedilince ayarlı hâli projenin yanına yazılır (aşağıda).
+
+**Sütun:**
+- Başta 300 px genişliğindedir; solundaki ayırıcı sürüklenerek **260–600 px** arasında genişletilir (geniş sütunda kaydırıcılar uzar, ince ayar kolaylaşır). Özellikler paneli bundan etkilenmez.
+- Başlıktaki **▬** düğmesi ya da **Görünüm → Görsel Ayarları** sütunu gizler; yerinde 24 px'lik bir şerit kalır (**‹** oku, ayar varsa mavi nokta, dikey "Görsel Ayarları" yazısı). Şeride tıklayınca sütun gizlenmeden önceki genişliğiyle geri açılır. Uygulama her açılışta sütun açık başlar.
+- Bir ayar 0'dan farklıysa başlıkta ve şeritte küçük **mavi bir nokta** yanar.
+
+**İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, ince bir çizgiden sonra da **Anlık Mos** açma/kapama düğmesi vardır (basılıyken mavi, yani açık).
+
+| Sekme | Kaydırıcı | Aralık | Etkisi |
+|---|---|---|---|
+| **Işık** | Pozlama | −2.00 … +2.00 (EV, iki ondalıkla) | Görseli fotoğraf pozlaması gibi açar / koyulaştırır (+1.00 iki kat ışık) |
+| | Parlaklık | −100 … +100 | Bütün tonları eşit miktarda kaydırır (en çok aralığın %40'ı) |
+| | Kontrast | −100 … +100 | −100 düz gri, +100 üç kat sert geçişler |
+| | Parlak Alanlar | −100 … +100 | Yalnızca açık tonlar (orta-üst bölge) |
+| | Gölgeler | −100 … +100 | Yalnızca koyu tonlar (orta-alt bölge) |
+| | Beyazlar | −100 … +100 | En açık uç (beyaz noktası çevresi) |
+| | Siyahlar | −100 … +100 | En koyu uç (siyah noktası çevresi) |
+| | Gama | −100 … +100 | Orta tonları açar (+) ya da koyulaştırır (−) |
+| **Ton/Doygunluk** | Ton | −180° … +180° | Renkleri renk çemberinde döndürür |
+| | Doygunluk | −100 … +100 | −100 gri, + daha canlı (gri pikseller renklenmez) |
+| | Açıklık | −100 … +100 | −100 siyaha, +100 beyaza doğru |
+
+- **Renk aralıkları (Ton/Doygunluk):** kaydırıcıların üstünde 7 yuvarlak vardır: **Ana** (tüm renkler, gökkuşağı), **Kırmızılar, Sarılar, Yeşiller, Camgöbekleri, Maviler, Eflatunlar**. Seçili yuvarlağın çevresinde mavi halka vardır; kaydırıcılar o aralığın değerlerini gösterir ve değiştirir. Kendi ayarı olan aralığın köşesinde küçük bir nokta görünür. Bir aralık yalnızca o renk tonundaki **renkli** pikselleri etkiler: merkezinin ±15° çevresinde tam, ±45°'ye kadar azalarak; griler etkilenmez. **Ana** aralık bütün pikselleri etkiler, aralıkların ayarları onun üstüne eklenir.
+- **İzler renklidir:** Ton kaydırıcısında renk çemberi, Doygunluk'ta griden aralığın rengine, Açıklık'ta siyahtan renge ve beyaza geçiş görünür; Pozlama'da siyahtan beyaza geçiş vardır.
+- **Renklendir** kutusu: işaretliyken görselin tamamı tek bir tona boyanır (her pikselin açıklığı korunur). Kaydırıcılar bu tonu ayarlar: **Ton 0–360°**, **Doygunluk 0–100** (başta 25), **Açıklık −100 … +100**; renk aralıkları pasifleşir.
+
+**Satırlar ve kaydırıcılar:**
+- Her satırda solda ad, sağda değer kutusu, altta ince bir iz ve altında küçük bir üçgen tutamaç vardır.
+- **Değer kutusuna** sayı yazılabilir: `Enter`'a basınca ya da kutudan çıkınca uygulanır; `+` işareti, virgül ya da nokta kabul edilir, geçersiz yazı yok sayılır.
+- Kaydırıcıda: tıklamak ya da sürüklemek değeri o noktaya getirir; **Shift basılıyken sürüklemek** dört kat yavaş (ince ayar) değiştirir; **tekerlek** ±1 (`Ctrl` ile ±10); kaydırıcı seçiliyken **ok tuşları** ±1 (`Shift` ile ±10), `Home`/`End` en küçük/en büyük değer; **sağ tık** ya da `Delete` o kaydırıcıyı sıfırlar. Değer kutusuna yazılan sayı `Enter`'a basınca ya da başka herhangi bir yere tıklanınca uygulanır. Sütunun altında bu kısayollar kısaca yazar.
+- **Sıfırla** düğmesi bütün ayarları (iki sekme ve Renklendir dahil) sıfırlar; hiçbir ayar yokken pasiftir.
+
+**Uygulanma:**
+- Değer değiştikten kısa süre (≈0,15 sn) sonra uygulanır; sürüklerken her adımda yeniden hesaplanmaz. 6000×6000 px bir görselde yalnızca Işık ayarları ≈0,26 sn, Ton/Doygunluk ile birlikte ≈0,33 sn sürer.
+- **Mos'tan önce** görsel alanındaki görüntü hemen değişir. Mos'a basıldığında henüz uygulanmamış son ayar önce uygulanır.
+- **Anlık Mos** (sekmelerin yanındaki düğme ya da **Araçlar → Anlık Mos**, ✓). Her açılışta **kapalı** başlar, tercih hatırlanmaz.
+  - **Açıkken:** her ayar değişikliği uygulandıktan sonra Mos kendiliğinden yapılır ve mozaik hemen güncellenir. Mos o anki seçimlerle yapılır (Optimum, Stoğa göre, Kalıp Dolgu). Bir Mos sürerken yapılan değişiklik sıraya alınır; o Mos bitince bir Mos daha yapılır. İlk mozaik pencereye sığdırılır, sonrakiler görünümü olduğu gibi bırakır. Anlık Mos'un Mos'u sürerken kaydırıcılar kullanılabilir kalır, sürükleme kesilmez. Ekranda eskimiş mozaik yerine görsel gösterilirken Anlık Mos açılırsa hemen bir Mos yapılır.
+  - **Kapalıyken:** mozaik varken bir ayar değişirse eskimiş mozaik yerine **ayarlanmış görsel** gösterilir ve durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Bu durum bir sonraki Mos'a kadar sürer (yeni görsel, proje açma ya da mozaiğin silinmesi de bitirir). Bu sırada mini harita görseli gösterir ve görsele tıklamak taş seçmez. Mozaik kalıba tamamlanmışsa görsel yalnızca dolgusuz kısmı kaplar; dolgu alanı boş kalır.
+- Bir iş (Mos, dışa aktarma) sürerken ayarlar pasiftir; yalnızca Anlık Mos'un kendi Mos'u sürerken kullanılabilir kalırlar.
+- Ayarlar projeyle birlikte kaydedilir ve proje açılınca geri gelir; ilk sürümle (yalnızca Parlaklık, Kontrast, Doygunluk, Gama) kaydedilmiş projelerin ayarları da okunur. **Her yeni görsel ayarsız başlar.**
+- **Kaydederken ayarlı görsel:** Bir ayar kullanılıyorsa **Proje Kaydet**, **Farklı Kaydet** ve **Drive'a Kaydet**, `.mos`'un yanına görselin **ayarlanmış hâlini** orijinalin adıyla yazar (`.jpg`/`.jpeg` için JPEG, kalite 95; diğerleri aynı adla PNG içeriği). WPF proje klasöründeki ilk görseli kullandığı için robot da ayarlı görseli görür. Dokunulmamış orijinal, proje klasöründeki **`orijinal`** alt klasörüne kopyalanır (`orijinal/<görsel adı>`); WPF alt klasörlere bakmaz. Kaydetmeden önce bekleyen son kaydırıcı değişikliği uygulanır.
+  - Ayarlar sıfırlanıp yeniden kaydedilirse orijinal görsel tekrar `.mos`'un yanına konur.
+  - Görselin kendi klasörüne (ör. açılmış bir projenin klasörüne) kaydederken orijinal önce `orijinal` klasörüne taşınır; oturum bundan sonra oradaki orijinalle devam eder.
+  - Proje açılınca `orijinal` kopyası varsa temel o olur ve kayıtlı ayarlar yeniden uygulanır (kaydırıcılar kaldığı yerde). Kopya yoksa (ör. Drive'dan açılan projede yalnızca ayarlı görsel vardır) ayarlı görsel temel alınır ve kaydırıcılar sıfırdan başlar.
+- Özellikler panelindeki görsel bilgileri (önizleme, baskın renkler) dosyanın kendisini gösterir, ayarlanmış hâlini değil.
 
 ## 7. Özellikler paneli (Properties)
 
 ### Gizleme ve gösterme
 
 - Panel başlığının sağ üst köşesindeki **▬** (simge durumuna küçült) düğmesi paneli gizler. Panel, pencerenin sağ kenarında 24 px'lik ince bir şeride döner; canvas genişler.
-- Şeritte iki sekme vardır. Üstteki **‹** oku ve dikey **Properties** yazısı paneli yeniden açar. İnce bir çizginin altındaki dikey **Görsel Ayarları** sekmesi paneli **GÖRSEL AYARLARI** bölümü açık olarak açar; görselde bir ayar yapılmışsa bu sekmenin üstünde küçük mavi bir nokta yanar.
+- Şeritteki **‹** oku ve dikey **Properties** yazısı paneli yeniden açar. (Görsel Ayarları artık bu panelde değil, kendi sütunundadır: [§6](#görsel-ayarları).)
 - Aynı işi `F4` ve **Görünüm → Özellikler Paneli** de yapar (menüde panel açıkken ✓ görünür).
 - Panel, gizlenmeden önceki genişliğiyle geri açılır. Gizliyken panel ayırıcısı sürüklenemez.
 - Panelin açık/gizli durumu kalıcı değildir; uygulama her açılışta panel açık başlar.
-
-### Görsel Ayarları
-
-Panelin en altında, kendi başlığıyla açılıp kapanan **GÖRSEL AYARLARI** bölümü vardır. Yüklenen görselin temel ayarlarını değiştirir; Mos bu ayarlanmış görselden yapılır.
-
-| Kaydırıcı | Aralık | Etkisi |
-|---|---|---|
-| Parlaklık | −100 … +100 | Görseli açar / koyulaştırır (en çok tüm aralığın %40'ı kadar) |
-| Kontrast | −100 … +100 | −100 düz gri, +100 üç kat daha sert geçişler |
-| Doygunluk | −100 … +100 | −100 siyah-beyaz, +100 iki kat canlı renkler |
-| Gama | −100 … +100 | Orta tonları açar (+) ya da koyulaştırır (−); siyah ve beyaz yerinde kalır |
-
-- Her kaydırıcının sağında değeri yazar; 0 değişiklik yok demektir. Bir kaydırıcıya **çift tıklamak** onu sıfırlar, **Sıfırla** düğmesi hepsini sıfırlar (hiçbir ayar yokken pasiftir).
-- Bir ayar 0'dan farklıysa bölüm başlığında ve gizli paneldeki şerit sekmesinde küçük **mavi bir nokta** yanar.
-- **Başlığa tıklamak** bölümü açar / kapatır (sağdaki ok yönü gösterir); **Görünüm → Görsel Ayarları** da aynı işi yapar. Uygulama her açılışta bölüm açık başlar.
-- Kaydırıcı bırakıldıktan kısa süre (≈0,15 sn) sonra ayar uygulanır; sürüklerken her adımda yeniden hesaplanmaz. 6000×6000 px bir görselde bir ayar yaklaşık 0,3 sn sürer.
-- **Mos'tan önce** görsel alanındaki görüntü hemen değişir. **Mos'tan sonra** ayar değişirse mozaik kendiliğinden değişmez; durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Mos'a basıldığında henüz uygulanmamış son ayar önce uygulanır.
-- Bir iş (Mos, dışa aktarma) sürerken kaydırıcılar pasiftir.
-- Diskteki görsel dosyası hiç değişmez. Ayarlar projeyle birlikte kaydedilir ve proje açılınca geri gelir (WPF bu bilgiyi kullanmaz). **Her yeni görsel ayarsız başlar.**
-- Görsel bilgileri kartları (önizleme, baskın renkler) dosyanın kendisini gösterir, ayarlanmış hâlini değil.
 
 ### Taş seçili değilken: görsel bilgileri
 
@@ -488,9 +536,9 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 
 | İşlem | Davranış |
 |---|---|
-| **Proje Kaydet** (`Ctrl/⌘+S`) | `Masaüstü/mosairPROJECT/<görsel adı>/<görsel adı>.mos` olarak kaydeder. Orijinal görsel aynı klasöre kopyalanır (yoksa). Görsel adı yoksa `mosair_project` kullanılır. Dosya arka planda yazılır: pencere donmaz, bu sırada durum çubuğunda "Proje kaydediliyor: …" yazar ve dalga akar. Bitince ikon kısa süre ✓ olur ve "Kaydedildi: …" yazar. |
-| **Proje Farklı Kaydet** (`Ctrl/⌘+Shift+S`) | Seçilen ad için o adda bir klasör açar ve `.mos` dosyasını içine yazar; görsel `.mos`'un yanına kopyalanır (orada yoksa). |
-| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar. Dosya arka planda okunur (durum çubuğunda "Proje açılıyor: …", dalga akar; pencere donmaz, önceki içerik okuma bitene kadar ekranda kalır, Mos ve dışa aktarma bu sırada pasiftir). Okuma bitince proje pencereye sığdırılarak gösterilir; mozaik önce taş renkleriyle görünür; taş görüntüleri arka planda yüklenince gerçek taş dokularıyla gösterilir (durum çubuğunda bu sırada "Acildi, tas dokulari yukleniyor..." yazar). Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
+| **Proje Kaydet** (`Ctrl/⌘+S`) | `Masaüstü/mosairPROJECT/<görsel adı>/<görsel adı>.mos` olarak kaydeder. Orijinal görsel aynı klasöre kopyalanır (yoksa); Görsel Ayarları kullanılıyorsa yerine ayarlı görsel yazılır, orijinal `orijinal/` alt klasörüne gider ([Görsel Ayarları](#görsel-ayarları)). Görsel adı yoksa `mosair_project` kullanılır. Dosya arka planda yazılır: pencere donmaz, bu sırada durum çubuğunda "Proje kaydediliyor: …" yazar ve dalga akar. Bitince ikon kısa süre ✓ olur ve "Kaydedildi: …" yazar. Kayıt bitince sağ altta **PROJE KAYDEDİLDİ** bildirimi çıkar; **Klasörü aç** projenin klasörünü açar ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)). |
+| **Proje Farklı Kaydet** (`Ctrl/⌘+Shift+S`) | Seçilen ad için o adda bir klasör açar ve `.mos` dosyasını içine yazar; görsel `.mos`'un yanına kopyalanır (orada yoksa; ayar varsa ayarlı görsel yazılır, orijinal `orijinal/`'e). Kayıt bitince sağ altta **PROJE KAYDEDİLDİ** bildirimi çıkar; **Klasörü aç** projenin klasörünü açar ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)). |
+| **Proje Aç** (`Ctrl/⌘+O`) | `.mos` dosyasını açar. Dosya seçme penceresi, varsa masaüstündeki **mosairPROJECT** klasöründe açılır (yoksa işletim sisteminin varsayılan yerinde). Dosya arka planda okunur (durum çubuğunda "Proje açılıyor: …", dalga akar; pencere donmaz, önceki içerik okuma bitene kadar ekranda kalır, Mos ve dışa aktarma bu sırada pasiftir). Okuma bitince proje pencereye sığdırılarak gösterilir; mozaik önce taş renkleriyle görünür; taş görüntüleri arka planda yüklenince gerçek taş dokularıyla gösterilir (durum çubuğunda bu sırada "Acildi, tas dokulari yukleniyor..." yazar). Orijinal görsel `.mos` ile aynı klasördeyse o da yüklenir (ölçü bilgileri ve stok proje adı için). Stok tablodan yeniden okunur. |
 
 **Kaydetme ve açma arka planda:** Kaydet'e basıldığı anda mozaiğin bir kopyası alınır (çok büyük mozaikte bile birkaç on milisaniye); dosyaya çevirme ve yazma arka planda yapılır. Yazma sürerken yapılan değişiklikler o kayda girmez, bir sonraki kayda girer. Dosya önce geçici bir adla (`<ad>.mos.part`) yazılır, bitince asıl dosyanın yerine konur; disk dolarsa, yazma hata verirse ya da uygulama bu sırada kapanırsa var olan proje bozulmaz. Bir kayıt sürerken Kaydet düğmeleri pasiftir. Ölçüm: 2,8 milyon taşlık (20 m, 62 MB) bir projede kaydetme pencereyi 23 ms, açma yaklaşık 1 ms bekletir (arka plan: 0,23 sn / 1,34 sn); önceden bu sürelerin tamamında pencere donuyordu.
 
@@ -500,6 +548,7 @@ Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur 
 - Piksel düzenlemeleri ve taş varyantları
 - Bölgeler
 - Genişlik (cm), ızgara açık/kapalı ve rengi, interpolasyon yöntemi
+- Görsel Ayarları ve (ayar varsa) orijinal görselin `orijinal/` alt klasöründeki yeri
 
 Optimum analizi, Optimum ve Stoğa göre kutularının durumu ve stok değerleri projeye kaydedilmez.
 
@@ -548,6 +597,7 @@ Projeler, orijinal görselleriyle birlikte bir Google Drive klasörüne kaydedil
 - Önce Mos yapılmış ya da bir proje açılmış olmalıdır; yoksa "Kaydedilecek mozaik yok. Önce Mos yapın ya da bir proje açın." uyarısı çıkar.
 - Klasör düzeni **Proje Kaydet** (mosairPROJECT) ile aynıdır: Drive klasörünün içinde görselin adını taşıyan bir proje klasörü, içinde `<görsel adı>.mos` ve orijinal görsel (görsel adı yoksa `mosair_project/mosair_project.mos`). Proje klasörü yoksa oluşturulur.
 - Orijinal görsel yalnızca proje klasöründe henüz yoksa gönderilir; sonraki kayıtlarda yalnızca `.mos` gider.
+- Görsel Ayarları kullanılıyorsa gönderilen görsel **ayarlı hâlidir** (yerel kayıttaki gibi); `orijinal/` kopyası Drive'a gönderilmez. Drive klasöründe görsel zaten varsa değiştirilmez (yukarıdaki kural), bu yüzden ayarlar sonradan değiştirilirse Drive'daki görsel eski kalır. Drive'dan açılan böyle bir projede ayarlı görsel temel alınır ve kaydırıcılar sıfırdan başlar.
 - Proje normal `.mos` biçiminde yazılır, gönderilirken sıkıştırılır; Drive'da olağan dosyalar olarak durur. Kayıt arka planda hazırlanır, büyük projede pencere donmaz.
 - Proje klasöründe **aynı adlı** bir proje varsa eskisi Drive'ın çöp kutusuna taşınır, yenisi yerine geçer (diskteki dosyanın üzerine kaydetmek gibi; gerekirse eskisi Drive çöp kutusundan geri alınabilir).
 - Açık dosyanın adı (başlık çubuğu) ve yerel kayıt yeri değişmez; Drive'a kaydetmek **Proje Kaydet**'in yerini tutmaz.
@@ -595,6 +645,7 @@ Proje klasörleri, görselin gönderilip indirilmesi ve önizlemeler script'in g
 | `Ctrl/⌘+E` | Liste açılmadan, varsayılan görüntü kalitesiyle (listede **(varsayılan)** yazan seçenek) mosairEXPORT. |
 | **Dosya** menüsü → mosairEXPORT ▸ / mosairEXPORT As ▸ | Araç çubuğundaki listeyle aynı alt menüler. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
+| Dışa aktarma bitince | Sağ altta **DIŞA AKTARILDI** bildirimi: **Aç** (dosyayı açar) ve **Klasörü aç** (dosyayı klasöründe seçili gösterir); 7 sn sonra kaybolur ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)) |
 
 **Görüntü kalitesi listesi:** Her iki alt menünün başında pasif bir "Görüntü kalitesi seçiniz" başlığı, altında en düşükten en yükseğe 10 görüntü kalitesi vardır. Her seçenek yalnızca görüntünün piksel boyutunu ve tahmini dosya boyutunu gösterir:
 
@@ -633,7 +684,9 @@ Kaydetme arka planda yapılır. Dışa aktarma yarıda kalırsa (hata, disk dolu
 
 Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Türkçe ile açılır.
 
-**Renkler:** Arayüzde tek bir vurgu rengi vardır: **mavi** ("Lapis"; koyu temada `#2D6BD9`, açık temada `#1F5FCC`). Mos düğmesi, iletişim kutularının ana düğmeleri, bildirimdeki **Aç**, işaret kutuları, kaydırıcılar, ilerleme çubuğu, işlem dalgası, mini harita çerçevesi ve seçili taş varyantı bu rengi kullanır. **Yeşil** yalnızca "tamam / başarılı" anlamındadır (kaydedildi ✓, stoğu yeten kg); **kırmızı** stok eksikliği ve İptal, **turuncu** piksel düzenleme içindir. "mosair" yazısı logodaki adaçayı yeşilindedir. Durum çubuğundaki metinler ve değerler (alan, zoom, Optimum taş sayısı) nötr renktedir. Bütün renkler iki temada da okunur olacak şekilde ayarlanmıştır; değişikliklerin listesi [ARAYUZ_DEGISIKLIKLERI.md](ARAYUZ_DEGISIKLIKLERI.md) dosyasındadır.
+**Görsele uyan arka plan:** Bir görsel ya da proje yüklenince görsel alanının arka planı ve sol paneldeki ölçü bölümünün zemini, görselin ortalama renginin sakin bir tonunu alır (o rengin tonu, düşük doygunluk; koyu temada koyu, açık temada açık). Böylece görsel öne çıkar, taş renkleri de güçlü bir renge karşı değerlendirilmez. Renk 0,4 saniyede yumuşakça değişir, tema değişince yeni temaya uyar; görsel yokken temanın kendi renkleri kullanılır. Bu her zaman açıktır, ayarı yoktur.
+
+**Renkler:** Arayüzde tek bir vurgu rengi vardır: **mavi** ("Lapis"; koyu temada `#2D6BD9`, açık temada `#1F5FCC`). Mos düğmesi, iletişim kutularının ana düğmeleri, bildirimdeki **Aç**, işaret kutuları, kaydırıcılar, ilerleme çubuğu, işlem dalgası, mini harita çerçevesi ve seçili taş varyantı bu rengi kullanır. **Yeşil** yalnızca "tamam / başarılı" anlamındadır (kaydedildi ✓, stoğu yeten kg); **kırmızı** stok eksikliği ve İptal, **turuncu** piksel düzenleme içindir. "mosair" yazısı logodaki adaçayı yeşilindedir. Durum çubuğundaki metinler ve değerler (alan, zoom, Optimum taş sayısı) nötr renktedir. Görsel alanı ve ölçü bölümü yüklenen görselin rengine uyan sakin bir ton alır (aşağıda [§14](#14-tema-ve-dil)). Bütün renkler iki temada da okunur olacak şekilde ayarlanmıştır; değişikliklerin listesi [ARAYUZ_DEGISIKLIKLERI.md](ARAYUZ_DEGISIKLIKLERI.md) dosyasındadır.
 
 ## 15. Klavye kısayolları
 
@@ -650,6 +703,8 @@ Tema ve dil seçimi uygulama kapanınca hatırlanmaz; uygulama koyu tema ve Tür
 | Yinele | `Ctrl+Y` veya `Ctrl+Shift+Z` | `⌘+Y` veya `⌘+⇧+Z` (Ctrl ile de çalışır) |
 | Kullanım kılavuzu | `F1` | `F1` |
 | Özellikler panelini gizle / göster | `F4` | `F4` |
+| Görsel Ayarları kaydırıcısı (seçiliyken): ±1 / ±10, en küçük / en büyük, sıfırla | `←` `→` (`Shift` ile ±10), `Home` / `End`, `Delete` | aynı |
+| Görsel Ayarları değer kutusunu uygula | `Enter` | `Enter` |
 | Süren işi iptal et (Mos, stoğa göre düzeltme, dışa aktarma; durum çubuğundaki ✕ İptal ve **Düzenle → İşlemi İptal Et** ile aynı) | `Esc` | `Esc` |
 | cm değerini uygula | `Enter` (cm kutusundayken) | `Enter` |
 
@@ -670,10 +725,19 @@ Kaydet, Farklı Kaydet ve Dışa Aktar kısayolları mozaik yokken bir şey yapm
 | Özellikler → Varyantlar | Sol tuş | Doku varyantını değiştir |
 | Özellikler başlığındaki **▬** | Sol tuş | Paneli gizle |
 | Gizli panelin şeridi (**‹**) | Sol tuş | Paneli göster |
+| Görsel Ayarları başlığındaki **▬** / gizli sütunun şeridi | Sol tuş | Sütunu gizle / göster |
+| Görsel Ayarları kaydırıcısı | Tıkla / sürükle | Değeri o noktaya getir |
+| Görsel Ayarları kaydırıcısı | `Shift` + sürükle | İnce ayar (dört kat yavaş) |
+| Görsel Ayarları kaydırıcısı | Tekerlek | ±1 (`Ctrl` ile ±10) |
+| Görsel Ayarları kaydırıcısı | Sağ tık | O ayarı sıfırla |
+| Görsel Ayarları → renk aralığı yuvarlağı | Sol tuş | Ton/Doygunluk kaydırıcılarını o aralığa geçir |
 | Özellikler → RENK yanındaki **✕** | Sol tuş | Taş seçimini bırak, görsel bilgilerine dön |
 | Yeni görsel bildirimi → **Aç** | Sol tuş | Görseli aç |
 | Yeni görsel bildirimi → **Kapat** / **✕** | Sol tuş | Bildirimi kapat |
 | Yeni görsel bildirimi | Üzerinde bekle | Geri sayımı durdur (fare çıkınca devam eder); dosya adının üzerinde tam yol |
+| Kaydedilen dosya bildirimi → **Aç** | Sol tuş | Dışa aktarılan görüntüyü / ekran görüntüsünü varsayılan programla aç |
+| Kaydedilen dosya bildirimi → **Klasörü aç** | Sol tuş | Dosyanın klasörünü aç, dosya seçili |
+| Kaydedilen dosya bildirimi → **Kapat** / **✕** | Sol tuş | Bildirimi kapat |
 | Google Drive ikonu | Sol tuş | Drive'a Kaydet |
 | Google Drive **▾** | Sol tuş | Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... |
 | Drive'dan Aç penceresinde proje kartı | Çift tık | Projeyi görseliyle indirip aç |
@@ -721,7 +785,7 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - Kaydetme tıklandığı andaki mozaiği yazar; yazma sürerken yapılan düzenlemeler o kayda girmez. Uygulama bir kayıt sırasında kapanırsa o kayıt yapılmamış olur (önceki dosya olduğu gibi kalır), proje klasöründe yarım bir `<ad>.mos.part` dosyası kalabilir; silinebilir.
 - Drive'dan açılan projeler (görselleriyle) bilgisayarda `%LOCALAPPDATA%\mosair\drive\` klasöründe kalır; uygulama bu klasörü temizlemez.
 - Drive'daki proje klasöründe görsel zaten varsa yeniden gönderilmez; aynı adlı ama değiştirilmiş bir görsel Drive'da güncellenmez.
-- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; Özellikler paneli de her açılışta açık başlar; **Yeni Görselleri Bildir** ve **Yumuşak Fare Hareketi** her açılışta işaretli başlar.
+- Tema ve dil tercihi kalıcı değildir. Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; **Anlık Mos** her açılışta kapalı başlar; Özellikler paneli ve Görsel Ayarları sütunu da her açılışta açık başlar; **Yeni Görselleri Bildir** ve **Yumuşak Fare Hareketi** her açılışta işaretli başlar.
 - Yeni görsel bildirimi yalnızca İndirilenler ve Masaüstü klasörlerinin kendisini izler; alt klasörlere (ör. `Masaüstü/mosairEXPORT`) gelen dosyalar için çıkmaz. Yalnızca `.jpg`, `.jpeg` ve `.png` dosyaları için çıkar (BMP, TIFF gibi biçimler bildirilmez, ama **Görsel Yükle** ile açılabilir). Her dosya için mosair açık kaldıkça yalnızca bir kez bildirim çıkar (tarayıcı dosyayı yeniden yazsa ya da aynı adla yeniden indirilse de). Birden çok mosair penceresi açıksa her biri kendi bildirimini gösterir. mosair kapalıyken gelen dosyalar sonradan bildirilmez; pencere simge durumundayken ya da başka bir pencerenin arkasındayken de bildirim mosair penceresinin içinde çıkar ve 7 sn sonra kapanır, bu yüzden görülmeyebilir. İzlenemeyen bir klasör (izin yok, ağ sürücüsü) sessizce atlanır.
 - Optimum **Taş** sayısı her değiştiğinde ve her yeni Mos'ta piksel düzenlemeleri sıfırlanır.
 - **Kalıp Dolgu** her açılışta kapalı başlar. Tam kalıba tamamlama stok bilgisi olmadan yapılamaz; stok ayarı olmayan bir bilgisayarda mozaik yarım kalıplı kalır. Dolgu taşı her Mos'ta, taş sayısı değişiminde ve Stoğa göre düzeltmede yeniden seçilir; farklı bir taş çıkabilir. Açılan bir projenin dolgusu mozaiğin sıradan parçasıdır (yeniden seçilmez, düzenlenebilir).

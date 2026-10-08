@@ -353,6 +353,7 @@ namespace mosair.ViewModels
                     string temp = System.IO.Path.Combine(tempDir, name);
                     // The mosaic is copied here; the file is written in the background, so a large project does
                     // not freeze the window.
+                    await FlushAdjustmentsAsync();
                     var snapshot = CreateProjectSnapshot();
                     await Task.Run(() => ProjectService.WriteSnapshot(snapshot, temp));
                     byte[] bytes = await System.IO.File.ReadAllBytesAsync(temp);
@@ -773,11 +774,9 @@ namespace mosair.ViewModels
         private bool _isProcessing;
         private bool _isExporting;
         private string _dimensionInfo = "";
-        private string _dimensionSize = "";
         private string _dimensionArea = "";
         private string _stoneInfo = "";
         private string _mouldInfo = "";
-        private string _originalInfo = "";
 
         private string _elapsedTime = "";
         private string _statusText = Loc.Get("StatusReady");
@@ -839,7 +838,7 @@ namespace mosair.ViewModels
             private set { _overviewBitmap = value; OnPropertyChanged(); OnPropertyChanged(nameof(NavBitmap)); }
         }
 
-        public Bitmap? NavBitmap => _mosaicDone && _overviewBitmap != null ? _overviewBitmap : _displayBitmap;
+        public Bitmap? NavBitmap => _mosaicDone && !_showingRaw && _overviewBitmap != null ? _overviewBitmap : _displayBitmap;
 
         // A single stone changed (pixel edit, variant choice, undo/redo); MainWindow forwards it to MosaicView.
         public event Action<int, int>? StoneInvalidated;
@@ -1027,6 +1026,10 @@ public bool UseLab
 
         // Any work in progress (Mos, stock fit, stone-texture rebuild, stock sheet action, export): drives the
         // wave animation in the status bar.
+        // A file was written (export, screenshot, project); the window shows a notice with "open" / "show in folder".
+        public enum SavedFileKind { Export, Screenshot, Project }
+        public event Action<string, SavedFileKind>? FileSaved;
+
         public bool IsBusy => _isProcessing || _isStockBusy || _isExporting || _isDriveBusy || _isSavingProject;
 
         // A project file is being written in the background (the save buttons wait for it).
@@ -1049,16 +1052,18 @@ public bool UseLab
             set { _dimensionInfo = value; OnPropertyChanged(); }
         }
 
-        public string DimensionSize
-        {
-            get => _dimensionSize;
-            set { _dimensionSize = value; OnPropertyChanged(); }
-        }
-
         public string DimensionArea
         {
             get => _dimensionArea;
             set { _dimensionArea = value; OnPropertyChanged(); }
+        }
+
+        // The height that goes with the width typed in (same number format as the width box).
+        private string _dimensionHeight = "";
+        public string DimensionHeight
+        {
+            get => _dimensionHeight;
+            set { _dimensionHeight = value; OnPropertyChanged(); }
         }
 
         public string StoneInfo
@@ -1071,12 +1076,6 @@ public bool UseLab
         {
             get => _mouldInfo;
             set { _mouldInfo = value; OnPropertyChanged(); }
-        }
-
-        public string OriginalInfo
-        {
-            get => _originalInfo;
-            set { _originalInfo = value; OnPropertyChanged(); }
         }
 
         public string ElapsedTime
@@ -1110,6 +1109,7 @@ public bool UseLab
                 _mosaicDone = value;
                 OnPropertyChanged(); OnPropertyChanged(nameof(CanExport)); OnPropertyChanged(nameof(OptimalAvailable));
                 OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
+                OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
                 OnPropertyChanged(nameof(CanSaveProject));
                 OnPropertyChanged(nameof(ShowTopStonesSection));
             }
@@ -1542,6 +1542,8 @@ public bool UseLab
             }
 
             if (result == null) return;
+            SetShowingRaw(false);
+            OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
 
             // The mosaic was rebuilt (new Mos or new Optimum stone count): earlier stone-variant undo entries
             // point into the old mosaic, and the engine has already cleared the pixel edits.
@@ -1578,6 +1580,8 @@ public bool UseLab
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(ImageDisplayWidth));
                 OnPropertyChanged(nameof(ImageDisplayHeight));
+                OnPropertyChanged(nameof(SourceViewWidth));
+                OnPropertyChanged(nameof(SourceViewHeight));
                 OnPropertyChanged(nameof(ZoomInfo));
             }
         }
@@ -1740,20 +1744,29 @@ public bool UseLab
             set { if (_watchNewImages == value) return; _watchNewImages = value; OnPropertyChanged(); }
         }
 
-        // ----- Görsel Ayarları: brightness, contrast, saturation and gamma of the loaded image -----
+        // ----- Görsel Ayarları (own column, like Photoshop's Light and Hue/Saturation panels) -----
         // Mos works from the adjusted copy (MosaicData.inputBitmap); the file on disk is not changed. The screen
         // shows the adjusted image before Mos; after Mos a change only takes effect with the next Mos.
-        private ImageAdjustments _adjust;
+        private ImageAdjustSettings _adjust = new();
+        private int _adjustVersion;
         private System.Threading.CancellationTokenSource? _adjustDelay;
         private Task? _adjustTask;
         private bool _adjustPanelOpen = true;
+        private int _adjustTab;
+        private int _adjustRange;
 
-        public int AdjBrightness { get => _adjust.Brightness; set => SetAdjust(_adjust with { Brightness = value }); }
-        public int AdjContrast { get => _adjust.Contrast; set => SetAdjust(_adjust with { Contrast = value }); }
-        public int AdjSaturation { get => _adjust.Saturation; set => SetAdjust(_adjust with { Saturation = value }); }
-        public int AdjGamma { get => _adjust.Gamma; set => SetAdjust(_adjust with { Gamma = value }); }
+        // Işık: exposure (±2.00 EV), brightness, contrast, highlights, shadows, whites, blacks, gamma.
+        public ObservableCollection<AdjustParam> LightParams { get; } = new();
+        // Ton/Doygunluk: hue, saturation, lightness of the selected colour range (or Colorize's values).
+        public ObservableCollection<AdjustParam> ColorParams { get; } = new();
+        public ObservableCollection<AdjustRange> AdjustRanges { get; } = new();
+
+        private AdjustParam _pExposure = null!, _pBrightness = null!, _pContrast = null!, _pHighlights = null!,
+            _pShadows = null!, _pWhites = null!, _pBlacks = null!, _pGamma = null!, _pHue = null!, _pSat = null!, _pLight = null!;
+
         public bool IsAdjusted => !_adjust.IsNeutral;
-        public int[]? ImageAdjustArray => _adjust.ToArray();
+        // What the project file stores (null when nothing is adjusted).
+        public ImageAdjustSettings? AdjustSettingsForSave => _adjust.IsNeutral ? null : _adjust.Clone();
 
         public bool IsAdjustPanelOpen
         {
@@ -1761,22 +1774,262 @@ public bool UseLab
             set { if (_adjustPanelOpen == value) return; _adjustPanelOpen = value; OnPropertyChanged(); }
         }
 
-        public bool CanAdjust => ImageLoaded && !IsProcessing && !IsExporting;
-
-        // Set from the sliders: applied after a short pause, so dragging does not recompute every step.
-        private void SetAdjust(ImageAdjustments a, bool apply = true)
+        // 0 = Işık, 1 = Ton/Doygunluk.
+        public int AdjustTab
         {
-            a = new ImageAdjustments(Math.Clamp(a.Brightness, -100, 100), Math.Clamp(a.Contrast, -100, 100),
-                Math.Clamp(a.Saturation, -100, 100), Math.Clamp(a.Gamma, -100, 100));
-            if (a == _adjust) return;
-            _adjust = a;
-            OnPropertyChanged(nameof(AdjBrightness)); OnPropertyChanged(nameof(AdjContrast));
-            OnPropertyChanged(nameof(AdjSaturation)); OnPropertyChanged(nameof(AdjGamma));
+            get => _adjustTab;
+            set
+            {
+                if (_adjustTab == value) return;
+                _adjustTab = value;
+                OnPropertyChanged(); OnPropertyChanged(nameof(IsLightTab)); OnPropertyChanged(nameof(IsColorTab));
+            }
+        }
+        public bool IsLightTab { get => _adjustTab == 0; set { if (value) AdjustTab = 0; } }
+        public bool IsColorTab { get => _adjustTab == 1; set { if (value) AdjustTab = 1; } }
+
+        public bool AdjColorize
+        {
+            get => _adjust.Colorize;
+            set
+            {
+                if (_adjust.Colorize == value) return;
+                _adjust.Colorize = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanPickRange));
+                SyncColorParams();
+                AdjustChanged();
+            }
+        }
+        public bool CanPickRange => !_adjust.Colorize;
+
+        // With Anlık Mos the sliders stay usable while its Mos runs (the next change waits for it to end).
+        public bool CanAdjust => ImageLoaded && !IsExporting && (!IsProcessing || _liveMos);
+
+        // ----- Anlık Mos (button next to the Işık / Ton/Doygunluk tabs) -----
+        // On: every adjustment is followed by a Mos, so the mosaic follows the sliders. Off: after a change the
+        // screen shows the (adjusted) image instead of the now outdated mosaic, until the next Mos. Off at start-up.
+        private bool _liveMos;
+        private bool _liveMosPending;
+        private bool _showingRaw;
+
+        public bool LiveMos
+        {
+            get => _liveMos;
+            set
+            {
+                if (_liveMos == value) return;
+                _liveMos = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(CanAdjust));
+                // Switched on while the image is shown instead of an outdated mosaic: bring the mosaic up to date.
+                if (value && _showingRaw) _ = RunLiveMosAsync();
+            }
+        }
+
+        // The mosaic is on screen (not the image).
+        public bool ShowMosaicView => MosaicDone && !_showingRaw;
+        public bool ShowSourceView => !ShowMosaicView;
+
+        // The image's size on screen: the whole image area, or — shown over a padded mosaic — only the part the
+        // image itself covers (the padding stays empty).
+        public double SourceViewWidth => _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(1) > 0
+            ? ImageDisplayWidth * MosaicEngine.UnpaddedCols / MosaicData.dataM3.GetLength(1) : ImageDisplayWidth;
+        public double SourceViewHeight => _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(0) > 0
+            ? ImageDisplayHeight * MosaicEngine.UnpaddedRows / MosaicData.dataM3.GetLength(0) : ImageDisplayHeight;
+
+        private void SetShowingRaw(bool value)
+        {
+            if (_showingRaw == value) return;
+            _showingRaw = value;
+            OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
+            OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
+            OnPropertyChanged(nameof(NavBitmap));
+        }
+
+        // After an adjustment with Anlık Mos on. A Mos already running is followed by one more.
+        private async Task RunLiveMosAsync()
+        {
+            if (!_liveMos || !ImageLoaded) return;
+            if (IsProcessing || IsExporting) { _liveMosPending = true; return; }
+            _liveMosPending = false;
+            bool first = !MosaicDone;
+            await RunMosaicAsync();
+            // The first mosaic changes the picture's size (stones instead of image pixels): fit it, as the Mos
+            // button does. Later ones keep the view where it is.
+            if (first && MosaicDone) FitToWindow(_lastViewportWidth, _lastViewportHeight);
+            if (_liveMosPending && _liveMos)
+            {
+                _liveMosPending = false;
+                await RunLiveMosAsync();
+            }
+        }
+
+        private static readonly IBrush RainbowBrush = Gradient(
+            ("#FF0000", 0), ("#FFFF00", 1 / 6.0), ("#00FF00", 2 / 6.0), ("#00FFFF", 3 / 6.0),
+            ("#0000FF", 4 / 6.0), ("#FF00FF", 5 / 6.0), ("#FF0000", 1));
+        private static readonly IBrush GreyToRainbowBrush = Gradient(
+            ("#808080", 0), ("#8A8A8A", 0.45), ("#C8B04A", 0.55), ("#4AB04A", 0.65), ("#4AB0B0", 0.75),
+            ("#4A4AC8", 0.85), ("#B04AB0", 0.92), ("#E02020", 1));
+        private static readonly IBrush ExposureBrush = Gradient(("#101010", 0), ("#F0F0F0", 1));
+        private static readonly string[] RangeColours = { "", "#E53935", "#FDD835", "#43A047", "#26C6DA", "#1E63E9", "#D81B9C" };
+
+        private static IBrush Gradient(params (string Colour, double Offset)[] stops)
+        {
+            var g = new LinearGradientBrush
+            {
+                StartPoint = new Avalonia.RelativePoint(0, 0.5, Avalonia.RelativeUnit.Relative),
+                EndPoint = new Avalonia.RelativePoint(1, 0.5, Avalonia.RelativeUnit.Relative)
+            };
+            foreach (var (c, o) in stops) g.GradientStops.Add(new GradientStop(Color.Parse(c), o));
+            return g;
+        }
+
+        private void InitAdjustPanel()
+        {
+            AdjustParam P(string key, int min, int max, int div = 1) =>
+                new(key, min, max, div) { Changed = OnAdjustParamChanged };
+            _pExposure = P("AdjExposure", -200, 200, 100);
+            _pExposure.Track = ExposureBrush;
+            _pBrightness = P("AdjBrightness", -100, 100);
+            _pContrast = P("AdjContrast", -100, 100);
+            _pHighlights = P("AdjHighlights", -100, 100);
+            _pShadows = P("AdjShadows", -100, 100);
+            _pWhites = P("AdjWhites", -100, 100);
+            _pBlacks = P("AdjBlacks", -100, 100);
+            _pGamma = P("AdjGamma", -100, 100);
+            foreach (var x in new[] { _pExposure, _pBrightness, _pContrast, _pHighlights, _pShadows, _pWhites, _pBlacks, _pGamma })
+                LightParams.Add(x);
+            _pHue = P("AdjHue", -180, 180);
+            _pSat = P("AdjSaturation", -100, 100);
+            _pLight = P("AdjLightness", -100, 100);
+            ColorParams.Add(_pHue); ColorParams.Add(_pSat); ColorParams.Add(_pLight);
+
+            string[] keys = { "AdjRange0", "AdjRange1", "AdjRange2", "AdjRange3", "AdjRange4", "AdjRange5", "AdjRange6" };
+            for (int i = 0; i < keys.Length; i++)
+                AdjustRanges.Add(new AdjustRange(i, keys[i], i == 0 ? RainbowBrush : new SolidColorBrush(Color.Parse(RangeColours[i]))));
+            SelectAdjustRange(0);
+            Loc.Instance.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName != nameof(Loc.Lang)) return;
+                foreach (var x in LightParams) x.RefreshLabel();
+                foreach (var x in ColorParams) x.RefreshLabel();
+                foreach (var x in AdjustRanges) x.RefreshLabel();
+            };
+        }
+
+        public void SelectAdjustRange(int index)
+        {
+            _adjustRange = Math.Clamp(index, 0, ImageAdjustSettings.RangeCount - 1);
+            foreach (var x in AdjustRanges) x.IsSelected = x.Index == _adjustRange;
+            SyncColorParams();
+        }
+
+        // Shows the stored values in the sliders (without applying anything).
+        private void SyncAdjustParams()
+        {
+            _pExposure.SetSilently(_adjust.Exposure);
+            _pBrightness.SetSilently(_adjust.Brightness);
+            _pContrast.SetSilently(_adjust.Contrast);
+            _pHighlights.SetSilently(_adjust.Highlights);
+            _pShadows.SetSilently(_adjust.Shadows);
+            _pWhites.SetSilently(_adjust.Whites);
+            _pBlacks.SetSilently(_adjust.Blacks);
+            _pGamma.SetSilently(_adjust.Gamma);
+            OnPropertyChanged(nameof(AdjColorize)); OnPropertyChanged(nameof(CanPickRange));
+            SyncColorParams();
+        }
+
+        private void SyncColorParams()
+        {
+            if (_pHue == null) return;
+            if (_adjust.Colorize)
+            {
+                _pHue.SetSilently(_adjust.ColorizeHue, 0, 360, 0);
+                _pSat.SetSilently(_adjust.ColorizeSaturation, 0, 100, 25);
+                _pLight.SetSilently(_adjust.ColorizeLightness, -100, 100, 0);
+            }
+            else
+            {
+                int i = _adjustRange;
+                _pHue.SetSilently(_adjust.Hue[i], -180, 180, 0);
+                _pSat.SetSilently(_adjust.Saturation[i], -100, 100, 0);
+                _pLight.SetSilently(_adjust.Lightness[i], -100, 100, 0);
+            }
+            UpdateColorTracks();
+            for (int i = 0; i < AdjustRanges.Count; i++)
+                AdjustRanges[i].IsUsed = i > 0 && (_adjust.Hue[i] != 0 || _adjust.Saturation[i] != 0 || _adjust.Lightness[i] != 0);
+        }
+
+        // Track colours: the hue scale; grey → the range's colour; black → colour → white.
+        private void UpdateColorTracks()
+        {
+            string? colour = _adjust.Colorize ? HueColour(_adjust.ColorizeHue) : _adjustRange > 0 ? RangeColours[_adjustRange] : null;
+            _pHue.Track = RainbowBrush;
+            _pSat.Track = colour == null ? GreyToRainbowBrush : Gradient(("#808080", 0), (colour, 1));
+            _pLight.Track = Gradient(("#000000", 0), (colour ?? "#808080", 0.5), ("#FFFFFF", 1));
+        }
+
+        private static string HueColour(int hue)
+        {
+            double h = ((hue % 360) + 360) % 360 / 60.0, x = 1 - Math.Abs(h % 2 - 1);
+            (double r, double g, double b) = h < 1 ? (1.0, x, 0.0) : h < 2 ? (x, 1.0, 0.0) : h < 3 ? (0.0, 1.0, x) :
+                                             h < 4 ? (0.0, x, 1.0) : h < 5 ? (x, 0.0, 1.0) : (1.0, 0.0, x);
+            return $"#{(int)(r * 255):X2}{(int)(g * 255):X2}{(int)(b * 255):X2}";
+        }
+
+        private void OnAdjustParamChanged(AdjustParam p)
+        {
+            int v = p.Value;
+            if (p == _pExposure) _adjust.Exposure = v;
+            else if (p == _pBrightness) _adjust.Brightness = v;
+            else if (p == _pContrast) _adjust.Contrast = v;
+            else if (p == _pHighlights) _adjust.Highlights = v;
+            else if (p == _pShadows) _adjust.Shadows = v;
+            else if (p == _pWhites) _adjust.Whites = v;
+            else if (p == _pBlacks) _adjust.Blacks = v;
+            else if (p == _pGamma) _adjust.Gamma = v;
+            else if (_adjust.Colorize)
+            {
+                if (p == _pHue) _adjust.ColorizeHue = v;
+                else if (p == _pSat) _adjust.ColorizeSaturation = v;
+                else if (p == _pLight) _adjust.ColorizeLightness = v;
+                UpdateColorTracks();
+            }
+            else
+            {
+                if (p == _pHue) _adjust.Hue[_adjustRange] = v;
+                else if (p == _pSat) _adjust.Saturation[_adjustRange] = v;
+                else if (p == _pLight) _adjust.Lightness[_adjustRange] = v;
+                if (_adjustRange > 0)
+                    AdjustRanges[_adjustRange].IsUsed = _adjust.Hue[_adjustRange] != 0 ||
+                        _adjust.Saturation[_adjustRange] != 0 || _adjust.Lightness[_adjustRange] != 0;
+            }
+            AdjustChanged();
+        }
+
+        private void AdjustChanged(bool apply = true)
+        {
+            _adjustVersion++;
             OnPropertyChanged(nameof(IsAdjusted));
             if (apply) ScheduleAdjust();
         }
 
-        public void ResetAdjustments() => SetAdjust(default);
+        public void ResetAdjustments()
+        {
+            _adjust = new ImageAdjustSettings();
+            SyncAdjustParams();
+            AdjustChanged();
+        }
+
+        // A new image (neutral) or an opened project's settings; nothing is applied here.
+        private void SetAdjustSettings(ImageAdjustSettings settings)
+        {
+            _adjustDelay?.Cancel();
+            _adjust = settings.Clone();
+            SyncAdjustParams();
+            AdjustChanged(apply: false);
+        }
 
         private async void ScheduleAdjust()
         {
@@ -1787,6 +2040,7 @@ public bool UseLab
             catch (TaskCanceledException) { return; }
             _adjustTask = ApplyAdjustmentsAsync();
             await _adjustTask;
+            if (_liveMos) await RunLiveMosAsync();
         }
 
         // Before Mos: a change still waiting for its pause is applied first, so Mos uses the sliders' values.
@@ -1805,7 +2059,8 @@ public bool UseLab
             var source = MosaicData.sourceBitmap;
             if (source == null) return;
             int version = _contentVersion;
-            var a = _adjust;
+            int adjustVersion = _adjustVersion;
+            var a = _adjust.Clone();
             SKBitmap adjusted;
             Bitmap? display;
             try
@@ -1822,7 +2077,7 @@ public bool UseLab
                 return;
             }
             // A newer image, project or setting took over meanwhile.
-            if (version != _contentVersion || a != _adjust || !ReferenceEquals(source, MosaicData.sourceBitmap))
+            if (version != _contentVersion || adjustVersion != _adjustVersion || !ReferenceEquals(source, MosaicData.sourceBitmap))
             {
                 if (!ReferenceEquals(adjusted, source)) adjusted.Dispose();
                 display?.Dispose();
@@ -1834,7 +2089,12 @@ public bool UseLab
             if (old != null && !ReferenceEquals(old, source) && !ReferenceEquals(old, adjusted) && !IsProcessing && !IsExporting)
                 old.Dispose();
             DisplayBitmap = display;
-            if (MosaicDone) StatusText = Loc.Get("AdjNeedsMos");
+            // Without Anlık Mos the outdated mosaic makes way for the adjusted image until the next Mos.
+            if (MosaicDone && !_liveMos)
+            {
+                SetShowingRaw(true);
+                StatusText = Loc.Get("AdjNeedsMos");
+            }
         }
 
         // Back from a stone's details to the image's (the panel's x button).
@@ -1876,10 +2136,33 @@ public bool UseLab
 
         // Name, preview, file type, size and date, pixel size, megapixels, aspect ratio and the most common colours
         // of the loaded image (or of the image beside an opened project; "not found" when it is not there).
+        // The loaded image's overall colour (the canvas and the size block are tinted with it); null without an image.
+        private Color? _imageAccent;
+        public Color? ImageAccent
+        {
+            get => _imageAccent;
+            private set { if (_imageAccent == value) return; _imageAccent = value; OnPropertyChanged(); }
+        }
+
+        // Average of about 10 000 evenly spread pixels.
+        private static Color AverageColor(SKBitmap bmp)
+        {
+            int step = Math.Max(1, (int)Math.Sqrt((double)bmp.Width * bmp.Height / 10_000.0));
+            long r = 0, g = 0, b = 0, n = 0;
+            for (int y = step / 2; y < bmp.Height; y += step)
+                for (int x = step / 2; x < bmp.Width; x += step)
+                {
+                    var c = bmp.GetPixel(x, y);
+                    r += c.Red; g += c.Green; b += c.Blue; n++;
+                }
+            return n == 0 ? Colors.Gray : Color.FromRgb((byte)(r / n), (byte)(g / n), (byte)(b / n));
+        }
+
         private void UpdateImageInfo()
         {
             string path = ProjectService.CurrentPictureFileName ?? "";
             var bmp = MosaicData.inputBitmap;
+            ImageAccent = bmp != null ? AverageColor(bmp) : null;
             ImageColors.Clear();
             ImageColorSegments.Clear();
             var oldThumb = ImageInfoThumb;
@@ -2067,6 +2350,7 @@ public bool UseLab
             {
                 if (e.PropertyName == nameof(Loc.Lang)) UpdateOptimalInfo();
             };
+            InitAdjustPanel();
         }
 
         public void LoadImage(string path)
@@ -2108,8 +2392,8 @@ public bool UseLab
             {
                 // A new image starts without adjustments.
                 MosaicData.sourceBitmap = bmp;
-                _adjustDelay?.Cancel();
-                SetAdjust(default, apply: false);
+                SetAdjustSettings(new ImageAdjustSettings());
+                SetShowingRaw(false);
                 _bitmapPixelWidth = bmp.Width;
                 _bitmapPixelHeight = bmp.Height;
                 OnPropertyChanged(nameof(BitmapPixelWidth));
@@ -2178,15 +2462,15 @@ public bool UseLab
 
             _heightCm = dim.HeightCm;
             DimensionInfo = $"{dim.WidthCm:F1} cm x {dim.HeightCm:F1} cm = {dim.AreaM2:F2} m²";
-            DimensionSize = $"{dim.WidthCm:F1} x {dim.HeightCm:F1} cm";
-            DimensionArea = $"{dim.AreaM2:F2} m²";
-            StoneInfo = Loc.Fmt("InfoStones", dim.StoneColumns, dim.StoneRows, dim.Stones);
+            // Same format as the width box (a dot), so the line reads "93.6 × 93.6 cm = 0.88 m²".
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            DimensionHeight = dim.HeightCm.ToString("0.0", inv);
+            DimensionArea = dim.AreaM2.ToString("0.00", inv) + " m²";
+            StoneInfo = Loc.Fmt("InfoStones", dim.StoneColumns, dim.StoneRows, dim.Stones.ToString("N0"));
             // Whole moulds after padding (from the stone rows, which the mosaic really has).
             int mouldCols = MosaicEngine.UpToMould(dim.StoneColumns) / MosaicEngine.MouldStones;
             int mouldRows = MosaicEngine.UpToMould(dim.StoneRows) / MosaicEngine.MouldStones;
-            MouldInfo = Loc.Fmt("InfoMoulds", mouldCols, mouldRows, mouldCols * mouldRows,
-                (mouldCols * 31.2).ToString("F1"), (mouldRows * 31.2).ToString("F1"));
-            OriginalInfo = Loc.Fmt("InfoOriginal", dim.OriginalWidth, dim.OriginalHeight);
+            MouldInfo = Loc.Fmt("InfoMoulds", mouldCols, mouldRows, mouldCols * mouldRows);
         }
 
         public async Task RunMosaicAsync()
@@ -2399,6 +2683,7 @@ public bool UseLab
             RenderSource = null;
             OverviewBitmap = null;
             MosaicDone = false;
+            SetShowingRaw(false);
             _lastRunOptimal = false;
             _mosaicMadeThisSession = false;
             _stoneUndoStack.Clear();
@@ -2408,7 +2693,7 @@ public bool UseLab
 
         private ProjectService.ProjectSnapshot CreateProjectSnapshot() =>
             ProjectService.CreateSnapshot(WidthCm, ZoomLevel, ShowGrid, false,
-                _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation, ImageAdjustArray);
+                _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation, AdjustSettingsForSave);
 
         // The mosaic is copied at once; turning it into JSON and writing the file happen in the background, so a
         // large project does not freeze the window (the wave runs meanwhile; edits made meanwhile are not in this
@@ -2417,6 +2702,7 @@ public bool UseLab
         public async Task<bool> SaveProjectAsync(string filePath)
         {
             if (IsSavingProject) return false;
+            await FlushAdjustmentsAsync();   // the saved picture shows the sliders' current values
             int version = _contentVersion;
             string name = System.IO.Path.GetFileName(filePath);
             ProjectService.ProjectSnapshot snapshot;
@@ -2445,9 +2731,15 @@ public bool UseLab
                 IsSavingProject = false;
             }
             // The saved file becomes the open project, unless another image or project was opened meanwhile.
-            if (version == _contentVersion) ProjectService.CurrentFileName = filePath;
+            if (version == _contentVersion)
+            {
+                ProjectService.CurrentFileName = filePath;
+                // The original was the picture now replaced by the adjusted one: it lives in "orijinal" from now on.
+                if (snapshot.OriginalMovedTo != null) ProjectService.CurrentPictureFileName = snapshot.OriginalMovedTo;
+            }
             StatusText = Loc.Fmt("StatusSaved", name);
             OnPropertyChanged(nameof(DocumentTitle));
+            FileSaved?.Invoke(filePath, SavedFileKind.Project);
             return true;
         }
 
@@ -2485,8 +2777,11 @@ public bool UseLab
                 {
                     var p = ProjectService.ReadProject(filePath);
                     if (p == null) return (null, null, null);
-                    SKBitmap? pic = p.PicturePath.Length > 0 && System.IO.File.Exists(p.PicturePath)
-                        ? ImageService.LoadImage(p.PicturePath) : null;
+                    // With an "orijinal" copy the original is the base and the saved settings apply to it again;
+                    // otherwise the picture itself.
+                    string path = p.OriginalPicturePath.Length > 0 && System.IO.File.Exists(p.OriginalPicturePath)
+                        ? p.OriginalPicturePath : p.PicturePath;
+                    SKBitmap? pic = path.Length > 0 && System.IO.File.Exists(path) ? ImageService.LoadImage(path) : null;
                     var m3 = p.DataM3;
                     SKBitmap st = ImageService.FromByteArray(m3, m3.GetLength(0), m3.GetLength(1));
                     return (p, pic, st);
@@ -2522,13 +2817,18 @@ public bool UseLab
 
             // As before: a project whose image is missing keeps the previously loaded source image. The project's
             // Görsel Ayarları come back with it (the adjusted copy is made in the background).
-            _adjustDelay?.Cancel();
             if (picture != null)
             {
                 MosaicData.sourceBitmap = picture;
                 MosaicData.inputBitmap = picture;
             }
-            SetAdjust(ImageAdjustments.FromArray(data.ImageAdjust), apply: false);
+            // The picture beside the project already has the settings applied when an "orijinal" copy exists;
+            // if that copy is missing (e.g. a project from Drive) the adjusted picture is the base, unadjusted.
+            bool fromOriginal = loaded.OriginalPicturePath.Length > 0 && System.IO.File.Exists(loaded.OriginalPicturePath);
+            bool baked = data.OriginalPictureFileName != null && !fromOriginal;
+            if (fromOriginal) ProjectService.CurrentPictureFileName = loaded.OriginalPicturePath;
+            SetAdjustSettings(baked ? new ImageAdjustSettings() : data.Adjust ?? ImageAdjustSettings.FromLegacy(data.ImageAdjust));
+            SetShowingRaw(false);
             if (picture != null && IsAdjusted) _adjustTask = ApplyAdjustmentsAsync();
 
             WidthCm = data.WidthCm;
@@ -2716,6 +3016,7 @@ public bool UseLab
                     ImageService.ExportImage(bmp, path, SKEncodedImageFormat.Png);
                 });
                 StatusText = Loc.Fmt("StatusScreenshotSaved", name);
+                FileSaved?.Invoke(path, SavedFileKind.Screenshot);
             }
             catch (Exception ex)
             {
@@ -2791,6 +3092,7 @@ public bool UseLab
                         size.Pixels > ImageService.MaxBitmapPixels ? Report : null);
                 });
                 StatusText = Loc.Fmt("StatusSaved", name);
+                FileSaved?.Invoke(path, SavedFileKind.Export);
             }
             catch (Exception ex) when (IsCancellation(ex))
             {
@@ -2973,7 +3275,7 @@ public bool UseLab
 
         public void OnImagePressed(double pointerX, double pointerY, double imageControlWidth, double imageControlHeight, bool isLeftButton, bool isMiddleButton)
         {
-            if (!MosaicDone) return;
+            if (!MosaicDone || _showingRaw) return;   // the image is shown instead of the mosaic
 
             int w = MosaicData.dataM3.GetLength(1);
             int h = MosaicData.dataM3.GetLength(0);

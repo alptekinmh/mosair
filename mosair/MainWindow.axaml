@@ -189,6 +189,11 @@
                             Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
                 </MenuItem.Icon>
               </MenuItem>
+              <MenuItem Header="{Binding [AdjLiveMos], Source={x:Static svc:Loc.Instance}}" Click="OnToggleLiveMos">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding LiveMos}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
               <MenuItem Header="{Binding [BtnPadding], Source={x:Static svc:Loc.Instance}}" Click="OnTogglePadding">
                 <MenuItem.Icon>
                   <PathIcon Width="12" Height="12" IsVisible="{Binding UsePadding}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
@@ -832,6 +837,9 @@
         <ColumnDefinition Width="4"/>
         <ColumnDefinition Width="*"/>
         <ColumnDefinition Width="4"/>
+        <!-- Görsel Ayarları: its own column, widened up to 600 px for finer sliders -->
+        <ColumnDefinition Width="300" MinWidth="260" MaxWidth="600"/>
+        <ColumnDefinition Width="4"/>
         <ColumnDefinition Width="220" MinWidth="160" MaxWidth="360"/>
       </Grid.ColumnDefinitions>
 
@@ -839,49 +847,52 @@
     <Border Grid.Column="0" Background="{DynamicResource BgPanel}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,1,0">
       <DockPanel>
-        <!-- Row 1: Dimensions -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="8,6"
+        <!-- Row 1: Dimensions: "[width] × height cm = area m²", then stones and moulds as two cards -->
+        <Border x:Name="dimsBorder" DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="10,8"
                 BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
-          <StackPanel Spacing="6">
-            <!-- Width input + Size + Area -->
-            <Grid ColumnDefinitions="Auto,Auto,*">
-              <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="3"
-                          VerticalAlignment="Center">
-                <TextBox Text="{Binding WidthCm, Converter={StaticResource InvDouble}}" Width="58"
-                         FontSize="14" FontWeight="Bold" Padding="4,2"
-                         Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgPrimary}"
-                         BorderBrush="{DynamicResource BrdrMain}" CornerRadius="4"
-                         LostFocus="OnWidthChanged"
-                         KeyDown="OnWidthKeyDown"
-                         GotFocus="OnWidthGotFocus"
-                         TextInput="OnWidthTextInput"/>
-                <TextBlock Text="cm" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}" FontSize="11"/>
-              </StackPanel>
-              <Border Grid.Column="1" Width="1" Background="{DynamicResource BrdrMain}" Margin="8,2"/>
-              <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="8,0,0,0">
-                <TextBlock Text="{Binding DimensionSize}" FontSize="10"
-                           Foreground="{DynamicResource FgSecondary}" FontFamily="{StaticResource MonoFont}"/>
-                <TextBlock Text="{Binding DimensionArea}" FontSize="16" FontWeight="SemiBold"
+          <Border.Transitions>
+            <Transitions>
+              <BrushTransition Property="Background" Duration="0:0:0.4"/>
+            </Transitions>
+          </Border.Transitions>
+          <StackPanel Spacing="8">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <TextBox Text="{Binding WidthCm, Converter={StaticResource InvDouble}}" Width="76"
+                       FontSize="16" FontWeight="SemiBold" Padding="6,2" FontFamily="{StaticResource MonoFont}"
+                       VerticalContentAlignment="Center"
+                       Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgPrimary}"
+                       BorderBrush="{DynamicResource BrdrMain}" CornerRadius="4"
+                       LostFocus="OnWidthChanged"
+                       KeyDown="OnWidthKeyDown"
+                       GotFocus="OnWidthGotFocus"
+                       TextInput="OnWidthTextInput"/>
+              <TextBlock Text="cm" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}"
+                         IsVisible="{Binding !ImageLoaded}"/>
+              <!-- The height and area follow once an image is loaded -->
+              <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ImageLoaded}">
+                <TextBlock Text="×" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}"/>
+                <TextBlock Text="{Binding DimensionHeight}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
+                <TextBlock Text="cm" FontSize="13" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}"/>
+                <TextBlock Text="=" FontSize="16" VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}"/>
+                <TextBlock Text="{Binding DimensionArea}" FontSize="16" FontWeight="SemiBold" VerticalAlignment="Center"
                            Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"/>
               </StackPanel>
+            </StackPanel>
+            <Grid ColumnDefinitions="*,8,*" IsVisible="{Binding ImageLoaded}">
+              <Border Grid.Column="0" Background="{DynamicResource BgInput}" CornerRadius="6" Padding="10,6"
+                      BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
+                <TextBlock Text="{Binding StoneInfo}" FontSize="12" Foreground="{DynamicResource FgPrimary}"
+                           FontFamily="{StaticResource MonoFont}" TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding StoneInfo}"/>
+              </Border>
+              <Border Grid.Column="2" Background="{DynamicResource BgInput}" CornerRadius="6" Padding="10,6"
+                      BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1">
+                <TextBlock Text="{Binding MouldInfo}" FontSize="12" Foreground="{DynamicResource FgPrimary}"
+                           FontFamily="{StaticResource MonoFont}" TextTrimming="CharacterEllipsis"
+                           ToolTip.Tip="{Binding MouldInfo}"/>
+              </Border>
             </Grid>
-            <!-- Stone / Mold / Original -->
-            <Border Background="{DynamicResource BgInput}" CornerRadius="4" Padding="8,5">
-              <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="2">
-                <TextBlock Grid.Row="0" Grid.Column="0" Text="&#x25A0;" Foreground="{DynamicResource AccentText}" FontSize="9"
-                           VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding StoneInfo}" FontSize="11"
-                           Foreground="{DynamicResource FgMenu}" FontFamily="{StaticResource MonoFont}"/>
-                <TextBlock Grid.Row="1" Grid.Column="0" Text="&#x25A3;" Foreground="{DynamicResource FgMuted}" FontSize="9"
-                           VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding MouldInfo}" FontSize="11"
-                           Foreground="{DynamicResource FgSecondary}" FontFamily="{StaticResource MonoFont}"/>
-                <TextBlock Grid.Row="2" Grid.Column="0" Text="&#x25CB;" Foreground="{DynamicResource FgMuted}" FontSize="9"
-                           VerticalAlignment="Center" Margin="0,0,6,0"/>
-                <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding OriginalInfo}" FontSize="10"
-                           Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
-              </Grid>
-            </Border>
           </StackPanel>
         </Border>
 
@@ -1057,8 +1068,14 @@
                   ResizeDirection="Columns" Cursor="SizeWestEast"/>
 
     <!-- ===== CANVAS ===== -->
-    <Border Grid.Column="2" Background="{DynamicResource BgCanvas}"
+    <Border x:Name="canvasBorder" Grid.Column="2" Background="{DynamicResource BgCanvas}"
             DragDrop.AllowDrop="True">
+      <!-- Tinted with the loaded image's colour (MainWindow.ApplyImageTint), changing smoothly -->
+      <Border.Transitions>
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.4"/>
+        </Transitions>
+      </Border.Transitions>
       <Panel>
         <ScrollViewer x:Name="imageScroller"
                       HorizontalScrollBarVisibility="Auto"
@@ -1069,7 +1086,9 @@
                  Height="{Binding ImageDisplayHeight}">
             <!-- Before Mos: the loaded image (smooth scaling while it is shown smaller than its size, set in code) -->
             <Image x:Name="sourceImage" Source="{Binding DisplayBitmap}"
-                   IsVisible="{Binding !MosaicDone}"
+                   IsVisible="{Binding ShowSourceView}"
+                   Width="{Binding SourceViewWidth}" Height="{Binding SourceViewHeight}"
+                   HorizontalAlignment="Left" VerticalAlignment="Top"
                    Stretch="Fill"
                    RenderOptions.BitmapInterpolationMode="LowQuality"
                    PointerWheelChanged="OnImageWheel"
@@ -1078,7 +1097,7 @@
                    PointerReleased="OnImagePointerReleased"/>
             <!-- After Mos: the stone image, drawn tile by tile for the visible part only -->
             <ctrl:MosaicView x:Name="mosaicView"
-                             IsVisible="{Binding MosaicDone}"
+                             IsVisible="{Binding ShowMosaicView}"
                              Source="{Binding RenderSource}"
                              Overview="{Binding OverviewBitmap}"
                              StonePixelSize="{Binding StonePixelSize}"
@@ -1126,12 +1145,152 @@
       </Panel>
     </Border>
 
-    <!-- Canvas / Properties Splitter -->
-    <GridSplitter x:Name="propsSplitter" Grid.Column="3" Width="4" Background="{DynamicResource BrdrMain}"
+    <!-- Canvas / Görsel Ayarları splitter -->
+    <GridSplitter x:Name="adjustSplitter" Grid.Column="3" Width="4" Background="{DynamicResource BrdrMain}"
+                  ResizeDirection="Columns" Cursor="SizeWestEast"/>
+
+    <!-- ===== GÖRSEL AYARLARI: Işık and Ton/Doygunluk, like Photoshop's adjustment panels ===== -->
+    <Border Grid.Column="4" Background="{DynamicResource BgPanel}"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
+            IsVisible="{Binding IsAdjustPanelOpen}">
+      <DockPanel>
+        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="8,2,2,2"
+                BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
+          <DockPanel>
+            <Button DockPanel.Dock="Right" Click="OnToggleAdjustPanel" Width="22" Height="20" Padding="0"
+                    Background="Transparent" BorderThickness="0" CornerRadius="4" Cursor="Hand"
+                    ToolTip.Tip="{Binding [TipPanelHide], Source={x:Static svc:Loc.Instance}}">
+              <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgMuted}" Data="M3,11 L21,11 L21,13 L3,13 Z"/>
+            </Button>
+            <Ellipse DockPanel.Dock="Right" Width="6" Height="6" Fill="{DynamicResource AccentText}" Margin="0,0,8,0"
+                     VerticalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
+            <TextBlock Text="{Binding [AdjTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"
+                       ToolTip.Tip="{Binding [TipAdjust], Source={x:Static svc:Loc.Instance}}"/>
+          </DockPanel>
+        </Border>
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="4" Margin="10,8,10,2">
+          <ToggleButton Classes="chip" IsChecked="{Binding IsLightTab}" Content="{Binding [AdjTabLight], Source={x:Static svc:Loc.Instance}}"
+                        FontSize="11" Padding="10,3"/>
+          <ToggleButton Classes="chip" IsChecked="{Binding IsColorTab}" Content="{Binding [AdjTabColor], Source={x:Static svc:Loc.Instance}}"
+                        FontSize="11" Padding="10,3"/>
+          <!-- Anlık Mos: each change is followed by a Mos (on), or the image is shown until the next Mos (off) -->
+          <Border Width="1" Height="18" Background="{DynamicResource BrdrMain}" Margin="4,0" VerticalAlignment="Center"/>
+          <ToggleButton Classes="chip" IsChecked="{Binding LiveMos}" Content="{Binding [AdjLiveMos], Source={x:Static svc:Loc.Instance}}"
+                        FontSize="11" Padding="10,3" ToolTip.Tip="{Binding [TipAdjLiveMos], Source={x:Static svc:Loc.Instance}}"/>
+        </StackPanel>
+        <DockPanel DockPanel.Dock="Bottom" Margin="10,4,10,10">
+          <Button DockPanel.Dock="Right" Content="{Binding [AdjReset], Source={x:Static svc:Loc.Instance}}" Click="OnAdjustReset"
+                  FontSize="11" Padding="12,3" CornerRadius="4" BorderThickness="1"
+                  Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}"
+                  BorderBrush="{DynamicResource BrdrMain}" IsEnabled="{Binding IsAdjusted}"/>
+          <TextBlock Text="{Binding [AdjHint], Source={x:Static svc:Loc.Instance}}" FontSize="10" TextWrapping="Wrap" Margin="0,0,8,0"
+                     VerticalAlignment="Center" Foreground="{DynamicResource FgMuted}"/>
+        </DockPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+          <StackPanel Margin="12,6,12,6" IsEnabled="{Binding CanAdjust}">
+            <ItemsControl ItemsSource="{Binding LightParams}" IsVisible="{Binding IsLightTab}">
+              <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:AdjustParam">
+              <StackPanel Margin="0,4,0,6" Spacing="3">
+                <DockPanel>
+                  <TextBox DockPanel.Dock="Right" Width="60" Height="22" MinHeight="22" Padding="5,1" FontSize="11"
+                           TextAlignment="Right" VerticalContentAlignment="Center" FontFamily="{StaticResource MonoFont}"
+                           Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" KeyDown="OnAdjustTextKeyDown"
+                           Classes="adj-num"/>
+                  <TextBlock Text="{Binding Label}" FontSize="11" VerticalAlignment="Center"
+                             Foreground="{DynamicResource FgSecondary}"/>
+                </DockPanel>
+                <ctrl:AdjustSlider Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding SliderValue}"
+                                   DefaultValue="{Binding Default}" TrackBrush="{Binding Track}"
+                                   EmptyTrackBrush="{DynamicResource BrdrTer}" ThumbBrush="{DynamicResource FgPrimary}"
+                                   ThumbBorderBrush="{DynamicResource BgInput}"
+                                   ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}"/>
+              </StackPanel>
+            </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <StackPanel IsVisible="{Binding IsColorTab}" Spacing="6">
+              <!-- Colour ranges: Ana (all colours), reds, yellows, greens, cyans, blues, magentas -->
+              <ItemsControl ItemsSource="{Binding AdjustRanges}" IsEnabled="{Binding CanPickRange}" Margin="0,2,0,0">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><WrapPanel/></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:AdjustRange">
+                    <Button Click="OnAdjustRangeClick" Tag="{Binding Index}" Width="28" Height="28" Padding="0" Margin="0,0,4,4"
+                            Background="Transparent" BorderThickness="0" CornerRadius="14" Cursor="Hand"
+                            ToolTip.Tip="{Binding Label}">
+                      <Panel>
+                        <Ellipse Width="20" Height="20" Fill="{Binding Swatch}"
+                                 Stroke="{DynamicResource BrdrTer}" StrokeThickness="1"/>
+                        <Ellipse Width="26" Height="26" Stroke="{DynamicResource AccentBorder}" StrokeThickness="2"
+                                 IsVisible="{Binding IsSelected}"/>
+                        <Ellipse Width="6" Height="6" Fill="{DynamicResource FgPrimary}" HorizontalAlignment="Right"
+                                 VerticalAlignment="Bottom" Margin="0,0,1,1" IsVisible="{Binding IsUsed}"/>
+                      </Panel>
+                    </Button>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <ItemsControl ItemsSource="{Binding ColorParams}">
+                <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:AdjustParam">
+              <StackPanel Margin="0,4,0,6" Spacing="3">
+                <DockPanel>
+                  <TextBox DockPanel.Dock="Right" Width="60" Height="22" MinHeight="22" Padding="5,1" FontSize="11"
+                           TextAlignment="Right" VerticalContentAlignment="Center" FontFamily="{StaticResource MonoFont}"
+                           Text="{Binding Text, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" KeyDown="OnAdjustTextKeyDown"
+                           Classes="adj-num"/>
+                  <TextBlock Text="{Binding Label}" FontSize="11" VerticalAlignment="Center"
+                             Foreground="{DynamicResource FgSecondary}"/>
+                </DockPanel>
+                <ctrl:AdjustSlider Minimum="{Binding Min}" Maximum="{Binding Max}" Value="{Binding SliderValue}"
+                                   DefaultValue="{Binding Default}" TrackBrush="{Binding Track}"
+                                   EmptyTrackBrush="{DynamicResource BrdrTer}" ThumbBrush="{DynamicResource FgPrimary}"
+                                   ThumbBorderBrush="{DynamicResource BgInput}"
+                                   ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}"/>
+              </StackPanel>
+            </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <CheckBox IsChecked="{Binding AdjColorize}" Content="{Binding [AdjColorize], Source={x:Static svc:Loc.Instance}}" FontSize="11"
+                        ToolTip.Tip="{Binding [TipAdjColorize], Source={x:Static svc:Loc.Instance}}"/>
+            </StackPanel>
+          </StackPanel>
+        </ScrollViewer>
+      </DockPanel>
+    </Border>
+
+    <!-- Folded Görsel Ayarları: a strip with a show button -->
+    <Border Grid.Column="4" Background="{DynamicResource BgBar}"
+            BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
+            IsVisible="{Binding !IsAdjustPanelOpen}">
+      <Button Click="OnToggleAdjustPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
+              Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
+              ToolTip.Tip="{Binding [TipAdjustShow], Source={x:Static svc:Loc.Instance}}">
+        <StackPanel Spacing="8">
+          <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
+                    Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
+          <Ellipse Width="6" Height="6" Fill="{DynamicResource AccentText}" HorizontalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
+          <LayoutTransformControl HorizontalAlignment="Center">
+            <LayoutTransformControl.LayoutTransform>
+              <RotateTransform Angle="90"/>
+            </LayoutTransformControl.LayoutTransform>
+            <TextBlock Text="{Binding [MenuAdjustPanel], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource FgMuted}"/>
+          </LayoutTransformControl>
+        </StackPanel>
+      </Button>
+    </Border>
+
+    <!-- Görsel Ayarları / Properties Splitter -->
+    <GridSplitter x:Name="propsSplitter" Grid.Column="5" Width="4" Background="{DynamicResource BrdrMain}"
                   ResizeDirection="Columns" Cursor="SizeWestEast"/>
 
     <!-- ===== PROPERTIES PANEL ===== -->
-    <Border Grid.Column="4" Background="{DynamicResource BgPanel}"
+    <Border Grid.Column="6" Background="{DynamicResource BgPanel}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
             IsVisible="{Binding IsPropertiesPanelOpen}">
       <DockPanel>
@@ -1147,69 +1306,6 @@
             <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
                        Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
           </DockPanel>
-        </Border>
-
-        <!-- Görsel Ayarları: brightness, contrast, saturation, gamma of the loaded image (folds to its header) -->
-        <Border DockPanel.Dock="Bottom" Background="{DynamicResource BgPanel}"
-                BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,1,0,0">
-          <StackPanel>
-            <Button Click="OnToggleAdjustPanel" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"
-                    Background="{DynamicResource BgBar}" BorderThickness="0" CornerRadius="0" Padding="8,4" Cursor="Hand"
-                    ToolTip.Tip="{Binding [TipAdjust], Source={x:Static svc:Loc.Instance}}">
-              <DockPanel>
-                <PathIcon DockPanel.Dock="Right" Width="9" Height="9" Foreground="{DynamicResource FgMuted}"
-                          IsVisible="{Binding IsAdjustPanelOpen}" Data="M4.6,8.6 L12,16 L19.4,8.6 L20.8,10 L12,18.8 L3.2,10 Z"/>
-                <PathIcon DockPanel.Dock="Right" Width="9" Height="9" Foreground="{DynamicResource FgMuted}"
-                          IsVisible="{Binding !IsAdjustPanelOpen}" Data="M4.6,15.4 L12,8 L19.4,15.4 L20.8,14 L12,5.2 L3.2,14 Z"/>
-                <Ellipse DockPanel.Dock="Right" Width="6" Height="6" Fill="{DynamicResource AccentText}" Margin="0,0,8,0"
-                         VerticalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
-                <TextBlock Text="{Binding [AdjTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
-                           Foreground="{DynamicResource FgMuted}" VerticalAlignment="Center"/>
-              </DockPanel>
-            </Button>
-            <StackPanel Margin="8,6,8,8" Spacing="2" IsVisible="{Binding IsAdjustPanelOpen}" IsEnabled="{Binding CanAdjust}">
-              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
-                <TextBlock Grid.Column="0" Text="{Binding [AdjBrightness], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgSecondary}"/>
-                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjBrightness}" Tag="AdjBrightness"
-                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
-                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
-                <TextBlock Grid.Column="2" Text="{Binding AdjBrightness}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
-              </Grid>
-              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
-                <TextBlock Grid.Column="0" Text="{Binding [AdjContrast], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgSecondary}"/>
-                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjContrast}" Tag="AdjContrast"
-                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
-                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
-                <TextBlock Grid.Column="2" Text="{Binding AdjContrast}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
-              </Grid>
-              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
-                <TextBlock Grid.Column="0" Text="{Binding [AdjSaturation], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgSecondary}"/>
-                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjSaturation}" Tag="AdjSaturation"
-                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
-                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
-                <TextBlock Grid.Column="2" Text="{Binding AdjSaturation}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
-              </Grid>
-              <Grid ColumnDefinitions="72,*,32" Margin="0,1">
-                <TextBlock Grid.Column="0" Text="{Binding [AdjGamma], Source={x:Static svc:Loc.Instance}}" FontSize="11" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgSecondary}"/>
-                <Slider Grid.Column="1" Minimum="-100" Maximum="100" Value="{Binding AdjGamma}" Tag="AdjGamma"
-                        TickFrequency="1" IsSnapToTickEnabled="True" DoubleTapped="OnAdjustSliderReset"
-                        ToolTip.Tip="{Binding [TipAdjSlider], Source={x:Static svc:Loc.Instance}}" Margin="2,-8"/>
-                <TextBlock Grid.Column="2" Text="{Binding AdjGamma}" FontSize="11" TextAlignment="Right" VerticalAlignment="Center"
-                           Foreground="{DynamicResource FgIcon}" FontFamily="{StaticResource MonoFont}"/>
-              </Grid>
-              <Button Content="{Binding [AdjReset], Source={x:Static svc:Loc.Instance}}" Click="OnAdjustReset" HorizontalAlignment="Right"
-                      FontSize="11" Padding="10,2" Margin="0,4,0,0" CornerRadius="4" BorderThickness="1"
-                      Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}"
-                      BorderBrush="{DynamicResource BrdrMain}" IsEnabled="{Binding IsAdjusted}"/>
-            </StackPanel>
-          </StackPanel>
         </Border>
 
         <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -1464,49 +1560,31 @@
     </Border>
 
     <!-- Folded properties panel: a strip with a show button -->
-    <Border Grid.Column="4" Background="{DynamicResource BgBar}"
+    <Border Grid.Column="6" Background="{DynamicResource BgBar}"
             BorderBrush="{DynamicResource BrdrMain}" BorderThickness="1,0,0,0"
             IsVisible="{Binding !IsPropertiesPanelOpen}">
-      <!-- Two tabs: Properties opens the panel; Görsel Ayarları opens it with the adjustments unfolded -->
-      <StackPanel>
-        <Button Click="OnTogglePropertiesPanel" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
-                Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
-                ToolTip.Tip="{Binding [TipPanelShow], Source={x:Static svc:Loc.Instance}}">
-          <StackPanel Spacing="10">
-            <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
-                      Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
-            <LayoutTransformControl HorizontalAlignment="Center">
-              <LayoutTransformControl.LayoutTransform>
-                <RotateTransform Angle="90"/>
-              </LayoutTransformControl.LayoutTransform>
-              <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
-                         Foreground="{DynamicResource FgMuted}"/>
-            </LayoutTransformControl>
-          </StackPanel>
-        </Button>
-        <Border Height="1" Background="{DynamicResource BrdrMain}" Margin="4,2"/>
-        <Button Click="OnShowAdjustPanel" HorizontalAlignment="Stretch"
-                HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
-                Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
-                ToolTip.Tip="{Binding [TipAdjustShow], Source={x:Static svc:Loc.Instance}}">
-          <StackPanel Spacing="6">
-            <Ellipse Width="6" Height="6" Fill="{DynamicResource AccentText}" HorizontalAlignment="Center" IsVisible="{Binding IsAdjusted}"/>
-            <LayoutTransformControl HorizontalAlignment="Center">
-              <LayoutTransformControl.LayoutTransform>
-                <RotateTransform Angle="90"/>
-              </LayoutTransformControl.LayoutTransform>
-              <TextBlock Text="{Binding [MenuAdjustPanel], Source={x:Static svc:Loc.Instance}}" FontSize="10" FontWeight="Bold"
-                         Foreground="{DynamicResource FgMuted}"/>
-            </LayoutTransformControl>
-          </StackPanel>
-        </Button>
-      </StackPanel>
+      <Button Click="OnTogglePropertiesPanel" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+              HorizontalContentAlignment="Center" VerticalContentAlignment="Top"
+              Background="Transparent" BorderThickness="0" CornerRadius="0" Padding="0,8" Cursor="Hand"
+              ToolTip.Tip="{Binding [TipPanelShow], Source={x:Static svc:Loc.Instance}}">
+        <StackPanel Spacing="10">
+          <PathIcon Width="10" Height="10" Foreground="{DynamicResource FgSecondary}" HorizontalAlignment="Center"
+                    Data="M15.4,4.6 L8,12 L15.4,19.4 L14,20.8 L5.2,12 L14,3.2 Z"/>
+          <LayoutTransformControl HorizontalAlignment="Center">
+            <LayoutTransformControl.LayoutTransform>
+              <RotateTransform Angle="90"/>
+            </LayoutTransformControl.LayoutTransform>
+            <TextBlock Text="{Binding [PropTitle], Source={x:Static svc:Loc.Instance}}" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource FgMuted}"/>
+          </LayoutTransformControl>
+        </StackPanel>
+      </Button>
     </Border>
 
-    <!-- New image in Downloads / on the Desktop: open it? (closes by itself after 5 s; the count stops while the
-         pointer is over it) -->
-    <Border x:Name="toastPanel" Grid.Column="0" Grid.ColumnSpan="5" IsVisible="False"
+    <!-- Notice at the bottom right (closes by itself after 7 s; the count stops while the pointer is over it):
+         a new image in Downloads / on the Desktop (open it?), or a file just written by an export, a screenshot or
+         a project save (open it / show it in its folder). -->
+    <Border x:Name="toastPanel" Grid.Column="0" Grid.ColumnSpan="7" IsVisible="False"
             HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,12,12" Width="300"
             Background="{DynamicResource BgCard}" BorderBrush="{DynamicResource BrdrTer}" BorderThickness="1"
             CornerRadius="8" ClipToBounds="True" BoxShadow="0 8 24 0 #66000000"
@@ -1521,8 +1599,8 @@
             <TextBlock x:Name="toastTitle" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource AccentText}"/>
             <TextBlock x:Name="toastName" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource FgPrimary}"
                        TextTrimming="CharacterEllipsis"/>
-            <TextBlock Text="{Binding [ToastQuestion], Source={x:Static svc:Loc.Instance}}" FontSize="11"
-                       Foreground="{DynamicResource FgSecondary}"/>
+            <TextBlock x:Name="toastInfo" FontSize="11" Foreground="{DynamicResource FgSecondary}"
+                       TextTrimming="CharacterEllipsis"/>
           </StackPanel>
           <Button Grid.Column="2" Click="OnToastDismiss" Width="20" Height="20" Padding="0" VerticalAlignment="Top"
                   Background="Transparent" BorderThickness="0" CornerRadius="3" Cursor="Hand"
@@ -1535,10 +1613,10 @@
           <TextBlock x:Name="toastSeconds" DockPanel.Dock="Left" VerticalAlignment="Center" FontSize="11"
                      Foreground="{DynamicResource FgMuted}" FontFamily="{StaticResource MonoFont}"/>
           <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="6">
-            <Button Click="OnToastDismiss" Content="{Binding [ToastDismiss], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="12,0"
+            <Button x:Name="toastSecondary" Click="OnToastSecondary" Height="28" Padding="12,0"
                     FontSize="11" VerticalContentAlignment="Center" CornerRadius="4"
                     Background="{DynamicResource BgHover}" Foreground="{DynamicResource FgPrimary}"/>
-            <Button Click="OnToastOpen" Content="{Binding [ToastOpen], Source={x:Static svc:Loc.Instance}}" Height="28" Padding="16,0"
+            <Button x:Name="toastPrimary" Click="OnToastPrimary" Height="28" Padding="16,0"
                     FontSize="11" VerticalContentAlignment="Center" Classes="primary"/>
           </StackPanel>
         </DockPanel>

@@ -55,7 +55,11 @@ public partial class MainWindow : Window
         // Stock on hand from the configured sheet, once the window is up (does not block start-up).
         Opened += async (_, _) => await _vm.LoadStockOnStartupAsync();
         AddHandler(DragDrop.DropEvent, OnDrop);
+        // The tint follows the theme (toggle button or the system's own change).
+        ActualThemeVariantChanged += (_, _) => ApplyImageTint();
+        AddHandler(PointerPressedEvent, OnWindowPointerPressedCommit, RoutingStrategies.Tunnel, handledEventsToo: true);
         _imageWatcher.ImageArrived += (path, place) => Dispatcher.UIThread.Post(() => ShowImageToast(path, place));
+        _vm.FileSaved += (path, kind) => Dispatcher.UIThread.Post(() => ShowSavedToast(path, kind));
         ApplyWatchNewImages();
         ApplySourceImageQuality();
         Closed += (_, _) => _imageWatcher.Dispose();
@@ -85,6 +89,8 @@ public partial class MainWindow : Window
         _vm.PropertyChanged += (s, e) =>
         {
             if (e.PropertyName == nameof(MainViewModel.IsPropertiesPanelOpen)) ApplyPropertiesPanel();
+            if (e.PropertyName == nameof(MainViewModel.ImageAccent)) ApplyImageTint();
+            if (e.PropertyName == nameof(MainViewModel.IsAdjustPanelOpen)) ApplyAdjustPanel();
             if (e.PropertyName == nameof(MainViewModel.WatchNewImages)) ApplyWatchNewImages();
             if (e.PropertyName == nameof(MainViewModel.ZoomLevel)) ApplySourceImageQuality();
             if (e.PropertyName == nameof(MainViewModel.IsProcessing))
@@ -231,6 +237,8 @@ public partial class MainWindow : Window
     {
         _vm.UseStockAware = !_vm.UseStockAware;
     }
+
+    private void OnToggleLiveMos(object? sender, RoutedEventArgs e) => _vm.LiveMos = !_vm.LiveMos;
 
     private void OnTogglePadding(object? sender, RoutedEventArgs e)
     {
@@ -398,7 +406,8 @@ public partial class MainWindow : Window
             }
         }
         // Areas around a small image are transparent in the render; give them the canvas colour.
-        var bg = this.TryFindResource("BgCanvas", ActualThemeVariant, out var res) && res is Avalonia.Media.Color c
+        var bg = canvasBorder.Background is Avalonia.Media.ISolidColorBrush cb ? cb.Color
+            : this.TryFindResource("BgCanvas", ActualThemeVariant, out var res) && res is Avalonia.Media.Color c
             ? c : Avalonia.Media.Color.FromRgb(0x2e, 0x2e, 0x34);
 
         string path;
@@ -624,27 +633,67 @@ public partial class MainWindow : Window
 
     private void OnToggleWatchImages(object? sender, RoutedEventArgs e) => _vm.WatchNewImages = !_vm.WatchNewImages;
 
+    // What the notice is about: a new image to open, or a file mosair just wrote.
+    private enum ToastKind { NewImage, Export, Project }
+    private ToastKind _toastKind;
+    private bool _toastThumbOwned;   // the preview was decoded for the notice (else it is the app's own bitmap)
+
     private void ShowImageToast(string path, NewImageWatcher.Place place)
     {
         if (!_vm.WatchNewImages) return;
         // Already open in mosair.
         if (string.Equals(path, Services.ProjectService.CurrentPictureFileName, StringComparison.OrdinalIgnoreCase)) return;
-        _toastPath = path;
-        toastTitle.Text = Loc.Get(place == NewImageWatcher.Place.Downloads ? "ToastNewDownload" : "ToastNewDesktop");
-        toastName.Text = System.IO.Path.GetFileName(path);
-        ToolTip.SetTip(toastName, path);
-        var old = toastThumb.Source as IDisposable;
-        toastThumb.Source = null;
-        old?.Dispose();
+        ShowToast(ToastKind.NewImage, path,
+            Loc.Get(place == NewImageWatcher.Place.Downloads ? "ToastNewDownload" : "ToastNewDesktop"),
+            Loc.Get("ToastQuestion"), Loc.Get("ToastDismiss"), Loc.Get("ToastOpen"), DecodeThumb(path));
+    }
+
+    // After an export, a screenshot or a project save: "open" (the image) and "show in folder".
+    private void ShowSavedToast(string path, MainViewModel.SavedFileKind kind)
+    {
+        string? dir = System.IO.Path.GetDirectoryName(path);
+        if (kind == MainViewModel.SavedFileKind.Project)
+            ShowToast(ToastKind.Project, path, Loc.Get("ToastProjectSaved"), dir ?? "",
+                Loc.Get("ToastDismiss"), Loc.Get("ToastShowFolder"), null, _vm.NavBitmap);
+        else
+            ShowToast(ToastKind.Export, path,
+                Loc.Get(kind == MainViewModel.SavedFileKind.Screenshot ? "ToastScreenshotSaved" : "ToastExported"),
+                dir ?? "", Loc.Get("ToastShowFolder"), Loc.Get("ToastOpenFile"), DecodeThumb(path));
+    }
+
+    // A small preview of an image file; none for very large files (a big export can be gigabytes).
+    private static Avalonia.Media.Imaging.Bitmap? DecodeThumb(string path)
+    {
         try
         {
+            var info = new System.IO.FileInfo(path);
+            if (!info.Exists || info.Length > 64L << 20) return null;
             using var fs = System.IO.File.OpenRead(path);
-            toastThumb.Source = Avalonia.Media.Imaging.Bitmap.DecodeToWidth(fs, 112);
+            return Avalonia.Media.Imaging.Bitmap.DecodeToWidth(fs, 112);
         }
         catch (Exception)
         {
-            // No preview; the notice still shows the name.
+            return null;   // no preview; the notice still shows the name
         }
+    }
+
+    private void ShowToast(ToastKind kind, string path, string title, string info, string secondary, string primary,
+        Avalonia.Media.Imaging.Bitmap? ownedThumb, Avalonia.Media.Imaging.Bitmap? sharedThumb = null)
+    {
+        _toastKind = kind;
+        _toastPath = path;
+        toastTitle.Text = title;
+        toastName.Text = System.IO.Path.GetFileName(path);
+        ToolTip.SetTip(toastName, path);
+        toastInfo.Text = info;
+        ToolTip.SetTip(toastInfo, info);
+        toastSecondary.Content = secondary;
+        toastPrimary.Content = primary;
+        var old = toastThumb.Source as IDisposable;
+        bool oldOwned = _toastThumbOwned;
+        toastThumb.Source = ownedThumb ?? sharedThumb;
+        _toastThumbOwned = ownedThumb != null;
+        if (oldOwned && !ReferenceEquals(old, toastThumb.Source)) old?.Dispose();
         _toastLeft = ToastTime;
         _toastLastTick = DateTime.UtcNow;
         UpdateToastCountdown();
@@ -681,16 +730,67 @@ public partial class MainWindow : Window
     private void OnToastPointerExited(object? sender, PointerEventArgs e) => _toastHover = false;
     private void OnToastDismiss(object? sender, RoutedEventArgs e) => HideToast();
 
-    private void OnToastOpen(object? sender, RoutedEventArgs e)
+    // Right button: open (new image: load it; export: open the file); for a project: show it in its folder.
+    private void OnToastPrimary(object? sender, RoutedEventArgs e)
     {
         string path = _toastPath;
-        if (_vm.IsProcessing || _vm.IsExporting)
+        switch (_toastKind)
         {
-            _vm.StatusText = Loc.Get("StatusToastBusy");
-            return;
+            case ToastKind.NewImage:
+                if (_vm.IsProcessing || _vm.IsExporting)
+                {
+                    _vm.StatusText = Loc.Get("StatusToastBusy");
+                    return;
+                }
+                HideToast();
+                if (System.IO.File.Exists(path)) LoadImageAndFit(path);
+                break;
+            case ToastKind.Export:
+                HideToast();
+                OpenWithSystem(path);
+                break;
+            case ToastKind.Project:
+                HideToast();
+                ShowInFolder(path);
+                break;
         }
+    }
+
+    // Left button: close; for an export: show it in its folder.
+    private void OnToastSecondary(object? sender, RoutedEventArgs e)
+    {
         HideToast();
-        if (System.IO.File.Exists(path)) LoadImageAndFit(path);
+        if (_toastKind == ToastKind.Export) ShowInFolder(_toastPath);
+    }
+
+    private void OpenWithSystem(string path)
+    {
+        try
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo { FileName = path, UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _vm.StatusText = Loc.Fmt("StatusError", ex.Message);
+        }
+    }
+
+    // The file's folder with the file selected (Windows Explorer, macOS Finder); elsewhere just the folder.
+    private void ShowInFolder(string path)
+    {
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                System.Diagnostics.Process.Start("explorer.exe", "/select,\"" + path + "\"");
+            else if (OperatingSystem.IsMacOS())
+                System.Diagnostics.Process.Start("open", new[] { "-R", path });
+            else
+                OpenWithSystem(System.IO.Path.GetDirectoryName(path) ?? path);
+        }
+        catch (Exception ex)
+        {
+            _vm.StatusText = Loc.Fmt("StatusError", ex.Message);
+        }
     }
 
     // Properties panel: the column folds to a 24 px strip (its show button) and opens again at the width it had.
@@ -701,38 +801,68 @@ public partial class MainWindow : Window
 
     private void OnClearSelection(object? sender, RoutedEventArgs e) => _vm.ClearSelection();
 
-    // Görsel Ayarları: fold/unfold (header, View menu), reset all, double-click a slider to reset that one.
-    private void OnToggleAdjustPanel(object? sender, RoutedEventArgs e)
-    {
-        _vm.IsAdjustPanelOpen = !_vm.IsAdjustPanelOpen;
-        if (_vm.IsAdjustPanelOpen && !_vm.IsPropertiesPanelOpen) _vm.IsPropertiesPanelOpen = true;
-    }
+    // ----- Görsel Ayarları column: folds to a 24 px strip and opens again at the width it had -----
+    private GridLength _adjustWidth = new(300);
 
-    // From the folded strip: open the panel with the adjustments unfolded.
-    private void OnShowAdjustPanel(object? sender, RoutedEventArgs e)
+    private void OnToggleAdjustPanel(object? sender, RoutedEventArgs e) => _vm.IsAdjustPanelOpen = !_vm.IsAdjustPanelOpen;
+
+    private void ApplyAdjustPanel()
     {
-        _vm.IsAdjustPanelOpen = true;
-        _vm.IsPropertiesPanelOpen = true;
+        var col = mainGrid.ColumnDefinitions[4];
+        var gap = mainGrid.ColumnDefinitions[3];
+        if (_vm.IsAdjustPanelOpen)
+        {
+            col.MinWidth = 260;
+            col.MaxWidth = 600;
+            col.Width = _adjustWidth;
+            gap.Width = new GridLength(4);
+            adjustSplitter.IsVisible = true;
+        }
+        else
+        {
+            if (col.ActualWidth > 24) _adjustWidth = new GridLength(col.ActualWidth);
+            col.MinWidth = 24;
+            col.MaxWidth = 24;
+            col.Width = new GridLength(24);
+            gap.Width = new GridLength(0);
+            adjustSplitter.IsVisible = false;
+        }
     }
 
     private void OnAdjustReset(object? sender, RoutedEventArgs e) => _vm.ResetAdjustments();
 
-    private void OnAdjustSliderReset(object? sender, TappedEventArgs e)
+    private void OnAdjustRangeClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Slider { Tag: string prop }) return;
-        switch (prop)
-        {
-            case nameof(MainViewModel.AdjBrightness): _vm.AdjBrightness = 0; break;
-            case nameof(MainViewModel.AdjContrast): _vm.AdjContrast = 0; break;
-            case nameof(MainViewModel.AdjSaturation): _vm.AdjSaturation = 0; break;
-            case nameof(MainViewModel.AdjGamma): _vm.AdjGamma = 0; break;
-        }
+        if (sender is Button { Tag: int index }) _vm.SelectAdjustRange(index);
+    }
+
+    // A typed value in a number box is applied with Enter, or as soon as anything else is clicked.
+    private void OnAdjustTextKeyDown(object? sender, KeyEventArgs e)
+    {
+        if (e.Key != Key.Enter || sender is not TextBox box) return;
+        CommitAdjustBox(box);
+        e.Handled = true;
+    }
+
+    private void CommitAdjustBox(TextBox box)
+    {
+        Avalonia.Data.BindingOperations.GetBindingExpressionBase(box, TextBox.TextProperty)?.UpdateSource();
+        Focus();   // leaves the box, so it shows the value as applied
+    }
+
+    // Runs before any control handles a click: if a number box is being edited and the click is elsewhere, the
+    // typed value is applied first (clicking a non-focusable area would otherwise leave it pending).
+    private void OnWindowPointerPressedCommit(object? sender, PointerPressedEventArgs e)
+    {
+        if (FocusManager?.GetFocusedElement() is not TextBox { Classes: var classes } box || !classes.Contains("adj-num")) return;
+        if (e.Source is Visual v && (ReferenceEquals(v, box) || box.IsVisualAncestorOf(v))) return;
+        CommitAdjustBox(box);
     }
 
     private void ApplyPropertiesPanel()
     {
-        var col = mainGrid.ColumnDefinitions[4];
-        var gap = mainGrid.ColumnDefinitions[3];
+        var col = mainGrid.ColumnDefinitions[6];
+        var gap = mainGrid.ColumnDefinitions[5];
         if (_vm.IsPropertiesPanelOpen)
         {
             col.MinWidth = 160;
@@ -1025,9 +1155,20 @@ public partial class MainWindow : Window
 
     private async void OnOpenProject(object? sender, RoutedEventArgs e)
     {
+        // Starts in Masaüstü/mosairPROJECT (where Kaydet puts projects) when that folder exists.
+        IStorageFolder? start = null;
+        try
+        {
+            string projectDir = System.IO.Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop), "mosairPROJECT");
+            if (System.IO.Directory.Exists(projectDir))
+                start = await StorageProvider.TryGetFolderFromPathAsync(projectDir);
+        }
+        catch (Exception) { }
         var files = await StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = Loc.Get("DlgOpenProject"),
+            SuggestedStartLocation = start,
             AllowMultiple = false,
             FileTypeFilter = new[]
             {
@@ -1163,6 +1304,28 @@ public partial class MainWindow : Window
     }
 
     private bool _isLightTheme;
+    // ----- The image area and the size block take a calm tone of the loaded image's colour -----
+    // Its hue, with little saturation and a lightness that suits the theme (dark: deep, light: pale), so the image
+    // stands out and stone colours are not judged against a strong colour. Without an image: the theme colours.
+    private void ApplyImageTint()
+    {
+        bool light = ActualThemeVariant == Avalonia.Styling.ThemeVariant.Light;
+        Avalonia.Media.Color Theme(string key, Avalonia.Media.Color fallback) =>
+            this.TryFindResource(key, ActualThemeVariant, out var v) && v is Avalonia.Media.Color c ? c : fallback;
+        if (_vm.ImageAccent is not { } accent)
+        {
+            canvasBorder.Background = new Avalonia.Media.SolidColorBrush(Theme("BgCanvas", Avalonia.Media.Color.FromRgb(0x2c, 0x2d, 0x31)));
+            dimsBorder.Background = new Avalonia.Media.SolidColorBrush(Theme("BgBar", Avalonia.Media.Color.FromRgb(0x1d, 0x1e, 0x22)));
+            return;
+        }
+        var hsl = accent.ToHsl();
+        double sat = Math.Min(hsl.S, 0.6);
+        canvasBorder.Background = new Avalonia.Media.SolidColorBrush(
+            new Avalonia.Media.HslColor(1, hsl.H, sat * (light ? 0.30 : 0.35), light ? 0.90 : 0.14).ToRgb());
+        dimsBorder.Background = new Avalonia.Media.SolidColorBrush(
+            new Avalonia.Media.HslColor(1, hsl.H, sat * (light ? 0.25 : 0.30), light ? 0.93 : 0.16).ToRgb());
+    }
+
     private void OnToggleTheme(object? sender, RoutedEventArgs e)
     {
         _isLightTheme = !_isLightTheme;
