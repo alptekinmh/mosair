@@ -54,6 +54,7 @@ Her kaynak dosyanın bir sayfası vardır; klasör yapısı `mosair/` ile aynıd
 | [ColorCatalogService.md](kod/Services/ColorCatalogService.md) | `colorsBas.txt` renk kataloğu |
 | [GamutMapper.md](kod/Services/GamutMapper.md) | Gamut eşleme yardımcıları |
 | [ImageService.md](kod/Services/ImageService.md) | Görsel yükleme, yeniden boyutlandırma, dışa aktarma |
+| [ThemeService.md](kod/Services/ThemeService.md) | Görünüm → Tema: beş renk teması (koyu/açık), anında uygulama, `ui.json`'da saklama |
 | [ImageAdjustService.md](kod/Services/ImageAdjustService.md) | Görsel Ayarları: ışık (pozlama, kontrast, parlak alanlar, gölgeler, beyazlar, siyahlar, gama) ve ton/doygunluk (renk aralıkları, renklendir) |
 | [StoneTextureService.md](kod/Services/StoneTextureService.md) | Gerçek taş dokularını yükleme, çizim anlık görüntüsü kurma |
 | [MosaicRenderSource.md](kod/Services/MosaicRenderSource.md) | Taş dokulu görüntüyü (RS) istenen bölge ve detayda çizme (ekran karoları, dışa aktarma) |

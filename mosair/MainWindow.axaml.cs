@@ -57,6 +57,10 @@ public partial class MainWindow : Window
         AddHandler(DragDrop.DropEvent, OnDrop);
         // The tint follows the theme (toggle button or the system's own change).
         ActualThemeVariantChanged += (_, _) => ApplyImageTint();
+        // Görünüm ▸ Tema: the saved choice is already applied (App); keep the menu and the tint in step.
+        ThemeService.Changed += OnThemeChanged;
+        Closed += (_, _) => ThemeService.Changed -= OnThemeChanged;
+        UpdateThemeUi();
         AddHandler(PointerPressedEvent, OnWindowPointerPressedCommit, RoutingStrategies.Tunnel, handledEventsToo: true);
         _imageWatcher.ImageArrived += (path, place) => Dispatcher.UIThread.Post(() => ShowImageToast(path, place));
         _vm.FileSaved += (path, kind) => Dispatcher.UIThread.Post(() => ShowSavedToast(path, kind));
@@ -1303,7 +1307,6 @@ public partial class MainWindow : Window
         _vm.RefreshLocalized();
     }
 
-    private bool _isLightTheme;
     // ----- The image area and the size block take a calm tone of the loaded image's colour -----
     // Its hue, with little saturation and a lightness that suits the theme (dark: deep, light: pale), so the image
     // stands out and stone colours are not judged against a strong colour. Without an image: the theme colours.
@@ -1326,14 +1329,29 @@ public partial class MainWindow : Window
             new Avalonia.Media.HslColor(1, hsl.H, sat * (light ? 0.25 : 0.30), light ? 0.93 : 0.16).ToRgb());
     }
 
-    private void OnToggleTheme(object? sender, RoutedEventArgs e)
+    // The toolbar's moon/sun button and Görünüm ▸ Tema ▸ Açık Tema: dark/light of the chosen palette (saved).
+    private void OnToggleTheme(object? sender, RoutedEventArgs e) => ThemeService.SetLight(!ThemeService.IsLight);
+
+    // Görünüm ▸ Tema ▸ a palette (its id in Tag).
+    private void OnPickTheme(object? sender, RoutedEventArgs e)
     {
-        _isLightTheme = !_isLightTheme;
-        Application.Current!.RequestedThemeVariant =
-            _isLightTheme ? Avalonia.Styling.ThemeVariant.Light
-                          : Avalonia.Styling.ThemeVariant.Dark;
-        iconDark.IsVisible = !_isLightTheme;
-        iconLight.IsVisible = _isLightTheme;
+        if (sender is MenuItem { Tag: string id }) ThemeService.SetPalette(id);
+    }
+
+    private void OnThemeChanged()
+    {
+        UpdateThemeUi();
+        ApplyImageTint();   // the plain canvas colour comes from the palette
+    }
+
+    private void UpdateThemeUi()
+    {
+        iconDark.IsVisible = !ThemeService.IsLight;
+        iconLight.IsVisible = ThemeService.IsLight;
+        themeCheckLight.IsVisible = ThemeService.IsLight;
+        foreach (var (id, check) in new[] { ("lapis", themeCheck_lapis), ("pastel", themeCheck_pastel),
+                     ("grafit", themeCheck_grafit), ("traverten", themeCheck_traverten), ("murekkep", themeCheck_murekkep) })
+            check.IsVisible = ThemeService.CurrentId == id;
     }
 
     private void OnDragOver(object? sender, DragEventArgs e)

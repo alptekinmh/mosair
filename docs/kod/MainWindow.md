@@ -166,7 +166,6 @@ Window
 | `CmdKey` | `static readonly KeyModifiers` | `Meta` (macOS) / `Control` | `Loc.IsMac`'e göre. |
 | `_interpMenuItems`, `_gridColorMenuItems`, `_gridShadeMenuItems`, `_gridShadeSeparator` | listeler | boş | Araçlar menüsünde kodla oluşturulan öğeler ve onay işaretleri. |
 | `CheckGeometry` | `const string` | — | Menü onay işaretinin yol geometrisi. |
-| `_isLightTheme` | `bool` | `false` | Tema durumu. |
 | `_propertiesWidth` | `GridLength` | 220 | Özellikler paneli gizlenmeden önceki genişlik. |
 | `_adjustWidth` | `GridLength` | 300 | Görsel Ayarları sütunu gizlenmeden önceki genişlik. |
 | `_imageWatcher` | `NewImageWatcher` | yeni örnek | İndirilenler / Masaüstü izleyicisi ([NewImageWatcher](Services/NewImageWatcher.md)). |
@@ -273,7 +272,9 @@ Window
 | `OnStockClearAll` | Araçlar → Stok, Stok Sil düğmesinin `ContextMenu`'sü | `_vm.ClearStockAllAsync()`. |
 | `OnStockAdd` | Araçlar → Stok, toolbar Stok Ekle | `_vm.AddStockAsync()`. |
 | `OnShowHelp` | Yardım → Kullanım Kılavuzu | `ShowHelp()` → `new HelpWindow().ShowDialog(this)`. |
-| `OnToggleTheme` | Tema düğmesi | `Application.Current!.RequestedThemeVariant` `Light`/`Dark`; `iconDark`/`iconLight` görünürlüğü. |
+| `OnToggleTheme` | Tema düğmesi, **Görünüm → Tema → Açık Tema** | `ThemeService.SetLight(!ThemeService.IsLight)`. |
+| `OnPickTheme` | **Görünüm → Tema →** palet | `ThemeService.SetPalette` (id öğenin `Tag`'inde: `lapis`, `pastel`, `grafit`, `traverten`, `murekkep`). |
+| `OnThemeChanged` | `ThemeService.Changed` | `UpdateThemeUi()` (ay/güneş ikonu, `themeCheck_<id>` ve `themeCheckLight` onay işaretleri) ve `ApplyImageTint()`. Pencere kapanınca abonelik bırakılır. |
 | `OnSetLanguageTr` / `OnSetLanguageEn` | Dil Flyout'undaki TR / EN düğmeleri | `Loc.Instance.Lang = "tr"/"en"` + `_vm.RefreshLocalized()`. |
 | `OnWidthGotFocus` | Genişlik `TextBox` (`GotFocus`) | Metnin tamamını seçer (`Dispatcher.UIThread.Post` ile). |
 | `OnWidthTextInput` | Genişlik `TextBox` (`TextInput`) | Yazılan `,` karakterini `.` yapar. |
@@ -390,9 +391,9 @@ Aynı `toastPanel` mosair'in yazdığı dosyalar için de kullanılır (aşağı
 
 ### Tema
 
-`OnToggleTheme` uygulama genelinde `ThemeVariant.Light` ↔ `ThemeVariant.Dark` geçişi yapar. Pencere renkleri `ThemeDictionaries` + `DynamicResource` ile otomatik değişir.
+`OnToggleTheme` uygulama genelinde `ThemeVariant.Light` ↔ `ThemeVariant.Dark` geçişi yapar; `OnPickTheme` renk paletini değiştirir (ikisi de [ThemeService](Services/ThemeService.md) üzerinden, seçim `ui.json`'da saklanır). Pencere renkleri `ThemeDictionaries` + `DynamicResource` ile otomatik değişir. Kurucu sonunda `UpdateThemeUi()` kaydedilmiş seçimi menüye ve ikona yansıtır.
 
-**Görsele uyan arka plan (`ApplyImageTint`):** Tuval (`canvasBorder`) ve sol paneldeki ölçü bölümü (`dimsBorder`) yüklenen görselin rengine uyan sakin bir ton alır. `_vm.ImageAccent`'in tonu (H) korunur; doygunluk `min(S, 0.6)` × 0.35 (tuval) / 0.30 (ölçü bölümü) koyu temada, × 0.30 / 0.25 açık temada; açıklık koyu temada 0.14 / 0.16, açık temada 0.90 / 0.93 (`HslColor` → RGB). `ImageAccent` null ise (görsel yok) temanın `BgCanvas` / `BgBar` renkleri yerel değer olarak verilir. Çağrıldığı yerler: `_vm.PropertyChanged` (`ImageAccent`) ve pencerenin `ActualThemeVariantChanged` olayı (tema düğmesi ya da sistemin tema değişimi). İki `Border`'da da 0,4 sn `BrushTransition` vardır. Amaç: görsel öne çıksın, taş renkleri güçlü bir renge karşı değerlendirilmesin. Her zaman açıktır, ayarı yoktur. Seçim kalıcı değildir; açılış teması `App.axaml`'daki `Dark`'tır.
+**Görsele uyan arka plan (`ApplyImageTint`):** Tuval (`canvasBorder`) ve sol paneldeki ölçü bölümü (`dimsBorder`) yüklenen görselin rengine uyan sakin bir ton alır. `_vm.ImageAccent`'in tonu (H) korunur; doygunluk `min(S, 0.6)` × 0.35 (tuval) / 0.30 (ölçü bölümü) koyu temada, × 0.30 / 0.25 açık temada; açıklık koyu temada 0.14 / 0.16, açık temada 0.90 / 0.93 (`HslColor` → RGB). `ImageAccent` null ise (görsel yok) temanın `BgCanvas` / `BgBar` renkleri yerel değer olarak verilir. Çağrıldığı yerler: `_vm.PropertyChanged` (`ImageAccent`), pencerenin `ActualThemeVariantChanged` olayı (tema düğmesi ya da sistemin tema değişimi) ve `OnThemeChanged` (palet değişince görsel yokken yeni paletin `BgCanvas`/`BgBar`'ı). İki `Border`'da da 0,4 sn `BrushTransition` vardır. Amaç: görsel öne çıksın, taş renkleri güçlü bir renge karşı değerlendirilmesin. Her zaman açıktır, ayarı yoktur.
 
 ### Dil
 

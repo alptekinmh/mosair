@@ -1,6 +1,6 @@
 # App
 
-> Kaynak: `mosair/App.axaml`, `mosair/App.axaml.cs` · Güncelleme: 2026-10-07
+> Kaynak: `mosair/App.axaml`, `mosair/App.axaml.cs` · Güncelleme: 2026-10-08
 
 ## Amaç
 
@@ -14,7 +14,7 @@ Avalonia `Application` sınıfı. Uygulama genelindeki temayı (Fluent, koyu) y�
 
 | Ad | Tip | Varsayılan | Açıklama |
 |---|---|---|---|
-| `RequestedThemeVariant` (XAML) | `ThemeVariant` | `Dark` | Başlangıç teması. Kullanıcı `MainWindow` üzerindeki tema düğmesiyle çalışma anında `Light`/`Dark` arasında geçer. |
+| `RequestedThemeVariant` (XAML) | `ThemeVariant` | `Dark` | Varsayılan. `OnFrameworkInitializationCompleted` ilk pencereden önce `ThemeService.LoadSaved()` çağırır; kaydedilmiş bir seçim varsa palet ve `Light`/`Dark` ondan gelir. |
 | `Application.Styles` | — | `FluentTheme` + paylaşılan stiller | Avalonia Fluent teması; `FluentTheme.Palettes` içinde `Dark` ve `Light` için `ColorPaletteResources Accent` (`#2D6BD9` / `#1F5FCC`) verilir. Böylece Fluent'in kendi vurgu rengi (CheckBox, Slider, ProgressBar, ToggleButton, odak çerçevesi) işletim sisteminin vurgu rengini değil uygulamanınkini izler. |
 | `MonoFont` (kaynak) | `FontFamily` | `JetBrains Mono, Cascadia Mono, Consolas, Menlo, monospace` | Eş aralıklı yazılar (taş kodları, ölçüler, değerler) için tek tanım; `{StaticResource MonoFont}` ile kullanılır (temaya bağlı değil). |
 | `Button.primary` (stil) | — | — | Ana eylem düğmesi: `AccentFill` zemin, `OnAccent` yazı, köşe 4, SemiBold; `:pointerover` → `AccentFillHover`, `:pressed` → `AccentFillPressed`, `:disabled` → `BgHover` / `FgDisabled` (`/template/ ContentPresenter` hedeflenir). Alert, Confirm, Stock/Drive ayarları ve Drive'dan Aç pencerelerinin onay düğmesi ve yeni görsel bildirimindeki **Aç** kullanır. |
@@ -43,7 +43,7 @@ Avalonia `Application` sınıfı. Uygulama genelindeki temayı (Fluent, koyu) y�
 | `OnAccent` / `AccentText` / `AccentBorder` / `AccentSubtle` | `#FFFFFF` / `#6FA3FF` / `#6FA3FF` / `#262D6BD9` | `#FFFFFF` / `#1D5BC4` / `#1F5FCC` / `#1F1F5FCC` | Vurgu üstü yazı, vurgu renkli yazı/ikon, seçim/mini harita çerçevesi, mini harita dolgusu |
 | `Success` / `Danger` / `DangerText` / `EditMode` | `#4CC27A` / `#E53935` / `#F2665E` / `#FF7A29` | `#17703D` / `#E53935` / `#B71C1C` / `#B23A0A` | Kaydedildi ✓; kırmızı nokta ve İptal çerçevesi; kırmızı yazı; piksel düzenleme |
 | `Brand` / `BrandFill` | `#6FAF6F` / `#3F7A3F` | `#356B35` / `#3F7A3F` | "mosair" yazısı (logodaki adaçayı yeşili), kılavuz başlığındaki logo kutusu |
-- Tema değişimi `MainWindow.OnToggleTheme` içinde `Application.Current!.RequestedThemeVariant` atanarak yapılır; seçim kalıcı değildir, her açılışta koyu tema ile başlanır.
+- Buradaki değerler varsayılan **Lapis** paletidir. **Görünüm → Tema** başka bir palet seçince [ThemeService](Services/ThemeService.md) aynı anahtarlara o paletin değerlerini yazar (Fluent `Accent` dahil); koyu/açık geçişi de `ThemeService.SetLight` ile yapılır. Seçim `%APPDATA%\mosair\ui.json` dosyasında saklanır.
 - Tek pencereli masaüstü uygulaması: mobil/tarayıcı yaşam döngüsü desteklenmez.
 
 ## Dikkat / bilinen sınırlamalar

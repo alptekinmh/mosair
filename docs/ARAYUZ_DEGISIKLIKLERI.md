@@ -4,6 +4,12 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-08: Renk temaları (Görünüm → Tema)
+
+- **Görünüm → Tema** alt menüsü: beş renk teması — **Lapis** (varsayılan, önceki renkler), **Adaçayı ve Lavanta** (pastel), **Grafit ve Petrol**, **Traverten**, **Mürekkep ve Leylak**; seçili olanda ✓. Her biri koyu ve açık çalışır (araç çubuğundaki ☾/☀ ya da aynı alt menüdeki **Açık Tema**). Renkler anında değişir.
+- Seçim (palet ve koyu/açık) hatırlanır: `%APPDATA%\mosair\ui.json`. Proje dosyasına yazılmaz. Durum renkleri (kaydedildi, uyarı, stok eksikliği, piksel düzenleme) her temada aynı.
+- Kod: [ThemeService](kod/Services/ThemeService.md).
+
 ## 2026-10-08: Görsel Ayarları kendi sütununda, Photoshop gibi
 
 - **Drive'da orijinal ve ayarlar:** Görsel Ayarları kullanılan proje Drive'a kaydedilirken dokunulmamış orijinal de gönderiliyor ve Drive'daki proje klasörünün `orijinal` alt klasörüne konuyor; Drive'dan açınca orijinal de iniyor ve proje son kaydedilen ayarlarla açılıyor (kaydırıcılar kaldığı yerde). Script yeniden dağıtılmalı.
