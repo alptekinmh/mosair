@@ -380,11 +380,12 @@ namespace mosair.Services
             ["InfoMouldsLabel"] = "Kalıp",
             ["PadTitle"] = "Kalıba tamamlama",
             ["BtnPadding"] = "Kalıp Dolgu",
-            ["TipPadding"] = "Açıkken mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, mozaikte kullanılmayan, stoğu yeten ve renkçe en uzak taş konur. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
+            ["TipPadding"] = "Açıkken görsel ve mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, renkçe görselden en uzak katalog taşı konur. Mos'tan önce görselin kenarında dolgu bu taşın rengiyle görünür, Mos dolguyu bu taşla yapar. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
             ["PadRemoved"] = "Kalıp dolgusu kaldırıldı",
             ["PadDone"] = "Kalıba tamamlandı: {0} dolgu taşı ({1})",
-            ["PadNoStock"] = "Kalıba tamamlanamadı: dolgu taşını seçmek için stok bilgisi yok ({0} dolgu taşı gerekli)",
-            ["PadNoStone"] = "Kalıba tamamlanamadı: mozaikte kullanılmayan ve stoğu {0} taşa yeten bir taş yok",
+            ["PadPreview"] = "Kalıp dolgusu: {0} dolgu taşı ({1}); Mos dolguyu bu taşla yapar",
+            ["PadNotNeeded"] = "Boyut zaten tam kalıp; dolgu gerekmiyor",
+            ["PadNoStone"] = "Kalıba tamamlanamadı: katalogda dolguya uygun bir taş yok",
             ["PadNoEdit"] = "Dolgu alanı düzenlenemez",
 
             // Properties format
@@ -737,11 +738,12 @@ namespace mosair.Services
             ["InfoMouldsLabel"] = "Moulds",
             ["PadTitle"] = "Whole moulds",
             ["BtnPadding"] = "Mould Fill",
-            ["TipPadding"] = "When on, the mosaic is filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with a stone not used in the mosaic, with enough stock and farthest in colour. These are real stones, so they are counted.",
+            ["TipPadding"] = "When on, the image and the mosaic are filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with the catalog stone farthest in colour from the image. Before Mos the padding shows around the image in that stone's colour, and Mos fills it with that stone. These are real stones, so they are counted.",
             ["PadRemoved"] = "Mould fill removed",
             ["PadDone"] = "Filled to whole moulds: {0} filler stones ({1})",
-            ["PadNoStock"] = "Not filled to whole moulds: no stock information to choose the filler stone ({0} filler stones needed)",
-            ["PadNoStone"] = "Not filled to whole moulds: no stone unused in the mosaic has stock for {0} stones",
+            ["PadPreview"] = "Mould fill: {0} filler stones ({1}); Mos fills with this stone",
+            ["PadNotNeeded"] = "The size is already whole moulds; no padding needed",
+            ["PadNoStone"] = "Not filled to whole moulds: the catalog has no stone for the padding",
             ["PadNoEdit"] = "The padding cannot be edited",
 
             // Properties format

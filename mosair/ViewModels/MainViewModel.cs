@@ -1103,6 +1103,7 @@ public bool UseLab
                 OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
                 OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
                 OnPropertyChanged(nameof(CanSaveProject));
+                RefreshPadView();
             }
         }
 
@@ -1205,13 +1206,22 @@ public bool UseLab
 
         private async Task ApplyPaddingChoiceAsync()
         {
+            // Before Mos (an image on screen): only the padded view of the image changes.
+            if (!MosaicDone)
+            {
+                UpdatePadPreview();
+                if (!ImageLoaded || IsProcessing) return;
+                StatusText = !_usePadding ? Loc.Get("PadRemoved")
+                    : _previewFiller == null ? Loc.Get("PadNoStone")
+                    : PadPreview ? Loc.Fmt("PadPreview", PreviewPadCount().ToString("N0"), FillerLabel(_previewFiller, _loadedStock))
+                    : Loc.Get("PadNotNeeded");
+                return;
+            }
             // While a job runs the choice simply applies to its result / the next Mos.
-            if (!MosaicDone || IsProcessing || IsExporting) return;
+            if (IsProcessing || IsExporting) return;
             int rows = MosaicData.dataM3.GetLength(0), cols = MosaicData.dataM3.GetLength(1);
             if (_usePadding ? MosaicEngine.PaddingCount(rows, cols) == 0 : !MosaicEngine.IsPadded) return;
             int version = _contentVersion;
-            if (_usePadding && _loadedStock == null && _stockOnHand == null && StockConfigured()) await RefreshStockAsync();
-            if (version != _contentVersion || IsProcessing || !MosaicDone) return;
             var stock = _stockOnHand ?? _loadedStock;
             bool pad = _usePadding;
             var oldExport = MosaicData.exportBitmap;
@@ -1238,6 +1248,7 @@ public bool UseLab
             FinishMosaic(result, TimeSpan.Zero);
             ElapsedTime = elapsed;
             DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
+            RefreshPadView();
             if (!pad) StatusText = Loc.Get("PadRemoved");
             else if (_padNote.Length > 0)
             {
@@ -1248,19 +1259,14 @@ public bool UseLab
             }
         }
 
-        private static bool StockConfigured() => !string.IsNullOrEmpty(StockSheetService.LoadConfig().SheetId);
+        // "#ID code name" of the filler; the stock sheet only gives its name (stock plays no part in the choice).
+        private static string FillerLabel(rgb filler, Dictionary<int, StockSheetService.StoneStock>? stock) =>
+            stock != null && stock.TryGetValue(filler.ID, out var info)
+                ? string.Join(" ", new[] { $"#{filler.ID}", info.Code, info.Name.Trim() }.Where(x => x.Length > 0))
+                : $"#{filler.ID} {filler.codeName}";
 
-        // The stock to choose a filler from; read now when padding will be needed and it is not loaded yet.
-        private async Task<Dictionary<int, StockSheetService.StoneStock>?> PadStockAsync(
-            Dictionary<int, StockSheetService.StoneStock>? fitStock)
-        {
-            if (fitStock != null || !_usePadding) return fitStock;
-            if (MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width) == 0) return _loadedStock;
-            if (_loadedStock == null && StockConfigured()) await RefreshStockAsync();
-            return _loadedStock;
-        }
-
-        // Runs on the worker thread after the mosaic is built: pads it and returns the bitmap to show.
+        // Runs on the worker thread after the mosaic is built: pads it and returns the bitmap to show. The filler
+        // is chosen as for the preview, from the (adjusted) image the Mos used, among the stones the mosaic leaves out.
         private SKBitmap? PadResult(SKBitmap? result, Dictionary<int, StockSheetService.StoneStock>? stock)
         {
             _padNote = "";
@@ -1268,27 +1274,62 @@ public bool UseLab
             if (result == null || !_usePadding) return result;
             int need = MosaicEngine.PaddingCount(MosaicData.dataM3.GetLength(0), MosaicData.dataM3.GetLength(1));
             if (need == 0) return result;
-            if (stock == null)
-            {
-                // Without stock the filler cannot be chosen (the person who pads works with the stock sheet).
-                _padNote = Loc.Fmt("PadNoStock", need.ToString("N0"));
-                _padAlert = StockConfigured();
-                return result;
-            }
-            var filler = MosaicEngine.ChooseFiller(need, id => stock.TryGetValue(id, out var s) ? s.Capacity : null);
+            var image = MosaicData.inputBitmap;
+            var filler = image == null ? null : MosaicEngine.ChooseFiller(MosaicEngine.ImageColours(image), excludeUsed: true);
             if (filler == null)
             {
-                _padNote = Loc.Fmt("PadNoStone", need.ToString("N0"));
+                _padNote = Loc.Get("PadNoStone");
                 _padAlert = true;
                 return result;
             }
             var padded = MosaicEngine.PadToMoulds(filler);
             StoneTextureService.EnsureTextures(filler.codeName, filler);
-            string label = stock.TryGetValue(filler.ID, out var info)
-                ? string.Join(" ", new[] { $"#{filler.ID}", info.Code, info.Name.Trim() }.Where(x => x.Length > 0))
-                : $"#{filler.ID} {filler.codeName}";
-            _padNote = Loc.Fmt("PadDone", need.ToString("N0"), label);
+            _padNote = Loc.Fmt("PadDone", need.ToString("N0"), FillerLabel(filler, stock));
             return padded;
+        }
+
+        // ----- Kalıp Dolgu before Mos: the image is shown on a panel grown to whole moulds, the padding painted in
+        // the filler's colour (the image itself is not changed; Mos pads its result with the same stone). -----
+        private rgb? _previewFiller;
+
+        // The image (no mosaic yet) is shown padded.
+        private bool PadPreview => _usePadding && ImageLoaded && !MosaicDone && _previewFiller != null
+            && MosaicEngine.width >= 1 && MosaicEngine.height >= 1
+            && MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width) > 0;
+        private int PreviewPadCount() => MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width);
+        // How much larger than the image the padded panel is.
+        private double PadScaleX => PadPreview ? (double)MosaicEngine.UpToMould((int)MosaicEngine.width) / (int)MosaicEngine.width : 1;
+        private double PadScaleY => PadPreview ? (double)MosaicEngine.UpToMould((int)MosaicEngine.height) / (int)MosaicEngine.height : 1;
+
+        // Behind the image: the padding's colour, before Mos and when the image is shown over a padded mosaic.
+        public bool ShowPadBackground => ShowSourceView && (PadPreview || (_showingRaw && MosaicEngine.IsPadded));
+        public IBrush PadBrush
+        {
+            get
+            {
+                var f = PadPreview ? _previewFiller
+                    : MosaicEngine.IsPadded ? MosaicData.arRGBAll.Find(c => c.ID == MosaicEngine.FillerId) : null;
+                return f == null ? Brushes.Transparent
+                    : new SolidColorBrush(Color.FromRgb((byte)f.r, (byte)f.g, (byte)f.b));
+            }
+        }
+
+        // Chooses the preview's filler from the image on screen (adjustments included) and resizes the view.
+        private void UpdatePadPreview()
+        {
+            var image = MosaicData.inputBitmap;
+            _previewFiller = _usePadding && ImageLoaded && image != null
+                ? MosaicEngine.ChooseFiller(MosaicEngine.ImageColours(image), excludeUsed: false) : null;
+            RefreshPadView();
+        }
+
+        private void RefreshPadView()
+        {
+            OnPropertyChanged(nameof(ImageDisplayWidth)); OnPropertyChanged(nameof(ImageDisplayHeight));
+            OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
+            OnPropertyChanged(nameof(BitmapPixelWidth)); OnPropertyChanged(nameof(BitmapPixelHeight));
+            OnPropertyChanged(nameof(ZoomInfo));
+            OnPropertyChanged(nameof(ShowPadBackground)); OnPropertyChanged(nameof(PadBrush));
         }
 
         // UI thread, after the path's own status text: the padding result (and a dialog when it could not be done).
@@ -1562,15 +1603,18 @@ public bool UseLab
             }
         }
 
-        public double ImageDisplayWidth => _bitmapPixelWidth * _zoomLevel;
-        public double ImageDisplayHeight => _bitmapPixelHeight * _zoomLevel;
-        public int BitmapPixelWidth => _bitmapPixelWidth;
-        public int BitmapPixelHeight => _bitmapPixelHeight;
+        // The view's size: the image or mosaic, grown to whole moulds while the image is shown padded (PadPreview).
+        private double ViewPixelWidth => _bitmapPixelWidth * PadScaleX;
+        private double ViewPixelHeight => _bitmapPixelHeight * PadScaleY;
+        public double ImageDisplayWidth => ViewPixelWidth * _zoomLevel;
+        public double ImageDisplayHeight => ViewPixelHeight * _zoomLevel;
+        public int BitmapPixelWidth => (int)Math.Round(ViewPixelWidth);
+        public int BitmapPixelHeight => (int)Math.Round(ViewPixelHeight);
         // The mosaic's own size once there is one (padded to whole moulds, or an opened project); before Mos the
         // image's stone size.
         public int StoneColumns => MosaicDone ? MosaicData.dataM3.GetLength(1) : (int)MosaicEngine.width;
         public int StoneRows => MosaicDone ? MosaicData.dataM3.GetLength(0) : (int)MosaicEngine.height;
-        public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
+        public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {ImageDisplayWidth:F0}x{ImageDisplayHeight:F0}";
 
 
         public double NavViewLeft { get => _navViewLeft; set { _navViewLeft = value; OnPropertyChanged(); } }
@@ -1834,11 +1878,13 @@ public bool UseLab
         public bool ShowMosaicView => MosaicDone && !_showingRaw;
         public bool ShowSourceView => !ShowMosaicView;
 
-        // The image's size on screen: the whole image area, or — shown over a padded mosaic — only the part the
-        // image itself covers (the padding stays empty).
-        public double SourceViewWidth => _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(1) > 0
+        // The image's size on screen: the whole image area, or — shown padded before Mos, or over a padded mosaic —
+        // only the part the image itself covers (the padding shows PadBrush).
+        public double SourceViewWidth => PadPreview ? _bitmapPixelWidth * _zoomLevel
+            : _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(1) > 0
             ? ImageDisplayWidth * MosaicEngine.UnpaddedCols / MosaicData.dataM3.GetLength(1) : ImageDisplayWidth;
-        public double SourceViewHeight => _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(0) > 0
+        public double SourceViewHeight => PadPreview ? _bitmapPixelHeight * _zoomLevel
+            : _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(0) > 0
             ? ImageDisplayHeight * MosaicEngine.UnpaddedRows / MosaicData.dataM3.GetLength(0) : ImageDisplayHeight;
 
         private void SetShowingRaw(bool value)
@@ -1847,6 +1893,7 @@ public bool UseLab
             _showingRaw = value;
             OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
             OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
+            OnPropertyChanged(nameof(ShowPadBackground)); OnPropertyChanged(nameof(PadBrush));
             OnPropertyChanged(nameof(NavBitmap));
         }
 
@@ -2099,6 +2146,8 @@ public bool UseLab
             if (old != null && !ReferenceEquals(old, source) && !ReferenceEquals(old, adjusted) && !IsProcessing && !IsExporting)
                 old.Dispose();
             DisplayBitmap = display;
+            // The padding's colour follows the adjusted image.
+            if (_usePadding) UpdatePadPreview();
             // Without Anlık Mos the outdated mosaic makes way for the adjusted image until the next Mos.
             if (MosaicDone && !_liveMos)
             {
@@ -2330,6 +2379,7 @@ public bool UseLab
             {
                 // A new image starts without adjustments.
                 MosaicData.sourceBitmap = bmp;
+                _previewFiller = null;   // chosen again for the new image (UpdateDimensions)
                 SetAdjustSettings(new ImageAdjustSettings());
                 SetShowingRaw(false);
                 _bitmapPixelWidth = bmp.Width;
@@ -2413,6 +2463,8 @@ public bool UseLab
             InfoMouldCols = mouldCols.ToString();
             InfoMouldRows = mouldRows.ToString();
             InfoMouldTotal = (mouldCols * mouldRows).ToString("N0");
+            if (_usePadding && _previewFiller == null) UpdatePadPreview();
+            else RefreshPadView();
         }
 
         // keepK: with Optimum, build the mosaic with this stone count instead of the suggested one (Anlık Mos keeps a
@@ -2500,7 +2552,7 @@ public bool UseLab
                 bool stockFixOk = true;
                 bool stockFitCancelled = false;
                 int appliedK = 0;   // the Optimum stone count the mosaic was built with
-                var padStock = await PadStockAsync(stock);
+                var padStock = stock ?? _loadedStock;
                 await Task.Run(() =>
                 {
                     WorkCancellation.Token = cts.Token;
@@ -3095,8 +3147,8 @@ public bool UseLab
         {
             if (_lastViewportWidth <= 0 || _lastViewportHeight <= 0 ||
                 _bitmapPixelWidth <= 0 || _bitmapPixelHeight <= 0) return 1.0;
-            double zx = (_lastViewportWidth - 16) / _bitmapPixelWidth;
-            double zy = (_lastViewportHeight - 16) / _bitmapPixelHeight;
+            double zx = (_lastViewportWidth - 16) / ViewPixelWidth;
+            double zy = (_lastViewportHeight - 16) / ViewPixelHeight;
             return Math.Min(zx, zy);
         }
 

@@ -1138,6 +1138,9 @@
           <Panel x:Name="imagePanel" Margin="4"
                  Width="{Binding ImageDisplayWidth}"
                  Height="{Binding ImageDisplayHeight}">
+            <!-- Kalıp Dolgu with the image on screen: the panel is grown to whole moulds and the padding (right and
+                 bottom, outside the image) shows the filler stone's colour -->
+            <Border Background="{Binding PadBrush}" IsVisible="{Binding ShowPadBackground}" IsHitTestVisible="False"/>
             <!-- Before Mos: the loaded image (smooth scaling while it is shown smaller than its size, set in code) -->
             <Image x:Name="sourceImage" Source="{Binding DisplayBitmap}"
                    IsVisible="{Binding ShowSourceView}"

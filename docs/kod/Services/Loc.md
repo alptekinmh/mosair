@@ -63,7 +63,7 @@ Her iki sözlükte de **323** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Lbl*` | 5 | Sol panel etiketleri (`LblStockAware` dahil) |
 | `Col*` | 3 | Palet sütun başlıkları |
 | `Info*` | 2 | Sol paneldeki taş/kalıp kartının satır adları: `InfoStonesLabel` ("Taş" / "Stones") ve `InfoMouldsLabel` ("Kalıp" / "Moulds"). `InfoStones`, `InfoMoulds` ve `InfoOriginal` kaldırıldı. |
-| `Pad*` | 6 | Tam kalıba tamamlama: diyalog başlığı `PadTitle`, durum notları `PadDone` ("Kalıba tamamlandı: {0} dolgu taşı ({1})"), `PadNoStock`, `PadNoStone`, kapatınca `PadRemoved` ("Kalıp dolgusu kaldırıldı"), dolgu alanında düzenleme engeli `PadNoEdit` |
+| `Pad*` | 7 | Tam kalıba tamamlama: diyalog başlığı `PadTitle`, durum notları `PadDone` ("Kalıba tamamlandı: {0} dolgu taşı ({1})"), Mos'tan önce `PadPreview` ("Kalıp dolgusu: {0} dolgu taşı ({1}); Mos dolguyu bu taşla yapar") ve `PadNotNeeded`, `PadNoStone` ("katalogda dolguya uygun bir taş yok"; `PadNoStock` kaldırıldı), kapatınca `PadRemoved` ("Kalıp dolgusu kaldırıldı"), dolgu alanında düzenleme engeli `PadNoEdit` |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
 | `Btn*` | 4 | Tümünü seç / seçimi kaldır, Kalıp Dolgu düğmesi ve Araçlar menüsündeki öğesi (`BtnPadding`: "Kalıp Dolgu" / "Mould Fill"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |
 | `Size*` | 3 | Dosya boyutu biçimleri (`SizeKB`, `SizeMB`, `SizeGB`; Drive'dan Aç kartları `SizeKB`/`SizeMB` kullanır) |

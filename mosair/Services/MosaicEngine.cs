@@ -651,8 +651,9 @@ namespace mosair.Services
 
         // ===== Whole moulds: the finished mosaic is padded on the right and at the bottom =====
         // The robot (WPF) can only make whole moulds of 26 × 26 stones (31.2 cm). After every Mos, Optimum stone
-        // count change and stock fit, the mosaic is filled up to the next whole mould with one filler stone: a
-        // catalog stone not used in the mosaic, with enough stock, whose colour is farthest from every stone used.
+        // count change and stock fit, the mosaic is filled up to the next whole mould with one filler stone: the
+        // catalog stone whose colour is farthest from the image's colours (one the mosaic does not use; stock plays
+        // no part). Before Mos the image is shown padded with the same stone's colour.
         // The image keeps its place at the top left, so all stone coordinates stay the same. Mos itself never
         // sees the padding: it is added last and taken off (RemovePadding) before a stock fit works on the mosaic.
 
@@ -677,33 +678,44 @@ namespace mosair.Services
             FillerCode = "";
         }
 
-        // The filler for `count` stones: among the catalog stones that the mosaic does not use and that have at least
-        // `count` stones of stock, the one whose smallest colour difference (Lab ΔE) to the stones used is largest.
-        // Null when no stone qualifies.
-        public static rgb? ChooseFiller(int count, Func<int, int?> capacityOfId)
+        // The image's colours in Lab: sampled on a grid of at most 128 × 128 points, near-equal colours (the same
+        // 16 levels per channel) counted once.
+        public static List<(double L, double A, double B)> ImageColours(SKBitmap bmp)
+        {
+            var seen = new HashSet<int>();
+            var colours = new List<(double L, double A, double B)>();
+            int stepX = Math.Max(1, bmp.Width / 128), stepY = Math.Max(1, bmp.Height / 128);
+            for (int y = stepY / 2; y < bmp.Height; y += stepY)
+                for (int x = stepX / 2; x < bmp.Width; x += stepX)
+                {
+                    var c = bmp.GetPixel(x, y);
+                    if (!seen.Add((c.Red >> 4) << 8 | (c.Green >> 4) << 4 | c.Blue >> 4)) continue;
+                    colours.Add(ColorMatcher.RgbToLab(c.Red, c.Green, c.Blue));
+                }
+            return colours;
+        }
+
+        // The filler: among the catalog stones (without those the mosaic uses, when `excludeUsed`), the one whose
+        // smallest colour difference (Lab ΔE) to `colours` is largest, so the padding stands out from the image.
+        // Null when the catalog has no such stone.
+        public static rgb? ChooseFiller(List<(double L, double A, double B)> colours, bool excludeUsed)
         {
             var usedIds = new HashSet<int>();
-            var used = new List<(double L, double A, double B)>();
-            if (MosaicData.arMA.Count > 0)
+            if (excludeUsed && MosaicData.arMA.Count > 0)
                 foreach (var c in MosaicData.arMA[0])
-                    if (c.numOfPixel > 0 && usedIds.Add(c.ID))
-                    {
-                        var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
-                        used.Add((lab.L, lab.A, lab.B));
-                    }
+                    if (c.numOfPixel > 0) usedIds.Add(c.ID);
 
             rgb? best = null;
             double bestScore = double.MinValue;
             foreach (var c in MosaicData.arRGBAll)
             {
                 if (c.ID <= 0 || string.IsNullOrEmpty(c.codeName) || usedIds.Contains(c.ID)) continue;
-                if (capacityOfId(c.ID) is not int cap || cap < count) continue;
                 var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
                 double nearest = double.MaxValue;
-                foreach (var u in used)
+                foreach (var u in colours)
                 {
                     double dl = lab.L - u.L, da = lab.A - u.A, db = lab.B - u.B;
-                    nearest = Math.Min(nearest, Math.Sqrt(dl * dl + da * da + db * db));
+                    nearest = Math.Min(nearest, dl * dl + da * da + db * db);
                 }
                 if (nearest > bestScore) { bestScore = nearest; best = c; }
             }

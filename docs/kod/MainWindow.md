@@ -86,7 +86,9 @@ Window
        ├─ Sütun 2 — Tuval (canvasBorder: Border, DragDrop.AllowDrop="True"; Background başta BgCanvas, sonra ApplyImageTint;
        │                   0,4 sn BrushTransition)
        │   ├─ imageScroller (ScrollViewer)
-       │   │   └─ Panel x:Name="imagePanel" (ImageDisplayWidth × ImageDisplayHeight)
+       │   │   └─ Panel x:Name="imagePanel" (ImageDisplayWidth × ImageDisplayHeight; Kalıp Dolgu önizlemesinde tam kalıba büyümüş)
+       │   │       ├─ Border (Background = PadBrush; yalnızca ShowPadBackground; tıklanmaz): dolgu alanının rengi,
+       │   │       │     görselin sağında ve altında görünür
        │   │       ├─ Image x:Name="sourceImage" (DisplayBitmap; yalnızca ShowSourceView; Width/Height = SourceViewWidth/Height,
        │   │       │     sol üste hizalı; wheel/move/press/release olayları)
        │   │       ├─ ctrl:MosaicView x:Name="mosaicView" (yalnızca ShowMosaicView; RenderSource, OverviewBitmap,

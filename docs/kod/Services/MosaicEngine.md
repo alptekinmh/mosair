@@ -76,10 +76,11 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `ApplyOptimalKWithStock(k, capacityOfId, familyOfId, options, prepareTextures)` | `ApplyOptimalK(k, prepareTextures: false)` çalıştırır, ardından sonucu stoğa göre düzeltir (`FixToStock`). Dokular her durumda (`prepareTextures` true ise) hazırlanır. Hiçbir taş stoğu aşmıyorsa mozaik `ApplyOptimalK`'nın ürettiğinin aynısıdır. `MosaicData.reducedBitmap` döndürür. | MainViewModel (`ApplyOptimalKFor`), StockCompareRunner |
 | `FixCurrentMosaicToStock(capacityOfId, familyOfId, options, prepareTextures)` → `bool` | Ekrandaki mozaiği (klasik Mos sonucu da olabilir) stoğa göre düzeltir. `LastRunPool` veya `inputBitmap` yoksa ya da kaynak boyutu `dataM3` ile uyuşmuyorsa `false` döndürür. Gamut kullanmaz. Dokular yalnızca mozaik değiştiyse yeniden hazırlanır. | MainViewModel (`FixClassicMosaicToStock`), StockCompareRunner |
 | `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler; `LastOptimalResult`, `LastRunPool`, `LastStockResult`, Optimum önbelleğini ve dolgu bilgisini (`ForgetPadding`) de sıfırlar | MainViewModel, CompareRunner, StockCompareRunner |
-| `MouldStones` (sabit, 26) · `UpToMould(n)` · `PaddingCount(rows, cols)` | Kalıp kenarındaki taş sayısı; `n`'yi 26'nın bir üst katına yuvarlar (tam katsa aynen); R × C mozaiği tam kalıba tamamlamak için gereken dolgu taşı sayısı (`UpToMould(R)·UpToMould(C) − R·C`, tam kalıpsa 0) | MainViewModel (`PadStockAsync`, `PadResult`, `UpdateDimensions`) |
+| `MouldStones` (sabit, 26) · `UpToMould(n)` · `PaddingCount(rows, cols)` | Kalıp kenarındaki taş sayısı; `n`'yi 26'nın bir üst katına yuvarlar (tam katsa aynen); R × C mozaiği tam kalıba tamamlamak için gereken dolgu taşı sayısı (`UpToMould(R)·UpToMould(C) − R·C`, tam kalıpsa 0) | MainViewModel (`PadResult`, `PadPreview`, `UpdateDimensions`) |
 | `UnpaddedRows`, `UnpaddedCols`, `FillerId`, `FillerCode`, `IsPadded` | Bu oturumda eklenen dolgunun bilgisi: dolgudan önceki boyut ve dolgu taşı. Dolgu yoksa 0 / `""` / false. | MainViewModel, ProjectService |
 | `ForgetPadding()` | Dolgu bilgisini siler (dizilere dokunmaz). `CreateSingleRegion` (sıfırdan kurulan her mozaik), `Reset` ve `ProjectService.ApplyProject` çağırır: açılan projenin dolgusu artık yalnızca kaydedilmiş mozaiğin bir parçasıdır. | Dosya içi, ProjectService |
-| `ChooseFiller(count, capacityOfId)` → `rgb?` | Dolgu taşını seçer (aşağıda). Uygun taş yoksa null. | MainViewModel (`PadResult`) |
+| `ImageColours(bmp)` → Lab listesi | Görselin renkleri (aşağıda) | MainViewModel (`PadResult`, `UpdatePadPreview`) |
+| `ChooseFiller(colours, excludeUsed)` → `rgb?` | Dolgu taşını seçer (aşağıda). Uygun taş yoksa null. | MainViewModel (`PadResult`, `UpdatePadPreview`) |
 | `PadToMoulds(filler)` → `SKBitmap` | Mozaiği sağa ve alta tam kalıba tamamlar, yeni taş renkleri bitmap'ini döndürür (aşağıda). Zaten tam kalıpsa hiçbir şey değiştirmeden `reducedBitmap`'i döndürür. | MainViewModel (`PadResult`) |
 | `RemovePadding()` | Dolguyu geri alır (sol üstten kırpma). Dolgu yoksa hiçbir şey yapmaz. | MainViewModel (`FixToStockAsync`) |
 | `CloneRgb`, `CloneList`, `CloneNestedList` | `rgb` nesnelerini ve listelerini derin kopyalar | Dosya içi |
@@ -136,12 +137,14 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 6. Dokular: `prepareTextures` true ise ve (`texturesAlways` ya da sonuç değiştiyse) `StoneTextureService` ile yeniden hazırlanır (`PopulateRandomIndices` + `LoadTextures`).
 
 ### Tam kalıba tamamlama (dolgu)
-Robot (WPF) yalnızca 26 × 26 taşlık (31,2 cm) tam kalıpları üretebilir. **Kalıp Dolgu** açıkken (`MainViewModel.UsePadding`) MainViewModel her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve stok düzeltmesinden sonra son adım olarak mozaiği sağa ve alta, bir üst tam kalıba kadar tek bir dolgu taşıyla doldurur. Mos algoritmaları dolguyu hiç görmez: dolgu sonuca en son eklenir. Görsel sol üstte kaldığı için görsel kısmındaki tüm taş koordinatları değişmez.
+Robot (WPF) yalnızca 26 × 26 taşlık (31,2 cm) tam kalıpları üretebilir. **Kalıp Dolgu** açıkken (`MainViewModel.UsePadding`) MainViewModel her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve stok düzeltmesinden sonra son adım olarak mozaiği sağa ve alta, bir üst tam kalıba kadar tek bir dolgu taşıyla doldurur. Mos algoritmaları dolguyu hiç görmez: dolgu sonuca en son eklenir. Görsel sol üstte kaldığı için görsel kısmındaki tüm taş koordinatları değişmez. Mos'tan önce MainViewModel görseli aynı taşın rengiyle dolgulu gösterir (yalnızca ekranda; `inputBitmap` değişmez, bu yüzden Mos sonuçları aynı kalır).
 
-**`ChooseFiller(count, capacityOfId)`:**
-1. Kullanılan taşlar: `arMA[0]` içinde `numOfPixel > 0` olan girdiler (ID'leri ve Lab renkleri).
-2. Adaylar: `arRGBAll` içindeki, `ID > 0` ve `codeName`'i boş olmayan, kullanılan taşlarda olmayan taşlar; seçili olup olmamaları (`boolLeaveOut`) önemsizdir. `capacityOfId(ID)` null ya da `count`'tan küçükse aday elenir.
-3. Her aday için kullanılan taşlara en küçük Lab ΔE76 uzaklığı hesaplanır; bu değeri en büyük olan aday seçilir (eşitlikte katalogda önce gelen). Böylece dolgu mozaikteki hiçbir renge benzemez.
+**`ImageColours(bmp)`:** Görsel en çok 128 × 128 noktalık bir ızgarada örneklenir (adım `max(1, boyut/128)`, hücre ortası); kanal başına 16 düzeye yuvarlanınca aynı çıkan renkler bir kez sayılır. Her rengin Lab değeri döner.
+
+**`ChooseFiller(colours, excludeUsed)`:**
+1. `excludeUsed` ise kullanılan taşlar elenir: `arMA[0]` içinde `numOfPixel > 0` olan ID'ler (Mos'tan sonra; önizlemede false).
+2. Adaylar: `arRGBAll` içindeki, `ID > 0` ve `codeName`'i boş olmayan taşlar; seçili olup olmamaları (`boolLeaveOut`) ve stokları önemsizdir.
+3. Her aday için `colours`'a en küçük Lab ΔE76 uzaklığı hesaplanır; bu değeri en büyük olan aday seçilir (eşitlikte katalogda önce gelen). Böylece dolgu görseldeki hiçbir renge benzemez ve gerçek bir taşın rengidir.
 
 **`PadToMoulds(filler)`:** `R × C` → `UpToMould(R) × UpToMould(C)`:
 - `dataM3` büyütülür; yeni hücreler dolgu taşının BGR rengidir. `dataM1` ve `dataM3Backup` yalnızca `R × C` boyutundaysa aynı şekilde büyütülür (`dataM3F` 3×3×3 yer tutucusu dokunulmaz).
