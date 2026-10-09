@@ -24,6 +24,7 @@
 | `MaxCandidates` | int | 8 | Taş başına değerlendirilen en yakın aday sayısı |
 | `GroupStep` | double | 2.0 | Birlikte taşınan renk grubunun Lab adımı |
 | `TwinTolerance` | double | 3.0 | "İkiz" sayılan en büyük ΔE; en yakın tek ikiz her zaman kullanılabilir |
+| `Progress` | `Action<int,int,int>?` | null | Durum çubuğu için ilerleme (işçi iş parçacıklarından çağrılır, sonucu değiştirmez): (biten aşama, aşama sayısı, durum) — durum 0 = aşamalar sürüyor (başta 0/5, her aşama bitince, `finally` içinde), 1 = hiçbir aşama hepsini yerleştiremedi, tam arama, 2 = bitti. Stoğu aşan taş yoksa hiç çağrılmaz. |
 | `MinUsage` | int | 0 | Bu sayının altında kullanılan taşlar çıkarılır (0/1 = kapalı). Uygulamada kapalıdır (0); yalnızca karşılaştırma aracı `MOSAIR_MINUSAGE=1` ile açar |
 | `MinUsageFor(total)` | static | — | max(10, ⌈toplam × 0,0005⌉) (78×78 → 10, ~111.000 taş → 56); yalnızca `StockCompareRunner` kullanır |
 

@@ -1163,10 +1163,53 @@ public bool UseLab
         }
 
         // The minimum-usage rule (dropping stones used only a few times) is switched off: MinUsage stays 0.
-        private static StockAwareOptions StockOptions() => new();
+        // The stock fit reports its stage, shown in the status bar (StockFitProgress).
+        private StockAwareOptions StockOptions() => new()
+        {
+            Progress = (done, total, stage) => Dispatcher.UIThread.Post(() => ShowStockFitProgress(done, total, stage))
+        };
+
+        // ----- Stock fit progress in the status bar: "Stoğa göre düzeltiliyor: 3/5 aşama bitti · 12 sn" -----
+        // The search runs five levels side by side (substitutes among the mosaic's own stones, then wider
+        // similarity and new stone types); a level can take long, so the seconds keep counting in between.
+        private DispatcherTimer? _stockFitTimer;
+        private Stopwatch? _stockFitClock;
+        private int _stockFitDone, _stockFitTotal, _stockFitStage;
+
+        private void ShowStockFitProgress(int done, int total, int stage)
+        {
+            _stockFitDone = done; _stockFitTotal = total; _stockFitStage = stage;
+            if (stage == 2)
+            {
+                _stockFitTimer?.Stop();
+                _stockFitClock = null;
+                return;
+            }
+            if (_stockFitClock == null)
+            {
+                _stockFitClock = Stopwatch.StartNew();
+                _stockFitTimer ??= new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) =>
+                {
+                    // The fit ended without a "done" (cancelled, failed): stop counting.
+                    if (!IsProcessing) { _stockFitTimer!.Stop(); _stockFitClock = null; return; }
+                    UpdateStockFitText();
+                });
+                _stockFitTimer.Start();
+            }
+            UpdateStockFitText();
+        }
+
+        private void UpdateStockFitText()
+        {
+            if (_stockFitClock == null) return;
+            string secs = ((int)_stockFitClock.Elapsed.TotalSeconds).ToString();
+            StatusText = _stockFitStage == 1
+                ? Loc.Fmt("StockFitProgressFull", secs)
+                : Loc.Fmt("StockFitProgress", _stockFitDone, _stockFitTotal, secs);
+        }
 
         // Runs on the worker thread.
-        private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
+        private SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
             stock == null
                 ? MosaicEngine.ApplyOptimalK(k)
                 : MosaicEngine.ApplyOptimalKWithStock(k,
@@ -1175,7 +1218,7 @@ public bool UseLab
                     StockOptions());
 
         // Runs on the worker thread: fixes a classic Mos result in place.
-        private static bool FixClassicMosaicToStock(Dictionary<int, StockSheetService.StoneStock> stock) =>
+        private bool FixClassicMosaicToStock(Dictionary<int, StockSheetService.StoneStock> stock) =>
             MosaicEngine.FixCurrentMosaicToStock(
                 id => stock.TryGetValue(id, out var s) ? s.Capacity : null,
                 id => stock.TryGetValue(id, out var s) ? s.Name : null,

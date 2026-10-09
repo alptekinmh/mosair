@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Stoğa göre düzeltmenin aşaması durum çubuğunda
+
+- Stoğa göre düzeltme sürerken durum çubuğunda kaç aşamanın bittiği ve geçen saniye yazar ("Stoğa göre düzeltiliyor: 3/5 aşama bitti · 12 sn"); stok genel olarak yetmiyorsa "stok yetmiyor, en az eksikli çözüm aranıyor". Sonuç değişmez.
+
 ## 2026-10-09: Tüm renkleri kullan katalogu da işaretler
 
 - Anlık Mos'ta **Tüm renkleri kullan** seçilince katalog sütunundaki bütün taşlar işaretlenir ve işaretli kalır (önceden yalnızca o Mos için kullanılıp işaretler geri konuyordu). Varsayılan seçenek **Seçili renkleri kullan**.

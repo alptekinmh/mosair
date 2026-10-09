@@ -479,6 +479,7 @@ Kutu uygulama açılırken **kapalıdır**; **Araçlar → Stoğa Göre Ayarla**
 - Klasik Mos'ta bazı pikseller tek bir katalog taşına kesin eşleştirilemezse düzeltme yapılmaz, **Stoğa Göre** uyarısı çıkar ve mozaik stoğa bakılmadan kalır.
 - Optimum taş kaydırıcısı değiştirilince yeni taş sayısı da aynı stoğa göre düzeltilir ([§10](#10-optimum-taş-sayısı)).
 - **Stok Kontrol** son adetleri tabloya yazar.
+- **Düzeltme sürerken** durum çubuğunda aşaması ve geçen süre yazar: "Stoğa göre düzeltiliyor: 3/5 aşama bitti · 12 sn". Yedek taş beş aşamada aynı anda aranır (önce mozaiğin kendi taşları, sonra benzerlik sınırı genişleyerek ve yeni taş türleriyle); bir aşama uzun sürebildiği için saniye her saniye ilerler, böylece uzun bekleme donma gibi görünmez. Hiçbir aşama bütün fazlayı yerleştiremezse (stok genel olarak yetmiyorsa) "stok yetmiyor, en az eksikli çözüm aranıyor" yazar. Stoğu aşan taş yoksa düzeltme hemen biter ve bu yazı çıkmaz.
 - Düzeltme uzun sürerse durum çubuğundaki **✕ İptal** (ya da `Esc`) ile kesilebilir: Mos'ta ve Taş kaydırıcısında mozaik stoğa bakılmadan kalır, Stok Kontrol'de mozaik eski haline döner ve tabloya yazılmaz ([§8](#iptal-düğmesi)).
 
 #### Stok Kontrol ve Stoğa göre

@@ -31,6 +31,10 @@ namespace mosair.Services
         // Stones used fewer times than this in the result are dropped (their pixels go to similar stones):
         // a handful of stones is not worth a colour change for the robot. 0 or 1 = off.
         public int MinUsage = 0;
+        // Progress for the status bar (called from worker threads; it does not change the result):
+        // (search levels finished, number of levels, stage) with stage 0 = levels running, 1 = the full search
+        // (stock short overall), 2 = done.
+        public Action<int, int, int>? Progress;
 
         // Default minimum for a mosaic of the given size: 10 stones, or 0.05% of all stones on large mosaics
         // (78×78 → 10, 16 m² ≈ 111,000 stones → 56).
@@ -362,21 +366,31 @@ namespace mosair.Services
             Plan? chosen = null;
             var plans = new Plan?[levels.Length];
             int found = int.MaxValue;
+            int levelsDone = 0;
+            opt.Progress?.Invoke(0, levels.Length, 0);
             Parallel.For(0, levels.Length, lv =>
             {
-                WorkCancellation.Check();
-                if (Volatile.Read(ref found) < lv) return;
-                var plan = Best(levels[lv].tol, levels[lv].extra, skipHopeless: true,
-                    () => Volatile.Read(ref found) < lv);
-                plans[lv] = plan;
-                if (plan == null || plan.Unmet > 0) return;
-                int seen = Volatile.Read(ref found);
-                while (lv < seen && Interlocked.CompareExchange(ref found, lv, seen) != seen)
-                    seen = Volatile.Read(ref found);
+                try
+                {
+                    WorkCancellation.Check();
+                    if (Volatile.Read(ref found) < lv) return;
+                    var plan = Best(levels[lv].tol, levels[lv].extra, skipHopeless: true,
+                        () => Volatile.Read(ref found) < lv);
+                    plans[lv] = plan;
+                    if (plan == null || plan.Unmet > 0) return;
+                    int seen = Volatile.Read(ref found);
+                    while (lv < seen && Interlocked.CompareExchange(ref found, lv, seen) != seen)
+                        seen = Volatile.Read(ref found);
+                }
+                finally
+                {
+                    opt.Progress?.Invoke(Interlocked.Increment(ref levelsDone), levels.Length, 0);
+                }
             });
             if (found < levels.Length) { chosen = plans[found]; res.Level = found; }
             // Not even the widest level places everything (stock short overall): the full search, which keeps
             // the earliest level with the smallest shortfall.
+            if (chosen == null) opt.Progress?.Invoke(levels.Length, levels.Length, 1);
             if (chosen == null)
                 for (int lv = 0; lv < levels.Length; lv++)
                 {
@@ -446,6 +460,7 @@ namespace mosair.Services
             foreach (var kv in moveCount)
                 res.Moves.Add(new StockMove { FromId = pool[kv.Key.s].ID, ToId = pool[kv.Key.t].ID, Count = kv.Value });
             res.Moves.Sort((x, y) => x.FromId != y.FromId ? x.FromId.CompareTo(y.FromId) : y.Count.CompareTo(x.Count));
+            opt.Progress?.Invoke(levels.Length, levels.Length, 2);
             return res;
         }
 
