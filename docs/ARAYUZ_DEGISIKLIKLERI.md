@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Dışa aktarılan görsel ölçüsüyle açılır
+
+- Mos'tan önce dışa aktarılan görsele ölçüsü (cm kutusundaki genişlik ve taş ızgarası) yazılır; mosair'de yeniden açılınca cm kutusu bu genişlikle gelir (ör. Kalıp Dolgu ile 150 → 156 cm dışa aktarılan görsel 156 cm açılır) ve taş satırları aynı kalır.
+
 ## 2026-10-09: Görsel Ayarları'nda görüntü kaymıyor
 
 - Kalıp Dolgu açıkken bir mozaik varken yapılan her Mos'ta (Anlık Mos dahil) görüntü alanı Mos süresince bir kalıp payı daha büyüyüp sonra eski boyutuna dönüyor, görüntü kayıyordu. Dolgu önizlemesi artık yalnızca görünüm henüz görselin boyutundayken (ilk Mos'tan önce) uygulanır.

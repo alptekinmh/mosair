@@ -50,6 +50,7 @@ Durum tutmaz. Özel yardımcılar: `ApplyOrientation` (EXIF yönü) ve `ResizeWi
 | `DrawOverlay(src, stoneSize, showGrid, showMouldLines, showRowColNum, showMouldId, penWidth, gridColor = null)` → `SKBitmap` | Kopya üzerine ızgara, kalıp çizgileri (26 taşta bir), kalıp numaraları ve satır/sütun numaraları çizer | Şu an çağıran yok |
 | `ToAvaloniaBitmap(bmp)` → `Avalonia.Media.Imaging.Bitmap` | `Bgra8888`'e kopyalayıp `WriteableBitmap`'e aktarır (96 DPI, `Premul`) | `MainViewModel`, `MosaicView` |
 | `ExportImage(bmp, path, format = Png, quality = 100)` | `SKImage.Encode` ile dosyaya yazar | `MosaicExporter` |
+| `AddSizeTag(file, tag)` → `byte[]` · `ReadSizeTag(path)` → `SizeTag?` | Ölçü etiketi (`SizeTag(WidthCm, Columns, Rows)`): Mos'tan önce dışa aktarılan görsel kendi ölçüsünü taşır. Metin `mosairSize=W;C;R;` (W bir ondalıklı, noktalı). JPEG'de SOI'nin hemen arkasına COM bölümü (`FF FE`), PNG'de IHDR'nin arkasına `tEXt` parçası (anahtar `mosair`, CRC-32 ile) eklenir; tanınmayan biçimde dosya aynen döner. Okurken dosyanın ilk 256 KB'ında aranır; yoksa, bozuksa ya da dosya okunamazsa null. | MainViewModel (`ExportSourceImageAsync`, `LoadImage`) |
 
 ## Önemli davranışlar ve iş kuralları
 

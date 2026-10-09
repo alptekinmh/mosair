@@ -68,7 +68,7 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | Metot | Ne yapar | Kimden çağrılır |
 |---|---|---|
 | `LoadImage(path)` | `ImageService.LoadImage` ile resmi yükler ve `MosaicData.inputBitmap`'e koyar | MainViewModel, CompareRunner |
-| `CalculateDimensions(widthCm)` | Taş ve kalıp ızgarasını hesaplar, statik alanları doldurur, `DimensionResult` döndürür | MainViewModel, CompareRunner |
+| `CalculateDimensions(widthCm, rows = null)` | Taş ve kalıp ızgarasını hesaplar, statik alanları doldurur, `DimensionResult` döndürür. `rows` verilirse taş satırı (`height`) görselin oranından değil ondan alınır (mosair'in dışa aktardığı görselin ölçü etiketi); verilmezse eskisi gibi. | MainViewModel, CompareRunner |
 | `GetSourceStoneData()` | Kaynağı taş ızgarasına küçültür ve BGR `byte[,,]` döndürür | CompareRunner |
 | `RunOptimal(interpMethod, onProgress, prepareTextures, useGamut)` | Optimum analizini yapar ve önerilen k ile mozaiği üretir. Analiz iptal edilebilir ve paylaşılan hiçbir şeyi değiştirmeden önce çalışır; iptalde `OperationCanceledException` fırlar, önceki mozaik olduğu gibi kalır. | MainViewModel, CompareRunner |
 | `ApplyOptimalK(k, prepareTextures)` | Son analizden k taşlık alt kümeyi uygular (yeniden analiz yapmaz) | MainViewModel |

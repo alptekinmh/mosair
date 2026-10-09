@@ -755,6 +755,9 @@ namespace mosair.ViewModels
         private double _imageWidthCm = 93.6;
         // What UpdateDimensions last put in the box: a box still showing it was not edited by the user.
         private double _shownWidthCm = double.NaN;
+        // The stone grid an image exported before Mos carries (ImageService.ReadSizeTag); used while the width gives
+        // the same number of columns, so the padded image keeps exactly its whole-mould rows.
+        private ImageService.SizeTag? _sizeTag;
         private double _initialZoomLevel = 2;
         private double _minZoomLevel = 1.0;
         private double _lastViewportWidth;
@@ -2427,6 +2430,16 @@ public bool UseLab
                 // A new image starts without adjustments.
                 MosaicData.sourceBitmap = bmp;
                 _previewFiller = null;   // chosen again for the new image (UpdateDimensions)
+                // An image exported by mosair before Mos opens with the width it was exported with (e.g. 156 cm).
+                _sizeTag = ImageService.ReadSizeTag(path);
+                if (_sizeTag != null && Math.Abs((double)bmp.Height / bmp.Width - (double)_sizeTag.Rows / _sizeTag.Columns)
+                        > 0.03 * _sizeTag.Rows / _sizeTag.Columns)
+                    _sizeTag = null;   // the picture was changed since (other aspect)
+                if (_sizeTag != null)
+                {
+                    WidthCm = _sizeTag.WidthCm;
+                    _shownWidthCm = double.NaN;   // taken as the image's own width
+                }
                 SetAdjustSettings(new ImageAdjustSettings());
                 SetShowingRaw(false);
                 _bitmapPixelWidth = bmp.Width;
@@ -2498,7 +2511,8 @@ public bool UseLab
 
             if (!ImageLoaded) return;
 
-            var dim = MosaicEngine.CalculateDimensions(_imageWidthCm);
+            int? tagRows = _sizeTag is { } tag && tag.Columns == numOfStones ? tag.Rows : null;
+            var dim = MosaicEngine.CalculateDimensions(_imageWidthCm, tagRows);
             if (dim == null) return;
 
             // The size line follows the box: with Kalıp Dolgu the padded height and area.
@@ -3197,6 +3211,9 @@ public bool UseLab
             var pad = PadPreview && _previewFiller != null
                 ? new SKColor((byte)_previewFiller.r, (byte)_previewFiller.g, (byte)_previewFiller.b) : SKColors.Transparent;
             string name = System.IO.Path.GetFileName(path);
+            int tagCols = (int)MosaicEngine.width, tagRows = (int)MosaicEngine.height;
+            if (PadPreview) { tagCols = MosaicEngine.UpToMould(tagCols); tagRows = MosaicEngine.UpToMould(tagRows); }
+            var tag = new ImageService.SizeTag(WidthCm, tagCols, tagRows);
             IsExporting = true;
             StatusText = Loc.Fmt("StatusExporting", name);
             try
@@ -3210,8 +3227,8 @@ public bool UseLab
                         canvas.DrawBitmap(img, 0, 0);
                     }
                     using var data = bmp.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 95);
-                    using var fs = System.IO.File.Create(path);
-                    data.SaveTo(fs);
+                    // The file remembers its size, so opening it again gives the same width and stone grid.
+                    System.IO.File.WriteAllBytes(path, ImageService.AddSizeTag(data.ToArray(), tag));
                 });
                 StatusText = Loc.Fmt("StatusSaved", name);
                 FileSaved?.Invoke(path, SavedFileKind.Export);

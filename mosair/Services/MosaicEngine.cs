@@ -48,7 +48,9 @@ namespace mosair.Services
             return MosaicData.inputBitmap;
         }
 
-        public static DimensionResult? CalculateDimensions(double widthCm)
+        // rows: the stone rows to use instead of the ones worked out from the image's aspect (an image exported by
+        // mosair carries its grid, see ImageService.ReadSizeTag); null as before.
+        public static DimensionResult? CalculateDimensions(double widthCm, int? rows = null)
         {
             if (MosaicData.inputBitmap == null) return null;
 
@@ -70,6 +72,7 @@ namespace mosair.Services
 
             double tem = width * rate;
             height = Convert.ToInt32(tem);
+            if (rows is int fixedRows && fixedRows > 0) height = fixedRows;
             actualHeight = height * 12;
 
             return new DimensionResult

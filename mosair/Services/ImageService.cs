@@ -382,6 +382,90 @@ namespace mosair.Services
             return wb;
         }
 
+        // ----- Size tag: an image exported before Mos remembers its mosaic size, so opening it again brings back the
+        // same width (e.g. 156 cm with its Kalıp Dolgu padding) and the same stone grid. A JPEG gets it as a comment
+        // segment (COM) right after SOI, a PNG as a tEXt chunk right after IHDR; both read "mosairSize=W;C;R;". -----
+        private const string SizeTagKey = "mosairSize=";
+
+        public sealed record SizeTag(double WidthCm, int Columns, int Rows);
+
+        // Returns the encoded file with the tag added (unchanged when the format is not recognised).
+        public static byte[] AddSizeTag(byte[] file, SizeTag tag)
+        {
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            byte[] text = System.Text.Encoding.ASCII.GetBytes(
+                $"{SizeTagKey}{tag.WidthCm.ToString("0.0", inv)};{tag.Columns};{tag.Rows};");
+            if (file.Length > 2 && file[0] == 0xFF && file[1] == 0xD8)
+            {
+                int len = text.Length + 2;
+                var seg = new byte[4 + text.Length];
+                seg[0] = 0xFF; seg[1] = 0xFE; seg[2] = (byte)(len >> 8); seg[3] = (byte)len;
+                Buffer.BlockCopy(text, 0, seg, 4, text.Length);
+                return Splice(file, 2, seg);
+            }
+            if (file.Length > 33 && file[0] == 0x89 && file[1] == (byte)'P' && file[12] == (byte)'I' && file[15] == (byte)'R')
+            {
+                byte[] keyword = System.Text.Encoding.ASCII.GetBytes("mosair\0");
+                keyword[^1] = 0;
+                var data = new byte[keyword.Length + text.Length];
+                Buffer.BlockCopy(keyword, 0, data, 0, keyword.Length);
+                Buffer.BlockCopy(text, 0, data, keyword.Length, text.Length);
+                var chunk = new byte[12 + data.Length];
+                WriteBE(chunk, 0, (uint)data.Length);
+                chunk[4] = (byte)'t'; chunk[5] = (byte)'E'; chunk[6] = (byte)'X'; chunk[7] = (byte)'t';
+                Buffer.BlockCopy(data, 0, chunk, 8, data.Length);
+                WriteBE(chunk, 8 + data.Length, Crc32(chunk, 4, 4 + data.Length));
+                return Splice(file, 33, chunk);   // 8-byte signature + 25-byte IHDR chunk
+            }
+            return file;
+        }
+
+        // The tag of an image file, or null (no tag, unreadable file).
+        public static SizeTag? ReadSizeTag(string path)
+        {
+            try
+            {
+                using var fs = File.OpenRead(path);
+                var buf = new byte[(int)Math.Min(fs.Length, 256 * 1024)];
+                int n = fs.Read(buf, 0, buf.Length);
+                string head = System.Text.Encoding.ASCII.GetString(buf, 0, n);
+                int i = head.IndexOf(SizeTagKey, StringComparison.Ordinal);
+                if (i < 0) return null;
+                var parts = head.Substring(i + SizeTagKey.Length, Math.Min(64, head.Length - i - SizeTagKey.Length)).Split(';');
+                var inv = System.Globalization.CultureInfo.InvariantCulture;
+                if (parts.Length < 3 || !double.TryParse(parts[0], System.Globalization.NumberStyles.Float, inv, out double w)
+                    || !int.TryParse(parts[1], out int c) || !int.TryParse(parts[2], out int r)
+                    || w <= 0 || c < 2 || r < 1) return null;
+                return new SizeTag(w, c, r);
+            }
+            catch { return null; }
+        }
+
+        private static byte[] Splice(byte[] file, int at, byte[] insert)
+        {
+            var result = new byte[file.Length + insert.Length];
+            Buffer.BlockCopy(file, 0, result, 0, at);
+            Buffer.BlockCopy(insert, 0, result, at, insert.Length);
+            Buffer.BlockCopy(file, at, result, at + insert.Length, file.Length - at);
+            return result;
+        }
+
+        private static void WriteBE(byte[] b, int at, uint v)
+        {
+            b[at] = (byte)(v >> 24); b[at + 1] = (byte)(v >> 16); b[at + 2] = (byte)(v >> 8); b[at + 3] = (byte)v;
+        }
+
+        private static uint Crc32(byte[] b, int start, int count)
+        {
+            uint crc = 0xFFFFFFFF;
+            for (int i = start; i < start + count; i++)
+            {
+                crc ^= b[i];
+                for (int k = 0; k < 8; k++) crc = (crc & 1) != 0 ? (crc >> 1) ^ 0xEDB88320u : crc >> 1;
+            }
+            return ~crc;
+        }
+
         // Dosyaya kaydet (PNG/JPEG disa aktarma)
         public static void ExportImage(SKBitmap bmp, string path, SKEncodedImageFormat format = SKEncodedImageFormat.Png, int quality = 100)
         {
