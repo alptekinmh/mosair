@@ -1719,6 +1719,8 @@ public bool UseLab
                 _liveMosAllColors = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(LiveMosSelectedColors));
+                // "All colours" ticks every stone in the catalog column too (and they stay ticked).
+                if (value) SetAllColors(false);
                 // The mosaic on screen follows the new choice at once.
                 if (_liveMos && MosaicDone) _ = RunLiveMosAsync();
             }
@@ -1735,25 +1737,12 @@ public bool UseLab
             if (!_liveMos || !ImageLoaded) return;
             if (IsProcessing || IsExporting) { _liveMosPending = true; return; }
             _liveMosPending = false;
-            // "All colours": every catalog stone takes part in this Mos only; the ticks are put back afterwards.
-            bool[]? ticks = null;
-            if (_liveMosAllColors)
-            {
-                ticks = CaptureCatalogSelection();
-                ApplyCatalogSelection(new bool[ticks.Length]);
-            }
+            // "All colours": every catalog stone is ticked (also one unticked by hand since).
+            if (_liveMosAllColors) SetAllColors(false);
             bool first = !MosaicDone;
             // A stone count chosen with the Optimum slider is kept, and the mosaic on screen stays until the new
             // one is up (RunMosaicAsync).
-            try { await RunMosaicAsync(); }
-            finally
-            {
-                if (ticks != null)
-                {
-                    ApplyCatalogSelection(ticks);
-                    ColorCatalogService.SetActiveColors();
-                }
-            }
+            await RunMosaicAsync();
             // The first mosaic changes the picture's size (stones instead of image pixels): fit it, as the Mos
             // button does. Later ones keep the view where it is.
             if (first && MosaicDone) FitToWindow(_lastViewportWidth, _lastViewportHeight);

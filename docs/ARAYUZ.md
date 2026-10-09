@@ -282,7 +282,7 @@ Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ay
 
 **İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, onların altında **Anlık Mos** onay kutusu vardır (sekmelerden ayırt edilsin diye düğme değil, onay kutusu). Anlık Mos işaretliyken altında iki seçenek görünür:
 
-- **Tüm renkleri kullan:** Anlık Mos katalogdaki bütün taşlarla yapılır; katalogdaki işaretlere bakılmaz. Bütün taşlar yalnızca o Mos için kullanılır; Mos bitince katalogdaki işaretleriniz olduğu gibi geri gelir.
+- **Tüm renkleri kullan:** seçilince katalog sütunundaki bütün taşlar kendiliğinden işaretlenir (Tümünü Seç gibi) ve işaretli kalır; Anlık Mos bu seçenekteyken her Mos'tan önce bütün taşları yeniden işaretler, yani katalogdaki bütün taşlarla yapılır. **Seçili renkleri kullan**'a dönünce işaretler olduğu gibi kalır; istediğiniz taşları kaldırabilirsiniz.
 - **Seçili renkleri kullan** (varsayılan): Anlık Mos katalogda o an işaretli olan taşlarla yapılır (onay kutuları, Tümünü Seç/Kaldır, Stok Çek). Mos işaretleri değiştirmediği için art arda Anlık Mos'larda renkler azalmaz.
 
 Seçenek değiştirilince ekranda mozaik varsa hemen bir Anlık Mos yapılır. Aynı seçim **Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler** ile de yapılır. Seçim her açılışta **Seçili renkleri kullan** olarak başlar.

@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Tüm renkleri kullan katalogu da işaretler
+
+- Anlık Mos'ta **Tüm renkleri kullan** seçilince katalog sütunundaki bütün taşlar işaretlenir ve işaretli kalır (önceden yalnızca o Mos için kullanılıp işaretler geri konuyordu). Varsayılan seçenek **Seçili renkleri kullan**.
+
 ## 2026-10-09: Mos sırasında önceki mozaik ekranda kalır
 
 - Mozaik ekrandayken Mos'a basınca, yeni mozaik hazırlanana kadar önceki mozaik (donmuş görüntüsü) ekranda kalır; arka arkaya Mos'ta görsel ile mozaik arasında gidip gelme olmaz. Anlık Mos'taki yöntemin aynısı.
