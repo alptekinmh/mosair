@@ -2216,7 +2216,8 @@ public bool UseLab
             InitAdjustPanel();
         }
 
-        public void LoadImage(string path)
+        // keepOptimalK: keep the stone count chosen with the Optimum slider (Kalıba Tamamla reloads the image it made).
+        public void LoadImage(string path, bool keepOptimalK = false)
         {
             StartNewContent();
             ProjectService.CurrentPictureFileName = path;
@@ -2257,7 +2258,7 @@ public bool UseLab
                 MosaicData.sourceBitmap = bmp;
                 // An image exported by mosair before Mos opens with the width it was exported with (e.g. 156 cm).
                 _sizeTag = ImageService.ReadSizeTag(path);
-                _chosenOptimalK = null;   // a new image starts from the suggested Optimum count
+                if (!keepOptimalK) _chosenOptimalK = null;   // a new image starts from the suggested Optimum count
                 if (_sizeTag != null && Math.Abs((double)bmp.Height / bmp.Width - (double)_sizeTag.Rows / _sizeTag.Columns)
                         > 0.03 * _sizeTag.Rows / _sizeTag.Columns)
                     _sizeTag = null;   // the picture was changed since (other aspect)
@@ -3003,6 +3004,162 @@ public bool UseLab
                 EndCancellable(cts);
                 IsExporting = false;
             }
+        }
+
+        // ----- Kalıba Tamamla (catalog bar, Araçlar menu): the photo itself is completed to whole moulds -----
+        // Like widening the canvas in Photoshop and filling the new area with one colour: the image (with its
+        // Görsel Ayarları) is grown on the right and at the bottom so that its stones reach whole moulds of 26
+        // (100 cm = 83 stones → 104 stones = 124.8 cm; 1000 px → 1000 × 104 / 83 ≈ 1253 px), the new pixels get one
+        // filler colour, and the result is saved as a new image (PNG, so the colour stays exact) next to a copy of
+        // the original in mosairEXPORT. MainWindow then loads it like Görsel Yükle and runs Mos with the current
+        // settings. Nothing about it goes into the project: the project simply uses the new image.
+        // Returns the new image's path, or null (nothing to do or not possible; the status bar says why).
+        public async Task<string?> CompleteToMouldsAsync(string exportDir)
+        {
+            if (!ImageLoaded || IsProcessing || IsExporting) return null;
+            await FlushAdjustmentsAsync();
+            var img = MosaicData.inputBitmap;
+            if (img == null || IsProcessing || IsExporting) return null;
+            UpdateDimensions();
+            int C = (int)MosaicEngine.width, Rr = (int)MosaicEngine.height;
+            if (C < 1 || Rr < 1) return null;
+            int C2 = MosaicEngine.UpToMould(C), R2 = MosaicEngine.UpToMould(Rr);
+            if (C2 == C && R2 == Rr)
+            {
+                StatusText = Loc.Get("MouldAlreadyWhole");
+                return null;
+            }
+            var filler = ChooseMouldFiller(img, C, Rr, C2, R2);
+            if (filler == null)
+            {
+                StatusText = Loc.Get("MouldNoColour");
+                return null;
+            }
+            int w2 = (int)Math.Round((double)img.Width * C2 / C), h2 = (int)Math.Round((double)img.Height * R2 / Rr);
+            double widthCm = C2 * 12 / 10.0, heightCm = R2 * 12 / 10.0;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            string source = ProjectService.CurrentPictureFileName ?? "";
+            string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
+            string stamp = $"{DateTime.Now:M.dd.yyyy}_{DateTime.Now:HH.mm.ss}";
+            string newPath = System.IO.Path.Combine(exportDir,
+                $"{stamp}__{baseName}__kalip_{widthCm.ToString("0.#", inv)}x{heightCm.ToString("0.#", inv)}.png");
+            string origPath = System.IO.Path.Combine(exportDir, $"{stamp}__{baseName}__orijinal" +
+                (System.IO.File.Exists(source) ? System.IO.Path.GetExtension(source) : ".png"));
+            NewImageWatcher.Ignore(newPath);
+            NewImageWatcher.Ignore(origPath);
+            var fill = new SKColor((byte)filler.r, (byte)filler.g, (byte)filler.b);
+            var tag = new ImageService.SizeTag(widthCm, C2, R2);
+            var original = MosaicData.sourceBitmap;
+            IsProcessing = true;
+            StatusText = Loc.Get("MouldWorking");
+            try
+            {
+                await Task.Run(() =>
+                {
+                    using (var bmp = new SKBitmap(new SKImageInfo(w2, h2, SKColorType.Rgba8888, SKAlphaType.Premul)))
+                    {
+                        using (var canvas = new SKCanvas(bmp))
+                        {
+                            canvas.Clear(fill);
+                            canvas.DrawBitmap(img, 0, 0);
+                        }
+                        using var data = bmp.Encode(SKEncodedImageFormat.Png, 100);
+                        // The new image opens again at its whole-mould width and stone grid (size tag).
+                        System.IO.File.WriteAllBytes(newPath, ImageService.AddSizeTag(data.ToArray(), tag));
+                    }
+                    // The original, unchanged: a copy of the loaded file (or the image as read, when there is none).
+                    if (System.IO.File.Exists(source)) System.IO.File.Copy(source, origPath, overwrite: true);
+                    else if (original != null)
+                    {
+                        using var data = original.Encode(SKEncodedImageFormat.Png, 100);
+                        System.IO.File.WriteAllBytes(origPath, data.ToArray());
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                StatusText = Loc.Fmt("StatusError", ex.Message);
+                Alert(Loc.Get("AlertExportTitle"), Loc.Fmt("AlertErrorBody", ex.Message));
+                return null;
+            }
+            finally
+            {
+                IsProcessing = false;
+            }
+            _mouldNote = Loc.Fmt("MouldDone", widthCm.ToString("0.0", inv), heightCm.ToString("0.0", inv),
+                $"#{filler.ID} {filler.codeName}", System.IO.Path.GetFileName(newPath));
+            FileSaved?.Invoke(newPath, SavedFileKind.Export);
+            return newPath;
+        }
+
+        // Shown after the Mos that follows Kalıba Tamamla.
+        private string _mouldNote = "";
+        public void ShowMouldNote()
+        {
+            if (_mouldNote.Length == 0) return;
+            StatusText = _mouldNote + " · " + StatusText;
+            _mouldNote = "";
+        }
+
+        // The filler: among the ticked catalog stones (so Mos can use exactly that stone) and those the mosaic does
+        // not use, the one whose smallest colour difference (Lab ΔE) to the colours of the moulds being extended
+        // (the last, unfinished mould column and row of the image) is largest. Stones practically present in the
+        // image (ΔE < 10 to one of its colours) are left out while another stone is possible.
+        private static rgb? ChooseMouldFiller(SKBitmap img, int C, int R, int C2, int R2)
+        {
+            int W = img.Width, H = img.Height;
+            int x0 = C2 > C ? (int)((long)(C / MosaicEngine.MouldStones * MosaicEngine.MouldStones) * W / C) : W;
+            int y0 = R2 > R ? (int)((long)(R / MosaicEngine.MouldStones * MosaicEngine.MouldStones) * H / R) : H;
+            var edge = SampleLab(img, (x, y) => x >= x0 || y >= y0);
+            var whole = SampleLab(img, (_, _) => true);
+            if (edge.Count == 0) edge = whole;
+
+            var used = new HashSet<int>();
+            if (MosaicData.arMA.Count > 0)
+                foreach (var c in MosaicData.arMA[0])
+                    if (c.numOfPixel > 0) used.Add(c.ID);
+
+            rgb? best = null, bestAny = null;
+            double bestScore = double.MinValue, bestAnyScore = double.MinValue;
+            foreach (var c in MosaicData.arRGBAll)
+            {
+                if (c.ID <= 0 || string.IsNullOrEmpty(c.codeName) || c.boolLeaveOut || used.Contains(c.ID)) continue;
+                var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
+                double score = Nearest(lab, edge);
+                if (score > bestAnyScore) { bestAnyScore = score; bestAny = c; }
+                if (Nearest(lab, whole) < 10) continue;
+                if (score > bestScore) { bestScore = score; best = c; }
+            }
+            return best ?? bestAny;
+
+            static double Nearest((double L, double A, double B) p, List<(double L, double A, double B)> set)
+            {
+                double n = double.MaxValue;
+                foreach (var u in set)
+                {
+                    double dl = p.L - u.L, da = p.A - u.A, db = p.B - u.B;
+                    n = Math.Min(n, Math.Sqrt(dl * dl + da * da + db * db));
+                }
+                return n;
+            }
+        }
+
+        // The image's colours in Lab inside an area: sampled on a grid of at most about 256 × 256 points, near-equal
+        // colours (16 levels per channel) counted once.
+        private static List<(double L, double A, double B)> SampleLab(SKBitmap img, Func<int, int, bool> inside)
+        {
+            var seen = new HashSet<int>();
+            var list = new List<(double L, double A, double B)>();
+            int stepX = Math.Max(1, img.Width / 256), stepY = Math.Max(1, img.Height / 256);
+            for (int y = stepY / 2; y < img.Height; y += stepY)
+                for (int x = stepX / 2; x < img.Width; x += stepX)
+                {
+                    if (!inside(x, y)) continue;
+                    var c = img.GetPixel(x, y);
+                    if (!seen.Add((c.Red >> 4) << 8 | (c.Green >> 4) << 4 | c.Blue >> 4)) continue;
+                    list.Add(ColorMatcher.RgbToLab(c.Red, c.Green, c.Blue));
+                }
+            return list;
         }
 
         // The image's export size before Mos: the image (adjustments applied) at its own resolution.

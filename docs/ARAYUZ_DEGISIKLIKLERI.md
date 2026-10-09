@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Kalıba Tamamla
+
+- Katalog satırının sağına **Kalıba Tamamla** düğmesi (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; yeni fotoğraf ve orijinali mosairEXPORT'a kaydedilir, fotoğraf yeniden yüklenir ve o anki ayarlarla Mos yapılır. Projeye ek bilgi yazılmaz.
+
 ## 2026-10-09: Görsel Ayarları kapalı başlar; taş sayısında nokta
 
 - **Görsel Ayarları** sütunu her açılışta Özellikler paneli gibi kapalı (şerit olarak) başlar; şeride tıklayınca 300 px açılır.

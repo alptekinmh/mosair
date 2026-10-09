@@ -423,6 +423,25 @@ public partial class MainWindow : Window
         _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
     }
 
+    // Kalıba Tamamla (catalog bar, Araçlar menu): the view model writes the whole-mould image; it is then loaded
+    // like Görsel Yükle (keeping the chosen Optimum count) and Mos'd with the current settings.
+    private async void OnCompleteMoulds(object? sender, RoutedEventArgs e)
+    {
+        string dir;
+        try { dir = GetExportDir(); }
+        catch (Exception ex) { await ShowExportFolderError(ex); return; }
+        var path = await _vm.CompleteToMouldsAsync(dir);
+        if (path == null) return;
+        StopZoomGlide();
+        StopPanGlide();
+        _vm.LoadImage(path, keepOptimalK: true);
+        if (!_vm.ImageLoaded) return;
+        _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
+        await _vm.RunMosaicAsync();
+        _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
+        _vm.ShowMouldNote();
+    }
+
     private static string GetExportDir()
     {
         string desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.DesktopDirectory);

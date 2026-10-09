@@ -129,6 +129,7 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | İnterpolasyon Yöntemi ▸ | — | Area, Nearest, Linear, Cubic, Lanczos4, LinearExact, NearestExact |
 | Optimum Taş Sayısı | — | Optimum modunu açar/kapatır ([§10](#10-optimum-taş-sayısı)) |
 | Stoğa Göre Ayarla | — | **Stoğa göre** kutusunu açar/kapatır ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
+| Kalıba Tamamla | — | Fotoğrafı tam kalıba tamamlar, mosairEXPORT'a kaydeder, yeniden yükleyip Mos yapar; katalog satırındaki düğmeyle aynı ([Kalıba Tamamla](#kalıba-tamamla)) |
 | Anlık Mos | — | Açıkken (✓) her görsel ayarı değişikliğinden sonra Mos kendiliğinden yapılır; Görsel Ayarları sütunundaki **Anlık Mos** kutusuyla aynıdır ([Görsel Ayarları](#görsel-ayarları)) |
 | Anlık Mos: Tüm Renkler / Anlık Mos: Seçili Renkler | — | Anlık Mos'un hangi taşlarla yapılacağı (✓ seçili olanda); Anlık Mos kutusunun altındaki iki seçenekle aynıdır |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum ile yapılmış bir Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir; başka zaman pasiftir |
@@ -187,9 +188,23 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 
 Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
 
-### Katalog satırı: Tümünü Seç / Tümünü Kaldır
+### Katalog satırı: Tümünü Seç / Tümünü Kaldır, Kalıba Tamamla
 
-Katalog sütunlarının üstündeki satırda yalnızca solda tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi vardır (22 px yükseklik, 10 px yazı): katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır).
+Katalog sütunlarının üstündeki satırda solda tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi vardır (22 px yükseklik, 10 px yazı): katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır). Sağda **Kalıba Tamamla** düğmesi vardır (aynı boyutta; ayrıca **Araçlar → Kalıba Tamamla**; görsel yokken ya da bir iş sürerken pasif).
+
+#### Kalıba Tamamla
+
+Robot yalnızca tam kalıp üretir (26 × 26 taş = 31,2 cm). **Kalıba Tamamla**, fotoğrafı Photoshop'ta tuvali büyütüp yeni alanı tek renkle doldurmak ve sonra yeniden **Görsel Yükle** yapmak gibi, kendiliğinden tam kalıba tamamlar:
+
+1. **Ölçü:** o anki cm genişliğine göre taş sütun ve satır sayısı bir üst kalıba (26'nın katına) tamamlanır. Ör. 100 cm = 83 taş → 104 taş = **124,8 cm**; yükseklik de kendi taş sayısından aynı kurala göre.
+2. **Fotoğraf büyütülür:** Görsel Ayarları uygulanmış fotoğraf (ayar yapıldıysa son hâli) sol üstte kalır, **sağa ve alta** oranla piksel eklenir: 1000 px'te 83 taş varsa 104 taş için 1000 × 104 / 83 ≈ **1253 px**.
+3. **Dolgu rengi:** eklenen piksellerin hepsi **tek bir renkle** boyanır. Renk, katalogda **işaretli** (Mos'un kullanabileceği) ve (mozaik varsa) mozaikte **kullanılmayan** taşlardan; uzatılan kenar kalıplarının (görselin son, yarım kalan kalıp sütunu ve satırı) renklerine **en uzak** olanıdır. Görselde neredeyse aynısı olan renkler (ΔE < 10) başka seçenek varken alınmaz.
+4. **Kayıt:** yeni fotoğraf `Masaüstü/mosairEXPORT/<tarih>_<saat>__<görsel adı>__kalip_<genişlik>x<yükseklik>.png` olarak kaydedilir (PNG: renk birebir korunur), orijinal dosya da yanına `…__orijinal.<uzantı>` olarak kopyalanır. Kaydedilen dosya bildirimi çıkar.
+5. **Yeniden yükleme ve Mos:** yeni fotoğraf **Görsel Yükle** ile açılmış gibi açılır (genişlik 124,8 cm ve taş satırları dosyanın ölçü etiketinden; Görsel Ayarları fotoğrafa işlendiği için sıfırdan başlar) ve **o anki ayarlarla** (katalog işaretleri, Optimum, elle seçilen taş sayısı, Stoğa göre) kendiliğinden Mos yapılır. Durum çubuğunun başında "Kalıba tamamlandı: 124,8 × … cm, dolgu #ID kod (dosya)" yazar.
+
+- Proje (`.mos`) bu işlemle ilgili hiçbir ek bilgi taşımaz: projenin görseli yeni, dolgulu fotoğraftır.
+- Ölçü zaten tam kalıpsa "Ölçü zaten tam kalıp; tamamlanacak bir şey yok" yazar ve bir şey yapılmaz. Katalogda işaretli ve kullanılmayan taş kalmadıysa tamamlanmaz.
+- Mos dolgu alanını tek bir taşla yapar (Optimum'da dolgu taşının kendisi; klasik Mos'un renk indirgemesi bazen aynı renkteki başka bir taşı seçebilir). Görselle dolgunun birleştiği tek sütun/satırda, pikseller iki taşın arasına düştüğü için karışık taşlar olabilir.
 
 ### Üç sütun
 
