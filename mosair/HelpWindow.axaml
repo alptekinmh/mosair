@@ -200,7 +200,7 @@
                 </Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Mozaiklestir (Mos)" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
-                  <TextBlock Text="Gorseli mozaik tas renklerine donusturun; Optimum aciksa tas sayisi otomatik bulunur, Stoga gore aciksa sonuc stoga sigdirilir" Classes="body" FontSize="11"/>
+                  <TextBlock Text="Gorseli mozaik tas renklerine donusturun; Optimum aciksa tas sayisi otomatik bulunur, Stoga gore aciksa sonuc stoga sigdirilir. Ekranda mozaik varken yeni mozaik hazirlanana kadar onceki mozaik ekranda kalir" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">
@@ -534,7 +534,7 @@
                 <Border Classes="icon-badge" Background="#2E7D32"><TextBlock Text="2" FontWeight="Bold" Foreground="White" FontSize="14" HorizontalAlignment="Center" VerticalAlignment="Center"/></Border>
                 <StackPanel VerticalAlignment="Center">
                   <TextBlock Text="Mosaicize (Mos)" FontWeight="Bold" FontSize="12" Foreground="{DynamicResource FgPrimary}"/>
-                  <TextBlock Text="Convert the image to mosaic stone colors; with Optimum on, the stone count is found automatically, and with By stock on, the result is fitted to stock" Classes="body" FontSize="11"/>
+                  <TextBlock Text="Convert the image to mosaic stone colors; with Optimum on, the stone count is found automatically, and with By stock on, the result is fitted to stock. While a mosaic is on screen, it stays until the new one is ready" Classes="body" FontSize="11"/>
                 </StackPanel>
               </StackPanel>
               <StackPanel Orientation="Horizontal" Spacing="8">

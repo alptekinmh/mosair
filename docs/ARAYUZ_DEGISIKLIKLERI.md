@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Mos sırasında önceki mozaik ekranda kalır
+
+- Mozaik ekrandayken Mos'a basınca, yeni mozaik hazırlanana kadar önceki mozaik (donmuş görüntüsü) ekranda kalır; arka arkaya Mos'ta görsel ile mozaik arasında gidip gelme olmaz. Anlık Mos'taki yöntemin aynısı.
+
 ## 2026-10-09: Optimum'da elle seçilen taş sayısı Mos'ta korunur
 
 - Optimum taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse (ör. 38), Mos düğmesi de artık bu sayıyı kullanır (önceden her Mos önerilen sayıya, ör. 8'e dönüyordu). Yeni görsel ya da proje açılana kadar korunur; sağ tık önerilene döndürür.

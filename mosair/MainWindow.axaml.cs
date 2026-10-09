@@ -102,9 +102,9 @@ public partial class MainWindow : Window
             if (e.PropertyName == nameof(MainViewModel.IsAdjustPanelOpen)) ApplyAdjustPanel();
             if (e.PropertyName == nameof(MainViewModel.WatchNewImages)) ApplyWatchNewImages();
             if (e.PropertyName == nameof(MainViewModel.ZoomLevel)) ApplySourceImageQuality();
-            if (e.PropertyName == nameof(MainViewModel.LiveMosBusy))
+            if (e.PropertyName == nameof(MainViewModel.MosaicFrozen))
             {
-                if (_vm.LiveMosBusy) FreezeMosaicView();
+                if (_vm.MosaicFrozen) FreezeMosaicView();
                 else ReleaseMosaicFreeze();
             }
             if (e.PropertyName == nameof(MainViewModel.IsProcessing))
@@ -264,30 +264,30 @@ public partial class MainWindow : Window
     private void FreezeMosaicView()
     {
         _freezeTimer?.Stop();
-        if (liveMosFreeze.IsVisible) return;   // still showing the previous Mos's picture
+        if (mosaicFreeze.IsVisible) return;   // still showing the previous Mos's picture
         double scale = RenderScaling;
         var size = new PixelSize(
             Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Width * scale)),
             Math.Max(1, (int)Math.Ceiling(imageScroller.Bounds.Height * scale)));
         var rtb = new Avalonia.Media.Imaging.RenderTargetBitmap(size, new Vector(96 * scale, 96 * scale));
         rtb.Render(imageScroller);
-        (liveMosFreeze.Source as IDisposable)?.Dispose();
-        liveMosFreeze.Source = rtb;
-        liveMosFreeze.Width = imageScroller.Bounds.Width;
-        liveMosFreeze.Height = imageScroller.Bounds.Height;
-        liveMosFreeze.IsVisible = true;
+        (mosaicFreeze.Source as IDisposable)?.Dispose();
+        mosaicFreeze.Source = rtb;
+        mosaicFreeze.Width = imageScroller.Bounds.Width;
+        mosaicFreeze.Height = imageScroller.Bounds.Height;
+        mosaicFreeze.IsVisible = true;
     }
 
     private void ReleaseMosaicFreeze()
     {
-        if (!liveMosFreeze.IsVisible) return;
+        if (!mosaicFreeze.IsVisible) return;
         _freezeTimer ??= new DispatcherTimer(TimeSpan.FromMilliseconds(250), DispatcherPriority.Background, (_, _) =>
         {
             _freezeTimer!.Stop();
-            if (_vm.LiveMosBusy) return;
-            liveMosFreeze.IsVisible = false;
-            (liveMosFreeze.Source as IDisposable)?.Dispose();
-            liveMosFreeze.Source = null;
+            if (_vm.MosaicFrozen) return;
+            mosaicFreeze.IsVisible = false;
+            (mosaicFreeze.Source as IDisposable)?.Dispose();
+            mosaicFreeze.Source = null;
         });
         _freezeTimer.Stop();
         _freezeTimer.Start();

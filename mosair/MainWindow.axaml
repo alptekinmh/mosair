@@ -1175,8 +1175,8 @@
                               IsHitTestVisible="False"/>
           </Panel>
         </ScrollViewer>
-        <!-- While an Anlık Mos replaces the mosaic: a still picture of the previous one (MainWindow.FreezeMosaicView) -->
-        <Image x:Name="liveMosFreeze" IsVisible="False" IsHitTestVisible="False" Stretch="Fill"
+        <!-- While a Mos (Mos button or Anlık Mos) replaces the mosaic: a still picture of the previous one (MainWindow.FreezeMosaicView) -->
+        <Image x:Name="mosaicFreeze" IsVisible="False" IsHitTestVisible="False" Stretch="Fill"
                HorizontalAlignment="Left" VerticalAlignment="Top"/>
 
         <!-- Mini Map / Navigator -->

@@ -1668,13 +1668,13 @@ public bool UseLab
             }
         }
 
-        // An Anlık Mos replacing a mosaic on screen is running: the window keeps showing a still picture of the
-        // previous mosaic meanwhile, so the image does not flash up between two mosaics.
-        private bool _liveMosBusy;
-        public bool LiveMosBusy
+        // A Mos (Mos button or Anlık Mos) replacing a mosaic on screen is running: the window keeps showing a still
+        // picture of the previous mosaic meanwhile, so the image does not flash up between two mosaics.
+        private bool _mosaicFrozen;
+        public bool MosaicFrozen
         {
-            get => _liveMosBusy;
-            private set { if (_liveMosBusy == value) return; _liveMosBusy = value; OnPropertyChanged(); }
+            get => _mosaicFrozen;
+            private set { if (_mosaicFrozen == value) return; _mosaicFrozen = value; OnPropertyChanged(); }
         }
 
         public bool LiveMos
@@ -1743,12 +1743,11 @@ public bool UseLab
                 ApplyCatalogSelection(new bool[ticks.Length]);
             }
             bool first = !MosaicDone;
-            LiveMosBusy = MosaicDone && !_showingRaw;
-            // A stone count chosen with the Optimum slider is kept (RunMosaicAsync).
+            // A stone count chosen with the Optimum slider is kept, and the mosaic on screen stays until the new
+            // one is up (RunMosaicAsync).
             try { await RunMosaicAsync(); }
             finally
             {
-                LiveMosBusy = false;
                 if (ticks != null)
                 {
                     ApplyCatalogSelection(ticks);
@@ -2337,6 +2336,9 @@ public bool UseLab
             // To put the previous mosaic back if this Mos is cancelled before it changes anything.
             bool hadMosaic = MosaicDone && _renderSource != null;
             bool hadOptimal = _lastRunOptimal;
+            // A mosaic on screen stays (as a still picture) until the new one is up; the image does not show between.
+            bool frozen = MosaicDone && !_showingRaw;
+            if (frozen) MosaicFrozen = true;
 
             IsProcessing = true;
             Progress = 0;
@@ -2357,6 +2359,8 @@ public bool UseLab
             {
                 StatusText = Loc.Get("StatusNoColors");
                 IsProcessing = false;
+                if (hadMosaic) MosaicDone = true;   // nothing was changed: the mosaic is still there
+                if (frozen) MosaicFrozen = false;
                 Alert(Loc.Get("AlertMosaicTitle"), Loc.Get("AlertMosaicNoColors"));
                 return;
             }
@@ -2516,6 +2520,7 @@ public bool UseLab
                 EndCancellable(cts);
                 IsProcessing = false;
                 Progress = 100;
+                if (frozen) MosaicFrozen = false;
             }
         }
 
