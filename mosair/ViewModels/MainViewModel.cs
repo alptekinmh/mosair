@@ -3010,11 +3010,12 @@ public bool UseLab
         // Like widening the canvas in Photoshop and filling the new area with one colour: the image (with its
         // Görsel Ayarları) is grown on the right and at the bottom so that its stones reach whole moulds of 26
         // (100 cm = 83 stones → 104 stones = 124.8 cm; 1000 px → 1000 × 104 / 83 ≈ 1253 px), the new pixels get one
-        // filler colour, and the result is saved as a new image (PNG, so the colour stays exact) next to a copy of
-        // the original in mosairEXPORT. MainWindow then loads it like Görsel Yükle and runs Mos with the current
-        // settings. Nothing about it goes into the project: the project simply uses the new image.
+        // filler colour. Nothing is saved for the user: the new image (PNG, so the colour stays exact) is only
+        // written to the temp folder, so it can be loaded like Görsel Yükle and later saved with the project (as its
+        // picture) or exported. MainWindow loads it and runs Mos with the current settings. Nothing about it goes
+        // into the project: the project simply uses the new image.
         // Returns the new image's path, or null (nothing to do or not possible; the status bar says why).
-        public async Task<string?> CompleteToMouldsAsync(string exportDir)
+        public async Task<string?> CompleteToMouldsAsync()
         {
             if (!ImageLoaded || IsProcessing || IsExporting) return null;
             await FlushAdjustmentsAsync();
@@ -3047,22 +3048,18 @@ public bool UseLab
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             string source = ProjectService.CurrentPictureFileName ?? "";
             string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
-            string stamp = $"{DateTime.Now:M.dd.yyyy}_{DateTime.Now:HH.mm.ss}";
-            string newPath = System.IO.Path.Combine(exportDir,
-                $"{stamp}__{baseName}__kalip_{widthCm.ToString("0.#", inv)}x{heightCm.ToString("0.#", inv)}.png");
-            string origPath = System.IO.Path.Combine(exportDir, $"{stamp}__{baseName}__orijinal" +
-                (System.IO.File.Exists(source) ? System.IO.Path.GetExtension(source) : ".png"));
-            NewImageWatcher.Ignore(newPath);
-            NewImageWatcher.Ignore(origPath);
+            string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mosair");
+            string newPath = System.IO.Path.Combine(tempDir,
+                $"{baseName}__kalip_{widthCm.ToString("0.#", inv)}x{heightCm.ToString("0.#", inv)}.png");
             var fill = new SKColor((byte)filler.r, (byte)filler.g, (byte)filler.b);
             var tag = new ImageService.SizeTag(widthCm, C2, R2);
-            var original = MosaicData.sourceBitmap;
             IsProcessing = true;
             StatusText = Loc.Get("MouldWorking");
             try
             {
                 await Task.Run(() =>
                 {
+                    System.IO.Directory.CreateDirectory(tempDir);
                     using (var bmp = new SKBitmap(new SKImageInfo(w2, h2, SKColorType.Rgba8888, SKAlphaType.Premul)))
                     {
                         using (var canvas = new SKCanvas(bmp))
@@ -3073,13 +3070,6 @@ public bool UseLab
                         using var data = bmp.Encode(SKEncodedImageFormat.Png, 100);
                         // The new image opens again at its whole-mould width and stone grid (size tag).
                         System.IO.File.WriteAllBytes(newPath, ImageService.AddSizeTag(data.ToArray(), tag));
-                    }
-                    // The original, unchanged: a copy of the loaded file (or the image as read, when there is none).
-                    if (System.IO.File.Exists(source)) System.IO.File.Copy(source, origPath, overwrite: true);
-                    else if (original != null)
-                    {
-                        using var data = original.Encode(SKEncodedImageFormat.Png, 100);
-                        System.IO.File.WriteAllBytes(origPath, data.ToArray());
                     }
                 });
             }
@@ -3094,9 +3084,8 @@ public bool UseLab
                 IsProcessing = false;
             }
             _mouldNote = Loc.Fmt("MouldDone", widthCm.ToString("0.0", inv), heightCm.ToString("0.0", inv),
-                $"#{filler.ID} {filler.codeName}", System.IO.Path.GetFileName(newPath));
+                $"#{filler.ID} {filler.codeName}");
             if (!stockOk) _mouldNote += " · " + Loc.Fmt("MouldNoStockFiller", need.ToString("N0"));
-            FileSaved?.Invoke(newPath, SavedFileKind.Export);
             return newPath;
         }
 

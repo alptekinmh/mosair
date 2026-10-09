@@ -226,7 +226,7 @@ Window
 | `RefreshExportChoices()` | Flyout `Opening`, `menuExport`/`menuExportAs` `SubmenuOpened` | `UpdateExportChoiceTexts()`, ardından tahminleri başlatır: `_vm.RefreshExportEstimatesAsync()` (beklenmez). |
 | `UpdateExportChoiceTexts()` | `RefreshExportChoices`, `_vm.ExportEstimatesChanged` | Her seçeneğin başlığını `_vm.ExportChoiceLabel(quality, saveAs)` yapar (piksel boyutu + tahmini dosya boyutu; "N" gösterilmez). Mos'tan önce yalnızca varsayılan kalitenin seçeneği görünür (metni görselin boyutu), diğerleri gizlenir. |
 | `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). Sol tıkta listeyi düğmenin kendi `Flyout`'u açar. |
-| `OnCompleteMoulds` | Katalog satırındaki **Kalıba Tamamla**, **Araçlar → Kalıba Tamamla** | `GetExportDir()` (oluşturulamazsa `ShowExportFolderError`), `_vm.CompleteToMouldsAsync(dir)`; yol dönerse `_vm.LoadImage(path, keepOptimalK: true)`, sığdırma, `_vm.RunMosaicAsync()`, yeniden sığdırma ve `_vm.ShowMouldNote()`. |
+| `OnCompleteMoulds` | Katalog satırındaki **Kalıba Tamamla**, **Araçlar → Kalıba Tamamla** | `_vm.CompleteToMouldsAsync()` (dosya kaydetmez, geçici klasöre yazar); yol dönerse `_vm.LoadImage(path, keepOptimalK: true)`, sığdırma, `_vm.RunMosaicAsync()`, yeniden sığdırma ve `_vm.ShowMouldNote()`. |
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
