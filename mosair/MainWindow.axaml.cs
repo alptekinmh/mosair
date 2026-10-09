@@ -1251,6 +1251,10 @@ public partial class MainWindow : Window
         }
     }
 
+    // Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler (the same choice as the two buttons under Anlık Mos).
+    private void OnLiveMosAllColors(object? sender, RoutedEventArgs e) => _vm.LiveMosAllColors = true;
+    private void OnLiveMosSelectedColors(object? sender, RoutedEventArgs e) => _vm.LiveMosAllColors = false;
+
     private void OnSelectAll(object? sender, RoutedEventArgs e)
     {
         _vm.SetAllColors(false);

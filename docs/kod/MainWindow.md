@@ -48,7 +48,7 @@ Window
    │       │     OnToggleAdjustPanel; onay işareti IsAdjustPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
-   │       │     | Optimum, Stoğa göre, Anlık Mos (OnToggleLiveMos; ✓ LiveMos), Kalıp Dolgu (OnTogglePadding; ✓ UsePadding), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
+   │       │     | Optimum, Stoğa göre, Anlık Mos (OnToggleLiveMos; ✓ LiveMos), Anlık Mos: Tüm Renkler (OnLiveMosAllColors; ✓ LiveMosAllColors), Anlık Mos: Seçili Renkler (OnLiveMosSelectedColors; ✓ LiveMosSelectedColors), Kalıp Dolgu (OnTogglePadding; ✓ UsePadding), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
    │       │     Stok ▸ (Aç, Ayarlar | Çek ▸ (Devre dışı bırak / Kırmızıyla işaretle), Kontrol, Sil, Tümünü Sil, Ekle)
    │       └─ Yardım (MenuHelp): Kullanım Kılavuzu (F1)
    ├─ [Top] Araç çubuğu (toolbar)
@@ -100,7 +100,9 @@ Window
        │   ├─ Başlık: AdjTitle (ipucu TipAdjust) + IsAdjusted ise AccentText noktası + gizle düğmesi
        │   │     (▬, OnToggleAdjustPanel, ipucu TipPanelHide)
        │   ├─ Sekmeler: iki ToggleButton.chip — AdjTabLight (IsChecked ↔ IsLightTab), AdjTabColor (↔ IsColorTab);
-       │   │     ince dikey çizgi; ToggleButton.chip AdjLiveMos (IsChecked ↔ LiveMos, ipucu TipAdjLiveMos)
+       │   ├─ Anlık Mos: CheckBox AdjLiveMos (IsChecked ↔ LiveMos, ipucu TipAdjLiveMos); altında (IsVisible = LiveMos,
+       │   │     24 px içeride) iki RadioButton (GroupName liveMosColors): AdjLiveMosAll ↔ LiveMosAllColors,
+       │   │     AdjLiveMosSelected ↔ LiveMosSelectedColors (ipuçları TipLiveMosAll / TipLiveMosSelected)
        │   ├─ [Bottom] AdjHint (kısayol ipucu, 10 px) + AdjReset düğmesi (OnAdjustReset, IsEnabled = IsAdjusted)
        │   └─ ScrollViewer → StackPanel (IsEnabled = CanAdjust)
        │       ├─ Işık (IsLightTab): ItemsControl LightParams → satır şablonu (aşağıda)
@@ -260,7 +262,8 @@ Window
 | `OnToggleStockAware` | Araçlar → Stoğa göre (onay işareti `UseStockAware`'e bağlı) | `_vm.UseStockAware` tersine çevrilir (toolbar'daki "Stoğa göre" onay kutusu doğrudan bağlamadır). |
 | `OnAdjustSliderDragging` | `AdjustSlider.DraggingChanged` (kurucuda abone, pencere kapanınca bırakılır) | `_vm.SetAdjustDragging(dragging)`. |
 | `FreezeMosaicView` / `ReleaseMosaicFreeze` | `_vm.LiveMosBusy` true / false | Anlık Mos yeni mozaiği hazırlarken görsel alanının (`imageScroller`) o anki hâli `RenderTargetBitmap` ile `liveMosFreeze` görüntüsüne çizilir ve üstte gösterilir (Mos sürerken mozaik gizlenip görsel görünmesin). Bitişten 250 ms sonra (`_freezeTimer`; yeni mozaiğin karoları çizilsin) kaldırılır; bu arada yeni bir Anlık Mos başlarsa aynı görüntü kalır. |
-| `OnToggleLiveMos` | Araçlar → Anlık Mos (onay işareti `LiveMos`'a bağlı) | `_vm.LiveMos` tersine çevrilir (Görsel Ayarları sütunundaki Anlık Mos düğmesi doğrudan bağlamadır). |
+| `OnToggleLiveMos` | Araçlar → Anlık Mos (onay işareti `LiveMos`'a bağlı) | `_vm.LiveMos` tersine çevrilir (Görsel Ayarları sütunundaki Anlık Mos kutusu doğrudan bağlamadır). |
+| `OnLiveMosAllColors` / `OnLiveMosSelectedColors` | Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler | `_vm.LiveMosAllColors = true` / `false` (sütundaki iki seçenek doğrudan bağlamadır). |
 | `OnTogglePadding` | Araçlar → Kalıp Dolgu (onay işareti `UsePadding`'e bağlı) | `_vm.UsePadding` tersine çevrilir (katalog üstündeki Kalıp Dolgu düğmesi doğrudan bağlamadır). |
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |

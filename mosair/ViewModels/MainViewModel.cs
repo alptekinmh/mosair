@@ -739,6 +739,8 @@ namespace mosair.ViewModels
                 current[i] = decision.Value;
                 if (_optimumUserSelection != null && i < _optimumUserSelection.Length)
                     _optimumUserSelection[i] = decision.Value;
+                if (_userCatalogSelection != null && i < _userCatalogSelection.Length)
+                    _userCatalogSelection[i] = decision.Value;
             }
             ApplyCatalogSelection(current);
             ColorCatalogService.SetActiveColors();
@@ -1905,12 +1907,43 @@ public bool UseLab
             OnPropertyChanged(nameof(NavBitmap));
         }
 
+        // Anlık Mos's colours: every catalog stone, or the stones the user ticked. The user's ticks are remembered
+        // apart from the "used stones only" ticks the app sets after every Mos, so repeated Anlık Mos runs do not
+        // narrow the choice step by step. "Selected" by default.
+        private bool _liveMosAllColors;
+        public bool LiveMosAllColors
+        {
+            get => _liveMosAllColors;
+            set
+            {
+                if (_liveMosAllColors == value) return;
+                _liveMosAllColors = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(LiveMosSelectedColors));
+                // The mosaic on screen follows the new choice at once.
+                if (_liveMos && MosaicDone) _ = RunLiveMosAsync();
+            }
+        }
+        public bool LiveMosSelectedColors
+        {
+            get => !_liveMosAllColors;
+            set => LiveMosAllColors = !value;
+        }
+
+        // The catalog ticks as the user set them (checkboxes, Tümünü Seç / Kaldır, Stok Çek); null until the catalog
+        // is loaded.
+        private bool[]? _userCatalogSelection;
+        private void RememberUserSelection() => _userCatalogSelection = CaptureCatalogSelection();
+
         // After an adjustment with Anlık Mos on. A Mos already running is followed by one more.
         private async Task RunLiveMosAsync()
         {
             if (!_liveMos || !ImageLoaded) return;
             if (IsProcessing || IsExporting) { _liveMosPending = true; return; }
             _liveMosPending = false;
+            // The colours to use: all catalog stones, or the user's own selection (RunMosaicAsync activates them).
+            var colours = _liveMosAllColors ? new bool[MosaicData.arRGBAll.Count] : (bool[]?)_userCatalogSelection?.Clone();
+            if (colours != null) ApplyCatalogSelection(colours);
             bool first = !MosaicDone;
             LiveMosBusy = MosaicDone && !_showingRaw;
             // A stone count chosen with the Optimum slider (not the suggested one) is kept.
@@ -2338,6 +2371,7 @@ public bool UseLab
             {
                 ColorCatalogService.LoadDefaultCatalog();
                 RefreshCatalogList();
+                RememberUserSelection();
                 if (ColorCatalogService.SkippedLines.Count > 0)
                     StatusText = Loc.Fmt("StatusCatalogSkipped", string.Join(", ", ColorCatalogService.SkippedLines));
             }
@@ -3234,6 +3268,7 @@ public bool UseLab
         public void SyncColorExclusion(ColorItem item)
         {
             ColorCatalogService.SetLeaveOut(item.Index, item.IsExcluded);
+            RememberUserSelection();
             ReorderCatalogList();
         }
 
@@ -3251,6 +3286,7 @@ public bool UseLab
                 }
             }
             ColorCatalogService.SetActiveColors();
+            RememberUserSelection();
             ReorderCatalogList();
         }
 

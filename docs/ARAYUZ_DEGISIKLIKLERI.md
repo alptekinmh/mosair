@@ -4,6 +4,11 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Anlık Mos onay kutusu ve renk seçenekleri
+
+- **Anlık Mos** sekme düğmelerine benzeyen bir düğme yerine sekmelerin altında bir onay kutusu oldu.
+- İşaretliyken altında iki seçenek: **Tüm renkleri kullan** (katalogdaki bütün taşlar) ve **Seçili renkleri kullan** (kullanıcının işaretledikleri; Mos'tan sonra kendiliğinden daralan işaretler değil). Araçlar menüsüne de eklendi.
+
 ## 2026-10-09: Optimum Renk Sayısı
 
 - Araç çubuğundaki **Optimum** kutusunun adı **Optimum Renk Sayısı** (EN: Optimum Colour Count) oldu; **Stoğa göre** ile arasındaki boşluk açıldı (2 px → 14 px).

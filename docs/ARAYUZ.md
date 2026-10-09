@@ -130,7 +130,8 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | İnterpolasyon Yöntemi ▸ | — | Area, Nearest, Linear, Cubic, Lanczos4, LinearExact, NearestExact |
 | Optimum Taş Sayısı | — | Optimum modunu açar/kapatır ([§10](#10-optimum-taş-sayısı)) |
 | Stoğa Göre Ayarla | — | **Stoğa göre** kutusunu açar/kapatır ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
-| Anlık Mos | — | Açıkken (✓) her görsel ayarı değişikliğinden sonra Mos kendiliğinden yapılır; Görsel Ayarları sütunundaki **Anlık Mos** düğmesiyle aynıdır ([Görsel Ayarları](#görsel-ayarları)) |
+| Anlık Mos | — | Açıkken (✓) her görsel ayarı değişikliğinden sonra Mos kendiliğinden yapılır; Görsel Ayarları sütunundaki **Anlık Mos** kutusuyla aynıdır ([Görsel Ayarları](#görsel-ayarları)) |
+| Anlık Mos: Tüm Renkler / Anlık Mos: Seçili Renkler | — | Anlık Mos'un hangi taşlarla yapılacağı (✓ seçili olanda); Anlık Mos kutusunun altındaki iki seçenekle aynıdır |
 | Kalıp Dolgu | — | Tam kalıba tamamlamayı açar/kapatır (✓); katalog üstündeki **Kalıp Dolgu** düğmesiyle aynıdır ([§5](#tam-kalıba-tamamlama)) |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum ile yapılmış bir Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir; başka zaman pasiftir |
 | Stok ▸ | — | Stok Tablosunu Aç, Stok Ayarları..., Stok Çek ▸ (Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle), Stok Kontrol, Bu mozaiğin sütununu temizle, Tüm mozaik sütunlarını temizle, Stok Ekle ([§11](#11-stok-yönetimi-google-sheets)). Bir stok işlemi sürerken pasiftir. |
@@ -303,7 +304,12 @@ Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ay
 - Başlıktaki **▬** düğmesi ya da **Görünüm → Görsel Ayarları** sütunu gizler; yerinde 24 px'lik bir şerit kalır (**‹** oku, ayar varsa mavi nokta, dikey "Görsel Ayarları" yazısı). Şeride tıklayınca sütun gizlenmeden önceki genişliğiyle geri açılır. Uygulama her açılışta sütun açık başlar.
 - Bir ayar 0'dan farklıysa başlıkta ve şeritte küçük **mavi bir nokta** yanar.
 
-**İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, ince bir çizgiden sonra da **Anlık Mos** açma/kapama düğmesi vardır (basılıyken mavi, yani açık).
+**İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, onların altında **Anlık Mos** onay kutusu vardır (sekmelerden ayırt edilsin diye düğme değil, onay kutusu). Anlık Mos işaretliyken altında iki seçenek görünür:
+
+- **Tüm renkleri kullan:** Anlık Mos katalogdaki bütün taşlarla yapılır; katalogdaki işaretlere bakılmaz.
+- **Seçili renkleri kullan** (varsayılan): Anlık Mos katalogda sizin işaretlediğiniz taşlarla yapılır. Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalır; Anlık Mos bu daralmış işaretleri değil, sizin son seçiminizi (onay kutuları, Tümünü Seç/Kaldır, Stok Çek) kullanır, böylece art arda Anlık Mos'larda renkler adım adım azalmaz. Mos'tan sonra işaretleri değiştirirseniz ekranda gördüğünüz işaretler yeni seçiminiz olur.
+
+Seçenek değiştirilince ekranda mozaik varsa hemen bir Anlık Mos yapılır. Aynı seçim **Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler** ile de yapılır. Seçim her açılışta **Seçili renkleri kullan** olarak başlar.
 
 | Sekme | Kaydırıcı | Aralık | Etkisi |
 |---|---|---|---|
@@ -332,7 +338,7 @@ Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ay
 **Uygulanma:**
 - Değer değiştikten kısa süre (≈0,15 sn) sonra uygulanır; sürüklerken her adımda yeniden hesaplanmaz. 6000×6000 px bir görselde yalnızca Işık ayarları ≈0,26 sn, Ton/Doygunluk ile birlikte ≈0,33 sn sürer.
 - **Mos'tan önce** görsel alanındaki görüntü hemen değişir. Mos'a basıldığında henüz uygulanmamış son ayar önce uygulanır.
-- **Anlık Mos** (sekmelerin yanındaki düğme ya da **Araçlar → Anlık Mos**, ✓). Her açılışta **kapalı** başlar, tercih hatırlanmaz.
+- **Anlık Mos** (sekmelerin altındaki onay kutusu ya da **Araçlar → Anlık Mos**, ✓; renk seçenekleri yukarıda). Her açılışta **kapalı** başlar, tercih hatırlanmaz.
   - **Açıkken:** her ayar değişikliği uygulandıktan sonra Mos kendiliğinden yapılır ve mozaik güncellenir. Bir kaydırıcı fareyle **sürüklenirken Mos yapılmaz**; fare bırakılınca son değerle bir kez yapılır (tekerlek, ok tuşları, sağ tık ve değer kutusu ise kısa bir duraklamadan sonra Mos yapar). Yeni mozaik hazırlanırken ekranda **önceki mozaik kalır**; arada görsel görünmez. Mos o anki seçimlerle yapılır: hiçbiri işaretli değilse klasik Mos, **Optimum** ve/veya **Stoğa göre** işaretliyse onlarla (Kalıp Dolgu da). Optimum'da taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse Anlık Mos o sayıyı korur (yeni analizin aralığına sığdırılarak); seçilmediyse her seferinde önerilen sayı kullanılır. Bir Mos sürerken yapılan değişiklik sıraya alınır; o Mos bitince bir Mos daha yapılır. İlk mozaik pencereye sığdırılır, sonrakiler görünümü olduğu gibi bırakır. Anlık Mos'un Mos'u sürerken kaydırıcılar kullanılabilir kalır, sürükleme kesilmez. Ekranda eskimiş mozaik yerine görsel gösterilirken Anlık Mos açılırsa hemen bir Mos yapılır.
   - **Kapalıyken:** mozaik varken bir ayar değişirse eskimiş mozaik yerine **ayarlanmış görsel** gösterilir ve durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Bu durum bir sonraki Mos'a kadar sürer (yeni görsel, proje açma ya da mozaiğin silinmesi de bitirir). Bu sırada mini harita görseli gösterir ve görsele tıklamak taş seçmez. Mozaik kalıba tamamlanmışsa görsel yalnızca dolgusuz kısmı kaplar; dolgu alanı boş kalır.
 - Bir iş (Mos, dışa aktarma) sürerken ayarlar pasiftir; yalnızca Anlık Mos'un kendi Mos'u sürerken kullanılabilir kalırlar.
