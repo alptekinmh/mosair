@@ -3029,7 +3029,14 @@ public bool UseLab
                 StatusText = Loc.Get("MouldAlreadyWhole");
                 return null;
             }
-            var filler = ChooseMouldFiller(img, C, Rr, C2, R2);
+            // With Stoğa göre the filler must have stock for the whole padding, or the stock fit would spread the
+            // padding over several stones.
+            int need = C2 * R2 - C * Rr;
+            var stock = UseStockAware ? _loadedStock : null;
+            Func<int, bool>? hasStock = stock == null ? null
+                : id => stock.TryGetValue(id, out var st) && st.Capacity >= need;
+            var filler = ChooseMouldFiller(img, C, Rr, C2, R2, hasStock);
+            bool stockOk = filler != null && (hasStock == null || hasStock(filler.ID));
             if (filler == null)
             {
                 StatusText = Loc.Get("MouldNoColour");
@@ -3088,6 +3095,7 @@ public bool UseLab
             }
             _mouldNote = Loc.Fmt("MouldDone", widthCm.ToString("0.0", inv), heightCm.ToString("0.0", inv),
                 $"#{filler.ID} {filler.codeName}", System.IO.Path.GetFileName(newPath));
+            if (!stockOk) _mouldNote += " · " + Loc.Fmt("MouldNoStockFiller", need.ToString("N0"));
             FileSaved?.Invoke(newPath, SavedFileKind.Export);
             return newPath;
         }
@@ -3104,8 +3112,15 @@ public bool UseLab
         // The filler: among the ticked catalog stones (so Mos can use exactly that stone) and those the mosaic does
         // not use, the one whose smallest colour difference (Lab ΔE) to the colours of the moulds being extended
         // (the last, unfinished mould column and row of the image) is largest. Stones practically present in the
-        // image (ΔE < 10 to one of its colours) are left out while another stone is possible.
-        private static rgb? ChooseMouldFiller(SKBitmap img, int C, int R, int C2, int R2)
+        // image (ΔE < 10 to one of its colours) are left out while another stone is possible. hasStock (Stoğa göre):
+        // stones with stock for the whole padding are preferred; only when none has, the others are taken.
+        private static rgb? ChooseMouldFiller(SKBitmap img, int C, int R, int C2, int R2, Func<int, bool>? hasStock = null)
+        {
+            return (hasStock != null ? FillerAmong(img, C, R, C2, R2, hasStock) : null) ?? FillerAmong(img, C, R, C2, R2, null);
+        }
+
+        // ChooseMouldFiller among the stones `only` accepts (all when null).
+        private static rgb? FillerAmong(SKBitmap img, int C, int R, int C2, int R2, Func<int, bool>? only)
         {
             int W = img.Width, H = img.Height;
             int x0 = C2 > C ? (int)((long)(C / MosaicEngine.MouldStones * MosaicEngine.MouldStones) * W / C) : W;
@@ -3124,6 +3139,7 @@ public bool UseLab
             foreach (var c in MosaicData.arRGBAll)
             {
                 if (c.ID <= 0 || string.IsNullOrEmpty(c.codeName) || c.boolLeaveOut || used.Contains(c.ID)) continue;
+                if (only != null && !only(c.ID)) continue;
                 var lab = ColorMatcher.RgbToLab(c.r, c.g, c.b);
                 double score = Nearest(lab, edge);
                 if (score > bestAnyScore) { bestAnyScore = score; bestAny = c; }

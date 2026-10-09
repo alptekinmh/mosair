@@ -65,7 +65,7 @@ Her iki sözlükte de **326** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Info*` | 2 | Sol paneldeki taş/kalıp kartının satır adları: `InfoStonesLabel` ("Taş" / "Stones") ve `InfoMouldsLabel` ("Kalıp" / "Moulds"). `InfoStones`, `InfoMoulds` ve `InfoOriginal` kaldırıldı. |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
 | `Btn*` | 4 | Katalog satırındaki **Kalıba Tamamla** (`BtnCompleteMoulds`, Araçlar menüsünde de) ve Tümünü Seç \| Tümünü Kaldır düğmesi (`BtnSelectAll` "Tümünü Seç", `BtnDeselectAll` "Tümünü Kaldır"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |
-| `Mould*` | 4 | Kalıba Tamamla durum metinleri: `MouldWorking`, `MouldAlreadyWhole`, `MouldNoColour`, `MouldDone` ("Kalıba tamamlandı: {0} × {1} cm, dolgu {2} ({3})"); ipucu `TipCompleteMoulds` |
+| `Mould*` | 5 | Kalıba Tamamla durum metinleri: `MouldWorking`, `MouldAlreadyWhole`, `MouldNoColour`, `MouldNoStockFiller`, `MouldDone` ("Kalıba tamamlandı: {0} × {1} cm, dolgu {2} ({3})"); ipucu `TipCompleteMoulds` |
 | `Size*` | 3 | Dosya boyutu biçimleri (`SizeKB`, `SizeMB`, `SizeGB`; Drive'dan Aç kartları `SizeKB`/`SizeMB` kullanır) |
 
 ## Public API

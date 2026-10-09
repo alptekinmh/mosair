@@ -198,13 +198,14 @@ Robot yalnızca tam kalıp üretir (26 × 26 taş = 31,2 cm). **Kalıba Tamamla*
 
 1. **Ölçü:** o anki cm genişliğine göre taş sütun ve satır sayısı bir üst kalıba (26'nın katına) tamamlanır. Ör. 100 cm = 83 taş → 104 taş = **124,8 cm**; yükseklik de kendi taş sayısından aynı kurala göre.
 2. **Fotoğraf büyütülür:** Görsel Ayarları uygulanmış fotoğraf (ayar yapıldıysa son hâli) sol üstte kalır, **sağa ve alta** oranla piksel eklenir: 1000 px'te 83 taş varsa 104 taş için 1000 × 104 / 83 ≈ **1253 px**.
-3. **Dolgu rengi:** eklenen piksellerin hepsi **tek bir renkle** boyanır. Renk, katalogda **işaretli** (Mos'un kullanabileceği) ve (mozaik varsa) mozaikte **kullanılmayan** taşlardan; uzatılan kenar kalıplarının (görselin son, yarım kalan kalıp sütunu ve satırı) renklerine **en uzak** olanıdır. Görselde neredeyse aynısı olan renkler (ΔE < 10) başka seçenek varken alınmaz.
+3. **Dolgu rengi:** eklenen piksellerin hepsi **tek bir renkle** boyanır. Renk, katalogda **işaretli** (Mos'un kullanabileceği) ve (mozaik varsa) mozaikte **kullanılmayan** taşlardan; uzatılan kenar kalıplarının (görselin son, yarım kalan kalıp sütunu ve satırı) renklerine **en uzak** olanıdır. Görselde neredeyse aynısı olan renkler (ΔE < 10) başka seçenek varken alınmaz. **Stoğa göre** işaretliyse ve stok okunmuşsa yalnızca stoğu dolgunun tamamına (ör. 100 cm kare görselde 3.927 taş) yeten taşlar seçilir; böylece stok düzeltmesi dolguyu bölmez. Böyle taş yoksa yine en uzak taş alınır ve durum çubuğu dolgunun birkaç taşa dağılabileceğini söyler.
 4. **Kayıt:** yeni fotoğraf `Masaüstü/mosairEXPORT/<tarih>_<saat>__<görsel adı>__kalip_<genişlik>x<yükseklik>.png` olarak kaydedilir (PNG: renk birebir korunur), orijinal dosya da yanına `…__orijinal.<uzantı>` olarak kopyalanır. Kaydedilen dosya bildirimi çıkar.
 5. **Yeniden yükleme ve Mos:** yeni fotoğraf **Görsel Yükle** ile açılmış gibi açılır (genişlik 124,8 cm ve taş satırları dosyanın ölçü etiketinden; Görsel Ayarları fotoğrafa işlendiği için sıfırdan başlar) ve **o anki ayarlarla** (katalog işaretleri, Optimum, elle seçilen taş sayısı, Stoğa göre) kendiliğinden Mos yapılır. Durum çubuğunun başında "Kalıba tamamlandı: 124,8 × … cm, dolgu #ID kod (dosya)" yazar.
 
 - Proje (`.mos`) bu işlemle ilgili hiçbir ek bilgi taşımaz: projenin görseli yeni, dolgulu fotoğraftır.
+- Dolgu sıradan görsel içeriği olduğu için taşları, o taşın farklı fotoğraf varyantlarıyla çizilir (tonları biraz farklı görünebilir).
 - Ölçü zaten tam kalıpsa "Ölçü zaten tam kalıp; tamamlanacak bir şey yok" yazar ve bir şey yapılmaz. Katalogda işaretli ve kullanılmayan taş kalmadıysa tamamlanmaz.
-- Mos dolgu alanını tek bir taşla yapar (Optimum'da dolgu taşının kendisi; klasik Mos'un renk indirgemesi bazen aynı renkteki başka bir taşı seçebilir). Görselle dolgunun birleştiği tek sütun/satırda, pikseller iki taşın arasına düştüğü için karışık taşlar olabilir.
+- Mos dolgu alanını tek bir taşla yapar (Optimum'da ve Stoğa göre'de dolgu taşının kendisi; klasik Mos'un renk indirgemesi bazen dolgu taşına renkçe çok yakın başka bir taşı seçebilir, ör. B131 yerine B180). Görselle dolgunun birleştiği tek sütun/satırda, pikseller iki taşın arasına düştüğü için karışık taşlar olabilir.
 
 ### Üç sütun
 
