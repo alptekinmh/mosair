@@ -42,7 +42,7 @@
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Araç çubuğu: Görsel · Proje Aç │ Kaydet · Farklı Kaydet │ Mos │ Kalem │ Izgara      │
 │   Interp │ Drive ▾ · Tablo ▾ · Stok Çek ▾ · Kontrol · Sil · Ekle │ ☐ Stoğa göre    │
-│   ☐ Optimum  ──▲── (değer üstünde)       … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
+│   ☐ Optimum Renk Sayısı ──▲── (değer üstünde) … 📷 │ Dışa Aktar │ ☾ │ 🌐               │
 ├──────────────────────────────────────────────────────────────────────────────────┤
 │ Durum çubuğu: kullanılan renk │ ilerleme ✕İptal durum süre │ Ekrana Sığdır · zoom │
 ├───────────────────────┬──────────────────────┬──────────────────┬───────────────┤
@@ -164,7 +164,7 @@ Soldan sağa:
 | Stok Sil (küp −) | Stok temizle: bu mozaiğin sütununu temizle (sağ tık: tüm mozaik sütunları) | Bu mozaiğin sütununu temizler | Sağ tık: **Bu mozaiğin sütununu temizle / Tüm mozaik sütunlarını temizle** | Onay ister |
 | Stok Ekle (küp +) | Stok ekle: Tahmini Kalan'ı Bizdeki'ye taşı, mozaik sütunlarını temizle | Tahmini Kalan → Bizdeki | — | Onay ister |
 | ☐ Stoğa göre | Özelliğin açıklaması; son Mos'un stok raporu da eklenir | Stoğa göre modunu aç/kapat | — | Varsayılan **kapalı** ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
-| ☐ Optimum | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **kapalı** |
+| ☐ Optimum Renk Sayısı | Optimum taş sayısını otomatik bul | Optimum modunu aç/kapat | — | Varsayılan **kapalı** |
 | Taş kaydırıcısı ──▲── (Optimum'un sağında) | Taş çeşidi sayısı (sağ tık: önerilen sayı) | Taş çeşidi sayısını değiştirir; seçili sayı üçgenin üstünde yazar | **Sağ tık:** önerilen sayıya döner | Optimum işaretliyken ve Optimum ile yapılmış bir Mos'tan sonra görünür |
 | Ekran görüntüsü (kamera, dışa aktarmanın solunda) | Ekran görüntüsü: görsel alanında şu an görünen kısmı PNG olarak mosairEXPORT klasörüne kaydeder | Görsel alanında o an ne görünüyorsa (mozaik ya da yüklenen görsel, aynı zoom ve ızgara dahil) yakalar; yalnızca görselin kendisi kaydedilir: görselin çevresindeki boş tuval alanı, mini harita ve kaydırma çubukları girmez. Görsel pencereden küçükse dosya da o kadar küçük olur; yakınlaştırılmışsa görünen kısım kaydedilir. Yüksek çözünürlüklü ekranlarda ekranın gerçek piksel yoğunluğuyla kaydedilir. Dosya: `mosairEXPORT/tarih_saat__görselAdı__ekran.png`; durum çubuğu dosya adını yazar ve sağ altta **Aç** / **Klasörü aç** düğmeli bildirim çıkar ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)). | — | Görsel yokken pasif |
 | mosairEXPORT (sağda) | Dışa aktar: mosairEXPORT / mosairEXPORT As, görüntü kalitesi seçerek (boyut bilgisiyle). Sağ tık: klasörü aç | Liste açar: **mosairEXPORT ▸** / **mosairEXPORT As ▸**, her birinde görüntü kalitesi seçenekleri ([§13](#13-dışa-aktarma-mosairexport)); tıklama doğrudan kaydetmez | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |

@@ -704,7 +704,7 @@
                        Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>
           </CheckBox>
           <!-- Optimum stone count -->
-          <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="2,0,0,0"
+          <CheckBox IsChecked="{Binding UseOptimal}" VerticalAlignment="Center" Margin="14,0,0,0"
                     ToolTip.Tip="{Binding [TipOptimum], Source={x:Static svc:Loc.Instance}}">
             <TextBlock Text="{Binding [LblOptimum], Source={x:Static svc:Loc.Instance}}" FontSize="11"
                        Foreground="{DynamicResource FgSecondary}" VerticalAlignment="Center"/>

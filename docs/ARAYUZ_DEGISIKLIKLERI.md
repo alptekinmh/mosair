@@ -4,6 +4,10 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Optimum Renk Sayısı
+
+- Araç çubuğundaki **Optimum** kutusunun adı **Optimum Renk Sayısı** (EN: Optimum Colour Count) oldu; **Stoğa göre** ile arasındaki boşluk açıldı (2 px → 14 px).
+
 ## 2026-10-08: Kalıp Dolgu açıkken cm kutusu dolgulu ölçüyü gösterir
 
 - Kalıp Dolgu açıkken girilen genişlik görselin genişliğidir; kutu dolgudan sonraki toplamı gösterir (150 → 156, 5 kalıp). Yükseklik ve alan da dolgulu. Kalıp Dolgu kapatılınca kutu görselin genişliğine döner.

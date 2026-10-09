@@ -58,7 +58,7 @@ Window
    │   │       Google Drive düğmesi (renkli Drive logosu; Click=OnDriveSave, CanUseDrive, ipucu TipDrive) + yanında 14 px açılır ok
    │   │       (Flyout: Drive'a Kaydet / Drive'dan Aç... / Drive Klasörü Ayarları... → OnDriveSave / OnDriveOpen / OnDriveSettings),
    │   │       5 stok düğmesi (CanUseStock; tablo ve Sil düğmelerinde sağ tık ContextMenu; tablo ve Stok Çek düğmelerinin yanında açılır ok Flyout'u: tablo → Aç / Ayarlar, Stok Çek → Devre dışı bırak / Kırmızıyla işaretle),
-   │   │       "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip), Optimum onay kutusu + Taş kaydırıcısı
+   │   │       "Stoğa göre" onay kutusu (UseStockAware; ipucu StockAwareTip), Optimum onay kutusu (LblOptimum "Optimum Renk Sayısı", Margin 14 sol) + Taş kaydırıcısı
    │   │       (ctrl:AdjustSlider ShowValue; Value ↔ OptimalK, Maximum ↔ OptimalKMax, DefaultValue ↔ OptimalKSuggested,
    │   │       ipucu TipOptimalSlider; görünür: UseOptimal && OptimalAvailable, BoolConverters.And)
    │   └─ Sağ: Ekran görüntüsü düğmesi (kamera, OnScreenshot, ImageLoaded) │ exportBtn (exportArrow animasyonu; sol tık = kodla kurulan MenuFlyout: mosairEXPORT ▸ / mosairEXPORT As ▸,
