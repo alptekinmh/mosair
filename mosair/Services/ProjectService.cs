@@ -174,8 +174,8 @@ namespace mosair.Services
             var data = new ProjectData
             {
                 // A padded mosaic is saved at its padded size (WPF reads Width).
-                Width = MosaicEngine.IsPadded ? MosaicData.dataM3.GetLength(1) : MosaicEngine.width,
-                Height = MosaicEngine.IsPadded ? MosaicData.dataM3.GetLength(0) : MosaicEngine.height,
+                Width = MosaicData.dataM3.GetLength(1) > 0 ? MosaicData.dataM3.GetLength(1) : MosaicEngine.width,
+                Height = MosaicData.dataM3.GetLength(0) > 0 ? MosaicData.dataM3.GetLength(0) : MosaicEngine.height,
                 RgbM = MosaicEngine.rgbM,
                 N = MosaicData.N,
                 ShowGrid = showGrid,
@@ -515,8 +515,6 @@ namespace mosair.Services
 
             MosaicEngine.width = data.Width;
             MosaicEngine.height = data.Height;
-            // An opened project's padding is just part of its mosaic.
-            MosaicEngine.ForgetPadding();
             MosaicEngine.rgbM = data.RgbM;
             MosaicData.N = data.N;
 

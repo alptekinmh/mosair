@@ -18,7 +18,7 @@ Avalonia `Application` sınıfı. Uygulama genelindeki temayı (Fluent, koyu) y�
 | `Application.Styles` | — | `FluentTheme` + paylaşılan stiller | Avalonia Fluent teması; `FluentTheme.Palettes` içinde `Dark` ve `Light` için `ColorPaletteResources Accent` (`#2D6BD9` / `#1F5FCC`) verilir. Böylece Fluent'in kendi vurgu rengi (CheckBox, Slider, ProgressBar, ToggleButton, odak çerçevesi) işletim sisteminin vurgu rengini değil uygulamanınkini izler. |
 | `MonoFont` (kaynak) | `FontFamily` | `JetBrains Mono, Cascadia Mono, Consolas, Menlo, monospace` | Eş aralıklı yazılar (taş kodları, ölçüler, değerler) için tek tanım; `{StaticResource MonoFont}` ile kullanılır (temaya bağlı değil). |
 | `Button.primary` (stil) | — | — | Ana eylem düğmesi: `AccentFill` zemin, `OnAccent` yazı, köşe 4, SemiBold; `:pointerover` → `AccentFillHover`, `:pressed` → `AccentFillPressed`, `:disabled` → `BgHover` / `FgDisabled` (`/template/ ContentPresenter` hedeflenir). Alert, Confirm, Stock/Drive ayarları ve Drive'dan Aç pencerelerinin onay düğmesi ve yeni görsel bildirimindeki **Aç** kullanır. |
-| `ToggleButton.chip` (stil) | — | — | Katalog üstündeki küçük aç/kapa düğmesi (Kalıp Dolgu): kapalıyken `BgInput`/`FgSecondary`, açıkken `AccentFill`/`OnAccent`. |
+| `ToggleButton.chip` (stil) | — | — | Küçük aç/kapa düğmesi (Görsel Ayarları sekmeleri): kapalıyken `BgInput`/`FgSecondary`, açıkken `AccentFill`/`OnAccent`. |
 
 ## Public API
 

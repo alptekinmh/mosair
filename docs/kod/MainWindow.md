@@ -40,7 +40,7 @@ Window
    │       │     | Google Drive ▸ (MenuDrive; IsEnabled=CanUseDrive): Drive'a Kaydet (OnDriveSave), Drive'dan Aç... (OnDriveOpen)
    │       │       | Drive Klasörü Ayarları... (OnDriveSettings)
    │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
-   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır, Kullanılmayan Taşlar (OnToggleUnusedStones; ✓ ShowUnusedStones) | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
+   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
    │       ├─ Görünüm (MenuView): menuFitToScreen, Yumuşak Fare Hareketi (MenuSmoothMouse; OnToggleSmoothMouse;
    │       │     onay işareti SmoothMouse), Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
@@ -48,7 +48,7 @@ Window
    │       │     OnToggleAdjustPanel; onay işareti IsAdjustPanelOpen)
    │       ├─ Araçlar (MenuTools): menuMosaicize, Piksel Düzenle, Izgara Göster,
    │       │     menuGridColor*, menuInterp*  (*kodda doldurulur: BuildToolsMenu)
-   │       │     | Optimum, Stoğa göre, Anlık Mos (OnToggleLiveMos; ✓ LiveMos), Anlık Mos: Tüm Renkler (OnLiveMosAllColors; ✓ LiveMosAllColors), Anlık Mos: Seçili Renkler (OnLiveMosSelectedColors; ✓ LiveMosSelectedColors), Kalıp Dolgu (OnTogglePadding; ✓ UsePadding), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
+   │       │     | Optimum, Stoğa göre, Anlık Mos (OnToggleLiveMos; ✓ LiveMos), Anlık Mos: Tüm Renkler (OnLiveMosAllColors; ✓ LiveMosAllColors), Anlık Mos: Seçili Renkler (OnLiveMosSelectedColors; ✓ LiveMosSelectedColors), Taş Sayısı ▸ (Önerilen / Artır / Azalt),
    │       │     Stok ▸ (Aç, Ayarlar | Çek ▸ (Devre dışı bırak / Kırmızıyla işaretle), Kontrol, Sil, Tümünü Sil, Ekle)
    │       └─ Yardım (MenuHelp): Kullanım Kılavuzu (F1)
    ├─ [Top] Araç çubuğu (toolbar)
@@ -77,10 +77,8 @@ Window
        │   │   (ImageLoaded iken; BgInput, CornerRadius 6): Grid "Auto,10,Auto,22,Auto,22,Auto" (sayılar etiketin hemen ardından başlar) × 2 satır —
        │   │   InfoStonesLabel InfoStoneCols × InfoStoneRows = InfoStoneTotal / InfoMouldsLabel InfoMouldCols × InfoMouldRows = InfoMouldTotal
        │   │   (12 px mono, sayılar sağa hizalı, toplam SemiBold)
-       │   ├─ Katalog satırı (Grid "Auto,*,Auto", Padding 6,4): solda Border (BgInput, CornerRadius 4, 22 px) içinde
-       │   │     BtnSelectAll | 1 px çizgi | BtnDeselectAll (saydam, 10 px; ipuçları MenuSelectAll / MenuDeselectAll);
-       │   │     sağda ToggleButton.chip BtnUnusedStones (IsChecked=ShowUnusedStones, ipucu TipUnusedStones) ve
-       │   │     ToggleButton.chip BtnPadding (IsChecked=UsePadding, ipucu TipPadding), ikisi de 22 px, 10 px
+       │   ├─ Katalog satırı (Border BgBar, Padding 6,4): yalnızca solda Border (BgInput, CornerRadius 4, 22 px) içinde
+       │   │     BtnSelectAll | 1 px çizgi | BtnDeselectAll (saydam, 10 px; ipuçları MenuSelectAll / MenuDeselectAll)
        │   └─ 3 sütun (başlıklar ColCatalog / ColMatch / ColAssigned)
        │       ├─ catalogListBox (CatalogColors): onay kutusu + renk + kod/ad + stok kg
        │       ├─ paletteScroll (PaletteColors): eşleşen renk kareleri
@@ -89,9 +87,7 @@ Window
        ├─ Sütun 2 — Tuval (canvasBorder: Border, DragDrop.AllowDrop="True"; Background başta BgCanvas, sonra ApplyImageTint;
        │                   0,4 sn BrushTransition)
        │   ├─ imageScroller (ScrollViewer)
-       │   │   └─ Panel x:Name="imagePanel" (ImageDisplayWidth × ImageDisplayHeight; Kalıp Dolgu önizlemesinde tam kalıba büyümüş)
-       │   │       ├─ Border (Background = PadBrush; yalnızca ShowPadBackground; tıklanmaz): dolgu alanının rengi,
-       │   │       │     görselin sağında ve altında görünür
+       │   │   └─ Panel x:Name="imagePanel" (ImageDisplayWidth × ImageDisplayHeight)
        │   │       ├─ Image x:Name="sourceImage" (DisplayBitmap; yalnızca ShowSourceView; Width/Height = SourceViewWidth/Height,
        │   │       │     sol üste hizalı; wheel/move/press/release olayları)
        │   │       ├─ ctrl:MosaicView x:Name="mosaicView" (yalnızca ShowMosaicView; RenderSource, OverviewBitmap,
@@ -229,7 +225,6 @@ Window
 | `RefreshExportChoices()` | Flyout `Opening`, `menuExport`/`menuExportAs` `SubmenuOpened` | `UpdateExportChoiceTexts()`, ardından tahminleri başlatır: `_vm.RefreshExportEstimatesAsync()` (beklenmez). |
 | `UpdateExportChoiceTexts()` | `RefreshExportChoices`, `_vm.ExportEstimatesChanged` | Her seçeneğin başlığını `_vm.ExportChoiceLabel(quality, saveAs)` yapar (piksel boyutu + tahmini dosya boyutu; "N" gösterilmez). Mos'tan önce yalnızca varsayılan kalitenin seçeneği görünür (metni görselin boyutu), diğerleri gizlenir. |
 | `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). Sol tıkta listeyi düğmenin kendi `Flyout`'u açar. |
-| `OnToggleUnusedStones` | Düzenle → Kullanılmayan Taşlar | `_vm.ShowUnusedStones` tersine çevrilir (katalog satırındaki düğme doğrudan bağlamadır). |
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
@@ -268,7 +263,6 @@ Window
 | `FreezeMosaicView` / `ReleaseMosaicFreeze` | `_vm.LiveMosBusy` true / false | Anlık Mos yeni mozaiği hazırlarken görsel alanının (`imageScroller`) o anki hâli `RenderTargetBitmap` ile `liveMosFreeze` görüntüsüne çizilir ve üstte gösterilir (Mos sürerken mozaik gizlenip görsel görünmesin). Bitişten 250 ms sonra (`_freezeTimer`; yeni mozaiğin karoları çizilsin) kaldırılır; bu arada yeni bir Anlık Mos başlarsa aynı görüntü kalır. |
 | `OnToggleLiveMos` | Araçlar → Anlık Mos (onay işareti `LiveMos`'a bağlı) | `_vm.LiveMos` tersine çevrilir (Görsel Ayarları sütunundaki Anlık Mos kutusu doğrudan bağlamadır). |
 | `OnLiveMosAllColors` / `OnLiveMosSelectedColors` | Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler | `_vm.LiveMosAllColors = true` / `false` (sütundaki iki seçenek doğrudan bağlamadır). |
-| `OnTogglePadding` | Araçlar → Kalıp Dolgu (onay işareti `UsePadding`'e bağlı) | `_vm.UsePadding` tersine çevrilir (katalog üstündeki Kalıp Dolgu düğmesi doğrudan bağlamadır). |
 | `OnStonesSuggested` | Araçlar → Taş Sayısı → Önerilen (`OptimalAvailable`) | İşlem sürmüyorsa `OptimalK = OptimalKSuggested`. |
 | `OnStonesMore` | Araçlar → Taş Sayısı → Artır | `OptimalK + 1` (en çok `OptimalKMax`). |
 | `OnStonesLess` | Araçlar → Taş Sayısı → Azalt | `OptimalK - 1` (en az 1). |

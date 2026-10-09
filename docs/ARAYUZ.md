@@ -4,7 +4,7 @@
 > Kod tarafı için [`kod/`](kod/) klasörüne, belgelerin haritası için [README.md](README.md) dosyasına bakın.
 > Uygulama içindeki kılavuz (**Yardım → Kullanım Kılavuzu**, F1) bu dosyanın kısa özetidir; ikisi birbiriyle çelişmemelidir.
 >
-> Güncelleme: 2026-10-08 · Kapsadığı sürüm: v1.3.1
+> Güncelleme: 2026-10-09 · Kapsadığı sürüm: v1.3.1
 
 ## İçindekiler
 
@@ -13,7 +13,6 @@
 3. [Üst menü](#3-üst-menü)
 4. [Araç çubuğu](#4-araç-çubuğu)
 5. [Sol panel: ölçüler ve renk sütunları](#5-sol-panel-ölçüler-ve-renk-sütunları)
-    - [Tam kalıba tamamlama](#tam-kalıba-tamamlama)
 6. [Görsel alanı (canvas)](#6-görsel-alanı-canvas)
     - [Yeni görsel bildirimi](#yeni-görsel-bildirimi)
     - [Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)
@@ -49,7 +48,7 @@
 │ SOL PANEL             │ GÖRSEL ALANI         │ GÖRSEL AYARLARI ▬│ ÖZELLİKLER  ▬ │
 │ [cm] × Y cm = m²      │          ┌─────────┐ │ [Işık][Ton/Doyg.]│ taş seçiliyken│
 │ [taş kartı][kalıp k.] │          │Mini     │ │ Pozlama:   [0.00]│ RENK · DOKU   │
-│ [Seç|Kaldır] [Kul.][Dolgu] │          │harita   │ │ ───────▲──────── │ VARYANTLAR    │
+│ [Seç|Kaldır]          │          │harita   │ │ ───────▲──────── │ VARYANTLAR    │
 │ Katalog│Eşleşme│Atanan│          └─────────┘ │ Kontrast:  [ +17]│ RGB …;        │
 │        │       │      │                      │ ─────────▲────── │ değilse:      │
 │        │       │      │                      │ …        [Sıfırla]│ GÖRSEL·RENKLER│
@@ -70,7 +69,7 @@
 | 1 | Görsel yükle (PNG, JPG, JPEG, BMP, TIFF) | Görsel ikonu, **Dosya → Görsel Yükle**, `Ctrl/⌘+I`, dosyayı pencereye sürükle-bırak ya da İndirilenler'e / Masaüstüne yeni gelen JPEG/PNG için sağ altta çıkan bildirimde **Aç** ([§6](#yeni-görsel-bildirimi)) |
 | 2 | Mozaik genişliğini cm olarak gir | Sol panelin üstündeki kutu |
 | 3 | Katalogda kullanılabilecek taşları seç; **Optimum** ve **Stoğa göre** kutularını gerekirse işaretle (ikisi de varsayılan kapalı) | Sol panel, araç çubuğu |
-| 4 | Mozaikleştir (boyut tam kalıp değilse mozaik kendiliğinden tam kalıba tamamlanır, [§5](#tam-kalıba-tamamlama)) | **Mos** düğmesi veya `Ctrl/⌘+M` |
+| 4 | Mozaikleştir | **Mos** düğmesi veya `Ctrl/⌘+M` |
 | 5 | İncele, gerekirse taş sayısını, pikselleri ve taş varyantlarını düzenle | Taş kaydırıcısı, canvas, Özellikler paneli |
 | 6 | (İsteğe bağlı) **Stok Kontrol** ile adetleri tabloya yaz | Stok ikonları |
 | 7 | Projeyi kaydet (isterseniz Google Drive klasörüne de), görüntüyü dışa aktar | `Ctrl/⌘+S`, Drive ikonu, `Ctrl/⌘+E` |
@@ -105,7 +104,6 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 |---|---|---|
 | Tüm Renkleri Seç | — | Katalogdaki bütün taşları işaretler (Mos'ta kullanılabilir yapar) |
 | Tüm Renkleri Kaldır | — | Katalogdaki bütün işaretleri kaldırır |
-| Kullanılmayan Taşlar | — | Açıkken (✓) Mos'tan sonra katalogdaki bütün kutular işaretli görünür (yalnızca görünüm); katalog satırındaki **Kullanılmayan Taşlar** düğmesiyle aynıdır |
 | *(ayırıcı)* | | |
 | İşlemi İptal Et | `Esc` | Süren işi iptal eder; durum çubuğundaki **✕ İptal** düğmesiyle aynı ([§8](#iptal-düğmesi)). Yalnızca iptal edilebilen bir iş sürerken etkindir |
 
@@ -133,7 +131,6 @@ Araçlar menüsü araç çubuğundaki bütün araçları içerir. Açık olan se
 | Stoğa Göre Ayarla | — | **Stoğa göre** kutusunu açar/kapatır ([§11](#stoğa-göre-optimumun-yanındaki-kutu)) |
 | Anlık Mos | — | Açıkken (✓) her görsel ayarı değişikliğinden sonra Mos kendiliğinden yapılır; Görsel Ayarları sütunundaki **Anlık Mos** kutusuyla aynıdır ([Görsel Ayarları](#görsel-ayarları)) |
 | Anlık Mos: Tüm Renkler / Anlık Mos: Seçili Renkler | — | Anlık Mos'un hangi taşlarla yapılacağı (✓ seçili olanda); Anlık Mos kutusunun altındaki iki seçenekle aynıdır |
-| Kalıp Dolgu | — | Tam kalıba tamamlamayı açar/kapatır (✓); katalog üstündeki **Kalıp Dolgu** düğmesiyle aynıdır ([§5](#tam-kalıba-tamamlama)) |
 | Taş Sayısı ▸ Önerilen Değere Dön / Bir Taş Artır / Bir Taş Azalt | — | Optimum ile yapılmış bir Mos'tan sonra kullanılacak taş çeşidi sayısını değiştirir; başka zaman pasiftir |
 | Stok ▸ | — | Stok Tablosunu Aç, Stok Ayarları..., Stok Çek ▸ (Stoğu olmayanları devre dışı bırak / Stoğu olmayanları kırmızıyla işaretle), Stok Kontrol, Bu mozaiğin sütununu temizle, Tüm mozaik sütunlarını temizle, Stok Ekle ([§11](#11-stok-yönetimi-google-sheets)). Bir stok işlemi sürerken pasiftir. |
 
@@ -181,25 +178,18 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 
 | Alan | Açıklama |
 |---|---|
-| **cm kutusu** | Mozaik genişliği. Varsayılan 93,6 cm. **Kalıp Dolgu** açıkken girilen değer görselin genişliğidir, kutu ise dolgudan sonraki toplam genişliği gösterir: ör. 150 girilince görsel 150 cm (125 taş) kalır, kutu **156** olur (5 kalıp × 31,2 cm). Yükseklik ve alan da dolgulu ölçüyü gösterir. Kalıp Dolgu kapatılınca kutu yine görselin genişliğine (150) döner. Kutu değiştirilmeden yeniden uygulanırsa görselin genişliği korunur; yeni bir değer yazılırsa o değer görselin yeni genişliği olur. Virgül yazılırsa noktaya çevrilir. `Enter` veya kutudan çıkınca uygulanır. Kutuya tıklayınca içerik seçilir. |
+| **cm kutusu** | Mozaik (görsel) genişliği. Varsayılan 93,6 cm. Yükseklik ve alan görselin en-boy oranından hesaplanır. Virgül yazılırsa noktaya çevrilir. `Enter` veya kutudan çıkınca uygulanır. Kutuya tıklayınca içerik seçilir. |
 | Yuvarlama | Bir taş 1,2 cm'dir; değer en yakın taş sayısına yuvarlanır (en az 2 taş). |
 | Üst sınır | Görselin piksel genişliğinden fazla taş istenirse genişlik o sınıra indirilir ve **Çözünürlük Yetersiz** uyarısı çıkar. |
 | `× Y cm = A m²` | cm kutusuyla aynı satırda ve aynı büyüklükte (16 px): gerçek yükseklik ve alan, kutudaki gibi noktalı yazılır. Ör. `93.6 × 93.6 cm = 0.88 m²`. Görsel yüklenmeden yalnızca kutu ve "cm" görünür. |
 | Taş / Kalıp kartı | Altta tek kart, iki hizalı satır: **Taş** `sütun × satır = toplam` (toplam binlik ayraçla, ör. `78 × 78 = 6.084`) ve **Kalıp** `sütun × satır = toplam` (ör. `3 × 3 = 9`). Sayılar alt alta sağa hizalıdır; sütunlar sayıya göre genişlediği için 8 haneli bir taş toplamı da (ör. `9999 × 9999 = 99.980.001`) kesilmeden görünür. |
-| Kalıp sayısı |  Taş sütun ve satır sayısı 26'ya bölünüp yukarı yuvarlanır; ör. 99,6 cm (83 × 83 taş) → `4 × 4 = 16 kalıp`. **Kalıp Dolgu** açıksa görsel Mos'tan önce bu kalıp sayısına tamamlanmış görünür, mozaik de Mos'tan sonra tamamlanır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). |
+| Kalıp sayısı |  Taş sütun ve satır sayısı 26'ya bölünüp yukarı yuvarlanır; ör. 99,6 cm (83 × 83 taş) → `4 × 4 = 16 kalıp`. Bu, mozaiğin kaç kalıba sığdığını (gereken kalıp sayısını) gösterir; bir kalıp 26 × 26 taş, yani 31,2 × 31,2 cm'dir. |
 
 Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
 
-### Katalog satırı: Tümünü Seç / Tümünü Kaldır, Kullanılmayan Taşlar, Kalıp Dolgu
+### Katalog satırı: Tümünü Seç / Tümünü Kaldır
 
-Katalog sütunlarının üstündeki satır iki gruptan oluşur; bütün düğmeler aynı yükseklikte (22 px) ve aynı yazı boyutundadır (10 px):
-
-- **Solda** tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi: katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır).
-- **Sağda** iki açma/kapama düğmesi (basılıyken mavi, yani açık): **Kullanılmayan Taşlar** ve **Kalıp Dolgu**.
-
-**Kullanılmayan Taşlar** (ayrıca **Düzenle → Kullanılmayan Taşlar**, ✓): Mos'tan sonra katalogda normalde yalnızca mozaikte kullanılan taşlar işaretli görünür. Düğme açıkken katalogdaki **bütün kutular işaretli görünür**; kapatınca yine yalnızca kullanılanlar işaretli görünür. Yalnızca görünüm değişir: Mos'un kullandığı seçim (mozaikte kullanılan taşlar) aynen kalır, sonraki Mos düğme kapalıymış gibi yapılır. Düğme açıkken kutulara tıklanmaz (görünen işaret gerçek seçim olmadığı için). Mos'tan önce etkisi yoktur. Her açılışta kapalı başlar.
-
-**Kalıp Dolgu** düğmesi (basılıyken açık): Tam kalıba tamamlamayı açar/kapatır; ipucu özelliği anlatır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). **Araçlar → Kalıp Dolgu** ile aynıdır.
+Katalog sütunlarının üstündeki satırda yalnızca solda tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi vardır (22 px yükseklik, 10 px yazı): katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır).
 
 ### Üç sütun
 
@@ -221,27 +211,7 @@ Katalog sütunlarının üstündeki satır iki gruptan oluşur; bütün düğmel
   - Renk: her sayı 0 veya altındaysa **kırmızı**, üstündeyse **yeşil**.
   - Bizdeki kg, uygulama açılırken ve her görsel ya da proje yüklendiğinde stok ayarındaki tablodan kendiliğinden yüklenir; Stok Çek ve Stok Kontrol de günceller. Yeni bir Mos "kalan" değerini siler, Bizdeki kg'ı korur (Stoğa göre açıksa kalan yeniden hesaplanır).
 
-**Mos'tan sonra:** Katalogda yalnızca mozaikte kullanılan taşlar işaretli kalır (dolgu taşı hariç, aşağıya bakın). Proje açınca da aynısı olur.
-
-### Tam kalıba tamamlama
-
-Robot yalnızca tam kalıp üretebilir: bir kalıp 26 × 26 taş, yani 31,2 × 31,2 cm'dir. Girilen genişlik 31,2'nin tam katı değilse sağda ve altta yarım kalıplar kalır. **Kalıp Dolgu** açıkken mosair görseli ve mozaiği **sağa ve alta**, her zaman bir üst tam kalıba kadar tek bir **dolgu taşıyla** tamamlar. Görsel sol üstte değişmeden kalır; küçültülmez, kesilmez.
-
-- **Açma/kapama:** katalog üstündeki **Kalıp Dolgu** düğmesi ya da **Araçlar → Kalıp Dolgu** (✓). Her açılışta **kapalı** başlar; tercih kalıcı değildir. Kapalıyken dolgu yapılmaz.
-- **Mos'tan önce (görsel ekrandayken):** düğmeye basınca Mos yapılmadan görselin sağına ve altına dolgu alanı eklenir ve **dolgu taşının rengiyle** boyanır; görüntü alanı tam kalıp boyutuna büyür. Durum çubuğunda "Kalıp dolgusu: N dolgu taşı (#ID kod ad); Mos dolguyu bu taşla yapar" yazar; boyut zaten tam kalıpsa "dolgu gerekmiyor". Görselin kendisi değişmez: Mos görseli her zamanki gibi mozaikleştirir, dolgu alanını da hep bu dolgu taşıyla doldurur. Genişlik değişince dolgu alanı, Görsel Ayarları değişince dolgu rengi yeniden hesaplanır.
-- **Mos'tan sonra (mozaik ekrandayken):** düğme yine kullanılır; açılırsa dolgu hemen eklenir, kapatılırsa bu oturumda eklenen dolgu hemen kaldırılır; Mos'u yeniden çalıştırmak gerekmez. Böylece dolgunun hangi taşa atandığı mozaikte görülebilir. Durum çubuğunda dolgu notu ya da "Kalıp dolgusu kaldırıldı" yazar; dolgu yapılamazsa uyarı penceresi çıkar. Bir işlem sürerken düğmeye basılırsa seçim o işlemin sonucuna ve sonraki Mos'a uygulanır. Açılmış bir projenin kayıtlı dolgusu kapatınca kaldırılmaz.
-
-- **Örnek:** 99,6 cm = 83 taş (3 tam kalıp + 5 taş). Bir üste tamamlanınca 4 kalıp = 104 taş = 124,8 cm. Kare bir görselde mozaik 104 × 104 taş olur; dolgu 104² − 83² = **3.927 taş** (≈ 13 kg, taş başı 3,3 g). Yükseklik de aynı kurala göre, kendi taş sayısından tamamlanır.
-- **Tam kat ise** (ör. 93,6 cm = 78 taş = 3 kalıp, yükseklik de 26'nın katıysa) dolgu yapılmaz, mozaik bugünkü gibidir.
-- **Cm kutusu dolgulu ölçüyü gösterir:** kullanıcı 99,6 girdiyse görsel 99,6 cm (83 taş) kalır, kutu 124,8 olur (4 kalıp); yükseklik ve alan da dolgulu ölçüdür. Dışa aktarılan dosyanın adındaki ölçü de bu dolgulu ölçüdür. Projeye görselin kendi genişliği (99,6) kaydedilir. Kalıp sayısı sol paneldeki kalıp kartında görünür; Taş satırı görselin kendi taş sayısını gösterir.
-- **Dolgu taşı:** katalogdaki taşlardan (işaretli olup olmamasına bakılmaz) **görselin renklerine en uzak** olanı (görselden örneklenen renklere en küçük Lab ΔE farkı en büyük olan); Görsel Ayarları uygulanmış görsele bakılır. Böylece dolgu görselden kolayca ayırt edilir ve gerçek bir taşın rengi olduğu için Mos'ta doğrudan o taşa eşlenir. Mos'tan sonra mozaikte kullanılan taşlar aday olmaz (çok nadiren önizlemedekinden farklı bir taş çıkabilir). **Stok aranmaz**: stok bilgisi olmadan da dolgu yapılır; stok yüklüyse yalnızca taşın adı oradan yazılır.
-- **Ne zaman (açıkken):** her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve Stoğa göre düzeltmeden sonra en son adım olarak. Mos'un renk seçimi dolguyu hiç görmez; dolgu sonuca eklenir. Stok Kontrol'deki Stoğa göre düzeltme, mozaiği dolgusuz hâliyle düzeltir ve dolguyu yeniden ekler (dolgu taşı yeniden seçilir).
-- **Durum çubuğu:** "… · Kalıba tamamlandı: 3.927 dolgu taşı (#34 B134 …)".
-- **Yapılamazsa** (katalogda mozaikte kullanılmayan hiç taş yoksa) mozaik yarım kalıplı kalır: "Kalıba tamamlanamadı: katalogda dolguya uygun bir taş yok" (uyarı penceresiyle).
-- **Sayımlar:** dolgu gerçek taştır. Atanan taşlar listesinde ve **Stok Kontrol**'ün tabloya yazdığı adetlerde dolgu taşları da sayılır. Katalogda dolgu taşı işaretli bırakılmaz; böylece sonraki Mos onu görselin içinde kullanmaz.
-- **Ekran, kayıt, dışa aktarma:** dolgu ekranda, kaydedilen projede (`.mos`, dolgulu boyutla) ve dışa aktarılan görüntüde görünür.
-- **Piksel düzenleme:** dolgu alanındaki taşlar düzenlenemez ("Dolgu alanı düzenlenemez"); tıklayınca taş bilgisi yine gösterilir.
-- **WPF sınırlaması:** WPF bir projeyi açarken taş satırlarını ve kalıp satırlarını görselin en-boy oranından yeniden hesaplar (yükseklik = genişlik × oran, yuvarlanır; kalıp satırı aşağı yuvarlanır). Bu yüzden kare olmayan dolgulu bir mozaikte WPF dosyadakinden daha az kalıp satırı sayabilir; kare mozaiklerde sorun çıkmaz.
+**Mos'tan sonra:** Katalogdaki işaretler değişmez; seçtiğiniz taşlar, mozaikte kullanılmasalar da işaretli kalır (ör. 120 taş işaretli, mozaik 35'ini kullanıyorsa 120'si de işaretli kalır) ve sonraki Mos yine bu taşlarla yapılır. Mozaikte gerçekten kullanılan taşlar **Atanan** sütununda görünür. Proje açınca da işaretler değişmez.
 
 ## 6. Görsel alanı (canvas)
 
@@ -312,8 +282,8 @@ Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ay
 
 **İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, onların altında **Anlık Mos** onay kutusu vardır (sekmelerden ayırt edilsin diye düğme değil, onay kutusu). Anlık Mos işaretliyken altında iki seçenek görünür:
 
-- **Tüm renkleri kullan:** Anlık Mos katalogdaki bütün taşlarla yapılır; katalogdaki işaretlere bakılmaz.
-- **Seçili renkleri kullan** (varsayılan): Anlık Mos katalogda sizin işaretlediğiniz taşlarla yapılır. Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalır; Anlık Mos bu daralmış işaretleri değil, sizin son seçiminizi (onay kutuları, Tümünü Seç/Kaldır, Stok Çek) kullanır, böylece art arda Anlık Mos'larda renkler adım adım azalmaz. Mos'tan sonra işaretleri değiştirirseniz ekranda gördüğünüz işaretler yeni seçiminiz olur.
+- **Tüm renkleri kullan:** Anlık Mos katalogdaki bütün taşlarla yapılır; katalogdaki işaretlere bakılmaz. Bütün taşlar yalnızca o Mos için kullanılır; Mos bitince katalogdaki işaretleriniz olduğu gibi geri gelir.
+- **Seçili renkleri kullan** (varsayılan): Anlık Mos katalogda o an işaretli olan taşlarla yapılır (onay kutuları, Tümünü Seç/Kaldır, Stok Çek). Mos işaretleri değiştirmediği için art arda Anlık Mos'larda renkler azalmaz.
 
 Seçenek değiştirilince ekranda mozaik varsa hemen bir Anlık Mos yapılır. Aynı seçim **Araçlar → Anlık Mos: Tüm Renkler / Seçili Renkler** ile de yapılır. Seçim her açılışta **Seçili renkleri kullan** olarak başlar.
 
@@ -345,8 +315,8 @@ Seçenek değiştirilince ekranda mozaik varsa hemen bir Anlık Mos yapılır. A
 - Değer değiştikten kısa süre (≈0,15 sn) sonra uygulanır; sürüklerken her adımda yeniden hesaplanmaz. 6000×6000 px bir görselde yalnızca Işık ayarları ≈0,26 sn, Ton/Doygunluk ile birlikte ≈0,33 sn sürer.
 - **Mos'tan önce** görsel alanındaki görüntü hemen değişir. Mos'a basıldığında henüz uygulanmamış son ayar önce uygulanır.
 - **Anlık Mos** (sekmelerin altındaki onay kutusu ya da **Araçlar → Anlık Mos**, ✓; renk seçenekleri yukarıda). Her açılışta **kapalı** başlar, tercih hatırlanmaz.
-  - **Açıkken:** her ayar değişikliği uygulandıktan sonra Mos kendiliğinden yapılır ve mozaik güncellenir. Bir kaydırıcı fareyle **sürüklenirken Mos yapılmaz**; fare bırakılınca son değerle bir kez yapılır (tekerlek, ok tuşları, sağ tık ve değer kutusu ise kısa bir duraklamadan sonra Mos yapar). Yeni mozaik hazırlanırken ekranda **önceki mozaik kalır**; arada görsel görünmez. Mos o anki seçimlerle yapılır: hiçbiri işaretli değilse klasik Mos, **Optimum** ve/veya **Stoğa göre** işaretliyse onlarla (Kalıp Dolgu da). Optimum'da taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse Anlık Mos o sayıyı korur (yeni analizin aralığına sığdırılarak); seçilmediyse her seferinde önerilen sayı kullanılır. Bir Mos sürerken yapılan değişiklik sıraya alınır; o Mos bitince bir Mos daha yapılır. İlk mozaik pencereye sığdırılır, sonrakiler görünümü olduğu gibi bırakır. Anlık Mos'un Mos'u sürerken kaydırıcılar kullanılabilir kalır, sürükleme kesilmez. Ekranda eskimiş mozaik yerine görsel gösterilirken Anlık Mos açılırsa hemen bir Mos yapılır.
-  - **Kapalıyken:** mozaik varken bir ayar değişirse eskimiş mozaik yerine **ayarlanmış görsel** gösterilir ve durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Bu durum bir sonraki Mos'a kadar sürer (yeni görsel, proje açma ya da mozaiğin silinmesi de bitirir). Bu sırada mini harita görseli gösterir ve görsele tıklamak taş seçmez. Mozaik kalıba tamamlanmışsa görsel yalnızca dolgusuz kısmı kaplar; dolgu alanı boş kalır.
+  - **Açıkken:** her ayar değişikliği uygulandıktan sonra Mos kendiliğinden yapılır ve mozaik güncellenir. Bir kaydırıcı fareyle **sürüklenirken Mos yapılmaz**; fare bırakılınca son değerle bir kez yapılır (tekerlek, ok tuşları, sağ tık ve değer kutusu ise kısa bir duraklamadan sonra Mos yapar). Yeni mozaik hazırlanırken ekranda **önceki mozaik kalır**; arada görsel görünmez. Mos o anki seçimlerle yapılır: hiçbiri işaretli değilse klasik Mos, **Optimum** ve/veya **Stoğa göre** işaretliyse onlarla. Optimum'da taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse Anlık Mos da (Mos düğmesi gibi) o sayıyı korur; seçilmediyse her seferinde önerilen sayı kullanılır. Bir Mos sürerken yapılan değişiklik sıraya alınır; o Mos bitince bir Mos daha yapılır. İlk mozaik pencereye sığdırılır, sonrakiler görünümü olduğu gibi bırakır. Anlık Mos'un Mos'u sürerken kaydırıcılar kullanılabilir kalır, sürükleme kesilmez. Ekranda eskimiş mozaik yerine görsel gösterilirken Anlık Mos açılırsa hemen bir Mos yapılır.
+  - **Kapalıyken:** mozaik varken bir ayar değişirse eskimiş mozaik yerine **ayarlanmış görsel** gösterilir ve durum çubuğunda "Görsel ayarları değişti; mozaiği güncellemek için Mos'a basın." yazar. Bu durum bir sonraki Mos'a kadar sürer (yeni görsel, proje açma ya da mozaiğin silinmesi de bitirir). Bu sırada mini harita görseli gösterir ve görsele tıklamak taş seçmez.
 - Bir iş (Mos, dışa aktarma) sürerken ayarlar pasiftir; yalnızca Anlık Mos'un kendi Mos'u sürerken kullanılabilir kalırlar.
 - Ayarlar projeyle birlikte kaydedilir ve proje açılınca geri gelir; ilk sürümle (yalnızca Parlaklık, Kontrast, Doygunluk, Gama) kaydedilmiş projelerin ayarları da okunur. **Her yeni görsel ayarsız başlar.**
 - **Kaydederken ayarlı görsel:** Bir ayar kullanılıyorsa **Proje Kaydet**, **Farklı Kaydet** ve **Drive'a Kaydet**, `.mos`'un yanına görselin **ayarlanmış hâlini** orijinalin adıyla yazar (`.jpg`/`.jpeg` için JPEG, kalite 95; diğerleri aynı adla PNG içeriği). WPF proje klasöründeki ilk görseli kullandığı için robot da ayarlı görseli görür. Dokunulmamış orijinal, proje klasöründeki **`orijinal`** alt klasörüne kopyalanır (`orijinal/<görsel adı>`); WPF alt klasörlere bakmaz. Kaydetmeden önce bekleyen son kaydırıcı değişikliği uygulanır.
@@ -401,7 +371,7 @@ Canvas'ta bir taşa sol tıklayınca panel o taşın bilgilerini gösterir. **RE
 Ortadaki durum mesajında görülebilecekler:
 
 - Açılışta ve her görsel/proje yüklendiğinde: "Stok bilgisi yüklendi: N taş (katalog ipucunda kg)" ya da "Stok bilgisi yüklenemedi: …". Stok ayarı hiç yapılmamışsa bu satır çıkmaz.
-- Mos sonunda: "Tamamlandı — N renk, S s". Mozaik tam kalıba tamamlandıysa en sona "Kalıba tamamlandı: N dolgu taşı (#ID Kod Ad)" eklenir; yapılamadıysa nedeni ([§5](#tam-kalıba-tamamlama)). **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
+- Mos sonunda: "Tamamlandı — N renk, S s". **Stoğa göre** açıksa sonuna stok özeti eklenir: "Stok yeterli, mozaik değişmedi", "Stoğa göre: X taş türünden Y taş yer değiştirdi" ve gerekirse "Stoğu hâlâ yetmeyen: …", "Tabloda stok kaydı olmayan, kontrol edilemeyen taşlar: …". Stok ayarı var ama stok okunamadıysa "Stok tablodan okunamadı; Mos stoğa bakmadan yapıldı." eklenir (stok ayarı hiç yapılmamışsa bu not çıkmaz).
 - Stok işlemlerinin sonucu ([§11](#11-stok-yönetimi-google-sheets)), Google Drive işlemleri ("Drive'a kaydediliyor: …", "Drive'a kaydedildi: …", "Drive'dan indiriliyor: …", "Drive ayarları kaydedildi"; "Drive klasörü okunuyor..." Drive'dan Aç penceresinin içinde görünür), kayıt bilgisi ("Proje kaydediliyor: …" → "Kaydedildi: …", "Proje açılıyor: …"), dışa aktarma bilgisi (büyük dosyalarda yüzde olarak ilerleme dahil, [§13](#13-dışa-aktarma-mosairexport)), piksel düzenleme bilgisi.
 - Dil değiştirilince mesaj "Hazır" olur.
 
@@ -411,7 +381,7 @@ Ortadaki durum mesajında görülebilecekler:
 
 | İptal edilen iş | Sonuç | Durum mesajı |
 |---|---|---|
-| Mos, **Optimum** açık | Önceki mozaik olduğu gibi kalır (yoksa yüklenen görsel kalır); katalog yine kullanılan taşlara daraltılır | "Mos iptal edildi" |
+| Mos, **Optimum** açık | Önceki mozaik olduğu gibi kalır (yoksa yüklenen görsel kalır); katalog işaretleri değişmez | "Mos iptal edildi" |
 | Mos, klasik (Optimum kapalı) | Yarım kalan mozaik kaldırılır, yüklenen görsel yeniden gösterilir | "Mos iptal edildi; yarım kalan mozaik kaldırıldı, görsel yeniden gösteriliyor" |
 | **Stoğa göre** düzeltme, Mos içinde (Optimum ya da klasik) ya da Taş kaydırıcısında | Mozaik stoğa göre düzeltilmeden kalır (Optimum aynı taş sayısıyla düz kurulur) | Sonuna "stoğa göre düzeltme iptal edildi, mozaik stoğa bakılmadan bırakıldı" eklenir |
 | Stok Kontrol'ün içindeki stoğa göre düzeltme | Mozaik eski haline döner (Optimum'da aynı taş sayısıyla yeniden kurulur; taş varyantları yeniden seçilir); tabloya hiçbir şey yazılmaz | "Stok Kontrol iptal edildi; tabloya bir şey yazılmadı" |
@@ -432,8 +402,6 @@ Ortadaki durum mesajında görülebilecekler:
 4. **Geri al / yinele:** `Ctrl/⌘+Z` geri alır. `Ctrl/⌘+Y` veya `Ctrl/⌘+Shift+Z` yineler.
 5. **Kapatmak için** modu tekrar tetikleyin (orta tuş/kalem). Kapanınca katalog seçimi temizlenir.
 
-**Dolgu alanı:** Mos'tan sonra eklenen tam kalıp dolgusundaki taşlar düzenlenemez; düzenleme modunda oraya tıklanınca durum çubuğunda "Dolgu alanı düzenlenemez" yazar ([§5](#tam-kalıba-tamamlama)). (Açılmış bir projede dolgu sıradan taşlar gibi düzenlenebilir.)
-
 **Kataloğa geçen kaynaklar:** Düzenlemede katalogdan seçilip mozaiğin paletinde olmayan bir taş kullanılırsa, proje kaydedilirken bu taş palete eklenir. Böylece WPF'te de doğru görünür.
 
 ### Doku varyantı değiştirme
@@ -450,8 +418,8 @@ Yeni görsel yüklemek, yeni Mos ve Optimum **Taş** sayısının değiştirilme
 
 - **Ne yapar:** Görsel için kaç çeşit taş kullanılacağını kendisi bulur. **Optimum** kutusu işaretliyken Mos'a basınca çalışır. Kutu uygulama açılırken işaretsizdir; işaretsizken klasik algoritma kullanılır.
 - **Nasıl çalışır:** Önce katalogdaki bütün işaretli taşlarla en iyi sonuç hesaplanır. Sonra görüntüyü en az bozan taşlar tek tek çıkarılır. Renk farkı, detay ve kenarlar ile açık-koyu yapısı gözle fark edilmeyecek kadar korunurken kullanılabilecek en az taş sayısı **öneri** olarak seçilir.
-- **Taş kaydırıcısı:** **Optimum** kutusunun hemen sağındadır; Optimum ile yapılmış Mos'tan sonra, Optimum işaretli olduğu sürece görünür (kutunun işareti kaldırılınca gizlenir) ve önerilen değerden başlar. Görsel Ayarları'ndaki kaydırıcıların aynısıdır: ince iz, altında küçük üçgen; seçili taş sayısı üçgenin üstünde yazar. Sürükleme, tekerlek (±1, `Ctrl` ±10), ok tuşları ve `Shift` + sürükle ile ince ayar çalışır; **sağ tık** önerilen sayıya döndürür. Değer değişip kısa bir süre (yaklaşık 0,35 sn) sabit kalınca mozaik o taş sayısıyla yeniden kurulur. Aynı ayar **Araçlar → Taş Sayısı** menüsünde de vardır: Önerilen Değere Dön, Bir Taş Artır, Bir Taş Azalt. Yeni bir görsel, proje ya da Mos başlatılırsa bekleyen yeniden kurma iptal edilir. Mos'un Optimum analizi uzun sürerse **✕ İptal** ya da `Esc` ile kesilebilir; önceki mozaik değişmeden kalır ([§8](#iptal-düğmesi)).
-- **Seçim hafızası:** Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalır. Kataloğa elle dokunmadıysanız bir sonraki Optimum Mos, önceki seçiminizin tamamından yeniden başlar.
+- **Taş kaydırıcısı:** **Optimum** kutusunun hemen sağındadır; Optimum ile yapılmış Mos'tan sonra, Optimum işaretli olduğu sürece görünür (kutunun işareti kaldırılınca gizlenir) ve önerilen değerden başlar. Görsel Ayarları'ndaki kaydırıcıların aynısıdır: ince iz, altında küçük üçgen; seçili taş sayısı üçgenin üstünde yazar. Sürükleme, tekerlek (±1, `Ctrl` ±10), ok tuşları ve `Shift` + sürükle ile ince ayar çalışır; **sağ tık** önerilen sayıya döndürür. Değer değişip kısa bir süre (yaklaşık 0,35 sn) sabit kalınca mozaik o taş sayısıyla yeniden kurulur. **Elle seçilen sayı korunur:** kaydırıcıyla önerilenden farklı bir sayı seçildiyse (ör. önerilen 8, seçilen 38), Optimum işaretliyken sonraki her Mos (Mos düğmesi ve Anlık Mos; arada klasik bir Mos yapılsa da) bu sayıyla yapılır, yeni analizin aralığına sığdırılarak; önerilen sayıya dönmez. Sağ tıkla önerilen sayıya dönülünce yine her seferinde önerilen sayı kullanılır. Yeni bir görsel yüklenince ya da proje açılınca seçim unutulur. Aynı ayar **Araçlar → Taş Sayısı** menüsünde de vardır: Önerilen Değere Dön, Bir Taş Artır, Bir Taş Azalt. Yeni bir görsel, proje ya da Mos başlatılırsa bekleyen yeniden kurma iptal edilir. Mos'un Optimum analizi uzun sürerse **✕ İptal** ya da `Esc` ile kesilebilir; önceki mozaik değişmeden kalır ([§8](#iptal-düğmesi)).
+- **Seçim:** Mos katalogdaki işaretleri değiştirmez; bir sonraki Optimum Mos da aynı işaretli taşlardan başlar.
 - **Stokla ilişkisi:**
   - Stok Çek ile devre dışı kalan taşlar Optimum'un taş havuzundan da çıkar.
   - Son Mos **Stoğa göre** düzeltildiyse kaydırıcıyla seçilen her yeni taş sayısı da aynı stoğa göre düzeltilir. Durum çubuğuna "taş sayısı değişti, tablo için Stok Kontrol'ü tekrarlayın" eklenir; tablodaki sütun hâlâ son Stok Kontrol'ün adetlerini taşır.
@@ -518,10 +486,9 @@ Kutu uygulama açılırken **kapalıdır**; **Araçlar → Stoğa Göre Ayarla**
 Stoğa göre açıkken Stok Kontrol, tabloya yazmadan önce stoğu yeniden okur ve mozaiğin buna sığıp sığmadığına bakar:
 
 - **Sığıyorsa** mozaik değişmez; adetler yazılır. Durum: "Stok yeterli, mozaik değişmedi · adetler tabloya yazıldı".
-- **Sığmıyorsa** (ör. tablo değişmiş ya da piksel düzenlemeleri stoğu aşmış) mozaik yeniden düzeltilir, sonra düzeltilmiş adetler tek seferde yazılır: "… · düzeltilmiş adetler tabloya yazıldı". Bu durumda katalogda yalnızca kullanılan taşlar işaretli kalır.
+- **Sığmıyorsa** (ör. tablo değişmiş ya da piksel düzenlemeleri stoğu aşmış) mozaik yeniden düzeltilir, sonra düzeltilmiş adetler tek seferde yazılır: "… · düzeltilmiş adetler tabloya yazıldı".
   - Piksel düzenlemeleri varsa önce "Stoğa göre düzeltme N piksel düzenlemesini sıfırlayacak. Devam edilsin mi?" sorulur. **Hayır** denirse mozaik değişmez ve mevcut adetler normal Stok Kontrol gibi yazılır.
 - Kırmızı noktalar ve ipucundaki kalan kg, tablonun Tahmini Kalan'ından değil okunan stoktan hesaplanır (Google'ın tabloyu yeniden hesaplaması gecikebildiği için).
-- Mozaik tam kalıba tamamlanmışsa düzeltme dolgusuz mozaik üzerinde yapılır, ardından dolgu yeniden eklenir; tabloya yazılan adetlere dolgu taşları da girer ([§5](#tam-kalıba-tamamlama)).
 - Açılmış bir projede (bu oturumda Mos yapılmamışsa) düzeltme yapılamaz: "Stoğa göre düzeltme için önce bu görselle Mos yapın" uyarısı çıkar, ardından Stok Kontrol normal haliyle devam eder. Stok okunamazsa da uyarı çıkar ve normal Stok Kontrol yapılır.
 
 ### Önerilen akış
@@ -655,7 +622,7 @@ Proje klasörleri, görselin gönderilip indirilmesi ve önizlemeler script'in g
 | `Ctrl/⌘+E` | Liste açılmadan, varsayılan görüntü kalitesiyle (listede **(varsayılan)** yazan seçenek) mosairEXPORT. |
 | **Dosya** menüsü → mosairEXPORT ▸ / mosairEXPORT As ▸ | Araç çubuğundaki listeyle aynı alt menüler. |
 | Dışa aktar ikonuna **sağ tık** | `mosairEXPORT` klasörünü dosya gezgininde açar (klasör yoksa oluşturulur) |
-| **Mos'tan önce** (görsel ekrandayken) | Listede tek seçenek vardır: `Görsel: W × H px`. Görsel, Görsel Ayarları uygulanmış hâliyle, kendi çözünürlüğünde kaydedilir; **Kalıp Dolgu** açıksa sağında ve altında dolgu alanı dolgu taşının rengiyle birlikte (ekrandaki gibi). Izgara çizilmez. mosairEXPORT JPEG (kalite 95), mosairEXPORT As seçilen biçimde yazar; dosya adı aynı kurala uyar. Dosyanın içine ölçüsü de yazılır (cm kutusundaki genişlik ve taş ızgarası, ör. 156 cm, 130 × 260 taş): bu dosya sonra mosair'de açılınca cm kutusu kendiliğinden bu genişlikle (156) gelir ve taş satırları aynı kalır, böylece dolgulu görsel tam kalıp olarak açılır. Genişlik elle değiştirilirse yeni değer kullanılır. |
+| **Mos'tan önce** (görsel ekrandayken) | Listede tek seçenek vardır: `Görsel: W × H px`. Görsel, Görsel Ayarları uygulanmış hâliyle, kendi çözünürlüğünde kaydedilir. Izgara çizilmez. mosairEXPORT JPEG (kalite 95), mosairEXPORT As seçilen biçimde yazar; dosya adı aynı kurala uyar. Dosyanın içine ölçüsü de yazılır (cm kutusundaki genişlik ve taş ızgarası, ör. 150 cm, 125 × 250 taş): bu dosya sonra mosair'de açılınca cm kutusu kendiliğinden bu genişlikle (150) gelir ve taş satırları aynı kalır. Genişlik elle değiştirilirse yeni değer kullanılır. |
 | Dışa aktarma bitince | Sağ altta **DIŞA AKTARILDI** bildirimi: **Aç** (dosyayı açar) ve **Klasörü aç** (dosyayı klasöründe seçili gösterir); 7 sn sonra kaybolur ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)) |
 
 **Görüntü kalitesi listesi:** Her iki alt menünün başında pasif bir "Görüntü kalitesi seçiniz" başlığı, altında en düşükten en yükseğe 10 görüntü kalitesi vardır. Her seçenek yalnızca görüntünün piksel boyutunu ve tahmini dosya boyutunu gösterir:
@@ -787,7 +754,6 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 | Google Drive | Ayar yapılmamış ("Google Drive ayarlanmamış…"; ardından ayar penceresi açılır), kaydedilecek mozaik yok, "Drive işlemi başarısız: …" (klasör bulunamadı, izin yok, `ALLOWED_FOLDERS` izin vermiyor, proje çok büyük, ağ hatası), "Drive script'i beklenen yanıtı vermedi…" | Ayar penceresinde **Bağlantıyı dene** ile denetleyin; Script URL ve dağıtım ayarlarını kontrol edin ([Google Drive](#google-drive-proje-klasörü)) |
 | Stok Temizle / Tümünü Temizle / Stok Ekle | Onay sorusu (tabloyu değiştirmeden önce) | **Evet** ile devam edin, **Hayır** ile vazgeçin |
 | Stoğa Göre | Düzeltme yapılamadı: katalog dışı renk ya da aynı renkte iki taş; açılmış projede Mos yapılmamış; stok okunamadı | Mesaja göre görselle yeniden Mos yapın ya da stok ayarını kontrol edin |
-| Kalıba tamamlama | Dolgu yapılamadı: stok tablosu ayarlı ama okunamadı, ya da mozaikte kullanılmayan ve stoğu dolguya yeten taş yok | Stok ayarını/tabloyu kontrol edin; gerekirse dolgu olabilecek bir taşın stoğunu tabloya girip yeniden Mos yapın ([§5](#tam-kalıba-tamamlama)) |
 | Stoğa Göre | Onay: düzeltme piksel düzenlemelerini sıfırlayacak | **Evet** ile düzeltin, **Hayır** ile mevcut adetleri yazın |
 | (durum çubuğu) | İptal mesajları: "Mos iptal edildi", "… yarım kalan mozaik kaldırıldı…", "stoğa göre düzeltme iptal edildi…", "Stok Kontrol iptal edildi…", "Dışa aktarma iptal edildi…" | Uyarı penceresi çıkmaz; ne kaldığı [§8](#iptal-düğmesi)'de. İşi yeniden başlatmak yeterlidir |
 
@@ -800,8 +766,6 @@ Uyarılar ortada küçük bir pencerede çıkar ve **Anladım** (EN: OK) ile kap
 - Dil tercihi kalıcı değildir (renk teması ve koyu/açık hatırlanır). Optimum ve Stoğa göre kutuları da her açılışta işaretsiz başlar; **Anlık Mos** her açılışta kapalı başlar; Özellikler paneli her açılışta kapalı, Görsel Ayarları sütunu açık başlar; **Yeni Görselleri Bildir** ve **Yumuşak Fare Hareketi** her açılışta işaretli başlar.
 - Yeni görsel bildirimi yalnızca İndirilenler ve Masaüstü klasörlerinin kendisini izler; alt klasörlere (ör. `Masaüstü/mosairEXPORT`) gelen dosyalar için çıkmaz. Yalnızca `.jpg`, `.jpeg` ve `.png` dosyaları için çıkar (BMP, TIFF gibi biçimler bildirilmez, ama **Görsel Yükle** ile açılabilir). Her dosya için mosair açık kaldıkça yalnızca bir kez bildirim çıkar (tarayıcı dosyayı yeniden yazsa ya da aynı adla yeniden indirilse de). Birden çok mosair penceresi açıksa her biri kendi bildirimini gösterir. mosair kapalıyken gelen dosyalar sonradan bildirilmez; pencere simge durumundayken ya da başka bir pencerenin arkasındayken de bildirim mosair penceresinin içinde çıkar ve 7 sn sonra kapanır, bu yüzden görülmeyebilir. İzlenemeyen bir klasör (izin yok, ağ sürücüsü) sessizce atlanır.
 - Optimum **Taş** sayısı her değiştiğinde ve her yeni Mos'ta piksel düzenlemeleri sıfırlanır.
-- **Kalıp Dolgu** her açılışta kapalı başlar. Dolgu taşı stoğa bakılmadan seçilir; stoğu dolguya yetmeyebilir (Stok Kontrol'de görünür). Dolgu taşı her Mos'ta, taş sayısı değişiminde ve Stoğa göre düzeltmede yeniden seçilir; farklı bir taş çıkabilir. Açılan bir projenin dolgusu mozaiğin sıradan parçasıdır (yeniden seçilmez, düzenlenebilir).
-- WPF, kare olmayan dolgulu bir projeyi açarken kalıp satırlarını görselin oranından hesapladığı için dosyadakinden az sayabilir ([§5](#tam-kalıba-tamamlama)).
 - Bir proje açıldığında Optimum **Taş** kaydırıcısı görünmez; proje dosyası Optimum analizini içermez. Kaydırıcı için Optimum açıkken yeniden Mos yapın.
 - Stok değerleri (kırmızı nokta, kg) yalnızca bellektedir; projeye kaydedilmez ve yeni Mos ile silinir.
 - Stoğa göre Mos, görsel/proje yüklenirken okunan stoğu kullanır; Stok Çek bu stoğu yenilemez ([§11](#stoğa-göre-optimumun-yanındaki-kutu)).

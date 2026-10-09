@@ -77,7 +77,7 @@ namespace mosair.Services
             ["AdjLiveMosAll"] = "Tüm renkleri kullan",
             ["AdjLiveMosSelected"] = "Seçili renkleri kullan",
             ["TipLiveMosAll"] = "Anlık Mos katalogdaki bütün taşlarla yapılır (katalogdaki işaretlere bakılmaz).",
-            ["TipLiveMosSelected"] = "Anlık Mos katalogda işaretlediğiniz taşlarla yapılır. Mos'tan sonra katalogda yalnızca kullanılan taşlar işaretli kalsa da sizin seçiminiz kullanılır.",
+            ["TipLiveMosSelected"] = "Anlık Mos katalogda işaretli taşlarla yapılır.",
             ["MenuLiveMosAll"] = "Anlık Mos: Tüm Renkler",
             ["MenuLiveMosSelected"] = "Anlık Mos: Seçili Renkler",
             ["TipAdjLiveMos"] = "Açıkken her ayar değişikliğinden sonra Mos kendiliğinden yapılır ve mozaik hemen güncellenir. Kapalıyken değişiklik yapınca ekranda ayarlanmış görsel görünür; mozaik için Mos'a basın.",
@@ -384,17 +384,6 @@ namespace mosair.Services
             // Dimension info
             ["InfoStonesLabel"] = "Taş",
             ["InfoMouldsLabel"] = "Kalıp",
-            ["PadTitle"] = "Kalıba tamamlama",
-            ["BtnUnusedStones"] = "Kullanılmayan Taşlar",
-            ["TipUnusedStones"] = "Açıkken Mos'tan sonra katalogdaki bütün kutular işaretli görünür; kapalıyken yalnızca mozaikte kullanılan taşlar işaretli görünür. Yalnızca görünüm değişir: Mos yine mozaikte kullanılan taşlarla yapılır. Açıkken kutulara tıklanmaz.",
-            ["BtnPadding"] = "Kalıp Dolgu",
-            ["TipPadding"] = "Açıkken görsel ve mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, renkçe görselden en uzak katalog taşı konur. Mos'tan önce görselin kenarında dolgu bu taşın rengiyle görünür, Mos dolguyu bu taşla yapar. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
-            ["PadRemoved"] = "Kalıp dolgusu kaldırıldı",
-            ["PadDone"] = "Kalıba tamamlandı: {0} dolgu taşı ({1})",
-            ["PadPreview"] = "Kalıp dolgusu: {0} dolgu taşı ({1}); Mos dolguyu bu taşla yapar",
-            ["PadNotNeeded"] = "Boyut zaten tam kalıp; dolgu gerekmiyor",
-            ["PadNoStone"] = "Kalıba tamamlanamadı: katalogda dolguya uygun bir taş yok",
-            ["PadNoEdit"] = "Dolgu alanı düzenlenemez",
 
             // Properties format
             ["PropStoneFmt"] = "Taş #{0}",
@@ -444,7 +433,7 @@ namespace mosair.Services
             ["AdjLiveMosAll"] = "Use all colours",
             ["AdjLiveMosSelected"] = "Use selected colours",
             ["TipLiveMosAll"] = "Live Mos uses every stone in the catalog (the catalog ticks are ignored).",
-            ["TipLiveMosSelected"] = "Live Mos uses the stones you ticked in the catalog. Your choice is used even though after a Mos only the stones used stay ticked.",
+            ["TipLiveMosSelected"] = "Live Mos uses the stones ticked in the catalog.",
             ["MenuLiveMosAll"] = "Live Mos: All Colours",
             ["MenuLiveMosSelected"] = "Live Mos: Selected Colours",
             ["TipAdjLiveMos"] = "When on, every adjustment is followed by a Mos and the mosaic updates at once. When off, a change shows the adjusted image; press Mos for the mosaic.",
@@ -751,17 +740,6 @@ namespace mosair.Services
             // Dimension info
             ["InfoStonesLabel"] = "Stones",
             ["InfoMouldsLabel"] = "Moulds",
-            ["PadTitle"] = "Whole moulds",
-            ["BtnUnusedStones"] = "Unused Stones",
-            ["TipUnusedStones"] = "When on, every catalog checkbox shows ticked after a Mos; when off, only the stones the mosaic uses show ticked. Only the view changes: Mos still uses the stones of the mosaic. While on, the checkboxes cannot be clicked.",
-            ["BtnPadding"] = "Mould Fill",
-            ["TipPadding"] = "When on, the image and the mosaic are filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with the catalog stone farthest in colour from the image. Before Mos the padding shows around the image in that stone's colour, and Mos fills it with that stone. These are real stones, so they are counted.",
-            ["PadRemoved"] = "Mould fill removed",
-            ["PadDone"] = "Filled to whole moulds: {0} filler stones ({1})",
-            ["PadPreview"] = "Mould fill: {0} filler stones ({1}); Mos fills with this stone",
-            ["PadNotNeeded"] = "The size is already whole moulds; no padding needed",
-            ["PadNoStone"] = "Not filled to whole moulds: the catalog has no stone for the padding",
-            ["PadNoEdit"] = "The padding cannot be edited",
 
             // Properties format
             ["PropStoneFmt"] = "Stone #{0}",

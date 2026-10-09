@@ -75,14 +75,8 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 | `RunM3(targetColors, rgbIncrement, useLab, useAverage, interpMethod, onProgress, prepareTextures)` | Klasik M1/M3 hattını çalıştırır. İptal edilebilir; paylaşılan veriyi giderek değiştirdiği için iptalde yarım kalan mozaiği çağıran temizler (`MainViewModel.ClearMosaic`). | MainViewModel, CompareRunner |
 | `ApplyOptimalKWithStock(k, capacityOfId, familyOfId, options, prepareTextures)` | `ApplyOptimalK(k, prepareTextures: false)` çalıştırır, ardından sonucu stoğa göre düzeltir (`FixToStock`). Dokular her durumda (`prepareTextures` true ise) hazırlanır. Hiçbir taş stoğu aşmıyorsa mozaik `ApplyOptimalK`'nın ürettiğinin aynısıdır. `MosaicData.reducedBitmap` döndürür. | MainViewModel (`ApplyOptimalKFor`), StockCompareRunner |
 | `FixCurrentMosaicToStock(capacityOfId, familyOfId, options, prepareTextures)` → `bool` | Ekrandaki mozaiği (klasik Mos sonucu da olabilir) stoğa göre düzeltir. `LastRunPool` veya `inputBitmap` yoksa ya da kaynak boyutu `dataM3` ile uyuşmuyorsa `false` döndürür. Gamut kullanmaz. Dokular yalnızca mozaik değiştiyse yeniden hazırlanır. | MainViewModel (`FixClassicMosaicToStock`), StockCompareRunner |
-| `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler; `LastOptimalResult`, `LastRunPool`, `LastStockResult`, Optimum önbelleğini ve dolgu bilgisini (`ForgetPadding`) de sıfırlar | MainViewModel, CompareRunner, StockCompareRunner |
-| `MouldStones` (sabit, 26) · `UpToMould(n)` · `PaddingCount(rows, cols)` | Kalıp kenarındaki taş sayısı; `n`'yi 26'nın bir üst katına yuvarlar (tam katsa aynen); R × C mozaiği tam kalıba tamamlamak için gereken dolgu taşı sayısı (`UpToMould(R)·UpToMould(C) − R·C`, tam kalıpsa 0) | MainViewModel (`PadResult`, `PadPreview`, `UpdateDimensions`) |
-| `UnpaddedRows`, `UnpaddedCols`, `FillerId`, `FillerCode`, `IsPadded` | Bu oturumda eklenen dolgunun bilgisi: dolgudan önceki boyut ve dolgu taşı. Dolgu yoksa 0 / `""` / false. | MainViewModel, ProjectService |
-| `ForgetPadding()` | Dolgu bilgisini siler (dizilere dokunmaz). `CreateSingleRegion` (sıfırdan kurulan her mozaik), `Reset` ve `ProjectService.ApplyProject` çağırır: açılan projenin dolgusu artık yalnızca kaydedilmiş mozaiğin bir parçasıdır. | Dosya içi, ProjectService |
-| `ImageColours(bmp)` → Lab listesi | Görselin renkleri (aşağıda) | MainViewModel (`PadResult`, `UpdatePadPreview`) |
-| `ChooseFiller(colours, excludeUsed)` → `rgb?` | Dolgu taşını seçer (aşağıda). Uygun taş yoksa null. | MainViewModel (`PadResult`, `UpdatePadPreview`) |
-| `PadToMoulds(filler)` → `SKBitmap` | Mozaiği sağa ve alta tam kalıba tamamlar, yeni taş renkleri bitmap'ini döndürür (aşağıda). Zaten tam kalıpsa hiçbir şey değiştirmeden `reducedBitmap`'i döndürür. | MainViewModel (`PadResult`) |
-| `RemovePadding()` | Dolguyu geri alır (sol üstten kırpma). Dolgu yoksa hiçbir şey yapmaz. | MainViewModel (`FixToStockAsync`) |
+| `Reset()` | Tüm mozaik durumunu, bitmap'leri, doku ve piksel düzenleme durumunu temizler; `LastOptimalResult`, `LastRunPool`, `LastStockResult` ve Optimum önbelleğini de sıfırlar | MainViewModel, CompareRunner, StockCompareRunner |
+| `MouldStones` (sabit, 26) · `UpToMould(n)` | Bir kalıp 26 × 26 taştır (31,2 cm). `UpToMould(n)` `n`'yi 26'nın bir üst katına yuvarlar (tam katsa aynen); sol paneldeki kalıp kartı mozaiğin gereken kalıp sayısını bununla hesaplar (`UpToMould(n) / MouldStones`). | MainViewModel (`UpdateDimensions`) |
 | `CloneRgb`, `CloneList`, `CloneNestedList` | `rgb` nesnelerini ve listelerini derin kopyalar | Dosya içi |
 
 ## Algoritma / akış
@@ -136,33 +130,11 @@ Sonuçların hepsi [MosaicData](../Models/MosaicData.md) ve `drl` statik alanlar
 5. Sonuç değiştiyse `PixelEditService.Reset()` ve `RebuildFromAssignment` çağrılır: `dataM3`, `drl.dat[..,3] = ID`, `ID` sırasına dizilmiş palet (`u`, `uc`, `ri/gi/bi`, `dis`), `rgbM`, `dataM1`, `arMB`/`arMA`, `BackupM3` ve `reducedBitmap` `ApplyOptimalK`'daki gibi yeniden kurulur. `exportBitmap` yeni bir kopyayla değiştirilir; eskisi ekranda olabileceği için burada (worker thread'de) dispose edilmez.
 6. Dokular: `prepareTextures` true ise ve (`texturesAlways` ya da sonuç değiştiyse) `StoneTextureService` ile yeniden hazırlanır (`PopulateRandomIndices` + `LoadTextures`).
 
-### Tam kalıba tamamlama (dolgu)
-Robot (WPF) yalnızca 26 × 26 taşlık (31,2 cm) tam kalıpları üretebilir. **Kalıp Dolgu** açıkken (`MainViewModel.UsePadding`) MainViewModel her Mos'tan (klasik ya da Optimum), Optimum taş sayısı değişiminden ve stok düzeltmesinden sonra son adım olarak mozaiği sağa ve alta, bir üst tam kalıba kadar tek bir dolgu taşıyla doldurur. Mos algoritmaları dolguyu hiç görmez: dolgu sonuca en son eklenir. Görsel sol üstte kaldığı için görsel kısmındaki tüm taş koordinatları değişmez. Mos'tan önce MainViewModel görseli aynı taşın rengiyle dolgulu gösterir (yalnızca ekranda; `inputBitmap` değişmez, bu yüzden Mos sonuçları aynı kalır).
-
-**`ImageColours(bmp)`:** Görsel en çok 128 × 128 noktalık bir ızgarada örneklenir (adım `max(1, boyut/128)`, hücre ortası); kanal başına 16 düzeye yuvarlanınca aynı çıkan renkler bir kez sayılır. Her rengin Lab değeri döner.
-
-**`ChooseFiller(colours, excludeUsed)`:**
-1. `excludeUsed` ise kullanılan taşlar elenir: `arMA[0]` içinde `numOfPixel > 0` olan ID'ler (Mos'tan sonra; önizlemede false).
-2. Adaylar: `arRGBAll` içindeki, `ID > 0` ve `codeName`'i boş olmayan taşlar; seçili olup olmamaları (`boolLeaveOut`) ve stokları önemsizdir.
-3. Her aday için `colours`'a en küçük Lab ΔE76 uzaklığı hesaplanır; bu değeri en büyük olan aday seçilir (eşitlikte katalogda önce gelen). Böylece dolgu görseldeki hiçbir renge benzemez ve gerçek bir taşın rengidir.
-
-**`PadToMoulds(filler)`:** `R × C` → `UpToMould(R) × UpToMould(C)`:
-- `dataM3` büyütülür; yeni hücreler dolgu taşının BGR rengidir. `dataM1` ve `dataM3Backup` yalnızca `R × C` boyutundaysa aynı şekilde büyütülür (`dataM3F` 3×3×3 yer tutucusu dokunulmaz).
-- `drl.dat` `[R2, C2, 4]` olur; yeni hücreler `1, 1, 1, filler.ID`.
-- `arn`: görsel kısmındaki doku varyantları korunur (uzunluk `R·C` ise), dolgu hücreleri `PopulateRandomIndices` gibi rastgele 1–15.
-- `drl.arar` bölgelerinin `x2 == C` / `y2 == R` olan kenarları `C2` / `R2` yapılır.
-- `arMA[0]`, `arMB[0]` ve `arMBR[0]`'a (varsa) dolgu taşının bir kopyası eklenir: `numOfPixel` = dolgu taşı sayısı, `reg = 1`, `boolLeaveOut = false`, `stokYetersiz = false`, `u = uc =` listedeki eleman sayısı + 1, `ri/gi/bi = r/g/b`, `dis = (r+g+b)/3`.
-- `UnpaddedRows/Cols`, `FillerId/Code` yazılır; `reducedBitmap` dolgulu `dataM3`'ten yeniden üretilir (`Swap`), `exportBitmap` yeni kopyayla değiştirilir (eskisi ekranda olabileceği için dispose edilmez, `RebuildFromAssignment`'taki gibi).
-
-**`RemovePadding()`:** Stok düzeltmesi mozaiği Mos'un ürettiği boyutta görmelidir (`FixCurrentMosaicToStock` kaynakla `dataM3` boyutunu karşılaştırır). Bu yüzden Stok Kontrol'deki düzeltmeden önce dolgu kaldırılır: `dataM3`, `dataM1`, `dataM3Backup`, `drl.dat` ve `arn` sol üstteki `UnpaddedRows × UnpaddedCols` alana kırpılır, bölge kenarları geri alınır, `FillerId`'li palet girdisinin `numOfPixel`'inden dolgu taşı sayısı düşülür (0 ya da altına inerse girdi silinir; piksel düzenlemeyle görselin içine konmuş dolgu taşları sayıda kalır), dolgu bilgisi silinir ve `reducedBitmap` yeniden üretilir. Düzeltmeden sonra MainViewModel dolguyu yeniden ekler (dolgu taşı yeniden seçilir).
-
-**Doğrulama:** Mos sonuçları dolgu eklenmeden önceki kodla aynıdır (182 durumluk karşılaştırma). Dolgu 6 görselde (kare, dikey, yatay; zaten tam kalıp olan boyutlar dahil) denendi: boyutlar 26'nın katı, görsel kısmı birebir aynı, dolgu hücrelerinin hepsi dolgu taşı, sayılar toplam taş sayısını veriyor, kaydet/aç aynı, `RemovePadding` mozaiği tam eski haline getiriyor.
-
 ## Önemli davranışlar ve iş kuralları
 - Stok düzeltmesi Optimum ve klasik Mos algoritmalarını değiştirmez; yalnızca sonuca uygulanır. Hiçbir taş stoğu aşmıyorsa mozaik birebir aynı kalır.
 - En az kullanım kuralı uygulamada kapalıdır: MainViewModel `new StockAwareOptions()` (`MinUsage = 0`) gönderir.
 - Taş 12 mm, kalıp 26×26 taştır (`MouldStones`). Bu değerler koda sabit olarak gömülüdür.
-- `width`/`height` her zaman görselin taş sayısıdır; dolgu yalnızca dizileri büyütür. Dolgulu mozaiğin boyutunu `dataM3.GetLength(..)` verir (MainViewModel'in tıklama ve ekran boyutu hesapları ve `ProjectService.CreateSnapshot` bunu kullanır).
+- `width`/`height` görselin taş sayısıdır; Mos'tan sonra mozaiğin boyutunu `dataM3.GetLength(..)` da verir (MainViewModel'in tıklama ve ekran boyutu hesapları bunu kullanır; açılan bir projede de doğrudur).
 - `TargetColors` değerini `RunM3`'ü çağıran taraf belirler. MainViewModel bu değeri toplam taş sayısının yaklaşık %10'u olarak hesaplar, 10'un katına aşağı yuvarlar, en az 2 yapar ve palet boyutunun altında tutar.
 - Optimum yolda çıktı her zaman katalog taşlarından oluşur. M3 yolunda ara renkler katalog dışıdır ve ancak Bölüm 2'de katalog taşlarına çevrilir.
 - `ApplyOptimalK` yeniden analiz yapmaz. `_optSrc` ve `_optCandidates` önbelleğini kullandığı için slider hızlı tepki verir. `Reset()` bu önbelleği temizler.
@@ -178,7 +150,6 @@ Robot (WPF) yalnızca 26 × 26 taşlık (31,2 cm) tam kalıpları üretebilir. *
 - Katalogda RGB'si aynı ama `codeName`'i farklı iki taş varsa Bölüm 3–5'teki `(b,g,r,reg,u)` anahtarları çakışır.
 - `ProcessM1` private'tır ve hiçbir yerden çağrılmaz (ölü kod). `penW`, `excessiveW`, `excessiveH` ve `LastGamut` da hiçbir yerde okunmaz.
 - Statik global durum nedeniyle aynı anda iki mozaik işlenemez.
-- Dolgu bilgisi (`IsPadded` vb.) yalnızca bu oturumda dolgu eklenmiş mozaik için tutulur; açılan bir projede dolgu sıradan mozaik taşlarıdır ve `RemovePadding` hiçbir şey yapmaz.
 - `FixCurrentMosaicToStock`, mozaik bu oturumda üretilmediyse (ör. açılan projede `LastRunPool` null) çalışmaz. Piksel düzenlemeyle (`PixelEditService`) havuz dışı bir taş konmuşsa renk eşleşmesi bulunamaz ve `false` döner.
 - `ApplyOptimalKWithStock`, `ApplyOptimalK`'nın Optimum önbelleğine (`_optSrc`, `_optCandidates`, `_optGamut`) dayanır; önce `RunOptimal` çalışmış olmalıdır.
 - Aktif katalog boşken `ApplyOptimalK` `Math.Clamp(k, 1, 0)` nedeniyle hata verir. MainViewModel boş katalogda işlemi önceden durdurur.

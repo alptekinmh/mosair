@@ -4,6 +4,20 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Optimum'da elle seçilen taş sayısı Mos'ta korunur
+
+- Optimum taş kaydırıcısıyla önerilenden farklı bir sayı seçildiyse (ör. 38), Mos düğmesi de artık bu sayıyı kullanır (önceden her Mos önerilen sayıya, ör. 8'e dönüyordu). Yeni görsel ya da proje açılana kadar korunur; sağ tık önerilene döndürür.
+
+## 2026-10-09: Kalıp Dolgu ve Kullanılmayan Taşlar kaldırıldı; katalog işaretleri Mos'tan sonra korunur
+
+- **Kalıp Dolgu** (tam kalıba tamamlama) tamamen kaldırıldı: katalog satırındaki düğme, **Araçlar → Kalıp Dolgu**, Mos'tan önceki dolgulu önizleme (dolgu taşı renginde alan), Mos / taş sayısı değişimi / Stoğa göre düzeltme sonrasındaki dolgu, "Dolgu alanı düzenlenemez" engeli ve dolgu durum notları/uyarısı. Mozaik artık hiçbir zaman sağa ve alta büyütülmez.
+- **Kullanılmayan Taşlar** görünüm düğmesi (ve **Düzenle → Kullanılmayan Taşlar**) kaldırıldı (işaretler artık Mos'tan sonra değişmediği için gereksizdi); katalogdaki kutular her zaman tıklanabilir ve gerçek seçimi gösterir.
+- **Katalog işaretleri Mos'tan sonra korunur:** Mos (klasik, Optimum, Anlık Mos), Optimum iptali ve proje açma işaretleri artık mozaikte kullanılan taşlara daraltmaz; ör. 120 taş işaretli, mozaik 35'ini kullanıyorsa 120'si de işaretli kalır ve sonraki Mos yine bu 120 taşla yapılır. Optimum'un "önceki seçimi geri yükleme" davranışı ve Anlık Mos'un ayrı tuttuğu kullanıcı seçimi gereksizleştiği için kaldırıldı: **Seçili renkleri kullan** katalogdaki o anki işaretleri kullanır, **Tüm renkleri kullan** bütün taşları yalnızca o Mos için kullanır ve işaretleri geri koyar.
+- Katalog satırında artık yalnızca solda tek parça **Tümünü Seç | Tümünü Kaldır** düğmesi var (22 px, 10 px yazı).
+- **cm kutusu** yine yalnızca mozaiğin (görselin) genişliğidir; dolgulu ölçü (ör. 150 → 156) gösterilmez. Yükseklik/alan satırı görselin kendi ölçüsüdür, projeye kutudaki genişlik kaydedilir.
+- Sol paneldeki **Kalıp** kartı kalır: mozaiğin gereken kalıp sayısını (26 × 26 taş, yukarı yuvarlanmış) gösterir.
+- **Mos'tan önce dışa aktarma** ve dosyaya yazılan **ölçü etiketi** kalır, dolgu olmadan: görsel Görsel Ayarları ile kendi çözünürlüğünde kaydedilir; mosair'de yeniden açılınca cm kutusu aynı genişlikle, taş satırları aynı gelir.
+
 ## 2026-10-09: Kullanılmayan Taşlar ve yeni katalog satırı
 
 - Katalog satırına **Kullanılmayan Taşlar** açma/kapama düğmesi (ve **Düzenle → Kullanılmayan Taşlar**) eklendi: açıkken Mos'tan sonra katalogdaki bütün kutular işaretli görünür, kapalıyken yalnızca kullanılan taşlar. Yalnızca görünüm; Mos aynı seçimle yapılır.

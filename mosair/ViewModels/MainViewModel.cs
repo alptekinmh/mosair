@@ -33,24 +33,9 @@ namespace mosair.ViewModels
         public bool IsExcluded
         {
             get => _isExcluded;
-            set { _isExcluded = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsSelected)); OnPropertyChanged(nameof(DisplayChecked)); }
+            set { _isExcluded = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsSelected)); }
         }
 
-        // "Kullanılmayan Taşlar" on, after a Mos: the checkbox shows ticked (and cannot be clicked) whatever the real
-        // selection is; Mos still uses IsExcluded, so nothing changes in the mosaic.
-        private bool _showAll;
-        public bool ShowAll
-        {
-            get => _showAll;
-            set
-            {
-                if (_showAll == value) return;
-                _showAll = value;
-                OnPropertyChanged(); OnPropertyChanged(nameof(DisplayChecked)); OnPropertyChanged(nameof(CanToggle));
-            }
-        }
-        public bool DisplayChecked => _showAll || !_isExcluded;
-        public bool CanToggle => !_showAll;
 
         public bool IsSelected
         {
@@ -635,8 +620,6 @@ namespace mosair.ViewModels
                 await Task.Run(() =>
                 {
                     WorkCancellation.Token = cts.Token;
-                    // The fit works on the mosaic as Mos made it; the padding is added again below in every case.
-                    MosaicEngine.RemovePadding();
                     try
                     {
                         if (optimum)
@@ -655,7 +638,6 @@ namespace mosair.ViewModels
                         result = optimum ? MosaicEngine.ApplyOptimalK(k) : MosaicData.reducedBitmap;
                     }
                     WorkCancellation.Token = default;
-                    result = PadResult(result, stock);
                 });
                 sw.Stop();
                 if (version != _contentVersion) return null; // a new image or project was opened meanwhile
@@ -663,7 +645,6 @@ namespace mosair.ViewModels
                 {
                     FinishMosaic(result, sw.Elapsed);
                     DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
-                    ShowPadNote();
                     _stockCheckCancelled = true;
                     return null;
                 }
@@ -740,39 +721,24 @@ namespace mosair.ViewModels
         }
 
         // Applies a stock-driven exclusion (true = exclude, false = include, null = leave as is) to the catalog.
-        // The same change goes into the remembered Optimum base selection, so stock filters narrow the full pool
-        // instead of the "used stones only" view shown after a Mos.
         private void ApplyStockSelection(Func<int, bool?> leaveOutForId)
         {
-            var before = CaptureCatalogSelection();
-            bool untouched = _optimumAutoSelection != null && before.AsSpan().SequenceEqual(_optimumAutoSelection);
-
-            var current = (bool[])before.Clone();
+            var current = CaptureCatalogSelection();
             for (int i = 0; i < MosaicData.arRGBAll.Count; i++)
             {
                 var decision = leaveOutForId(MosaicData.arRGBAll[i].ID);
                 if (decision == null) continue;
                 current[i] = decision.Value;
-                if (_optimumUserSelection != null && i < _optimumUserSelection.Length)
-                    _optimumUserSelection[i] = decision.Value;
-                if (_userCatalogSelection != null && i < _userCatalogSelection.Length)
-                    _userCatalogSelection[i] = decision.Value;
             }
             ApplyCatalogSelection(current);
             ColorCatalogService.SetActiveColors();
-            if (untouched) _optimumAutoSelection = current;
         }
 
         private Bitmap? _displayBitmap;
         private double _widthCm = 93.6;
         private double _heightCm;
-        // The width the image itself covers (what Mos works with). The width box shows it, or — with Kalıp Dolgu —
-        // the whole width after padding (e.g. 150 entered → the image is 150 cm, the box shows 156 = 5 moulds).
-        private double _imageWidthCm = 93.6;
-        // What UpdateDimensions last put in the box: a box still showing it was not edited by the user.
-        private double _shownWidthCm = double.NaN;
         // The stone grid an image exported before Mos carries (ImageService.ReadSizeTag); used while the width gives
-        // the same number of columns, so the padded image keeps exactly its whole-mould rows.
+        // the same number of columns, so the image opens with exactly the rows it was exported with.
         private ImageService.SizeTag? _sizeTag;
         private double _initialZoomLevel = 2;
         private double _minZoomLevel = 1.0;
@@ -1130,46 +1096,19 @@ public bool UseLab
                 OnPropertyChanged(nameof(NavBitmap)); OnPropertyChanged(nameof(ShowStoneHint));
                 OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
                 OnPropertyChanged(nameof(CanSaveProject));
-                RefreshPadView();
-                ApplyUnusedStonesView();
             }
-        }
-
-        // "Kullanılmayan Taşlar" (catalog bar, Düzenle menu): after a Mos the catalog shows every checkbox ticked
-        // instead of only the stones the mosaic uses. Only the view changes: the selection Mos works with stays the
-        // "used stones" one. Off at start-up, not remembered.
-        private bool _showUnusedStones;
-        public bool ShowUnusedStones
-        {
-            get => _showUnusedStones;
-            set
-            {
-                if (_showUnusedStones == value) return;
-                _showUnusedStones = value;
-                OnPropertyChanged();
-                ApplyUnusedStonesView();
-            }
-        }
-
-        private void ApplyUnusedStonesView()
-        {
-            bool all = _showUnusedStones && _mosaicDone;
-            foreach (var item in CatalogColors) item.ShowAll = all;
         }
 
         private bool _useOptimal;        // off at start-up; Mos uses the classic algorithm until it is ticked
         private bool _lastRunOptimal;
         private int _optimalK;
+        // The stone count chosen with the Optimum slider; every Optimum Mos (Mos button and Anlık Mos) keeps it
+        // until a new image or project is opened. Null: follow the suggested count.
+        private int? _chosenOptimalK;
         private int _optimalKMax = 1;
         private int _optimalKSuggested;
         private bool _suppressOptimalApply;
         private System.Threading.CancellationTokenSource? _optimalApplyCts;
-        // Catalog selection the user had before the last Optimum run, and the "used stones only" selection
-        // the app applied afterwards. If the user has not touched the checkboxes since, the next Optimum run
-        // starts again from the user's selection instead of the narrowed one.
-        private bool[]? _optimumUserSelection;
-        private bool[]? _optimumAutoSelection;
-
         private bool[] CaptureCatalogSelection()
         {
             var sel = new bool[MosaicData.arRGBAll.Count];
@@ -1188,14 +1127,6 @@ public bool UseLab
             foreach (var item in CatalogColors)
                 if (item.Index >= 0 && item.Index < leaveOut.Length)
                     item.IsExcluded = leaveOut[item.Index];
-        }
-
-        private void RestoreOptimumUserSelectionIfUntouched()
-        {
-            if (_optimumUserSelection == null || _optimumAutoSelection == null) return;
-            var current = CaptureCatalogSelection();
-            if (current.AsSpan().SequenceEqual(_optimumAutoSelection))
-                ApplyCatalogSelection(_optimumUserSelection);
         }
 
         public bool UseOptimal
@@ -1233,173 +1164,6 @@ public bool UseLab
 
         // The minimum-usage rule (dropping stones used only a few times) is switched off: MinUsage stays 0.
         private static StockAwareOptions StockOptions() => new();
-
-        // ----- Whole moulds (see MosaicEngine.PadToMoulds): the last step of every Mos, stone-count change and
-        // stock fit. The filler is chosen with the stock the fit used, otherwise the stock read with the image. -----
-        private string _padNote = "";
-        private bool _padAlert;
-
-        // "Kalıp Dolgu" (button above the catalog, Tools menu): pad to whole moulds. Off at start-up, not
-        // remembered. Switching it pads or un-pads the mosaic on screen at once.
-        private bool _usePadding;
-        public bool UsePadding
-        {
-            get => _usePadding;
-            set
-            {
-                if (_usePadding == value) return;
-                _usePadding = value;
-                OnPropertyChanged();
-                // The box switches between the image's width and the padded width (150 ↔ 156).
-                UpdateDimensions();
-                _ = ApplyPaddingChoiceAsync();
-            }
-        }
-
-        private async Task ApplyPaddingChoiceAsync()
-        {
-            // Before Mos (an image on screen): only the padded view of the image changes.
-            if (!MosaicDone)
-            {
-                UpdatePadPreview();
-                if (!ImageLoaded || IsProcessing) return;
-                StatusText = !_usePadding ? Loc.Get("PadRemoved")
-                    : _previewFiller == null ? Loc.Get("PadNoStone")
-                    : PadPreview ? Loc.Fmt("PadPreview", PreviewPadCount().ToString("N0"), FillerLabel(_previewFiller, _loadedStock))
-                    : Loc.Get("PadNotNeeded");
-                return;
-            }
-            // While a job runs the choice simply applies to its result / the next Mos.
-            if (IsProcessing || IsExporting) return;
-            int rows = MosaicData.dataM3.GetLength(0), cols = MosaicData.dataM3.GetLength(1);
-            if (_usePadding ? MosaicEngine.PaddingCount(rows, cols) == 0 : !MosaicEngine.IsPadded) return;
-            int version = _contentVersion;
-            var stock = _stockOnHand ?? _loadedStock;
-            bool pad = _usePadding;
-            var oldExport = MosaicData.exportBitmap;
-            SKBitmap? result = null;
-            IsProcessing = true;
-            try
-            {
-                await Task.Run(() =>
-                {
-                    if (pad) result = PadResult(MosaicData.reducedBitmap, stock);
-                    else
-                    {
-                        MosaicEngine.RemovePadding();
-                        result = MosaicData.reducedBitmap;
-                    }
-                });
-            }
-            finally
-            {
-                IsProcessing = false;
-            }
-            if (version != _contentVersion || result == null) return;
-            string elapsed = ElapsedTime;
-            FinishMosaic(result, TimeSpan.Zero);
-            ElapsedTime = elapsed;
-            DisposeIfReplaced(oldExport, MosaicData.exportBitmap);
-            RefreshPadView();
-            if (!pad) StatusText = Loc.Get("PadRemoved");
-            else if (_padNote.Length > 0)
-            {
-                StatusText = _padNote;
-                if (_padAlert) Alert(Loc.Get("PadTitle"), _padNote);
-                _padNote = "";
-                _padAlert = false;
-            }
-        }
-
-        // "#ID code name" of the filler; the stock sheet only gives its name (stock plays no part in the choice).
-        private static string FillerLabel(rgb filler, Dictionary<int, StockSheetService.StoneStock>? stock) =>
-            stock != null && stock.TryGetValue(filler.ID, out var info)
-                ? string.Join(" ", new[] { $"#{filler.ID}", info.Code, info.Name.Trim() }.Where(x => x.Length > 0))
-                : $"#{filler.ID} {filler.codeName}";
-
-        // Runs on the worker thread after the mosaic is built: pads it and returns the bitmap to show. The filler
-        // is chosen as for the preview, from the (adjusted) image the Mos used, among the stones the mosaic leaves out.
-        private SKBitmap? PadResult(SKBitmap? result, Dictionary<int, StockSheetService.StoneStock>? stock)
-        {
-            _padNote = "";
-            _padAlert = false;
-            if (result == null || !_usePadding) return result;
-            int need = MosaicEngine.PaddingCount(MosaicData.dataM3.GetLength(0), MosaicData.dataM3.GetLength(1));
-            if (need == 0) return result;
-            var image = MosaicData.inputBitmap;
-            var filler = image == null ? null : MosaicEngine.ChooseFiller(MosaicEngine.ImageColours(image), excludeUsed: true);
-            if (filler == null)
-            {
-                _padNote = Loc.Get("PadNoStone");
-                _padAlert = true;
-                return result;
-            }
-            var padded = MosaicEngine.PadToMoulds(filler);
-            StoneTextureService.EnsureTextures(filler.codeName, filler);
-            _padNote = Loc.Fmt("PadDone", need.ToString("N0"), FillerLabel(filler, stock));
-            return padded;
-        }
-
-        // ----- Kalıp Dolgu before Mos: the image is shown on a panel grown to whole moulds, the padding painted in
-        // the filler's colour (the image itself is not changed; Mos pads its result with the same stone). -----
-        private rgb? _previewFiller;
-
-        // The image (no mosaic yet) is shown padded.
-        // The view is sized to the loaded image (not yet to a mosaic): only then can the image be shown padded. While
-        // a later Mos runs (MosaicDone false) the view keeps the previous mosaic's size and must not grow again.
-        private bool _viewIsImage;
-        private bool PadPreview => _usePadding && ImageLoaded && !MosaicDone && _viewIsImage && _previewFiller != null
-            && MosaicEngine.width >= 1 && MosaicEngine.height >= 1
-            && MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width) > 0;
-        private int PreviewPadCount() => MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width);
-        // How much larger than the image the padded panel is.
-        private double PadScaleX => PadPreview ? (double)MosaicEngine.UpToMould((int)MosaicEngine.width) / (int)MosaicEngine.width : 1;
-        private double PadScaleY => PadPreview ? (double)MosaicEngine.UpToMould((int)MosaicEngine.height) / (int)MosaicEngine.height : 1;
-
-        // Behind the image: the padding's colour, before Mos and when the image is shown over a padded mosaic.
-        public bool ShowPadBackground => ShowSourceView && (PadPreview || (_showingRaw && MosaicEngine.IsPadded));
-        public IBrush PadBrush
-        {
-            get
-            {
-                var f = PadPreview ? _previewFiller
-                    : MosaicEngine.IsPadded ? MosaicData.arRGBAll.Find(c => c.ID == MosaicEngine.FillerId) : null;
-                return f == null ? Brushes.Transparent
-                    : new SolidColorBrush(Color.FromRgb((byte)f.r, (byte)f.g, (byte)f.b));
-            }
-        }
-
-        // Chooses the preview's filler from the image on screen (adjustments included) and resizes the view.
-        private void UpdatePadPreview()
-        {
-            var image = MosaicData.inputBitmap;
-            _previewFiller = _usePadding && ImageLoaded && image != null
-                ? MosaicEngine.ChooseFiller(MosaicEngine.ImageColours(image), excludeUsed: false) : null;
-            RefreshPadView();
-        }
-
-        private void RefreshPadView()
-        {
-            OnPropertyChanged(nameof(ImageDisplayWidth)); OnPropertyChanged(nameof(ImageDisplayHeight));
-            OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
-            OnPropertyChanged(nameof(BitmapPixelWidth)); OnPropertyChanged(nameof(BitmapPixelHeight));
-            OnPropertyChanged(nameof(ZoomInfo));
-            OnPropertyChanged(nameof(ShowPadBackground)); OnPropertyChanged(nameof(PadBrush));
-        }
-
-        // UI thread, after the path's own status text: the padding result (and a dialog when it could not be done).
-        private void ShowPadNote()
-        {
-            if (_padNote.Length == 0) return;
-            StatusText += " · " + _padNote;
-            if (_padAlert) Alert(Loc.Get("PadTitle"), _padNote);
-            _padNote = "";
-            _padAlert = false;
-        }
-
-        // A stone of the padding (only for a mosaic padded in this session).
-        private static bool InPadding(int y, int x) =>
-            MosaicEngine.IsPadded && (y >= MosaicEngine.UnpaddedRows || x >= MosaicEngine.UnpaddedCols);
 
         // Runs on the worker thread.
         private static SKBitmap ApplyOptimalKFor(int k, Dictionary<int, StockSheetService.StoneStock>? stock) =>
@@ -1524,7 +1288,12 @@ public bool UseLab
                 if (_optimalK == value) return;
                 _optimalK = value;
                 OnPropertyChanged();
-                if (!_suppressOptimalApply) ScheduleOptimalApply();
+                if (!_suppressOptimalApply)
+                {
+                    // A count chosen by hand (not the suggested one) is kept for every later Optimum Mos.
+                    _chosenOptimalK = value != _optimalKSuggested ? value : null;
+                    ScheduleOptimalApply();
+                }
             }
         }
 
@@ -1552,7 +1321,6 @@ public bool UseLab
                 SKBitmap? result = null;
                 var oldExport = MosaicData.exportBitmap;
                 var stock = UseStockAware ? _stockOnHand : null;
-                var padStock = stock ?? _stockOnHand ?? _loadedStock;
                 bool stockFitCancelled = false;
                 await Task.Run(() =>
                 {
@@ -1566,7 +1334,6 @@ public bool UseLab
                         result = MosaicEngine.ApplyOptimalK(k);
                     }
                     WorkCancellation.Token = default;
-                    result = PadResult(result, padStock);
                 });
                 sw.Stop();
                 if (version != _contentVersion) return; // another image or Mos took over
@@ -1580,7 +1347,6 @@ public bool UseLab
                     // The sheet column still holds the counts from the last Stok Kontrol.
                     StatusText += " · " + Loc.Get("StockAwareRecheck");
                 }
-                ShowPadNote();
             }
             catch (Exception ex)
             {
@@ -1610,7 +1376,6 @@ public bool UseLab
                 // The stone image is no longer built as one bitmap: MosaicView draws the visible part from tiles.
                 // Its virtual size stays C·N × R·N so zoom, fit, navigator and clicks keep their meaning.
                 _bitmapPixelWidth = result.Width * _stonePixelSize;
-                _viewIsImage = false;
                 _bitmapPixelHeight = result.Height * _stonePixelSize;
             }
 
@@ -1629,9 +1394,9 @@ public bool UseLab
             OnPropertyChanged(nameof(StoneColumns));
             OnPropertyChanged(nameof(StoneRows));
             MosaicDone = true;
-            FilterCatalogByUsedColors();
-            if (_lastRunOptimal)
-                _optimumAutoSelection = CaptureCatalogSelection();
+            // The catalog ticks stay as the user set them (they are not narrowed to the stones the mosaic used);
+            // only the palette and assigned lists are rebuilt.
+            PopulatePaletteAndAssigned();
             RefreshMosaicView();
             int totalColors = MosaicData.arRGBAll.Count;
             var uniqueCodes = new HashSet<string>();
@@ -1659,18 +1424,14 @@ public bool UseLab
             }
         }
 
-        // The view's size: the image or mosaic, grown to whole moulds while the image is shown padded (PadPreview).
-        private double ViewPixelWidth => _bitmapPixelWidth * PadScaleX;
-        private double ViewPixelHeight => _bitmapPixelHeight * PadScaleY;
-        public double ImageDisplayWidth => ViewPixelWidth * _zoomLevel;
-        public double ImageDisplayHeight => ViewPixelHeight * _zoomLevel;
-        public int BitmapPixelWidth => (int)Math.Round(ViewPixelWidth);
-        public int BitmapPixelHeight => (int)Math.Round(ViewPixelHeight);
-        // The mosaic's own size once there is one (padded to whole moulds, or an opened project); before Mos the
-        // image's stone size.
+        public double ImageDisplayWidth => _bitmapPixelWidth * _zoomLevel;
+        public double ImageDisplayHeight => _bitmapPixelHeight * _zoomLevel;
+        public int BitmapPixelWidth => _bitmapPixelWidth;
+        public int BitmapPixelHeight => _bitmapPixelHeight;
+        // The mosaic's own size once there is one (also an opened project); before Mos the image's stone size.
         public int StoneColumns => MosaicDone ? MosaicData.dataM3.GetLength(1) : (int)MosaicEngine.width;
         public int StoneRows => MosaicDone ? MosaicData.dataM3.GetLength(0) : (int)MosaicEngine.height;
-        public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {ImageDisplayWidth:F0}x{ImageDisplayHeight:F0}";
+        public string ZoomInfo => $"Zoom={(_zoomLevel < 0.1 ? _zoomLevel.ToString("0.###") : _zoomLevel.ToString("F1"))}  {_bitmapPixelWidth * _zoomLevel:F0}x{_bitmapPixelHeight * _zoomLevel:F0}";
 
 
         public double NavViewLeft { get => _navViewLeft; set { _navViewLeft = value; OnPropertyChanged(); } }
@@ -1934,14 +1695,9 @@ public bool UseLab
         public bool ShowMosaicView => MosaicDone && !_showingRaw;
         public bool ShowSourceView => !ShowMosaicView;
 
-        // The image's size on screen: the whole image area, or — shown padded before Mos, or over a padded mosaic —
-        // only the part the image itself covers (the padding shows PadBrush).
-        public double SourceViewWidth => PadPreview ? _bitmapPixelWidth * _zoomLevel
-            : _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(1) > 0
-            ? ImageDisplayWidth * MosaicEngine.UnpaddedCols / MosaicData.dataM3.GetLength(1) : ImageDisplayWidth;
-        public double SourceViewHeight => PadPreview ? _bitmapPixelHeight * _zoomLevel
-            : _showingRaw && MosaicEngine.IsPadded && MosaicData.dataM3.GetLength(0) > 0
-            ? ImageDisplayHeight * MosaicEngine.UnpaddedRows / MosaicData.dataM3.GetLength(0) : ImageDisplayHeight;
+        // The image's size on screen: the whole image area.
+        public double SourceViewWidth => ImageDisplayWidth;
+        public double SourceViewHeight => ImageDisplayHeight;
 
         private void SetShowingRaw(bool value)
         {
@@ -1949,13 +1705,10 @@ public bool UseLab
             _showingRaw = value;
             OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
             OnPropertyChanged(nameof(SourceViewWidth)); OnPropertyChanged(nameof(SourceViewHeight));
-            OnPropertyChanged(nameof(ShowPadBackground)); OnPropertyChanged(nameof(PadBrush));
             OnPropertyChanged(nameof(NavBitmap));
         }
 
-        // Anlık Mos's colours: every catalog stone, or the stones the user ticked. The user's ticks are remembered
-        // apart from the "used stones only" ticks the app sets after every Mos, so repeated Anlık Mos runs do not
-        // narrow the choice step by step. "Selected" by default.
+        // Anlık Mos's colours: every catalog stone, or the stones ticked in the catalog. "Selected" by default.
         private bool _liveMosAllColors;
         public bool LiveMosAllColors
         {
@@ -1976,26 +1729,32 @@ public bool UseLab
             set => LiveMosAllColors = !value;
         }
 
-        // The catalog ticks as the user set them (checkboxes, Tümünü Seç / Kaldır, Stok Çek); null until the catalog
-        // is loaded.
-        private bool[]? _userCatalogSelection;
-        private void RememberUserSelection() => _userCatalogSelection = CaptureCatalogSelection();
-
         // After an adjustment with Anlık Mos on. A Mos already running is followed by one more.
         private async Task RunLiveMosAsync()
         {
             if (!_liveMos || !ImageLoaded) return;
             if (IsProcessing || IsExporting) { _liveMosPending = true; return; }
             _liveMosPending = false;
-            // The colours to use: all catalog stones, or the user's own selection (RunMosaicAsync activates them).
-            var colours = _liveMosAllColors ? new bool[MosaicData.arRGBAll.Count] : (bool[]?)_userCatalogSelection?.Clone();
-            if (colours != null) ApplyCatalogSelection(colours);
+            // "All colours": every catalog stone takes part in this Mos only; the ticks are put back afterwards.
+            bool[]? ticks = null;
+            if (_liveMosAllColors)
+            {
+                ticks = CaptureCatalogSelection();
+                ApplyCatalogSelection(new bool[ticks.Length]);
+            }
             bool first = !MosaicDone;
             LiveMosBusy = MosaicDone && !_showingRaw;
-            // A stone count chosen with the Optimum slider (not the suggested one) is kept.
-            int? keepK = UseOptimal && OptimalAvailable && OptimalK != OptimalKSuggested ? OptimalK : null;
-            try { await RunMosaicAsync(keepK); }
-            finally { LiveMosBusy = false; }
+            // A stone count chosen with the Optimum slider is kept (RunMosaicAsync).
+            try { await RunMosaicAsync(); }
+            finally
+            {
+                LiveMosBusy = false;
+                if (ticks != null)
+                {
+                    ApplyCatalogSelection(ticks);
+                    ColorCatalogService.SetActiveColors();
+                }
+            }
             // The first mosaic changes the picture's size (stones instead of image pixels): fit it, as the Mos
             // button does. Later ones keep the view where it is.
             if (first && MosaicDone) FitToWindow(_lastViewportWidth, _lastViewportHeight);
@@ -2233,8 +1992,6 @@ public bool UseLab
             if (old != null && !ReferenceEquals(old, source) && !ReferenceEquals(old, adjusted) && !IsProcessing && !IsExporting)
                 old.Dispose();
             DisplayBitmap = display;
-            // The padding's colour follows the adjusted image.
-            if (_usePadding) UpdatePadPreview();
             // Without Anlık Mos the outdated mosaic makes way for the adjusted image until the next Mos.
             if (MosaicDone && !_liveMos)
             {
@@ -2417,8 +2174,6 @@ public bool UseLab
             {
                 ColorCatalogService.LoadDefaultCatalog();
                 RefreshCatalogList();
-                ApplyUnusedStonesView();
-                RememberUserSelection();
                 if (ColorCatalogService.SkippedLines.Count > 0)
                     StatusText = Loc.Fmt("StatusCatalogSkipped", string.Join(", ", ColorCatalogService.SkippedLines));
             }
@@ -2469,21 +2224,19 @@ public bool UseLab
             {
                 // A new image starts without adjustments.
                 MosaicData.sourceBitmap = bmp;
-                _previewFiller = null;   // chosen again for the new image (UpdateDimensions)
                 // An image exported by mosair before Mos opens with the width it was exported with (e.g. 156 cm).
                 _sizeTag = ImageService.ReadSizeTag(path);
+                _chosenOptimalK = null;   // a new image starts from the suggested Optimum count
                 if (_sizeTag != null && Math.Abs((double)bmp.Height / bmp.Width - (double)_sizeTag.Rows / _sizeTag.Columns)
                         > 0.03 * _sizeTag.Rows / _sizeTag.Columns)
                     _sizeTag = null;   // the picture was changed since (other aspect)
                 if (_sizeTag != null)
                 {
                     WidthCm = _sizeTag.WidthCm;
-                    _shownWidthCm = double.NaN;   // taken as the image's own width
                 }
                 SetAdjustSettings(new ImageAdjustSettings());
                 SetShowingRaw(false);
                 _bitmapPixelWidth = bmp.Width;
-                _viewIsImage = true;
                 _bitmapPixelHeight = bmp.Height;
                 OnPropertyChanged(nameof(BitmapPixelWidth));
                 OnPropertyChanged(nameof(BitmapPixelHeight));
@@ -2527,58 +2280,48 @@ public bool UseLab
 
         public void UpdateDimensions()
         {
-            // A box the user has edited gives the image's new width; otherwise the image keeps its width (the box
-            // may be showing the padded width).
-            if (double.IsNaN(_shownWidthCm) || Math.Abs(WidthCm - _shownWidthCm) >= 0.01) _imageWidthCm = WidthCm;
-            int numOfStones = Convert.ToInt32((_imageWidthCm * 10.0) / 12.0);
+            int numOfStones = Convert.ToInt32((WidthCm * 10.0) / 12.0);
             if (numOfStones < 2) numOfStones = 2;
-            _imageWidthCm = numOfStones * 12 / 10.0;
+            double roundedCm = numOfStones * 12 / 10.0;
+            WidthCm = roundedCm;
 
-            if (ImageLoaded && MosaicData.inputBitmap != null)
+            if (!ImageLoaded) return;
+
+            if (MosaicData.inputBitmap != null)
             {
                 int maxStones = MosaicData.inputBitmap.Width;
                 double maxCm = maxStones * 12 / 10.0;
-                if (_imageWidthCm > maxCm)
+                if (WidthCm > maxCm)
                 {
-                    _imageWidthCm = maxCm;
+                    WidthCm = maxCm;
                     numOfStones = maxStones;
                     Alert(Loc.Get("AlertResolutionTitle"), Loc.Get("AlertResolutionBody"));
                 }
             }
-            // Kalıp Dolgu: the box shows the width after padding to whole moulds (31.2 cm each).
-            WidthCm = (_usePadding ? MosaicEngine.UpToMould(numOfStones) : numOfStones) * 12 / 10.0;
-            _shownWidthCm = WidthCm;
-
-            if (!ImageLoaded) return;
 
             int? tagRows = _sizeTag is { } tag && tag.Columns == numOfStones ? tag.Rows : null;
-            var dim = MosaicEngine.CalculateDimensions(_imageWidthCm, tagRows);
+            var dim = MosaicEngine.CalculateDimensions(WidthCm, tagRows);
             if (dim == null) return;
 
-            // The size line follows the box: with Kalıp Dolgu the padded height and area.
-            double shownH = (_usePadding ? MosaicEngine.UpToMould(dim.StoneRows) : dim.StoneRows) * 12 / 10.0;
-            double shownArea = WidthCm * shownH / 10_000.0;
-            _heightCm = shownH;
-            DimensionInfo = $"{WidthCm:F1} cm x {shownH:F1} cm = {shownArea:F2} m²";
+            _heightCm = dim.HeightCm;
+            DimensionInfo = $"{dim.WidthCm:F1} cm x {dim.HeightCm:F1} cm = {dim.AreaM2:F2} m²";
             // Same format as the width box (a dot), so the line reads "93.6 × 93.6 cm = 0.88 m²".
             var inv = System.Globalization.CultureInfo.InvariantCulture;
-            DimensionHeight = shownH.ToString("0.0", inv);
-            DimensionArea = shownArea.ToString("0.00", inv) + " m²";
+            DimensionHeight = dim.HeightCm.ToString("0.0", inv);
+            DimensionArea = dim.AreaM2.ToString("0.00", inv) + " m²";
             InfoStoneCols = dim.StoneColumns.ToString();
             InfoStoneRows = dim.StoneRows.ToString();
             InfoStoneTotal = dim.Stones.ToString("N0");
-            // Whole moulds after padding (from the stone rows, which the mosaic really has).
+            // Moulds needed (whole moulds of 26 × 26 stones, rounded up).
             int mouldCols = MosaicEngine.UpToMould(dim.StoneColumns) / MosaicEngine.MouldStones;
             int mouldRows = MosaicEngine.UpToMould(dim.StoneRows) / MosaicEngine.MouldStones;
             InfoMouldCols = mouldCols.ToString();
             InfoMouldRows = mouldRows.ToString();
             InfoMouldTotal = (mouldCols * mouldRows).ToString("N0");
-            if (_usePadding && _previewFiller == null) UpdatePadPreview();
-            else RefreshPadView();
         }
 
-        // keepK: with Optimum, build the mosaic with this stone count instead of the suggested one (Anlık Mos keeps a
-        // count chosen with the slider; clamped to the new analysis's range).
+        // keepK: with Optimum, build the mosaic with this stone count instead of the suggested one (clamped to the new
+        // analysis's range). Without it, an Optimum Mos keeps the count chosen with the slider (_chosenOptimalK).
         public async Task RunMosaicAsync(int? keepK = null)
         {
             if (!ImageLoaded)
@@ -2589,6 +2332,7 @@ public bool UseLab
             if (!CanRunMosaic) return;
             await FlushAdjustmentsAsync();
             if (!CanRunMosaic) return;
+            if (UseOptimal) keepK ??= _chosenOptimalK;
             int version = StartNewContent();
             // To put the previous mosaic back if this Mos is cancelled before it changes anything.
             bool hadMosaic = MosaicDone && _renderSource != null;
@@ -2606,12 +2350,6 @@ public bool UseLab
             // The kg on hand (loaded at start-up or by Stok Çek) does not depend on the mosaic and stays.
             foreach (var item in CatalogColors) { item.StockShort = false; item.RemainingKg = null; }
 
-            if (UseOptimal)
-            {
-                RestoreOptimumUserSelectionIfUntouched();
-                _optimumUserSelection = CaptureCatalogSelection();
-                _optimumAutoSelection = null;
-            }
             ColorCatalogService.SetActiveColors();
             int activeCount = MosaicData.arRGB.Count;
 
@@ -2662,7 +2400,6 @@ public bool UseLab
                 bool stockFixOk = true;
                 bool stockFitCancelled = false;
                 int appliedK = 0;   // the Optimum stone count the mosaic was built with
-                var padStock = stock ?? _loadedStock;
                 await Task.Run(() =>
                 {
                     WorkCancellation.Token = cts.Token;
@@ -2708,7 +2445,6 @@ public bool UseLab
                         }
                     }
                     WorkCancellation.Token = default;
-                    result = PadResult(result, padStock);
                 });
 
                 sw.Stop();
@@ -2746,7 +2482,6 @@ public bool UseLab
                         Alert(Loc.Get("StockAwareTitle"), Loc.Get("StockAwareCannotFix"));
                     }
                 }
-                ShowPadNote();
             }
             catch (Exception ex) when (IsCancellation(ex))
             {
@@ -2762,7 +2497,7 @@ public bool UseLab
                     // Optimum stopped before changing anything: the previous mosaic is still there.
                     _lastRunOptimal = hadOptimal;
                     MosaicDone = true;
-                    FilterCatalogByUsedColors();
+                    PopulatePaletteAndAssigned();
                     StatusText = Loc.Get("StatusMosCancelled");
                 }
             }
@@ -2800,7 +2535,7 @@ public bool UseLab
         }
 
         private ProjectService.ProjectSnapshot CreateProjectSnapshot() =>
-            ProjectService.CreateSnapshot(_imageWidthCm, ZoomLevel, ShowGrid, false,
+            ProjectService.CreateSnapshot(WidthCm, ZoomLevel, ShowGrid, false,
                 _gridColor.R, _gridColor.G, _gridColor.B, (int)SelectedInterpolation, AdjustSettingsForSave);
 
         // The mosaic is copied at once; turning it into JSON and writing the file happen in the background, so a
@@ -2940,7 +2675,6 @@ public bool UseLab
             if (picture != null && IsAdjusted) _adjustTask = ApplyAdjustmentsAsync();
 
             WidthCm = data.WidthCm;
-            _shownWidthCm = double.NaN;   // the saved width is the image's own
             GridColor = Color.FromRgb(data.GridColorR, data.GridColorG, data.GridColorB);
             SelectedInterpolation = (InterpolationMethod)data.InterpolationMethod;
             ShowGrid = data.ShowGrid;
@@ -2951,7 +2685,6 @@ public bool UseLab
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = stones;
             _bitmapPixelWidth = C * _stonePixelSize;
-            _viewIsImage = false;
             _bitmapPixelHeight = R * _stonePixelSize;
             OnPropertyChanged(nameof(BitmapPixelWidth));
             OnPropertyChanged(nameof(BitmapPixelHeight));
@@ -2959,6 +2692,7 @@ public bool UseLab
             OnPropertyChanged(nameof(StoneRows));
 
             // An opened project has no Optimum analysis; hide the stone slider left from an earlier Optimum Mos.
+            _chosenOptimalK = null;
             _lastRunOptimal = false;
             _stockOnHand = null;
             _mosaicMadeThisSession = false;
@@ -2976,8 +2710,7 @@ public bool UseLab
             IsTargetPixelMode = PixelEditService.IsTargetPixelMode;
 
             RefreshCatalogList();
-            FilterCatalogByUsedColors();
-            ApplyUnusedStonesView();
+            PopulatePaletteAndAssigned();
             UpdateDimensions();
 
             // Show the stones' colours at once (no textures from an earlier mosaic); MosaicView adds the
@@ -3233,28 +2966,22 @@ public bool UseLab
             }
         }
 
-        // The image's export size before Mos: the image (adjustments applied) at its own resolution, grown to whole
-        // moulds while Kalıp Dolgu shows it padded.
+        // The image's export size before Mos: the image (adjustments applied) at its own resolution.
         private (int w, int h) ImageExportSize()
         {
             var img = MosaicData.inputBitmap;
-            if (img == null) return (0, 0);
-            return ((int)Math.Round(img.Width * PadScaleX), (int)Math.Round(img.Height * PadScaleY));
+            return img == null ? (0, 0) : (img.Width, img.Height);
         }
 
-        // Before Mos: saves the image as it is on screen (adjustments, and the padding in the filler's colour when
-        // Kalıp Dolgu is on), at the image's own resolution; no grid. JPEG quality 95, or PNG.
+        // Before Mos: saves the image as it is on screen (with its adjustments), at its own resolution; no grid.
+        // JPEG quality 95, or PNG.
         private async Task ExportSourceImageAsync(string path)
         {
             var img = MosaicData.inputBitmap!;
             var (w, h) = ImageExportSize();
             bool jpeg = !path.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
-            var pad = PadPreview && _previewFiller != null
-                ? new SKColor((byte)_previewFiller.r, (byte)_previewFiller.g, (byte)_previewFiller.b) : SKColors.Transparent;
             string name = System.IO.Path.GetFileName(path);
-            int tagCols = (int)MosaicEngine.width, tagRows = (int)MosaicEngine.height;
-            if (PadPreview) { tagCols = MosaicEngine.UpToMould(tagCols); tagRows = MosaicEngine.UpToMould(tagRows); }
-            var tag = new ImageService.SizeTag(WidthCm, tagCols, tagRows);
+            var tag = new ImageService.SizeTag(WidthCm, (int)MosaicEngine.width, (int)MosaicEngine.height);
             IsExporting = true;
             StatusText = Loc.Fmt("StatusExporting", name);
             try
@@ -3264,7 +2991,7 @@ public bool UseLab
                     using var bmp = new SKBitmap(new SKImageInfo(w, h, SKColorType.Rgba8888, SKAlphaType.Premul));
                     using (var canvas = new SKCanvas(bmp))
                     {
-                        canvas.Clear(jpeg && pad == SKColors.Transparent ? SKColors.White : pad);
+                        canvas.Clear(jpeg ? SKColors.White : SKColors.Transparent);
                         canvas.DrawBitmap(img, 0, 0);
                     }
                     using var data = bmp.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 95);
@@ -3323,8 +3050,8 @@ public bool UseLab
         {
             if (_lastViewportWidth <= 0 || _lastViewportHeight <= 0 ||
                 _bitmapPixelWidth <= 0 || _bitmapPixelHeight <= 0) return 1.0;
-            double zx = (_lastViewportWidth - 16) / ViewPixelWidth;
-            double zy = (_lastViewportHeight - 16) / ViewPixelHeight;
+            double zx = (_lastViewportWidth - 16) / _bitmapPixelWidth;
+            double zy = (_lastViewportHeight - 16) / _bitmapPixelHeight;
             return Math.Min(zx, zy);
         }
 
@@ -3332,7 +3059,6 @@ public bool UseLab
         public void SyncColorExclusion(ColorItem item)
         {
             ColorCatalogService.SetLeaveOut(item.Index, item.IsExcluded);
-            RememberUserSelection();
             ReorderCatalogList();
         }
 
@@ -3350,7 +3076,6 @@ public bool UseLab
                 }
             }
             ColorCatalogService.SetActiveColors();
-            RememberUserSelection();
             ReorderCatalogList();
         }
 
@@ -3375,34 +3100,6 @@ public bool UseLab
                     IsExcluded = c.IsExcluded
                 });
             }
-        }
-
-        private void FilterCatalogByUsedColors()
-        {
-            if (MosaicData.arMB.Count == 0 || MosaicData.arMB[0].Count == 0) return;
-
-            var usedCodes = new HashSet<string>();
-            foreach (var r in MosaicData.arMB[0])
-            {
-                // The filler stays unticked, so the next Mos does not use it inside the image.
-                if (MosaicEngine.IsPadded && r.ID == MosaicEngine.FillerId) continue;
-                if (!string.IsNullOrEmpty(r.codeName))
-                    usedCodes.Add(r.codeName);
-            }
-
-            foreach (var item in CatalogColors)
-            {
-                bool excluded = !usedCodes.Contains(item.CodeName);
-                item.IsExcluded = excluded;
-                if (item.Index >= 0 && item.Index < MosaicData.arRGBAll.Count)
-                {
-                    MosaicData.arRGBAll[item.Index].boolLeaveOut = excluded;
-                    if (item.Index < MosaicData.arcs.Count)
-                        MosaicData.arcs[item.Index] = excluded;
-                }
-            }
-
-            PopulatePaletteAndAssigned();
         }
 
         private void PopulatePaletteAndAssigned()
@@ -3527,12 +3224,7 @@ public bool UseLab
             HasSelection = true;
             UpdatePropTexture(codeName, y, x);
 
-            if (PixelEditService.IsPixelEditActive && InPadding(y, x))
-            {
-                // The padding is re-made after each stock fit; edits there would be lost.
-                StatusText = Loc.Get("PadNoEdit");
-            }
-            else if (PixelEditService.IsPixelEditActive)
+            if (PixelEditService.IsPixelEditActive)
             {
                 if (PixelEditService.IsSourcePixelMode)
                 {

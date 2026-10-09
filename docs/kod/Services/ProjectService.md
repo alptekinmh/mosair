@@ -43,7 +43,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `ArMA`, `ArMB`, `ArMBR` | `List<List<RgbData>>` | boş | Bölge paletleri (`MosaicData.arMA/arMB/arMBR`) |
 | `EditedPixels` | `List<EditedPixelData>` | boş | Piksel düzenleme kayıtları |
 | `Regions` | `List<RegionData>` | boş | `drl.arar` bölgeleri |
-| `Width`, `Height` | `double` | 0 | `MosaicEngine.width/height`; mozaik bu oturumda tam kalıba tamamlandıysa (`MosaicEngine.IsPadded`) dolgulu boyut (`dataM3` sütun/satır sayısı). WPF mozaik genişliğini `Width`'ten okur. |
+| `Width`, `Height` | `double` | 0 | Mozaiğin taş sütun/satır sayısı: mozaik varsa `dataM3` boyutu (`GetLength(1)` / `GetLength(0)`), yoksa `MosaicEngine.width/height`. WPF mozaik genişliğini `Width`'ten okur. |
 | `RgbM` | `int` | 0 | `MosaicEngine.rgbM` |
 | `N` | `int` | 20 | Taş başına piksel (`MosaicData.N`). WPF uyumluluğu için okunur ve geri yazılır; mosair'de görünümü ya da dışa aktarmayı etkilemez (`MainViewModel.OpenProject` görünüm için kullanmaz). `MosaicData.N` uygulama açılışında 40'tır; bir proje açılınca onun değerini alır ve sonraki kayıtlarda (yeni Mos'lar dahil) o değer yazılır. |
 | `ShowGrid`, `ShowMouldLines` | `bool` | `false` | Görünüm ayarları |
@@ -139,7 +139,7 @@ JSON alan adları C# özellik adlarıyla birebir aynıdır (isimlendirme politik
 | `WriteSnapshot(snapshot, filePath)` | Klasörü oluşturur, görseli yanına koyar (aşağıda "Ayarlı görsel") ve `PictureFileName`'i yazar, JSON'u doğrudan bir `FileStream` ile `<dosya>.part`'a yazar, sonra `File.Move(..., overwrite: true)` ile hedefin üzerine taşır. Hata olursa `.part` silinir ve hata çağırana yükselir. Yalnızca anlık kopyayı kullanır, arka planda çalışabilir. `CurrentFileName`'i değiştirmez | `MainViewModel.SaveProjectAsync` ve `SaveToDriveAsync` (`Task.Run` içinde), `Save` |
 | `Save(filePath, widthCm, zoomLevel, showGrid, showMouldLines, gcR, gcG, gcB, interpMethod)` | `CreateSnapshot` + `WriteSnapshot`, ardından `CurrentFileName = filePath` (engelleyici) | Araçlar ve testler |
 | `ReadProject(filePath)` → `LoadedProject?` | Dosyayı akış olarak okuyup çözer, dizileri ve listeleri kurar, WPF dosyasında aynalar, görsel yolunu çözer. Global duruma dokunmaz; arka planda çalışabilir. Dosya yoksa veya JSON değilse `null`; G/Ç hataları (erişim yok, kilitli) çağırana yükselir | `MainViewModel.OpenProjectAsync` (`Task.Run` içinde), `Open` |
-| `ApplyProject(loaded)` | Hazır veriyi global duruma koyar: `_wpfExtra`, diziler, katalog ve paletler, `arcs`, `PixelEditService.Reset()` + düzenlemeler, bölgeler, `MosaicEngine.width/height/rgbM`, `MosaicEngine.ForgetPadding()` (açılan projenin dolgusu mozaiğin sıradan bir parçasıdır), `MosaicData.N`, `arn` (ya da yeni rastgele varyantlar), `CurrentFileName`, `CurrentPictureFileName`. Dosya erişimi yok, hızlıdır | `MainViewModel.OpenProjectAsync`, `Open` |
+| `ApplyProject(loaded)` | Hazır veriyi global duruma koyar: `_wpfExtra`, diziler, katalog ve paletler, `arcs`, `PixelEditService.Reset()` + düzenlemeler, bölgeler, `MosaicEngine.width/height/rgbM`, `MosaicData.N`, `arn` (ya da yeni rastgele varyantlar), `CurrentFileName`, `CurrentPictureFileName`. Dosya erişimi yok, hızlıdır | `MainViewModel.OpenProjectAsync`, `Open` |
 | `Open(filePath)` → `ProjectData?` | `ReadProject` + `ApplyProject` (engelleyici); okunamazsa `null` | Araçlar ve testler |
 | `ForgetWpfState()` | Saklanan WPF alanlarını (`_wpfExtra`) atar | `MainViewModel.LoadImage`, mozaikleştirme başlangıcı |
 | `RgbData.FromRgb(rgb)` / `RgbData.ToRgb()` | Model ↔ DTO çevirisi | `ProjectService` |

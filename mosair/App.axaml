@@ -116,7 +116,7 @@
           <Setter Property="Foreground" Value="{DynamicResource FgDisabled}"/>
         </Style>
 
-        <!-- Small toggle above the catalog (Kalıp Dolgu): neutral when off, accent fill when on. -->
+        <!-- Small toggle (Görsel Ayarları tabs): neutral when off, accent fill when on. -->
         <Style Selector="ToggleButton.chip">
           <Setter Property="Background" Value="{DynamicResource BgInput}"/>
           <Setter Property="Foreground" Value="{DynamicResource FgSecondary}"/>
