@@ -133,6 +133,11 @@
             <MenuItem Header="{Binding [MenuEdit], Source={x:Static svc:Loc.Instance}}">
               <MenuItem Header="{Binding [MenuSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll"/>
               <MenuItem Header="{Binding [MenuDeselectAll], Source={x:Static svc:Loc.Instance}}" Click="OnDeselectAll"/>
+              <MenuItem Header="{Binding [BtnUnusedStones], Source={x:Static svc:Loc.Instance}}" Click="OnToggleUnusedStones">
+                <MenuItem.Icon>
+                  <PathIcon Width="12" Height="12" IsVisible="{Binding ShowUnusedStones}" Data="M9,16.17 L4.83,12 L3.41,13.41 L9,19 L21,7 L19.59,5.59 Z"/>
+                </MenuItem.Icon>
+              </MenuItem>
               <Separator/>
               <MenuItem Header="{Binding [MenuCancelWork], Source={x:Static svc:Loc.Instance}}" Click="OnCancelWork"
                         IsEnabled="{Binding CanCancel}" InputGesture="Escape"/>
@@ -960,24 +965,38 @@
           </StackPanel>
         </Border>
 
-        <!-- selectAll / deselectAll -->
-        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="6,3"
+        <!-- Catalog bar: on the left a two-part "select all | clear all" control, on the right the two switches
+             (Kullanılmayan Taşlar, Kalıp Dolgu). One height (22 px) and one font size (10 px) for all of them. -->
+        <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="6,4"
                 BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
-          <DockPanel>
-            <StackPanel Orientation="Horizontal" Spacing="4" DockPanel.Dock="Left">
-              <Button Content="{Binding [BtnSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll" FontSize="9" Padding="6,2"
-                      Background="{DynamicResource BgInput}" Foreground="{DynamicResource AccentText}" BorderBrush="{DynamicResource BrdrMain}"
-                      BorderThickness="1" CornerRadius="3" FontWeight="SemiBold"/>
-              <Button Content="{Binding [BtnDeselectAll], Source={x:Static svc:Loc.Instance}}" Click="OnDeselectAll" FontSize="9" Padding="6,2"
-                      Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}" BorderBrush="{DynamicResource BrdrMain}"
-                      BorderThickness="1" CornerRadius="3"/>
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <Border Grid.Column="0" Background="{DynamicResource BgInput}" BorderBrush="{DynamicResource BrdrMain}"
+                    BorderThickness="1" CornerRadius="4" Height="22" ClipToBounds="True">
+              <StackPanel Orientation="Horizontal">
+                <Button Content="{Binding [BtnSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll"
+                        ToolTip.Tip="{Binding [MenuSelectAll], Source={x:Static svc:Loc.Instance}}"
+                        FontSize="10" FontWeight="SemiBold" Padding="8,0" VerticalContentAlignment="Center"
+                        Background="Transparent" Foreground="{DynamicResource AccentText}" BorderThickness="0" CornerRadius="0"/>
+                <Border Width="1" Background="{DynamicResource BrdrMain}"/>
+                <Button Content="{Binding [BtnDeselectAll], Source={x:Static svc:Loc.Instance}}" Click="OnDeselectAll"
+                        ToolTip.Tip="{Binding [MenuDeselectAll], Source={x:Static svc:Loc.Instance}}"
+                        FontSize="10" Padding="8,0" VerticalContentAlignment="Center"
+                        Background="Transparent" Foreground="{DynamicResource FgSecondary}" BorderThickness="0" CornerRadius="0"/>
+              </StackPanel>
+            </Border>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="4">
+              <!-- Kullanılmayan Taşlar: after a Mos show every catalog checkbox ticked (view only) -->
+              <ToggleButton Classes="chip" IsChecked="{Binding ShowUnusedStones}" FontSize="10" Padding="8,0" Height="22"
+                            VerticalContentAlignment="Center" BorderThickness="1" CornerRadius="4"
+                            Content="{Binding [BtnUnusedStones], Source={x:Static svc:Loc.Instance}}"
+                            ToolTip.Tip="{Binding [TipUnusedStones], Source={x:Static svc:Loc.Instance}}"/>
               <!-- Kalıp Dolgu: pad the mosaic to whole moulds -->
-              <ToggleButton Classes="chip" IsChecked="{Binding UsePadding}" FontSize="9" Padding="6,2" Margin="6,0,0,0"
-                            BorderThickness="1" CornerRadius="3"
+              <ToggleButton Classes="chip" IsChecked="{Binding UsePadding}" FontSize="10" Padding="8,0" Height="22"
+                            VerticalContentAlignment="Center" BorderThickness="1" CornerRadius="4"
                             Content="{Binding [BtnPadding], Source={x:Static svc:Loc.Instance}}"
                             ToolTip.Tip="{Binding [TipPadding], Source={x:Static svc:Loc.Instance}}"/>
             </StackPanel>
-          </DockPanel>
+          </Grid>
         </Border>
 
         <!-- 3 Column layout -->
@@ -1031,7 +1050,7 @@
                   <Panel Width="6" VerticalAlignment="Center">
                     <Ellipse Width="6" Height="6" Fill="{DynamicResource Danger}" IsVisible="{Binding StockShort}"/>
                   </Panel>
-                  <CheckBox IsChecked="{Binding IsSelected}"
+                  <CheckBox IsChecked="{Binding DisplayChecked, Mode=OneWay}" IsHitTestVisible="{Binding CanToggle}"
                             Click="OnColorCheckChanged" Margin="0" Padding="0"
                             MinWidth="18" MaxWidth="18"/>
                   <TextBlock Text="{Binding ID}" FontSize="9" Foreground="{DynamicResource FgMuted}"

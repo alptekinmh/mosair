@@ -21,8 +21,11 @@ Katalog listesindeki bir taş rengi.
 | `R`, `G`, `B` | `byte` | 0 | Taşın RGB değeri. |
 | `CodeName`, `Name` | `string` | `""` | Taş kodu ve adı. |
 | `ID` | `int` | 0 | Taş kimliği (stok sayfası bu ID ile eşleşir). |
-| `IsExcluded` | `bool` | false | Mozaikten hariç mi; değişince `IsSelected` da bildirilir. |
-| `IsSelected` | `bool` | — | `!IsExcluded`; checkbox'a bağlanır. |
+| `IsExcluded` | `bool` | false | Mozaikten hariç mi; değişince `IsSelected` ve `DisplayChecked` da bildirilir. |
+| `IsSelected` | `bool` | — | `!IsExcluded`. |
+| `ShowAll` | `bool` | false | "Kullanılmayan Taşlar" açık ve Mos yapılmış: kutu işaretli görünür (`ApplyUnusedStonesView` yazar). |
+| `DisplayChecked` | `bool` | — | `ShowAll \|\| !IsExcluded`; katalogdaki checkbox'a tek yönlü bağlanır (tıklama `OnColorCheckChanged` ile `IsExcluded`'ı yazar). |
+| `CanToggle` | `bool` | — | `!ShowAll`; checkbox'ın `IsHitTestVisible`'ı (görünen işaret gerçek seçim değilken tıklanmaz). |
 | `StockShort` | `bool` | false | Stok kontrolünde tahmini kalan negatifse true (kırmızı nokta). |
 | `StockKg` | `double?` | null | Eldeki stok (kg); "Stok çek" ve "Stok kontrol" doldurur. |
 | `RemainingKg` | `double?` | null | Tahmini kalan (kg); yalnız "Stok kontrol" doldurur. |
@@ -330,6 +333,7 @@ Katalog listesindeki bir taş rengi.
 | `ShowStockMarks(stock, counts)` | Okunan stoktan kırmızı nokta (kullanım > `Capacity`) ve kalan kg hesaplar. |
 | `SetStockAwareReport(text)` | `_stockAwareReport` yazar ve `StockAwareTip`'i bildirir. |
 | `AppendStartupStatus(message)` | Durum çubuğu `StatusReady` ise mesajı yazar, değilse mevcut uyarının (ör. atlanan katalog satırları) sonuna `" · "` ile ekler. |
+| `ShowUnusedStones` | "Kullanılmayan Taşlar" (katalog satırı, Düzenle menüsü); başta false, kalıcı değil. Değişince `ApplyUnusedStonesView()`: her `ColorItem.ShowAll = ShowUnusedStones && MosaicDone` (ayrıca `MosaicDone` değişince ve katalog yeniden kurulunca). Yalnızca görünüm: `IsExcluded` / `boolLeaveOut` değişmez. |
 | `FilterCatalogByUsedColors()` | Kataloğu yalnız `arMB[0]`'da kullanılan kodlara indirger, `PopulatePaletteAndAssigned`. Dolgu taşı (`IsPadded` iken `FillerId`) işaretlenmez: sonraki Mos onu görselin içinde kullanmasın. Atanan listesinde ise dolgu da görünür (gerçek taştır). |
 | `PopulatePaletteAndAssigned()` | Seçili katalog sırasıyla `PaletteColors` ve `AssignedColors`'ı doldurur (piksel sayısı 0 olanlar atlanır, ama numara sayacı ilerler). |
 | `UpdatePropTexture(codeName, y, x)` | Seçili varyant dokusunu (80×80) ve 1–16 arası küçük resimleri (44×44) yükler. |

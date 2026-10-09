@@ -64,8 +64,8 @@ namespace mosair.Services
             ["MenuExport"] = "mosairEXPORT",
             ["MenuExportAs"] = "mosairEXPORT As",
             ["MenuEdit"] = "Duzenle",
-            ["MenuSelectAll"] = "Tum Renkleri Sec",
-            ["MenuDeselectAll"] = "Tum Renkleri Kaldir",
+            ["MenuSelectAll"] = "Tüm Renkleri Seç",
+            ["MenuDeselectAll"] = "Tüm Renkleri Kaldır",
             ["MenuView"] = "Gorunum",
             ["MenuFitToScreen"] = "Ekrana Sigdir",
             ["MenuPropertiesPanel"] = "Özellikler Paneli",
@@ -164,8 +164,8 @@ namespace mosair.Services
             ["TipTheme"] = "Tema Degistir",
 
             // Buttons
-            ["BtnSelectAll"] = "Tum Renkleri Sec",
-            ["BtnDeselectAll"] = "Tum Renkleri Kaldir",
+            ["BtnSelectAll"] = "Tümünü Seç",
+            ["BtnDeselectAll"] = "Tümünü Kaldır",
 
             // Column headers
             ["ColCatalog"] = "Katalog Renk",
@@ -385,6 +385,8 @@ namespace mosair.Services
             ["InfoStonesLabel"] = "Taş",
             ["InfoMouldsLabel"] = "Kalıp",
             ["PadTitle"] = "Kalıba tamamlama",
+            ["BtnUnusedStones"] = "Kullanılmayan Taşlar",
+            ["TipUnusedStones"] = "Açıkken Mos'tan sonra katalogdaki bütün kutular işaretli görünür; kapalıyken yalnızca mozaikte kullanılan taşlar işaretli görünür. Yalnızca görünüm değişir: Mos yine mozaikte kullanılan taşlarla yapılır. Açıkken kutulara tıklanmaz.",
             ["BtnPadding"] = "Kalıp Dolgu",
             ["TipPadding"] = "Açıkken görsel ve mozaik bir üst tam kalıba (26 × 26 taş = 31,2 cm) tamamlanır: sağa ve alta, renkçe görselden en uzak katalog taşı konur. Mos'tan önce görselin kenarında dolgu bu taşın rengiyle görünür, Mos dolguyu bu taşla yapar. Gerçek taş kullanıldığı için dolgu taşları sayıma girer.",
             ["PadRemoved"] = "Kalıp dolgusu kaldırıldı",
@@ -529,8 +531,8 @@ namespace mosair.Services
             ["TipTheme"] = "Toggle Theme",
 
             // Buttons
-            ["BtnSelectAll"] = "Select All Colors",
-            ["BtnDeselectAll"] = "Deselect All Colors",
+            ["BtnSelectAll"] = "Select All",
+            ["BtnDeselectAll"] = "Clear All",
 
             // Column headers
             ["ColCatalog"] = "Catalog Color",
@@ -750,6 +752,8 @@ namespace mosair.Services
             ["InfoStonesLabel"] = "Stones",
             ["InfoMouldsLabel"] = "Moulds",
             ["PadTitle"] = "Whole moulds",
+            ["BtnUnusedStones"] = "Unused Stones",
+            ["TipUnusedStones"] = "When on, every catalog checkbox shows ticked after a Mos; when off, only the stones the mosaic uses show ticked. Only the view changes: Mos still uses the stones of the mosaic. While on, the checkboxes cannot be clicked.",
             ["BtnPadding"] = "Mould Fill",
             ["TipPadding"] = "When on, the image and the mosaic are filled up to the next whole mould (26 × 26 stones = 31.2 cm): on the right and at the bottom with the catalog stone farthest in colour from the image. Before Mos the padding shows around the image in that stone's colour, and Mos fills it with that stone. These are real stones, so they are counted.",
             ["PadRemoved"] = "Mould fill removed",

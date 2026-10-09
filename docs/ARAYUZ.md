@@ -49,7 +49,7 @@
 │ SOL PANEL             │ GÖRSEL ALANI         │ GÖRSEL AYARLARI ▬│ ÖZELLİKLER  ▬ │
 │ [cm] × Y cm = m²      │          ┌─────────┐ │ [Işık][Ton/Doyg.]│ taş seçiliyken│
 │ [taş kartı][kalıp k.] │          │Mini     │ │ Pozlama:   [0.00]│ RENK · DOKU   │
-│ [Tümünü Seç][Kaldır]  │          │harita   │ │ ───────▲──────── │ VARYANTLAR    │
+│ [Seç|Kaldır] [Kul.][Dolgu] │          │harita   │ │ ───────▲──────── │ VARYANTLAR    │
 │ Katalog│Eşleşme│Atanan│          └─────────┘ │ Kontrast:  [ +17]│ RGB …;        │
 │        │       │      │                      │ ─────────▲────── │ değilse:      │
 │        │       │      │                      │ …        [Sıfırla]│ GÖRSEL·RENKLER│
@@ -105,6 +105,7 @@ Kısayollar Windows'ta `Ctrl`, macOS'te `⌘` ile gösterilir; menüdeki yazı i
 |---|---|---|
 | Tüm Renkleri Seç | — | Katalogdaki bütün taşları işaretler (Mos'ta kullanılabilir yapar) |
 | Tüm Renkleri Kaldır | — | Katalogdaki bütün işaretleri kaldırır |
+| Kullanılmayan Taşlar | — | Açıkken (✓) Mos'tan sonra katalogdaki bütün kutular işaretli görünür (yalnızca görünüm); katalog satırındaki **Kullanılmayan Taşlar** düğmesiyle aynıdır |
 | *(ayırıcı)* | | |
 | İşlemi İptal Et | `Esc` | Süren işi iptal eder; durum çubuğundaki **✕ İptal** düğmesiyle aynı ([§8](#iptal-düğmesi)). Yalnızca iptal edilebilen bir iş sürerken etkindir |
 
@@ -189,11 +190,16 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 
 Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
 
-### Tüm Renkleri Seç / Tüm Renkleri Kaldır
+### Katalog satırı: Tümünü Seç / Tümünü Kaldır, Kullanılmayan Taşlar, Kalıp Dolgu
 
-Katalogdaki bütün taşları işaretler ya da işaretleri kaldırır. Aynı işlem **Düzenle** menüsünde de vardır.
+Katalog sütunlarının üstündeki satır iki gruptan oluşur; bütün düğmeler aynı yükseklikte (22 px) ve aynı yazı boyutundadır (10 px):
 
-Aynı satırın sağında **Kalıp Dolgu** açma/kapama düğmesi vardır (basılıyken açık). Tam kalıba tamamlamayı açar/kapatır; ipucu özelliği anlatır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). **Araçlar → Kalıp Dolgu** ile aynıdır.
+- **Solda** tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi: katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır).
+- **Sağda** iki açma/kapama düğmesi (basılıyken mavi, yani açık): **Kullanılmayan Taşlar** ve **Kalıp Dolgu**.
+
+**Kullanılmayan Taşlar** (ayrıca **Düzenle → Kullanılmayan Taşlar**, ✓): Mos'tan sonra katalogda normalde yalnızca mozaikte kullanılan taşlar işaretli görünür. Düğme açıkken katalogdaki **bütün kutular işaretli görünür**; kapatınca yine yalnızca kullanılanlar işaretli görünür. Yalnızca görünüm değişir: Mos'un kullandığı seçim (mozaikte kullanılan taşlar) aynen kalır, sonraki Mos düğme kapalıymış gibi yapılır. Düğme açıkken kutulara tıklanmaz (görünen işaret gerçek seçim olmadığı için). Mos'tan önce etkisi yoktur. Her açılışta kapalı başlar.
+
+**Kalıp Dolgu** düğmesi (basılıyken açık): Tam kalıba tamamlamayı açar/kapatır; ipucu özelliği anlatır ([Tam kalıba tamamlama](#tam-kalıba-tamamlama)). **Araçlar → Kalıp Dolgu** ile aynıdır.
 
 ### Üç sütun
 

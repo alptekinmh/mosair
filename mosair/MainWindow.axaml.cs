@@ -1255,6 +1255,9 @@ public partial class MainWindow : Window
     private void OnLiveMosAllColors(object? sender, RoutedEventArgs e) => _vm.LiveMosAllColors = true;
     private void OnLiveMosSelectedColors(object? sender, RoutedEventArgs e) => _vm.LiveMosAllColors = false;
 
+    // Düzenle → Kullanılmayan Taşlar (the same as the catalog bar's switch).
+    private void OnToggleUnusedStones(object? sender, RoutedEventArgs e) => _vm.ShowUnusedStones = !_vm.ShowUnusedStones;
+
     private void OnSelectAll(object? sender, RoutedEventArgs e)
     {
         _vm.SetAllColors(false);

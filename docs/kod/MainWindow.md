@@ -40,7 +40,7 @@ Window
    │       │     | Google Drive ▸ (MenuDrive; IsEnabled=CanUseDrive): Drive'a Kaydet (OnDriveSave), Drive'dan Aç... (OnDriveOpen)
    │       │       | Drive Klasörü Ayarları... (OnDriveSettings)
    │       │     (dışa aktarma öğelerinin alt menüsü kodda doldurulur: "Görüntü kalitesi seçiniz" + 10 kalite seçeneği; BuildExportMenus)
-   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
+   │       ├─ Düzen (MenuEdit): Tümünü Seç, Tümünü Kaldır, Kullanılmayan Taşlar (OnToggleUnusedStones; ✓ ShowUnusedStones) | İşlemi İptal Et (MenuCancelWork; Click=OnCancelWork,
    │       │     IsEnabled=CanCancel, InputGesture="Escape")
    │       ├─ Görünüm (MenuView): menuFitToScreen, Yumuşak Fare Hareketi (MenuSmoothMouse; OnToggleSmoothMouse;
    │       │     onay işareti SmoothMouse), Özellikler Paneli (MenuPropertiesPanel; OnTogglePropertiesPanel;
@@ -77,7 +77,10 @@ Window
        │   │   (ImageLoaded iken; BgInput, CornerRadius 6): Grid "Auto,10,Auto,22,Auto,22,Auto" (sayılar etiketin hemen ardından başlar) × 2 satır —
        │   │   InfoStonesLabel InfoStoneCols × InfoStoneRows = InfoStoneTotal / InfoMouldsLabel InfoMouldCols × InfoMouldRows = InfoMouldTotal
        │   │   (12 px mono, sayılar sağa hizalı, toplam SemiBold)
-       │   ├─ Tümünü Seç / Tümünü Kaldır düğmeleri + Kalıp Dolgu ToggleButton (IsChecked=UsePadding, BtnPadding, ipucu TipPadding)
+       │   ├─ Katalog satırı (Grid "Auto,*,Auto", Padding 6,4): solda Border (BgInput, CornerRadius 4, 22 px) içinde
+       │   │     BtnSelectAll | 1 px çizgi | BtnDeselectAll (saydam, 10 px; ipuçları MenuSelectAll / MenuDeselectAll);
+       │   │     sağda ToggleButton.chip BtnUnusedStones (IsChecked=ShowUnusedStones, ipucu TipUnusedStones) ve
+       │   │     ToggleButton.chip BtnPadding (IsChecked=UsePadding, ipucu TipPadding), ikisi de 22 px, 10 px
        │   └─ 3 sütun (başlıklar ColCatalog / ColMatch / ColAssigned)
        │       ├─ catalogListBox (CatalogColors): onay kutusu + renk + kod/ad + stok kg
        │       ├─ paletteScroll (PaletteColors): eşleşen renk kareleri
@@ -226,6 +229,7 @@ Window
 | `RefreshExportChoices()` | Flyout `Opening`, `menuExport`/`menuExportAs` `SubmenuOpened` | `UpdateExportChoiceTexts()`, ardından tahminleri başlatır: `_vm.RefreshExportEstimatesAsync()` (beklenmez). |
 | `UpdateExportChoiceTexts()` | `RefreshExportChoices`, `_vm.ExportEstimatesChanged` | Her seçeneğin başlığını `_vm.ExportChoiceLabel(quality, saveAs)` yapar (piksel boyutu + tahmini dosya boyutu; "N" gösterilmez). Mos'tan önce yalnızca varsayılan kalitenin seçeneği görünür (metni görselin boyutu), diğerleri gizlenir. |
 | `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). Sol tıkta listeyi düğmenin kendi `Flyout`'u açar. |
+| `OnToggleUnusedStones` | Düzenle → Kullanılmayan Taşlar | `_vm.ShowUnusedStones` tersine çevrilir (katalog satırındaki düğme doğrudan bağlamadır). |
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |

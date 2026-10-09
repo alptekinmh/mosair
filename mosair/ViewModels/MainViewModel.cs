@@ -33,8 +33,24 @@ namespace mosair.ViewModels
         public bool IsExcluded
         {
             get => _isExcluded;
-            set { _isExcluded = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsSelected)); }
+            set { _isExcluded = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsSelected)); OnPropertyChanged(nameof(DisplayChecked)); }
         }
+
+        // "Kullanılmayan Taşlar" on, after a Mos: the checkbox shows ticked (and cannot be clicked) whatever the real
+        // selection is; Mos still uses IsExcluded, so nothing changes in the mosaic.
+        private bool _showAll;
+        public bool ShowAll
+        {
+            get => _showAll;
+            set
+            {
+                if (_showAll == value) return;
+                _showAll = value;
+                OnPropertyChanged(); OnPropertyChanged(nameof(DisplayChecked)); OnPropertyChanged(nameof(CanToggle));
+            }
+        }
+        public bool DisplayChecked => _showAll || !_isExcluded;
+        public bool CanToggle => !_showAll;
 
         public bool IsSelected
         {
@@ -1115,7 +1131,30 @@ public bool UseLab
                 OnPropertyChanged(nameof(ShowMosaicView)); OnPropertyChanged(nameof(ShowSourceView));
                 OnPropertyChanged(nameof(CanSaveProject));
                 RefreshPadView();
+                ApplyUnusedStonesView();
             }
+        }
+
+        // "Kullanılmayan Taşlar" (catalog bar, Düzenle menu): after a Mos the catalog shows every checkbox ticked
+        // instead of only the stones the mosaic uses. Only the view changes: the selection Mos works with stays the
+        // "used stones" one. Off at start-up, not remembered.
+        private bool _showUnusedStones;
+        public bool ShowUnusedStones
+        {
+            get => _showUnusedStones;
+            set
+            {
+                if (_showUnusedStones == value) return;
+                _showUnusedStones = value;
+                OnPropertyChanged();
+                ApplyUnusedStonesView();
+            }
+        }
+
+        private void ApplyUnusedStonesView()
+        {
+            bool all = _showUnusedStones && _mosaicDone;
+            foreach (var item in CatalogColors) item.ShowAll = all;
         }
 
         private bool _useOptimal;        // off at start-up; Mos uses the classic algorithm until it is ticked
@@ -2378,6 +2417,7 @@ public bool UseLab
             {
                 ColorCatalogService.LoadDefaultCatalog();
                 RefreshCatalogList();
+                ApplyUnusedStonesView();
                 RememberUserSelection();
                 if (ColorCatalogService.SkippedLines.Count > 0)
                     StatusText = Loc.Fmt("StatusCatalogSkipped", string.Join(", ", ColorCatalogService.SkippedLines));
@@ -2937,6 +2977,7 @@ public bool UseLab
 
             RefreshCatalogList();
             FilterCatalogByUsedColors();
+            ApplyUnusedStonesView();
             UpdateDimensions();
 
             // Show the stones' colours at once (no textures from an earlier mosaic); MosaicView adds the

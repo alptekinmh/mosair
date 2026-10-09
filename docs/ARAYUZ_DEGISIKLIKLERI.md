@@ -4,6 +4,11 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Kullanılmayan Taşlar ve yeni katalog satırı
+
+- Katalog satırına **Kullanılmayan Taşlar** açma/kapama düğmesi (ve **Düzenle → Kullanılmayan Taşlar**) eklendi: açıkken Mos'tan sonra katalogdaki bütün kutular işaretli görünür, kapalıyken yalnızca kullanılan taşlar. Yalnızca görünüm; Mos aynı seçimle yapılır.
+- Satır yeniden düzenlendi: solda tek parça **Tümünü Seç | Tümünü Kaldır**, sağda **Kullanılmayan Taşlar** ve **Kalıp Dolgu**; hepsi 22 px yüksek, 10 px yazı (önceden 9 px, farklı yükseklikler). Düğme adları kısaldı ("Tum Renkleri Sec" → "Tümünü Seç"); menüdeki adlar Türkçe karakterlerle düzeltildi (Tüm Renkleri Seç / Kaldır).
+
 ## 2026-10-09: Dışa aktarılan görsel ölçüsüyle açılır
 
 - Mos'tan önce dışa aktarılan görsele ölçüsü (cm kutusundaki genişlik ve taş ızgarası) yazılır; mosair'de yeniden açılınca cm kutusu bu genişlikle gelir (ör. Kalıp Dolgu ile 150 → 156 cm dışa aktarılan görsel 156 cm açılır) ve taş satırları aynı kalır.
