@@ -1303,7 +1303,10 @@ public bool UseLab
         private rgb? _previewFiller;
 
         // The image (no mosaic yet) is shown padded.
-        private bool PadPreview => _usePadding && ImageLoaded && !MosaicDone && _previewFiller != null
+        // The view is sized to the loaded image (not yet to a mosaic): only then can the image be shown padded. While
+        // a later Mos runs (MosaicDone false) the view keeps the previous mosaic's size and must not grow again.
+        private bool _viewIsImage;
+        private bool PadPreview => _usePadding && ImageLoaded && !MosaicDone && _viewIsImage && _previewFiller != null
             && MosaicEngine.width >= 1 && MosaicEngine.height >= 1
             && MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width) > 0;
         private int PreviewPadCount() => MosaicEngine.PaddingCount((int)MosaicEngine.height, (int)MosaicEngine.width);
@@ -1565,6 +1568,7 @@ public bool UseLab
                 // The stone image is no longer built as one bitmap: MosaicView draws the visible part from tiles.
                 // Its virtual size stays C·N × R·N so zoom, fit, navigator and clicks keep their meaning.
                 _bitmapPixelWidth = result.Width * _stonePixelSize;
+                _viewIsImage = false;
                 _bitmapPixelHeight = result.Height * _stonePixelSize;
             }
 
@@ -2426,6 +2430,7 @@ public bool UseLab
                 SetAdjustSettings(new ImageAdjustSettings());
                 SetShowingRaw(false);
                 _bitmapPixelWidth = bmp.Width;
+                _viewIsImage = true;
                 _bitmapPixelHeight = bmp.Height;
                 OnPropertyChanged(nameof(BitmapPixelWidth));
                 OnPropertyChanged(nameof(BitmapPixelHeight));
@@ -2892,6 +2897,7 @@ public bool UseLab
             MosaicData.exportBitmap?.Dispose();
             MosaicData.exportBitmap = stones;
             _bitmapPixelWidth = C * _stonePixelSize;
+            _viewIsImage = false;
             _bitmapPixelHeight = R * _stonePixelSize;
             OnPropertyChanged(nameof(BitmapPixelWidth));
             OnPropertyChanged(nameof(BitmapPixelHeight));
