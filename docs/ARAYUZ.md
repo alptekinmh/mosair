@@ -182,7 +182,7 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 | Yuvarlama | Bir taş 1,2 cm'dir; değer en yakın taş sayısına yuvarlanır (en az 2 taş). |
 | Üst sınır | Görselin piksel genişliğinden fazla taş istenirse genişlik o sınıra indirilir ve **Çözünürlük Yetersiz** uyarısı çıkar. |
 | `× Y cm = A m²` | cm kutusuyla aynı satırda ve aynı büyüklükte (16 px): gerçek yükseklik ve alan, kutudaki gibi noktalı yazılır. Ör. `93.6 × 93.6 cm = 0.88 m²`. Görsel yüklenmeden yalnızca kutu ve "cm" görünür. |
-| Taş / Kalıp kartı | Altta tek kart, iki hizalı satır: **Taş** `sütun × satır = toplam` (toplam binlik ayraçla, ör. `78 × 78 = 6.084`) ve **Kalıp** `sütun × satır = toplam` (ör. `3 × 3 = 9`). Sayılar alt alta sağa hizalıdır; sütunlar sayıya göre genişlediği için 8 haneli bir taş toplamı da (ör. `9999 × 9999 = 99.980.001`) kesilmeden görünür. |
+| Taş / Kalıp kartı | Altta tek kart, iki hizalı satır: **Taş** `sütun × satır = toplam` (toplam binlik ayraç olarak her zaman **nokta** ile, bilgisayarın bölge ayarından bağımsız; ör. `78 × 139 = 10.842`) ve **Kalıp** `sütun × satır = toplam` (ör. `3 × 3 = 9`). Sayılar alt alta sağa hizalıdır; sütunlar sayıya göre genişlediği için 8 haneli bir taş toplamı da (ör. `9999 × 9999 = 99.980.001`) kesilmeden görünür. |
 | Kalıp sayısı |  Taş sütun ve satır sayısı 26'ya bölünüp yukarı yuvarlanır; ör. 99,6 cm (83 × 83 taş) → `4 × 4 = 16 kalıp`. Bu, mozaiğin kaç kalıba sığdığını (gereken kalıp sayısını) gösterir; bir kalıp 26 × 26 taş, yani 31,2 × 31,2 cm'dir. |
 
 Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
@@ -277,7 +277,7 @@ Görsel alanı ile Özellikler paneli arasındaki kendi sütunu, Photoshop'un ay
 
 **Sütun:**
 - Başta 300 px genişliğindedir; solundaki ayırıcı sürüklenerek **260–600 px** arasında genişletilir (geniş sütunda kaydırıcılar uzar, ince ayar kolaylaşır). Özellikler paneli bundan etkilenmez.
-- Başlıktaki **▬** düğmesi ya da **Görünüm → Görsel Ayarları** sütunu gizler; yerinde 24 px'lik bir şerit kalır (**‹** oku, ayar varsa mavi nokta, dikey "Görsel Ayarları" yazısı). Şeride tıklayınca sütun gizlenmeden önceki genişliğiyle geri açılır. Uygulama her açılışta sütun açık başlar.
+- Başlıktaki **▬** düğmesi ya da **Görünüm → Görsel Ayarları** sütunu gizler; yerinde 24 px'lik bir şerit kalır (**‹** oku, ayar varsa mavi nokta, dikey "Görsel Ayarları" yazısı). Şeride tıklayınca sütun gizlenmeden önceki genişliğiyle (ilk açılışta 300 px) geri açılır. Uygulama her açılışta sütun **kapalı** (şerit olarak) başlar, Özellikler paneli gibi.
 - Bir ayar 0'dan farklıysa başlıkta ve şeritte küçük **mavi bir nokta** yanar.
 
 **İki sekme ve Anlık Mos:** başlığın altında **Işık** ve **Ton/Doygunluk** sekme düğmeleri, onların altında **Anlık Mos** onay kutusu vardır (sekmelerden ayırt edilsin diye düğme değil, onay kutusu). Anlık Mos işaretliyken altında iki seçenek görünür:

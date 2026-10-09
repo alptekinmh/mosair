@@ -1633,7 +1633,7 @@ public bool UseLab
         private int _adjustVersion;
         private System.Threading.CancellationTokenSource? _adjustDelay;
         private Task? _adjustTask;
-        private bool _adjustPanelOpen = true;
+        private bool _adjustPanelOpen;   // starts closed (only its strip shows), like the Properties panel
         private int _adjustTab;
         private int _adjustRange;
 
@@ -2342,13 +2342,15 @@ public bool UseLab
             DimensionArea = dim.AreaM2.ToString("0.00", inv) + " m²";
             InfoStoneCols = dim.StoneColumns.ToString();
             InfoStoneRows = dim.StoneRows.ToString();
-            InfoStoneTotal = dim.Stones.ToString("N0");
+            // Thousands with a dot (10.842), whatever the computer's region setting.
+            var dots = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+            InfoStoneTotal = dim.Stones.ToString("N0", dots);
             // Moulds needed (whole moulds of 26 × 26 stones, rounded up).
             int mouldCols = MosaicEngine.UpToMould(dim.StoneColumns) / MosaicEngine.MouldStones;
             int mouldRows = MosaicEngine.UpToMould(dim.StoneRows) / MosaicEngine.MouldStones;
             InfoMouldCols = mouldCols.ToString();
             InfoMouldRows = mouldRows.ToString();
-            InfoMouldTotal = (mouldCols * mouldRows).ToString("N0");
+            InfoMouldTotal = (mouldCols * mouldRows).ToString("N0", dots);
         }
 
         // keepK: with Optimum, build the mosaic with this stone count instead of the suggested one (clamped to the new

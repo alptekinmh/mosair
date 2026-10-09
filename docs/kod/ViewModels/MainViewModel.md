@@ -183,7 +183,7 @@ Katalog listesindeki bir taş rengi.
 | `CanPickRange` | `bool` | `!Colorize`; renk aralığı yuvarlakları buna göre etkin. |
 | `IsAdjusted` | `bool` | `!_adjust.IsNeutral`; sütun başlığındaki ve şeritteki mavi nokta ile Sıfırla düğmesinin etkinliği buna bağlıdır. |
 | `AdjustSettingsForSave` | `ImageAdjustSettings?` | Proje dosyasına (`ProjectData.Adjust`) yazılacak bağımsız kopya; ayar yoksa `null`. |
-| `IsAdjustPanelOpen` | `bool` | Görsel Ayarları **sütunu** açık mı (varsayılan true, kalıcı değil); **Görünüm → Görsel Ayarları**'nın onay işareti. Değişince MainWindow sütunu 24 px şeride indirir ya da önceki genişliğine açar (`ApplyAdjustPanel`). |
+| `IsAdjustPanelOpen` | `bool` | Görsel Ayarları **sütunu** açık mı (varsayılan false: her açılışta şerit olarak başlar; kalıcı değil); **Görünüm → Görsel Ayarları**'nın onay işareti. Değişince MainWindow sütunu 24 px şeride indirir ya da önceki genişliğine açar (`ApplyAdjustPanel`). |
 | `CanAdjust` | `bool` | `ImageLoaded && !IsExporting && (!IsProcessing \|\| LiveMos)`; kaydırıcılar buna göre etkin. Anlık Mos açıkken kendi Mos'u sürerken de kullanılabilir (sürükleme kesilmez; değişiklik sıraya girer). `ImageLoaded`, `IsProcessing`, `IsExporting` ve `LiveMos` değişince bildirilir. |
 | `LiveMosAllColors`, `LiveMosSelectedColors` | `bool` | Anlık Mos'un renkleri: tüm katalog taşları ya da katalogdaki o anki işaretler (`LiveMosSelectedColors` = `!LiveMosAllColors`; başta seçili renkler, kalıcı değil). `LiveMosAllColors` true olunca `SetAllColors(false)` (katalogdaki bütün taşlar işaretlenir ve işaretli kalır). Değişince Anlık Mos açık ve mozaik varsa `RunLiveMosAsync()`. |
 | `LiveMos` | `bool` | **Anlık Mos** (sekmelerin altındaki onay kutusu, Araçlar menüsü). Başta false, kalıcı değil. Değişince `CanAdjust` bildirilir; açılırken ekranda eskimiş mozaik yerine görsel gösteriliyorsa (`_showingRaw`) `RunLiveMosAsync()` başlatılır. |
@@ -220,7 +220,7 @@ Katalog listesindeki bir taş rengi.
 | `UsedColorInfo` | `string` | `StatusUsedColors` (toplam / kullanılan taş). |
 | `DimensionInfo` | `string` | Boyut/alan metni (XAML'e bağlı değil). |
 | `DimensionHeight`, `DimensionArea` | `string` | Sol paneldeki satırın yüksekliği ve alanı, genişlik kutusuyla aynı biçimde (invariant, nokta): `"93.6"`, `"0.88 m²"`. |
-| `InfoStoneCols`, `InfoStoneRows`, `InfoStoneTotal`, `InfoMouldCols`, `InfoMouldRows`, `InfoMouldTotal` | `string` | Sol paneldeki taş/kalıp kartının sayıları (ayrı ayrı, kart onları hizalı sütunlara koyar); toplamlar `N0` ile binlik ayraçlı. Kalıp sayıları mozaiğin gereken kalıp sayısıdır: taş sütun/satır sayısından `UpToMould(n) / 26` (yukarı yuvarlanır). Eski `DimensionSize` ve `OriginalInfo` (orijinal piksel ölçüsü) kaldırıldı; piksel ölçüsü Özellikler panelinde. |
+| `InfoStoneCols`, `InfoStoneRows`, `InfoStoneTotal`, `InfoMouldCols`, `InfoMouldRows`, `InfoMouldTotal` | `string` | Sol paneldeki taş/kalıp kartının sayıları (ayrı ayrı, kart onları hizalı sütunlara koyar); toplamlar `N0` ile, `tr-TR` kültürüyle binlik ayraçlı (her zaman nokta: `10.842`). Kalıp sayıları mozaiğin gereken kalıp sayısıdır: taş sütun/satır sayısından `UpToMould(n) / 26` (yukarı yuvarlanır). Eski `DimensionSize` ve `OriginalInfo` (orijinal piksel ölçüsü) kaldırıldı; piksel ölçüsü Özellikler panelinde. |
 | `PixelCoordInfo`, `PixelDetailInfo`, `PixelColorInfo`, `PixelScaleInfo` | `string` | Piksel bilgisi; `PixelDetailInfo`/`PixelColorInfo` `OnImagePressed`'de yazılır, hiçbiri XAML'e bağlı değil. |
 
 **Dil**: ViewModel'in ürettiği metinler `RefreshLocalized` ile yenilenir.

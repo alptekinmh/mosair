@@ -64,8 +64,9 @@ public partial class MainWindow : Window
         Closed += (_, _) => Controls.AdjustSlider.DraggingChanged -= OnAdjustSliderDragging;
         Closed += (_, _) => ThemeService.Changed -= OnThemeChanged;
         UpdateThemeUi();
-        // The Properties panel starts closed (only its strip shows).
+        // The Properties and Görsel Ayarları panels start closed (only their strips show).
         ApplyPropertiesPanel();
+        ApplyAdjustPanel();
         AddHandler(PointerPressedEvent, OnWindowPointerPressedCommit, RoutingStrategies.Tunnel, handledEventsToo: true);
         _imageWatcher.ImageArrived += (path, place) => Dispatcher.UIThread.Post(() => ShowImageToast(path, place));
         _vm.FileSaved += (path, kind) => Dispatcher.UIThread.Post(() => ShowSavedToast(path, kind));

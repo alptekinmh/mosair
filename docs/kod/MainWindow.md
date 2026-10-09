@@ -366,7 +366,7 @@ Masaüstü yolu: kayıtta `Environment.SpecialFolder.Desktop`, dışa aktarmada 
 - **Gizle:** o anki genişlik 24 px'ten büyükse `_propertiesWidth`'e saklanır; panel sütunu `MinWidth = MaxWidth = Width = 24`, ayırıcı sütunu 0 px ve `propsSplitter.IsVisible = false`. Yerine şerit görünür (XAML'de `!IsPropertiesPanelOpen`).
 - **Göster:** `MinWidth = 160`, `MaxWidth = 360`, `Width = _propertiesWidth` (başlangıçta 220), ayırıcı 4 px ve görünür.
 
-Durum kalıcı değildir; pencere her açılışta panel kapalı başlar (kurucu sonunda `ApplyPropertiesPanel()`, `IsPropertiesPanelOpen` varsayılanı false). Bir taş seçilince (`HasSelection = true`) ViewModel paneli açar.
+Durum kalıcı değildir; pencere her açılışta panel kapalı başlar (kurucu sonunda `ApplyPropertiesPanel()`, `IsPropertiesPanelOpen` varsayılanı false). Görsel Ayarları sütunu da aynı şekilde kapalı başlar (kurucuda `ApplyAdjustPanel()`, `IsAdjustPanelOpen` varsayılanı false; ilk açılışta 300 px). Bir taş seçilince (`HasSelection = true`) ViewModel paneli açar.
 
 ### Görsel Ayarları sütunu
 

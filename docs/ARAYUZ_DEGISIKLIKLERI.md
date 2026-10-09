@@ -4,6 +4,11 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-09: Görsel Ayarları kapalı başlar; taş sayısında nokta
+
+- **Görsel Ayarları** sütunu her açılışta Özellikler paneli gibi kapalı (şerit olarak) başlar; şeride tıklayınca 300 px açılır.
+- Sol paneldeki taş/kalıp kartında toplam binlik ayraç olarak her zaman nokta ile yazılır (`10.842`; önceden İngilizce bölge ayarında `10,842`).
+
 ## 2026-10-09: Stoğa göre düzeltmenin aşaması durum çubuğunda
 
 - Stoğa göre düzeltme sürerken durum çubuğunda kaç aşamanın bittiği ve geçen saniye yazar ("Stoğa göre düzeltiliyor: 3/5 aşama bitti · 12 sn"); stok genel olarak yetmiyorsa "stok yetmiyor, en az eksikli çözüm aranıyor". Sonuç değişmez.
