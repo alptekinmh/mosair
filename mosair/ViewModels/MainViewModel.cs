@@ -225,11 +225,11 @@ namespace mosair.ViewModels
         public bool CanUseStock => !_isStockBusy;
 
         // Same column header the sheet uses for this mosaic: picture name first, then project file name.
-        // The name of the image's own column in the stock sheet. An image completed to whole moulds ("x_kalip")
+        // The name of the image's own column in the stock sheet. An image completed to whole moulds ("x_URT")
         // is still the same mosaic as "x".
-        private const string MouldSuffix = "_kalip";
-        // "x_kalip", "x_kalip_2", … → "x" (the image's own name before Kalıba Tamamla).
-        private static readonly System.Text.RegularExpressions.Regex MouldSuffixRx = new(@"_kalip(_\d+)?$");
+        private const string MouldSuffix = "_URT";
+        // "x_URT", "x_URT_2", … → "x" (the image's own name before Kalıba Tamamla).
+        private static readonly System.Text.RegularExpressions.Regex MouldSuffixRx = new(@"_(URT|kalip)(_\d+)?$");   // "_kalip": names from an earlier test build
         private static string WithoutMouldSuffix(string name) => MouldSuffixRx.Replace(name, "");
         private static string StockProjectName()
         {
@@ -3032,7 +3032,7 @@ public bool UseLab
         // Görsel Ayarları) is grown on the right and at the bottom so that its stones reach whole moulds of 26
         // (100 cm = 83 stones → 104 stones = 124.8 cm; 1000 px → 1000 × 104 / 83 ≈ 1253 px), the new pixels get one
         // filler colour. The new image (PNG, so the colour stays exact) is saved at once in the project folder,
-        // Masaüstü/mosairPROJECT/<name>_kalip/<name>_kalip.png, with a copy of the original in its "orijinal"
+        // Masaüstü/mosairPROJECT/<name>_URT/<name>_URT.png, with a copy of the original in its "orijinal"
         // subfolder; Kaydet later puts the project (.mos) into the same folder. MainWindow loads the image like
         // Görsel Yükle and runs Mos with the current settings. Nothing about it goes into the project file: the
         // project simply uses the new image.
@@ -3079,7 +3079,7 @@ public bool UseLab
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             string source = ProjectService.CurrentPictureFileName ?? "";
             string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
-            // Every run is a new save: "<name>_kalip", then "<name>_kalip_2", "_3", … (folder and file), so an earlier
+            // Every run is a new save: "<name>_URT", then "<name>_URT_2", "_3", … (folder and file), so an earlier
             // one is never replaced. The stock sheet column ignores the suffix (StockProjectName).
             string stripped = WithoutMouldSuffix(baseName);
             bool fromCompleted = stripped != baseName;

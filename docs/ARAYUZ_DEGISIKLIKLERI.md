@@ -21,7 +21,7 @@ Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakıl
 
 ## 2026-10-09: Kalıba Tamamla
 
-- Araç çubuğuna (dışa aktar ile tema arasına) **Kalıba Tamamla** ikonu (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; yeni fotoğraf `Masaüstü/mosairPROJECT/<ad>_kalip/` klasörüne (her basışta yeni bir kayıt: `<ad>_kalip_2`, `_3`…; eskisinin üzerine yazılmaz) (orijinali `orijinal/` alt klasörüne) kaydedilir, fotoğraf yeniden yüklenir, o anki ayarlarla Mos yapılır ve proje (`.mos`) de aynı klasöre kendiliğinden kaydedilir. Projeye ek bilgi yazılmaz.
+- Araç çubuğuna (dışa aktar ile tema arasına) **Kalıba Tamamla** ikonu (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; yeni fotoğraf `Masaüstü/mosairPROJECT/<ad>_URT/` klasörüne (her basışta yeni bir kayıt: `<ad>_URT_2`, `_3`…; eskisinin üzerine yazılmaz) (orijinali `orijinal/` alt klasörüne) kaydedilir, fotoğraf yeniden yüklenir, o anki ayarlarla Mos yapılır ve proje (`.mos`) de aynı klasöre kendiliğinden kaydedilir. Projeye ek bilgi yazılmaz.
 
 ## 2026-10-09: Görsel Ayarları kapalı başlar; taş sayısında nokta
 
