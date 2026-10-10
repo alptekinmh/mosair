@@ -211,7 +211,7 @@ Robot yalnızca tam kalıp üretir (26 × 26 taş = 31,2 cm). **Kalıba Tamamla*
 
 | Sütun | İçerik | Etkileşim |
 |---|---|---|
-| **Katalog Renk** | Bütün taşlar: kırmızı nokta (stok yetersiz) · onay kutusu · taş ID · doku küçük resmi · taş kodu | Onay kutusu taşı Mos'a dahil eder/çıkarır. Piksel düzenleme açıkken bir satıra tıklamak o taşı **kaynak renk** yapar. |
+| **Katalog Renk** | Bütün taşlar: kırmızı nokta (stok yetersiz) · onay kutusu · taş ID · doku küçük resmi · taş kodu | Onay kutusu taşı Mos'a dahil eder/çıkarır. Bir satıra tıklamak o taşı **Özellikler** panelinde gösterir (panel kapalıysa açılır); piksel düzenleme açıkken ayrıca o taşı **kaynak renk** yapar. |
 | **Eşleşme** | Mozaikte kullanılan taşların renk kutuları (Atanan sütunuyla aynı sırada) | Atanan sütunuyla birlikte kayar |
 | **Atanan Renk** | Mozaikte gerçekten kullanılan taşlar: ID, kod, adet; satır arka planı taş rengidir | Eşleşme sütunuyla birlikte kayar |
 
@@ -364,15 +364,16 @@ Ondalık ayırıcı, tarih biçimi ve binlik ayırıcı arayüz dilini değil, i
 
 ### Taş seçiliyken
 
-Canvas'ta bir taşa sol tıklayınca panel o taşın bilgilerini gösterir. **RENK** başlığının sağındaki küçük **✕** düğmesi seçimi bırakır ve görsel bilgilerine döner. Yeni görsel yüklemek ya da proje açmak da seçimi bırakır.
+Canvas'ta bir taşa sol tıklayınca ya da **katalogda** bir taşın satırına tıklayınca panel o taşın bilgilerini gösterir (katalogdan seçilen taşta koordinat yoktur; varyantlara yalnızca bakılır, mozaikte bir şey değişmez). **RENK** başlığının sağındaki küçük **✕** düğmesi seçimi bırakır ve görsel bilgilerine döner. Yeni görsel yüklemek ya da proje açmak da seçimi bırakır.
 
 | Bölüm | Gösterdiği | Etkileşim |
 |---|---|---|
 | RENK | Renk kutusu, `#ID`, taş kodu | **✕:** görsel bilgilerine dön |
 | DOKU | Seçili taşın o pikselde kullanılan doku görüntüsü ve varyant numarası | — |
 | VARYANTLAR | Aynı taşın bütün doku varyantları (küçük resimler); seçili olan mavi çerçevelidir | **Tıkla:** o piksel için doku varyantını değiştirir. Geri alınabilir (`Ctrl/⌘+Z`). |
-| RGB | Pikselin R, G, B değerleri | — |
-| KOORDİNAT | Piksel `Y, X` ve kalıp içi `yi, xi` | — |
+| RGB | Pikselin (katalogda: taşın) R, G, B değerleri | — |
+| STOK | Stok tablosundan (görsel/proje yüklenirken okunan): **Bizdeki** kg ≈ taş, **Diğer mozaiklerin ayırdığı** kg, **Bu mozaik için kullanılabilir** taş (0 ise kırmızı), mozaik varsa **Bu mozaikte kullanılan** taş (kg; stoğu aşıyorsa kırmızı), Stok Kontrol yapıldıysa **Tahmini kalan** kg. Tabloda satırı yoksa ya da stok ayarı yoksa "Stok bilgisi yok". Değerler taş seçildiği andaki stoktur. | — |
+| KOORDİNAT | Piksel `Y, X` ve kalıp içi `yi, xi` (yalnızca görselde seçilen taşta) | — |
 | DÜZENLEME | Düzenlenen piksel sayısı, geri al/yinele kısayolları | Yalnızca piksel düzenleme açıkken görünür |
 
 ## 8. Durum çubuğu

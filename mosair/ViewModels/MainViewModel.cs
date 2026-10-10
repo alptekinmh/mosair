@@ -3457,6 +3457,8 @@ public bool UseLab
             PropMouldCoord = $"yi: {yef}  xi: {xef}";
             PropRgbInfo = $"{r}, {g}, {b}";
             PropColorBrush = new SolidColorBrush(Color.FromRgb(r, g, b));
+            PropHasCoords = true;
+            UpdatePropStock(colorId);
             HasSelection = true;
             UpdatePropTexture(codeName, y, x);
 
@@ -3504,10 +3506,15 @@ public bool UseLab
 
             if (string.IsNullOrEmpty(codeName)) return;
 
-            int w = MosaicData.dataM3.GetLength(1);
-            int arnIndex = pixelY * w + pixelX;
-            int stoneNum = (MosaicData.arn != null && arnIndex < MosaicData.arn.Length)
-                ? MosaicData.arn[arnIndex] : 0;
+            // A stone picked in the catalog (pixelY < 0) has no pixel: its first variant is shown.
+            int stoneNum = 0;
+            if (pixelY >= 0)
+            {
+                int w = MosaicData.dataM3.GetLength(1);
+                int arnIndex = pixelY * w + pixelX;
+                stoneNum = (MosaicData.arn != null && arnIndex >= 0 && arnIndex < MosaicData.arn.Length)
+                    ? MosaicData.arn[arnIndex] : 0;
+            }
             SelectedStoneIndex = stoneNum;
 
             var folder = StoneTextureService.FindFolderForCode(codeName);
@@ -3546,6 +3553,14 @@ public bool UseLab
         public void SelectStone(int stoneIndex)
         {
             if (string.IsNullOrEmpty(_selectedCodeName)) return;
+            // A catalog pick: the variants can only be looked at (there is no stone on the mosaic to change).
+            if (_selectedPixelY < 0)
+            {
+                SelectedStoneIndex = stoneIndex;
+                foreach (var item in PropStoneThumbs) item.IsSelected = item.Index == stoneIndex;
+                ShowVariantPreview(_selectedCodeName, stoneIndex);
+                return;
+            }
             if (MosaicData.arn == null) return;
 
             int w = MosaicData.dataM3.GetLength(1);
@@ -3588,6 +3603,74 @@ public bool UseLab
             IsPixelEditActive = PixelEditService.IsPixelEditActive;
             IsSourcePixelMode = PixelEditService.IsSourcePixelMode;
             IsTargetPixelMode = PixelEditService.IsTargetPixelMode;
+        }
+
+        // A stone clicked in the catalog: the Properties panel shows it (colour, texture, variants, RGB, stock) like
+        // a stone picked on the image, without the coordinates.
+        public void SelectCatalogStone(ColorItem item)
+        {
+            PropStoneName = string.IsNullOrWhiteSpace(item.Name) ? item.CodeName : $"{item.CodeName}  {item.Name.Trim()}";
+            PropStoneId = item.ID > 0 ? $"#{item.ID}" : "";
+            PropRgbInfo = $"{item.R}, {item.G}, {item.B}";
+            PropColorBrush = new SolidColorBrush(Color.FromRgb(item.R, item.G, item.B));
+            PropHasCoords = false;
+            UpdatePropStock(item.ID);
+            HasSelection = true;
+            UpdatePropTexture(item.CodeName, -1, -1);
+        }
+
+        private void ShowVariantPreview(string codeName, int stoneIndex)
+        {
+            var folder = StoneTextureService.FindFolderForCode(codeName);
+            if (folder == null) return;
+            string path = System.IO.Path.Combine(folder, $"{stoneIndex + 1}.jpg");
+            if (!System.IO.File.Exists(path)) return;
+            using var src = SKBitmap.Decode(path);
+            if (src == null) return;
+            using var resized = src.Resize(new SKImageInfo(80, 80), new SKSamplingOptions(SKFilterMode.Linear));
+            PropTextureBitmap = ImageService.ToAvaloniaBitmap(resized);
+        }
+
+        // ----- Properties: the selected stone's stock (from the stock sheet read with the image/project) -----
+        private bool _propHasCoords = true;
+        public bool PropHasCoords { get => _propHasCoords; private set { _propHasCoords = value; OnPropertyChanged(); } }
+        public ObservableCollection<PropStockRow> PropStockRows { get; } = new();
+        private bool _propHasStock;
+        public bool PropHasStock { get => _propHasStock; private set { _propHasStock = value; OnPropertyChanged(); } }
+
+        private void UpdatePropStock(int id)
+        {
+            PropStockRows.Clear();
+            var inv = System.Globalization.CultureInfo.GetCultureInfo("tr-TR");
+            string Kg(double kg) => kg.ToString("0.###", inv) + " kg";
+            string Pcs(long n) => n.ToString("N0", inv) + " " + Loc.Get("PropStockPieces");
+            const double w = StockSheetService.StoneWeightKg;
+            var catalog = CatalogColors.FirstOrDefault(c => c.ID == id);
+            StockSheetService.StoneStock? s = null;
+            if (id > 0 && _loadedStock != null) _loadedStock.TryGetValue(id, out s);
+            int used = 0;
+            if (id > 0 && MosaicDone && MosaicData.arMA.Count > 0)
+                foreach (var c in MosaicData.arMA[0]) if (c.ID == id) used += c.numOfPixel;
+
+            if (s != null)
+            {
+                PropStockRows.Add(new(Loc.Get("PropStockOnHand"), Kg(s.OnHandKg) + " ≈ " + Pcs((long)Math.Floor(Math.Max(0, s.OnHandKg) / w + 1e-9)), false));
+                if (s.OtherMosaicsKg > 0)
+                    PropStockRows.Add(new(Loc.Get("PropStockOther"), Kg(s.OtherMosaicsKg), false));
+                PropStockRows.Add(new(Loc.Get("PropStockAvailable"), Pcs(s.Capacity), s.Capacity <= 0));
+            }
+            else if (catalog?.StockKg is double onHand)
+                PropStockRows.Add(new(Loc.Get("PropStockOnHand"), Kg(onHand), false));
+            if (used > 0)
+            {
+                bool over = s != null && used > s.Capacity;
+                PropStockRows.Add(new(Loc.Get("PropStockUsed"), Pcs(used) + " (" + Kg(used * w) + ")", over));
+            }
+            if (catalog?.RemainingKg is double rem)
+                PropStockRows.Add(new(Loc.Get("PropStockRemaining"), Kg(rem), rem <= 0));
+            if (PropStockRows.Count == 0)
+                PropStockRows.Add(new(Loc.Get("PropStockNone"), "", false));
+            PropHasStock = true;
         }
 
         public void SetSourceFromCatalog(ColorItem item)
@@ -3654,6 +3737,9 @@ public bool UseLab
         protected void OnPropertyChanged([CallerMemberName] string? name = null)
             => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
+
+    // One line of the Properties panel's stock card: label, value, and a colour for a value that is short.
+    public sealed record PropStockRow(string Label, string Value, bool Short);
 
     public class StoneThumbItem : INotifyPropertyChanged
     {

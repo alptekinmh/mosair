@@ -135,7 +135,8 @@ Window
        │       ├─ Renk örneği, PropStoneId / PropStoneName; RENK başlığının sağında ✕ (OnClearSelection, ipucu TipClearSelection)
        │       ├─ Doku önizleme (PropTextureBitmap)
        │       ├─ Taş varyantları (PropStoneThumbs → OnSelectStone)
-       │       ├─ RGB (PropRgbInfo), Koordinat (PropPixelCoord / PropMouldCoord)
+       │       ├─ RGB (PropRgbInfo); STOK (PropHasStock: PropStockRows → PropStockRow satırları, Short ise Danger renginde);
+       │       │     Koordinat (PropHasCoords: PropPixelCoord / PropMouldCoord)
        │       └─ Düzenleme bilgisi (IsPixelEditActive: SelectedStoneText, EditedPixelCountText, geri al/yinele ipucu)
        ├─ Sütun 6 — Gizli Özellikler şeridi (IsVisible = !IsPropertiesPanelOpen): tek düğme (OnTogglePropertiesPanel,
        │     ipucu TipPanelShow): ‹ oku + 90° döndürülmüş PropTitle (LayoutTransformControl)
@@ -287,7 +288,7 @@ Window
 | `OnWidthChanged` | Genişlik `TextBox` (`LostFocus`) | Virgülleri noktaya çevirir, `_vm.UpdateDimensions()`. |
 | `OnWidthKeyDown` | Genişlik `TextBox` (`KeyDown`) | Enter'da `OnWidthChanged` ile aynı işlem. |
 | `OnColorCheckChanged` | `catalogListBox` satırındaki `CheckBox` (`Click`) | `ColorItem.IsExcluded` ayarlanır, `_vm.SyncColorExclusion(item)`. |
-| `OnCatalogSelectionChanged` | `catalogListBox` (`SelectionChanged`) | Yalnızca piksel düzenleme açıkken seçili katalog taşını kaynak yapar (`_vm.SetSourceFromCatalog`). |
+| `OnCatalogSelectionChanged` | `catalogListBox` (`SelectionChanged`) | Seçilen katalog taşını Özellikler panelinde gösterir (`_vm.SelectCatalogStone`); piksel düzenleme açıkken ayrıca kaynak yapar (`_vm.SetSourceFromCatalog`). |
 | `OnImageWheel` | Tuvaldeki `Image` veya `MosaicView` (`PointerWheelChanged`) | İmleç merkezli yakınlaştırma. Adım `e.Delta.Y` ±4'e kırpılır (0 ise bir şey yapılmaz); hedef `1,25^adım` ile çarpılır, böylece fare tekerleğinin bir çentiği ×1,25 / ×0,8, dokunmatik yüzeyin kesirli adımları orantılı olarak daha az olur. Önce kaydırma süzülmesi durur. Hedef, süzülme sürüyorsa önceki hedeften, yoksa geçerli zoom'dan hesaplanır ve `[MinZoomLevel, 20]` aralığına kırpılır. `_zoomImg`, `_zoomMouse` ve `_zoomAnchor` (imlecin altındaki nokta ÷ geçerli zoom) kaydedilir. `SmoothMouse` kapalıysa zoom `ApplyZoomAnchored(hedef)` ile hemen uygulanır; açıksa süzülme yoksa başlatılır (`TopLevel.RequestAnimationFrame(ZoomGlideFrame)`). |
 | `ZoomGlideFrame(now)` | `RequestAnimationFrame` | Süzülme durdurulmuşsa çıkar. `next = cur · (hedef/cur)^(1 − e^(−dt/ZoomGlideSeconds))` (log ölçekte üstel yaklaşma); hedefe %0,2'den yakınsa hedefe oturur. `ApplyZoomAnchored(next)`; bittiyse ya da zoom değişmediyse (sınıra dayandı) süzülme biter, değilse sonraki kare istenir. |
 | `ApplyZoomAnchored(zoom)` | `OnImageWheel`, `ZoomGlideFrame` | `_vm.ZoomLevel = zoom` (sınırı VM uygular); `imageScroller.UpdateLayout()` ile yeni boyut yerleşime işlenir (yoksa ofset eski boyuta göre kırpılır); `_zoomAnchor · ZoomLevel` noktası `TranslatePoint` ile `imageScroller`'a çevrilip ofset bu nokta `_zoomMouse`'un altına gelecek kadar kaydırılır (negatif olmaz). Kenar boşluğu ve görüntü pencereden küçükken ortalanması da böylece doğru hesaplanır. Ardından `UpdateNav()`. |

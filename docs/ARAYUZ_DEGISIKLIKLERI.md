@@ -4,6 +4,11 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-10: Katalogdan taş seçimi ve Özellikler'de stok
+
+- Katalog sütununda bir taşın satırına tıklayınca Özellikler paneli o taşı gösterir (renk, doku, varyantlar, RGB, stok; koordinat yok). Önceden yalnızca piksel düzenlemede işe yarıyordu.
+- Özellikler paneline **STOK** bölümü eklendi: bizdeki kg, diğer mozaiklerin ayırdığı, bu mozaik için kullanılabilir, bu mozaikte kullanılan ve Stok Kontrol'ün tahmini kalanı.
+
 ## 2026-10-10: Genel test düzeltmeleri
 
 - Bir Mos ya da stok düzeltmesi sürerken yeni görsel/proje açılırsa önceki mozaiğin donmuş görüntüsü ve "Stoğa göre düzeltiliyor…" sayacı artık ekranda kalmaz.
