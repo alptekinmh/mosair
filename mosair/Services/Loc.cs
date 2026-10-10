@@ -394,7 +394,8 @@ namespace mosair.Services
             // Alert dialogs
             ["AlertExportTitle"] = "Disa Aktarma",
             ["AlertExportNoMosaic"] = "Disa aktarilacak mozaik yok.\nOnce bir gorsel yukleyin ve mozaiklestirme yapin.",
-            ["ExportChoiceImage"] = "Görsel: {0} × {1} px (Mos'tan önce; Kalıp Dolgu açıksa dolgusuyla)",
+            ["ExportChoiceImage"] = "Görsel: {0} × {1} px (Mos'tan önce; Görsel Ayarları ile)",
+            ["ExportEncodeFailed"] = "Görüntü bu boyutta kodlanamadı (JPEG en fazla 65.535 px; PNG deneyin)",
             ["AlertMosaicTitle"] = "Mozaiklestirme",
             ["AlertMosaicNoImage"] = "Gorsel yuklenmeden mozaiklestirme yapilamaz.\nOnce bir gorsel yukleyin.",
             ["AlertMosaicNoColors"] = "Aktif renk yok!\nEn az bir renk secili olmalidir.",
@@ -752,7 +753,8 @@ namespace mosair.Services
             // Alert dialogs
             ["AlertExportTitle"] = "Export",
             ["AlertExportNoMosaic"] = "No mosaic to export.\nLoad an image and run mosaicize first.",
-            ["ExportChoiceImage"] = "Image: {0} × {1} px (before Mos; with its padding when Mould Fill is on)",
+            ["ExportChoiceImage"] = "Image: {0} × {1} px (before Mos; with its adjustments)",
+            ["ExportEncodeFailed"] = "The image could not be encoded at this size (JPEG is at most 65,535 px; try PNG)",
             ["AlertMosaicTitle"] = "Mosaicize",
             ["AlertMosaicNoImage"] = "Cannot mosaicize without an image.\nLoad an image first.",
             ["AlertMosaicNoColors"] = "No active colors!\nAt least one color must be selected.",

@@ -383,7 +383,7 @@ namespace mosair.Services
         }
 
         // ----- Size tag: an image exported before Mos remembers its mosaic size, so opening it again brings back the
-        // same width (e.g. 156 cm with its Kalıp Dolgu padding) and the same stone grid. A JPEG gets it as a comment
+        // same width (e.g. 150 cm) and the same stone grid. A JPEG gets it as a comment
         // segment (COM) right after SOI, a PNG as a tEXt chunk right after IHDR; both read "mosairSize=W;C;R;". -----
         private const string SizeTagKey = "mosairSize=";
 

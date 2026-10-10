@@ -452,16 +452,21 @@ public partial class MainWindow : Window
         int h = Math.Min(whole.Height, (int)Math.Round(bottom * scale)) - y0;
         if (w <= 0 || h <= 0) return;
 
-        byte[] pixels = new byte[w * h * 4];
+        // The whole render is copied out and the image's rectangle cut from it here (CopyPixels with a source
+        // rectangle that does not start at 0,0 is not relied on).
+        byte[] all = new byte[whole.Width * whole.Height * 4];
         using (var rtb = new Avalonia.Media.Imaging.RenderTargetBitmap(whole, new Vector(96 * scale, 96 * scale)))
         {
             rtb.Render(imageScroller);
             unsafe
             {
-                fixed (byte* ptr = pixels)
-                    rtb.CopyPixels(new PixelRect(x0, y0, w, h), (IntPtr)ptr, pixels.Length, w * 4);
+                fixed (byte* ptr = all)
+                    rtb.CopyPixels(new PixelRect(0, 0, whole.Width, whole.Height), (IntPtr)ptr, all.Length, whole.Width * 4);
             }
         }
+        byte[] pixels = new byte[w * h * 4];
+        for (int row = 0; row < h; row++)
+            Buffer.BlockCopy(all, ((y0 + row) * whole.Width + x0) * 4, pixels, row * w * 4, w * 4);
         // Transparent pixels (if any) get the canvas colour.
         var bg = canvasBorder.Background is Avalonia.Media.ISolidColorBrush cb ? cb.Color
             : this.TryFindResource("BgCanvas", ActualThemeVariant, out var res) && res is Avalonia.Media.Color c
