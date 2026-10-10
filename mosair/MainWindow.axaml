@@ -1536,8 +1536,29 @@
                          FontFamily="{StaticResource MonoFont}"/>
             </StackPanel>
 
-            <!-- Coordinates -->
-            <StackPanel Spacing="3">
+            <!-- Stock (from the stock sheet read with the image/project) -->
+            <StackPanel Spacing="3" IsVisible="{Binding PropHasStock}">
+              <TextBlock Text="{Binding [PropStock], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
+              <ItemsControl ItemsSource="{Binding PropStockRows}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:PropStockRow">
+                    <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,2">
+                      <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource FgMuted}"
+                                 Margin="0,0,8,0" VerticalAlignment="Center"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" HorizontalAlignment="Right"
+                                 Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"
+                                 IsVisible="{Binding !Short}"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" HorizontalAlignment="Right"
+                                 Foreground="{DynamicResource Danger}" FontFamily="{StaticResource MonoFont}"
+                                 IsVisible="{Binding Short}"/>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </StackPanel>
+
+            <!-- Coordinates (a stone picked on the image; not for one picked in the catalog) -->
+            <StackPanel Spacing="3" IsVisible="{Binding PropHasCoords}">
               <TextBlock Text="{Binding [PropCoordinate], Source={x:Static svc:Loc.Instance}}" Classes="section-title"/>
               <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
                 <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding [PropPixel], Source={x:Static svc:Loc.Instance}}"

@@ -1333,11 +1333,12 @@ public partial class MainWindow : Window
             catalogListBox.SelectedIndex = -1;
     }
 
+    // A stone clicked in the catalog shows in the Properties panel; in pixel edit it is also the new colour.
     private void OnCatalogSelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
-        if (!PixelEditService.IsPixelEditActive) return;
         if (sender is not ListBox lb || lb.SelectedItem is not ViewModels.ColorItem item) return;
-        _vm.SetSourceFromCatalog(item);
+        _vm.SelectCatalogStone(item);
+        if (PixelEditService.IsPixelEditActive) _vm.SetSourceFromCatalog(item);
     }
 
     private void OnSelectStone(object? sender, RoutedEventArgs e)
