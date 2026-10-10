@@ -767,6 +767,20 @@
             </Button>
           </Panel>
           <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
+          <!-- Kalıba Tamamla: the photo is grown to whole moulds with one filler colour, saved, loaded and Mos'd.
+               Icon: the image (top left) inside a whole mould, the filler band on the right and at the bottom in the
+               theme's accent colour -->
+          <Button Classes="icon-btn" Click="OnCompleteMoulds" IsEnabled="{Binding CanRunMosaic}"
+                  ToolTip.Tip="{Binding [TipCompleteMoulds], Source={x:Static svc:Loc.Instance}}">
+            <Viewbox Width="18" Height="18">
+              <Canvas Width="24" Height="24">
+                <Path Fill="{DynamicResource AccentFill}" Data="M16,3 L21,3 L21,21 L3,21 L3,16 L16,16 Z"/>
+                <Path Stroke="{DynamicResource FgIcon}" StrokeThickness="1.6" StrokeJoin="Miter"
+                      Data="M3,3 L21,3 L21,21 L3,21 Z M16,3 L16,16 L3,16"/>
+              </Canvas>
+            </Viewbox>
+          </Button>
+          <Border Width="1" Height="24" Background="{DynamicResource BrdrMain}" Margin="3,0"/>
           <!-- Theme Toggle -->
           <Button Classes="icon-btn" Click="OnToggleTheme"
                   ToolTip.Tip="{Binding [TipTheme], Source={x:Static svc:Loc.Instance}}">
@@ -957,12 +971,10 @@
           </StackPanel>
         </Border>
 
-        <!-- Catalog bar: a two-part "select all | clear all" control on the left, Kalıba Tamamla on the right
-             (22 px, 10 px text) -->
+        <!-- Catalog bar: a two-part "select all | clear all" control (22 px, 10 px text) -->
         <Border DockPanel.Dock="Top" Background="{DynamicResource BgBar}" Padding="6,4"
                 BorderBrush="{DynamicResource BrdrMain}" BorderThickness="0,0,0,1">
-          <Grid ColumnDefinitions="Auto,*,Auto">
-          <Border Grid.Column="0" HorizontalAlignment="Left" Background="{DynamicResource BgInput}" BorderBrush="{DynamicResource BrdrMain}"
+          <Border HorizontalAlignment="Left" Background="{DynamicResource BgInput}" BorderBrush="{DynamicResource BrdrMain}"
                   BorderThickness="1" CornerRadius="4" Height="22" ClipToBounds="True">
             <StackPanel Orientation="Horizontal">
               <Button Content="{Binding [BtnSelectAll], Source={x:Static svc:Loc.Instance}}" Click="OnSelectAll"
@@ -976,12 +988,6 @@
                       Background="Transparent" Foreground="{DynamicResource FgSecondary}" BorderThickness="0" CornerRadius="0"/>
             </StackPanel>
           </Border>
-          <!-- Kalıba Tamamla: the photo is grown to whole moulds with one filler colour, saved, loaded and Mos'd -->
-          <Button Grid.Column="2" Content="{Binding [BtnCompleteMoulds], Source={x:Static svc:Loc.Instance}}" Click="OnCompleteMoulds"
-                  IsEnabled="{Binding CanRunMosaic}" ToolTip.Tip="{Binding [TipCompleteMoulds], Source={x:Static svc:Loc.Instance}}"
-                  FontSize="10" Padding="8,0" Height="22" VerticalContentAlignment="Center" CornerRadius="4" BorderThickness="1"
-                  Background="{DynamicResource BgInput}" Foreground="{DynamicResource FgSecondary}" BorderBrush="{DynamicResource BrdrMain}"/>
-          </Grid>
         </Border>
 
         <!-- 3 Column layout -->

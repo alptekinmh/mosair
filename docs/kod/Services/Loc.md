@@ -64,7 +64,7 @@ Her iki sözlükte de **326** anahtar vardır ve anahtar kümeleri birebir aynı
 | `Col*` | 3 | Palet sütun başlıkları |
 | `Info*` | 2 | Sol paneldeki taş/kalıp kartının satır adları: `InfoStonesLabel` ("Taş" / "Stones") ve `InfoMouldsLabel` ("Kalıp" / "Moulds"). `InfoStones`, `InfoMoulds` ve `InfoOriginal` kaldırıldı. |
 | `Warn*` | 1 | `WarnOk` ("Anladım" / "OK") |
-| `Btn*` | 4 | Katalog satırındaki **Kalıba Tamamla** (`BtnCompleteMoulds`, Araçlar menüsünde de) ve Tümünü Seç \| Tümünü Kaldır düğmesi (`BtnSelectAll` "Tümünü Seç", `BtnDeselectAll` "Tümünü Kaldır"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |
+| `Btn*` | 4 | **Kalıba Tamamla** (`BtnCompleteMoulds`: Araçlar menüsü; araç çubuğu ikonunun ipucu `TipCompleteMoulds`) ve Tümünü Seç \| Tümünü Kaldır düğmesi (`BtnSelectAll` "Tümünü Seç", `BtnDeselectAll` "Tümünü Kaldır"), durum çubuğundaki İptal düğmesi (`BtnCancel`) |
 | `Mould*` | 7 | Kalıba Tamamla durum metinleri: `MouldWorking`, `MouldAlreadyWhole`, `MouldNoColour`, `MouldNoStockFiller`, `MouldTooLarge`, `MouldFileInUse`, `MouldDone` ("Kalıba tamamlandı: {0} × {1} cm, dolgu {2}"); ipucu `TipCompleteMoulds` |
 | `Size*` | 3 | Dosya boyutu biçimleri (`SizeKB`, `SizeMB`, `SizeGB`; Drive'dan Aç kartları `SizeKB`/`SizeMB` kullanır) |
 

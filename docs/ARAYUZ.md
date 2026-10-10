@@ -168,6 +168,7 @@ Soldan sağa:
 | Taş kaydırıcısı ──▲── (Optimum'un sağında) | Taş çeşidi sayısı (sağ tık: önerilen sayı) | Taş çeşidi sayısını değiştirir; seçili sayı üçgenin üstünde yazar | **Sağ tık:** önerilen sayıya döner | Optimum işaretliyken ve Optimum ile yapılmış bir Mos'tan sonra görünür |
 | Ekran görüntüsü (kamera, dışa aktarmanın solunda) | Ekran görüntüsü: görsel alanında şu an görünen kısmı PNG olarak mosairEXPORT klasörüne kaydeder | Görsel alanında o an ne görünüyorsa (mozaik ya da yüklenen görsel, aynı zoom ve ızgara dahil) yakalar; yalnızca görselin kendisi kaydedilir: görselin çevresindeki boş tuval alanı, mini harita ve kaydırma çubukları girmez. Görsel pencereden küçükse dosya da o kadar küçük olur; yakınlaştırılmışsa görünen kısım kaydedilir. Yüksek çözünürlüklü ekranlarda ekranın gerçek piksel yoğunluğuyla kaydedilir. Dosya: `mosairEXPORT/tarih_saat__görselAdı__ekran.png`; durum çubuğu dosya adını yazar ve sağ altta **Aç** / **Klasörü aç** düğmeli bildirim çıkar ([Kaydedilen dosya bildirimi](#kaydedilen-dosya-bildirimi)). | — | Görsel yokken pasif |
 | mosairEXPORT (sağda) | Dışa aktar: mosairEXPORT / mosairEXPORT As, görüntü kalitesi seçerek (boyut bilgisiyle). Sağ tık: klasörü aç | Liste açar: **mosairEXPORT ▸** / **mosairEXPORT As ▸**, her birinde görüntü kalitesi seçenekleri ([§13](#13-dışa-aktarma-mosairexport)); tıklama doğrudan kaydetmez | **Sağ tık: klasörü açar** | Mozaik yokken pasif; kaydederken ok animasyonu oynar |
+| Kalıba Tamamla (dışa aktar ile tema arasında; kare içinde vurgu renginde L bandı) | Fotoğrafı tam kalıba tamamlar | Fotoğrafı tam kalıba tamamlar, mosairPROJECT'e kaydeder, yeniden yükleyip Mos yapar ([Kalıba Tamamla](#kalıba-tamamla)) | — | Görsel yokken ya da iş sürerken pasif |
 | ☾ / ☀ | Tema Değiştir | Seçili renk temasının koyu/açık hâli (hatırlanır) | — | Renk teması: **Görünüm → Tema** |
 | 🌐 | Dil | Açılır liste: TR Türkçe / EN English | — | |
 
@@ -188,11 +189,13 @@ Stok işlemi sürerken yedi stok düğmesi (beş ikon ve iki **▾** oku) ile **
 
 Orijinal görselin piksel ölçüsü artık burada yazmaz; **Özellikler** panelindeki görsel bilgilerinde (Çözünürlük) görünür.
 
-### Katalog satırı: Tümünü Seç / Tümünü Kaldır, Kalıba Tamamla
+### Katalog satırı: Tümünü Seç / Tümünü Kaldır
 
-Katalog sütunlarının üstündeki satırda solda tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi vardır (22 px yükseklik, 10 px yazı): katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır). Sağda **Kalıba Tamamla** düğmesi vardır (aynı boyutta; ayrıca **Araçlar → Kalıba Tamamla**; görsel yokken ya da bir iş sürerken pasif).
+Katalog sütunlarının üstündeki satırda solda tek parça, ortası çizgiyle ayrılmış **Tümünü Seç | Tümünü Kaldır** düğmesi vardır (22 px yükseklik, 10 px yazı): katalogdaki bütün taşları işaretler ya da işaretleri kaldırır (ipuçları ve **Düzenle** menüsünde: Tüm Renkleri Seç / Tüm Renkleri Kaldır).
 
 #### Kalıba Tamamla
+
+**Kalıba Tamamla** araç çubuğunda, dışa aktar ikonu ile tema düğmesinin arasındaki ikondur: bir kare (kalıp) içinde sol üstte görsel, sağda ve altta temanın vurgu rengiyle dolgu bandı. Ayrıca **Araçlar → Kalıba Tamamla**; görsel yokken ya da bir iş sürerken pasif.
 
 Robot yalnızca tam kalıp üretir (26 × 26 taş = 31,2 cm). **Kalıba Tamamla**, fotoğrafı Photoshop'ta tuvali büyütüp yeni alanı tek renkle doldurmak ve sonra yeniden **Görsel Yükle** yapmak gibi, kendiliğinden tam kalıba tamamlar:
 

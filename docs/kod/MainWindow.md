@@ -77,9 +77,8 @@ Window
        │   │   (ImageLoaded iken; BgInput, CornerRadius 6): Grid "Auto,10,Auto,22,Auto,22,Auto" (sayılar etiketin hemen ardından başlar) × 2 satır —
        │   │   InfoStonesLabel InfoStoneCols × InfoStoneRows = InfoStoneTotal / InfoMouldsLabel InfoMouldCols × InfoMouldRows = InfoMouldTotal
        │   │   (12 px mono, sayılar sağa hizalı, toplam SemiBold)
-       │   ├─ Katalog satırı (Border BgBar, Padding 6,4; Grid "Auto,*,Auto"): solda Border (BgInput, CornerRadius 4, 22 px)
-       │   │     içinde BtnSelectAll | 1 px çizgi | BtnDeselectAll (saydam, 10 px; ipuçları MenuSelectAll / MenuDeselectAll);
-       │   │     sağda BtnCompleteMoulds düğmesi (OnCompleteMoulds, IsEnabled = CanRunMosaic, ipucu TipCompleteMoulds, 22 px)
+       │   ├─ Katalog satırı (Border BgBar, Padding 6,4): solda Border (BgInput, CornerRadius 4, 22 px)
+       │   │     içinde BtnSelectAll | 1 px çizgi | BtnDeselectAll (saydam, 10 px; ipuçları MenuSelectAll / MenuDeselectAll)
        │   └─ 3 sütun (başlıklar ColCatalog / ColMatch / ColAssigned)
        │       ├─ catalogListBox (CatalogColors): onay kutusu + renk + kod/ad + stok kg
        │       ├─ paletteScroll (PaletteColors): eşleşen renk kareleri
@@ -227,7 +226,7 @@ Window
 | `RefreshExportChoices()` | Flyout `Opening`, `menuExport`/`menuExportAs` `SubmenuOpened` | `UpdateExportChoiceTexts()`, ardından tahminleri başlatır: `_vm.RefreshExportEstimatesAsync()` (beklenmez). |
 | `UpdateExportChoiceTexts()` | `RefreshExportChoices`, `_vm.ExportEstimatesChanged` | Her seçeneğin başlığını `_vm.ExportChoiceLabel(quality, saveAs)` yapar (piksel boyutu + tahmini dosya boyutu; "N" gösterilmez). Mos'tan önce yalnızca varsayılan kalitenin seçeneği görünür (metni görselin boyutu), diğerleri gizlenir. |
 | `OnExportPointerPressed` | `exportBtn`'i saran `Panel` | Sağ tıkta mosairEXPORT klasörünü işletim sisteminin dosya yöneticisinde açar (`Process.Start`, `UseShellExecute`). Sol tıkta listeyi düğmenin kendi `Flyout`'u açar. |
-| `OnCompleteMoulds` | Katalog satırındaki **Kalıba Tamamla**, **Araçlar → Kalıba Tamamla** | Masaüstü/mosairPROJECT'i oluşturur (olmazsa `ShowExportFolderError`), `_vm.CompleteToMouldsAsync(projectRoot)` (görseli ve orijinali `mosairPROJECT/<ad>_kalip/`'e kaydeder); yol dönerse `_vm.LoadImage(path, keepOptimalK: true)`, sığdırma, `_vm.RunMosaicAsync()`, yeniden sığdırma ve Mos yapıldıysa (`MosaicDone`, `CanSaveProject`) `SaveToProjectFolderAsync()` ile proje aynı klasöre kaydedilir, sonra `_vm.ShowMouldNote()`. |
+| `OnCompleteMoulds` | Araç çubuğundaki Kalıba Tamamla ikonu (dışa aktar ile tema arasında; Viewbox 18 px: `AccentFill` L bandı + `FgIcon` çerçeve, IsEnabled = CanRunMosaic, ipucu TipCompleteMoulds), **Araçlar → Kalıba Tamamla** | Masaüstü/mosairPROJECT'i oluşturur (olmazsa `ShowExportFolderError`), `_vm.CompleteToMouldsAsync(projectRoot)` (görseli ve orijinali `mosairPROJECT/<ad>_kalip/`'e kaydeder); yol dönerse `_vm.LoadImage(path, keepOptimalK: true)`, sığdırma, `_vm.RunMosaicAsync()`, yeniden sığdırma ve Mos yapıldıysa (`MosaicDone`, `CanSaveProject`) `SaveToProjectFolderAsync()` ile proje aynı klasöre kaydedilir, sonra `_vm.ShowMouldNote()`. |
 | `OnSelectAll` | Düzen menüsü, sol paneldeki BtnSelectAll | `_vm.SetAllColors(false)` (hiçbir renk hariç değil). |
 | `OnDeselectAll` | Düzen menüsü, sol paneldeki BtnDeselectAll | `_vm.SetAllColors(true)`. |
 | `OnResetSize` | `menuFitToScreen`, durum çubuğundaki sığdır düğmesi, Ctrl/⌘+0 | `_vm.FitToWindow(imageScroller.Bounds…)`. |
