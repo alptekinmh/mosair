@@ -4,6 +4,16 @@
 
 Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakılanlar listelenir. Ayrıntılı kullanım: [ARAYUZ.md](ARAYUZ.md); tema anahtarları: [kod/App.md](kod/App.md).
 
+## 2026-10-10: Genel test düzeltmeleri
+
+- Bir Mos ya da stok düzeltmesi sürerken yeni görsel/proje açılırsa önceki mozaiğin donmuş görüntüsü ve "Stoğa göre düzeltiliyor…" sayacı artık ekranda kalmaz.
+- Arka arkaya stok düzeltmelerinde saniye sayacı her düzeltmede sıfırdan başlar; aşama sayısı geriye gitmez.
+- Ölçü etiketi yalnızca yüklenen görsele aittir: proje açılınca ya da görsel yüklenemezse kullanılmaz; küçük taş ızgaralarında yuvarlama yüzünden reddedilmez.
+- Mos'tan önce dışa aktarma, son kaydırıcı değişikliğini de dosyaya katar; JPEG'in sınırını aşan boyutta anlaşılır bir hata verir.
+- Katalogda hiç renk işaretli değilken Mos'a basmak mozaiği, stok işaretlerini ve WPF bilgisini değiştirmez.
+- Dışa aktarma listesindeki Mos öncesi seçenekten eski Kalıp Dolgu sözü kaldırıldı.
+- Ekran görüntüsünde kırpma bellekte yapılır (Avalonia'nın kısmi kopyalamasına güvenilmez).
+
 ## 2026-10-09: Kalıba Tamamla
 
 - Katalog satırının sağına **Kalıba Tamamla** düğmesi (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; fotoğraf dosya kaydedilmeden yeniden yüklenir ve o anki ayarlarla Mos yapılır (saklamak için proje kaydı ya da dışa aktarma). Projeye ek bilgi yazılmaz.

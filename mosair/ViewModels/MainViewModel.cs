@@ -225,10 +225,16 @@ namespace mosair.ViewModels
         public bool CanUseStock => !_isStockBusy;
 
         // Same column header the sheet uses for this mosaic: picture name first, then project file name.
+        // The name of the image's own column in the stock sheet. An image completed to whole moulds ("x_kalip")
+        // is still the same mosaic as "x".
+        private const string MouldSuffix = "_kalip";
         private static string StockProjectName()
         {
             if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName))
-                return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
+            {
+                string n = System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
+                return n.EndsWith(MouldSuffix, StringComparison.Ordinal) ? n[..^MouldSuffix.Length] : n;
+            }
             if (!string.IsNullOrEmpty(ProjectService.CurrentFileName))
                 return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentFileName);
             return "";
@@ -1178,25 +1184,32 @@ public bool UseLab
 
         private void ShowStockFitProgress(int done, int total, int stage)
         {
-            _stockFitDone = done; _stockFitTotal = total; _stockFitStage = stage;
-            if (stage == 2)
+            if (stage == 2) { StopStockFitProgress(); return; }
+            // A new fit (0 levels done, levels stage) starts its own count.
+            bool start = stage == 0 && done == 0;
+            if (start || _stockFitClock == null)
             {
-                _stockFitTimer?.Stop();
-                _stockFitClock = null;
-                return;
-            }
-            if (_stockFitClock == null)
-            {
+                _stockFitDone = 0;
                 _stockFitClock = Stopwatch.StartNew();
                 _stockFitTimer ??= new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) =>
                 {
                     // The fit ended without a "done" (cancelled, failed): stop counting.
-                    if (!IsProcessing) { _stockFitTimer!.Stop(); _stockFitClock = null; return; }
+                    if (!IsProcessing) { StopStockFitProgress(); return; }
                     UpdateStockFitText();
                 });
                 _stockFitTimer.Start();
             }
+            // Levels finish on several threads; their posts may arrive out of order.
+            _stockFitDone = Math.Max(_stockFitDone, done);
+            _stockFitTotal = total;
+            _stockFitStage = stage;
             UpdateStockFitText();
+        }
+
+        private void StopStockFitProgress()
+        {
+            _stockFitTimer?.Stop();
+            _stockFitClock = null;
         }
 
         private void UpdateStockFitText()
@@ -2192,7 +2205,7 @@ public bool UseLab
         }
 
         public bool CanRunMosaic => ImageLoaded && !IsProcessing && !IsExporting;
-        // A mosaic, or before Mos the image itself (with its Kalıp Dolgu padding when that is on).
+        // A mosaic, or before Mos the image itself (with its Görsel Ayarları).
         public bool CanExport => (MosaicDone || (ImageLoaded && MosaicData.inputBitmap != null)) && !IsProcessing && !IsExporting;
 
         public ObservableCollection<ColorItem> CatalogColors { get; } = new();
@@ -2251,6 +2264,7 @@ public bool UseLab
             _stoneRedoStack.Clear();
             StoneTextureService.Reset();
 
+            _sizeTag = null;
             var bmp = MosaicEngine.LoadImage(path);
             if (bmp != null)
             {
@@ -2259,9 +2273,14 @@ public bool UseLab
                 // An image exported by mosair before Mos opens with the width it was exported with (e.g. 156 cm).
                 _sizeTag = ImageService.ReadSizeTag(path);
                 if (!keepOptimalK) _chosenOptimalK = null;   // a new image starts from the suggested Optimum count
-                if (_sizeTag != null && Math.Abs((double)bmp.Height / bmp.Width - (double)_sizeTag.Rows / _sizeTag.Columns)
-                        > 0.03 * _sizeTag.Rows / _sizeTag.Columns)
-                    _sizeTag = null;   // the picture was changed since (other aspect)
+                // The picture was changed since (other aspect): the tag is dropped. The allowance covers the
+                // rounding of a small stone grid (half a stone on each side) plus 3 %.
+                if (_sizeTag != null)
+                {
+                    double tagRate = (double)_sizeTag.Rows / _sizeTag.Columns;
+                    double slack = 0.03 + 0.5 / _sizeTag.Rows + 0.5 / _sizeTag.Columns;
+                    if (Math.Abs((double)bmp.Height / bmp.Width - tagRate) > slack * tagRate) _sizeTag = null;
+                }
                 if (_sizeTag != null)
                 {
                     WidthCm = _sizeTag.WidthCm;
@@ -2375,6 +2394,17 @@ public bool UseLab
             bool frozen = MosaicDone && !_showingRaw;
             if (frozen) MosaicFrozen = true;
 
+            // No colour ticked: nothing is started or changed (the mosaic, its stock marks and WPF state stay).
+            ColorCatalogService.SetActiveColors();
+            int activeCount = MosaicData.arRGB.Count;
+            if (activeCount == 0)
+            {
+                StatusText = Loc.Get("StatusNoColors");
+                if (frozen) MosaicFrozen = false;
+                Alert(Loc.Get("AlertMosaicTitle"), Loc.Get("AlertMosaicNoColors"));
+                return;
+            }
+
             IsProcessing = true;
             Progress = 0;
             MosaicDone = false;
@@ -2386,19 +2416,6 @@ public bool UseLab
             // A new mosaic drops the red dots and the "remaining" kg, which belonged to the old stone counts.
             // The kg on hand (loaded at start-up or by Stok Çek) does not depend on the mosaic and stays.
             foreach (var item in CatalogColors) { item.StockShort = false; item.RemainingKg = null; }
-
-            ColorCatalogService.SetActiveColors();
-            int activeCount = MosaicData.arRGB.Count;
-
-            if (activeCount == 0)
-            {
-                StatusText = Loc.Get("StatusNoColors");
-                IsProcessing = false;
-                if (hadMosaic) MosaicDone = true;   // nothing was changed: the mosaic is still there
-                if (frozen) MosaicFrozen = false;
-                Alert(Loc.Get("AlertMosaicTitle"), Loc.Get("AlertMosaicNoColors"));
-                return;
-            }
 
             StatusText = Loc.Fmt("StatusActiveColors", activeCount, MosaicData.arRGBAll.Count);
 
@@ -2732,6 +2749,7 @@ public bool UseLab
             OnPropertyChanged(nameof(StoneRows));
 
             // An opened project has no Optimum analysis; hide the stone slider left from an earlier Optimum Mos.
+            _sizeTag = null;   // its stone grid comes from the project, not from an image loaded earlier
             _chosenOptimalK = null;
             _lastRunOptimal = false;
             _stockOnHand = null;
@@ -3033,6 +3051,9 @@ public bool UseLab
             // With Stoğa göre the filler must have stock for the whole padding, or the stock fit would spread the
             // padding over several stones.
             int need = C2 * R2 - C * Rr;
+            // The stock is read with the image in the background; wait for it if it is not there yet.
+            if (UseStockAware && _loadedStock == null && !string.IsNullOrEmpty(StockSheetService.LoadConfig().SheetId))
+                await RefreshStockAsync();
             var stock = UseStockAware ? _loadedStock : null;
             Func<int, bool>? hasStock = stock == null ? null
                 : id => stock.TryGetValue(id, out var st) && st.Capacity >= need;
@@ -3044,13 +3065,22 @@ public bool UseLab
                 return null;
             }
             int w2 = (int)Math.Round((double)img.Width * C2 / C), h2 = (int)Math.Round((double)img.Height * R2 / Rr);
+            // A very small width on a large photo would grow it beyond one bitmap (e.g. 2 stones → 26).
+            if ((long)w2 * h2 > ImageService.MaxBitmapPixels)
+            {
+                StatusText = Loc.Fmt("MouldTooLarge", w2.ToString("N0"), h2.ToString("N0"));
+                return null;
+            }
             double widthCm = C2 * 12 / 10.0, heightCm = R2 * 12 / 10.0;
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             string source = ProjectService.CurrentPictureFileName ?? "";
             string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
-            string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mosair");
-            string newPath = System.IO.Path.Combine(tempDir,
-                $"{baseName}__kalip_{widthCm.ToString("0.#", inv)}x{heightCm.ToString("0.#", inv)}.png");
+            // Its own temp folder; the name is the image's with "_kalip" (once), so a project save next to an earlier
+            // one does not meet the unpadded picture's file. The stock sheet column ignores the suffix
+            // (StockProjectName).
+            if (baseName.EndsWith(MouldSuffix, StringComparison.Ordinal)) baseName = baseName[..^MouldSuffix.Length];
+            string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mosair", Guid.NewGuid().ToString("N"));
+            string newPath = System.IO.Path.Combine(tempDir, baseName + MouldSuffix + ".png");
             var fill = new SKColor((byte)filler.r, (byte)filler.g, (byte)filler.b);
             var tag = new ImageService.SizeTag(widthCm, C2, R2);
             IsProcessing = true;
@@ -3067,7 +3097,8 @@ public bool UseLab
                             canvas.Clear(fill);
                             canvas.DrawBitmap(img, 0, 0);
                         }
-                        using var data = bmp.Encode(SKEncodedImageFormat.Png, 100);
+                        using var data = bmp.Encode(SKEncodedImageFormat.Png, 100)
+                            ?? throw new InvalidOperationException(Loc.Get("ExportEncodeFailed"));
                         // The new image opens again at its whole-mould width and stone grid (size tag).
                         System.IO.File.WriteAllBytes(newPath, ImageService.AddSizeTag(data.ToArray(), tag));
                     }
@@ -3094,6 +3125,7 @@ public bool UseLab
         public void ShowMouldNote()
         {
             if (_mouldNote.Length == 0) return;
+            if (!MosaicDone) { _mouldNote = ""; return; }   // the Mos did not run: the note would mislead
             StatusText = _mouldNote + " · " + StatusText;
             _mouldNote = "";
         }
@@ -3178,7 +3210,9 @@ public bool UseLab
         // JPEG quality 95, or PNG.
         private async Task ExportSourceImageAsync(string path)
         {
-            var img = MosaicData.inputBitmap!;
+            await FlushAdjustmentsAsync();   // a slider change still waiting goes into the file too
+            var img = MosaicData.inputBitmap;
+            if (img == null) return;
             var (w, h) = ImageExportSize();
             bool jpeg = !path.EndsWith(".png", StringComparison.OrdinalIgnoreCase);
             string name = System.IO.Path.GetFileName(path);
@@ -3195,7 +3229,8 @@ public bool UseLab
                         canvas.Clear(jpeg ? SKColors.White : SKColors.Transparent);
                         canvas.DrawBitmap(img, 0, 0);
                     }
-                    using var data = bmp.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 95);
+                    using var data = bmp.Encode(jpeg ? SKEncodedImageFormat.Jpeg : SKEncodedImageFormat.Png, 95)
+                        ?? throw new InvalidOperationException(Loc.Get("ExportEncodeFailed"));
                     // The file remembers its size, so opening it again gives the same width and stone grid.
                     System.IO.File.WriteAllBytes(path, ImageService.AddSizeTag(data.ToArray(), tag));
                 });
@@ -3452,6 +3487,10 @@ public bool UseLab
         private int StartNewContent()
         {
             _optimalApplyCts?.Cancel();
+            // A job still running for the old content keeps neither its still picture of the old mosaic nor its
+            // stock-fit counter on screen (its result is dropped anyway).
+            MosaicFrozen = false;
+            StopStockFitProgress();
             return ++_contentVersion;
         }
 
