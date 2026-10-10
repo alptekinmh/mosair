@@ -3028,12 +3028,13 @@ public bool UseLab
         // Like widening the canvas in Photoshop and filling the new area with one colour: the image (with its
         // Görsel Ayarları) is grown on the right and at the bottom so that its stones reach whole moulds of 26
         // (100 cm = 83 stones → 104 stones = 124.8 cm; 1000 px → 1000 × 104 / 83 ≈ 1253 px), the new pixels get one
-        // filler colour. Nothing is saved for the user: the new image (PNG, so the colour stays exact) is only
-        // written to the temp folder, so it can be loaded like Görsel Yükle and later saved with the project (as its
-        // picture) or exported. MainWindow loads it and runs Mos with the current settings. Nothing about it goes
-        // into the project: the project simply uses the new image.
+        // filler colour. The new image (PNG, so the colour stays exact) is saved at once in the project folder,
+        // Masaüstü/mosairPROJECT/<name>_kalip/<name>_kalip.png, with a copy of the original in its "orijinal"
+        // subfolder; Kaydet later puts the project (.mos) into the same folder. MainWindow loads the image like
+        // Görsel Yükle and runs Mos with the current settings. Nothing about it goes into the project file: the
+        // project simply uses the new image.
         // Returns the new image's path, or null (nothing to do or not possible; the status bar says why).
-        public async Task<string?> CompleteToMouldsAsync()
+        public async Task<string?> CompleteToMouldsAsync(string projectRoot)
         {
             if (!ImageLoaded || IsProcessing || IsExporting) return null;
             await FlushAdjustmentsAsync();
@@ -3075,12 +3076,18 @@ public bool UseLab
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             string source = ProjectService.CurrentPictureFileName ?? "";
             string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
-            // Its own temp folder; the name is the image's with "_kalip" (once), so a project save next to an earlier
-            // one does not meet the unpadded picture's file. The stock sheet column ignores the suffix
-            // (StockProjectName).
-            if (baseName.EndsWith(MouldSuffix, StringComparison.Ordinal)) baseName = baseName[..^MouldSuffix.Length];
-            string tempDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "mosair", Guid.NewGuid().ToString("N"));
-            string newPath = System.IO.Path.Combine(tempDir, baseName + MouldSuffix + ".png");
+            // The name is the image's with "_kalip" (once), so it does not meet the unpadded picture's own project
+            // folder and file. The stock sheet column ignores the suffix (StockProjectName).
+            bool fromCompleted = baseName.EndsWith(MouldSuffix, StringComparison.Ordinal);
+            if (fromCompleted) baseName = baseName[..^MouldSuffix.Length];
+            string folder = System.IO.Path.Combine(projectRoot, baseName + MouldSuffix);
+            string newPath = System.IO.Path.Combine(folder, baseName + MouldSuffix + ".png");
+            // The original as loaded (not when the image is itself an earlier completed one: its original is
+            // already kept).
+            string? origPath = !fromCompleted && System.IO.File.Exists(source)
+                ? System.IO.Path.Combine(folder, ProjectService.OriginalFolder, System.IO.Path.GetFileName(source)) : null;
+            NewImageWatcher.Ignore(newPath);
+            if (origPath != null) NewImageWatcher.Ignore(origPath);
             var fill = new SKColor((byte)filler.r, (byte)filler.g, (byte)filler.b);
             var tag = new ImageService.SizeTag(widthCm, C2, R2);
             IsProcessing = true;
@@ -3089,7 +3096,7 @@ public bool UseLab
             {
                 await Task.Run(() =>
                 {
-                    System.IO.Directory.CreateDirectory(tempDir);
+                    System.IO.Directory.CreateDirectory(folder);
                     using (var bmp = new SKBitmap(new SKImageInfo(w2, h2, SKColorType.Rgba8888, SKAlphaType.Premul)))
                     {
                         using (var canvas = new SKCanvas(bmp))
@@ -3101,6 +3108,11 @@ public bool UseLab
                             ?? throw new InvalidOperationException(Loc.Get("ExportEncodeFailed"));
                         // The new image opens again at its whole-mould width and stone grid (size tag).
                         System.IO.File.WriteAllBytes(newPath, ImageService.AddSizeTag(data.ToArray(), tag));
+                    }
+                    if (origPath != null)
+                    {
+                        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(origPath)!);
+                        System.IO.File.Copy(source, origPath, overwrite: true);
                     }
                 });
             }
@@ -3117,6 +3129,7 @@ public bool UseLab
             _mouldNote = Loc.Fmt("MouldDone", widthCm.ToString("0.0", inv), heightCm.ToString("0.0", inv),
                 $"#{filler.ID} {filler.codeName}");
             if (!stockOk) _mouldNote += " · " + Loc.Fmt("MouldNoStockFiller", need.ToString("N0"));
+            FileSaved?.Invoke(newPath, SavedFileKind.Export);
             return newPath;
         }
 

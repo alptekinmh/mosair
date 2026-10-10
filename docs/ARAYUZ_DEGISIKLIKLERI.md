@@ -21,7 +21,7 @@ Bu notta 2026-10-07'de arayüzde değişen her şey ve bilerek sonraya bırakıl
 
 ## 2026-10-09: Kalıba Tamamla
 
-- Katalog satırının sağına **Kalıba Tamamla** düğmesi (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; fotoğraf dosya kaydedilmeden yeniden yüklenir ve o anki ayarlarla Mos yapılır (saklamak için proje kaydı ya da dışa aktarma). Projeye ek bilgi yazılmaz.
+- Katalog satırının sağına **Kalıba Tamamla** düğmesi (ve **Araçlar → Kalıba Tamamla**) eklendi: fotoğraf (Görsel Ayarları'yla) sağa ve alta bir üst tam kalıba kadar büyütülür, yeni alan kenar kalıplarında olmayan en uzak işaretli katalog renginde doldurulur; yeni fotoğraf `Masaüstü/mosairPROJECT/<ad>_kalip/` klasörüne (orijinali `orijinal/` alt klasörüne) kaydedilir, fotoğraf yeniden yüklenir ve o anki ayarlarla Mos yapılır; Kaydet projeyi aynı klasöre koyar. Projeye ek bilgi yazılmaz.
 
 ## 2026-10-09: Görsel Ayarları kapalı başlar; taş sayısında nokta
 

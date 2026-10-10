@@ -423,11 +423,19 @@ public partial class MainWindow : Window
         _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
     }
 
-    // Kalıba Tamamla (catalog bar, Araçlar menu): the view model makes the whole-mould image; it is then loaded
+    // Kalıba Tamamla (catalog bar, Araçlar menu): the view model saves the whole-mould image in mosairPROJECT; it is then loaded
     // like Görsel Yükle (keeping the chosen Optimum count) and Mos'd with the current settings.
     private async void OnCompleteMoulds(object? sender, RoutedEventArgs e)
     {
-        var path = await _vm.CompleteToMouldsAsync();
+        string projectRoot;
+        try
+        {
+            projectRoot = System.IO.Path.Combine(
+                System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop), "mosairPROJECT");
+            System.IO.Directory.CreateDirectory(projectRoot);
+        }
+        catch (Exception ex) { await ShowExportFolderError(ex); return; }
+        var path = await _vm.CompleteToMouldsAsync(projectRoot);
         if (path == null) return;
         StopZoomGlide();
         StopPanGlide();
