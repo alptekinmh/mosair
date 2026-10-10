@@ -228,12 +228,15 @@ namespace mosair.ViewModels
         // The name of the image's own column in the stock sheet. An image completed to whole moulds ("x_kalip")
         // is still the same mosaic as "x".
         private const string MouldSuffix = "_kalip";
+        // "x_kalip", "x_kalip_2", … → "x" (the image's own name before Kalıba Tamamla).
+        private static readonly System.Text.RegularExpressions.Regex MouldSuffixRx = new(@"_kalip(_\d+)?$");
+        private static string WithoutMouldSuffix(string name) => MouldSuffixRx.Replace(name, "");
         private static string StockProjectName()
         {
             if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName))
             {
                 string n = System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
-                return n.EndsWith(MouldSuffix, StringComparison.Ordinal) ? n[..^MouldSuffix.Length] : n;
+                return WithoutMouldSuffix(n);
             }
             if (!string.IsNullOrEmpty(ProjectService.CurrentFileName))
                 return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentFileName);
@@ -3076,16 +3079,24 @@ public bool UseLab
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             string source = ProjectService.CurrentPictureFileName ?? "";
             string baseName = source.Length > 0 ? System.IO.Path.GetFileNameWithoutExtension(source) : "mosair";
-            // The name is the image's with "_kalip" (once), so it does not meet the unpadded picture's own project
-            // folder and file. The stock sheet column ignores the suffix (StockProjectName).
-            bool fromCompleted = baseName.EndsWith(MouldSuffix, StringComparison.Ordinal);
-            if (fromCompleted) baseName = baseName[..^MouldSuffix.Length];
-            string folder = System.IO.Path.Combine(projectRoot, baseName + MouldSuffix);
-            string newPath = System.IO.Path.Combine(folder, baseName + MouldSuffix + ".png");
-            // The original as loaded (not when the image is itself an earlier completed one: its original is
-            // already kept).
-            string? origPath = !fromCompleted && System.IO.File.Exists(source)
-                ? System.IO.Path.Combine(folder, ProjectService.OriginalFolder, System.IO.Path.GetFileName(source)) : null;
+            // Every run is a new save: "<name>_kalip", then "<name>_kalip_2", "_3", … (folder and file), so an earlier
+            // one is never replaced. The stock sheet column ignores the suffix (StockProjectName).
+            string stripped = WithoutMouldSuffix(baseName);
+            bool fromCompleted = stripped != baseName;
+            baseName = stripped;
+            string saveName = baseName + MouldSuffix;
+            for (int n = 2; System.IO.Directory.Exists(System.IO.Path.Combine(projectRoot, saveName)); n++)
+                saveName = $"{baseName}{MouldSuffix}_{n}";
+            string folder = System.IO.Path.Combine(projectRoot, saveName);
+            string newPath = System.IO.Path.Combine(folder, saveName + ".png");
+            // The original: the loaded file, or — when the image is itself an earlier completed one — the original
+            // kept in that save's "orijinal" folder.
+            string? origSource = !fromCompleted ? source
+                : System.IO.Directory.Exists(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source) ?? "", ProjectService.OriginalFolder))
+                    ? System.IO.Directory.GetFiles(System.IO.Path.Combine(System.IO.Path.GetDirectoryName(source)!, ProjectService.OriginalFolder)).FirstOrDefault()
+                    : null;
+            string? origPath = origSource != null && System.IO.File.Exists(origSource)
+                ? System.IO.Path.Combine(folder, ProjectService.OriginalFolder, System.IO.Path.GetFileName(origSource)) : null;
             NewImageWatcher.Ignore(newPath);
             if (origPath != null) NewImageWatcher.Ignore(origPath);
             var fill = new SKColor((byte)filler.r, (byte)filler.g, (byte)filler.b);
@@ -3121,7 +3132,7 @@ public bool UseLab
                     if (origPath != null)
                     {
                         System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(origPath)!);
-                        System.IO.File.Copy(source, origPath, overwrite: true);
+                        System.IO.File.Copy(origSource!, origPath, overwrite: true);
                     }
                 });
             }
