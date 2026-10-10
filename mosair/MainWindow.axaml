@@ -1542,16 +1542,16 @@
               <ItemsControl ItemsSource="{Binding PropStockRows}">
                 <ItemsControl.ItemTemplate>
                   <DataTemplate x:DataType="vm:PropStockRow">
-                    <Grid ColumnDefinitions="Auto,*" Margin="0,0,0,2">
-                      <TextBlock Grid.Column="0" Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource FgMuted}"
-                                 Margin="0,0,8,0" VerticalAlignment="Center"/>
-                      <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" HorizontalAlignment="Right"
+                    <!-- Label above, value below: fits a narrow panel; a long value wraps -->
+                    <StackPanel Margin="0,0,0,4" Spacing="0">
+                      <TextBlock Text="{Binding Label}" FontSize="10" Foreground="{DynamicResource FgMuted}" TextWrapping="Wrap"/>
+                      <TextBlock Text="{Binding Value}" FontSize="11" TextWrapping="Wrap"
                                  Foreground="{DynamicResource FgPrimary}" FontFamily="{StaticResource MonoFont}"
                                  IsVisible="{Binding !Short}"/>
-                      <TextBlock Grid.Column="1" Text="{Binding Value}" FontSize="11" HorizontalAlignment="Right"
+                      <TextBlock Text="{Binding Value}" FontSize="11" TextWrapping="Wrap"
                                  Foreground="{DynamicResource Danger}" FontFamily="{StaticResource MonoFont}"
                                  IsVisible="{Binding Short}"/>
-                    </Grid>
+                    </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

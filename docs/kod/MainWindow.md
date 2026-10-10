@@ -134,7 +134,7 @@ Window
        │       ├─ Renk örneği, PropStoneId / PropStoneName; RENK başlığının sağında ✕ (OnClearSelection, ipucu TipClearSelection)
        │       ├─ Doku önizleme (PropTextureBitmap)
        │       ├─ Taş varyantları (PropStoneThumbs → OnSelectStone)
-       │       ├─ RGB (PropRgbInfo); STOK (PropHasStock: PropStockRows → PropStockRow satırları, Short ise Danger renginde);
+       │       ├─ RGB (PropRgbInfo); STOK (PropHasStock: PropStockRows → PropStockRow; her satırda etiket üstte, değer altta, uzunsa alt satıra kayar; Short ise Danger renginde);
        │       │     Koordinat (PropHasCoords: PropPixelCoord / PropMouldCoord)
        │       └─ Düzenleme bilgisi (IsPixelEditActive: SelectedStoneText, EditedPixelCountText, geri al/yinele ipucu)
        ├─ Sütun 6 — Gizli Özellikler şeridi (IsVisible = !IsPropertiesPanelOpen): tek düğme (OnTogglePropertiesPanel,

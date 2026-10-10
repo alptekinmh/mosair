@@ -3482,7 +3482,7 @@ public bool UseLab
             if (used > 0)
             {
                 bool over = s != null && used > s.Capacity;
-                PropStockRows.Add(new(Loc.Get("PropStockUsed"), Pcs(used) + " (" + Kg(used * w) + ")", over));
+                PropStockRows.Add(new(Loc.Get("PropStockUsed"), Pcs(used) + " · " + Kg(used * w), over));
             }
             if (catalog?.RemainingKg is double rem)
                 PropStockRows.Add(new(Loc.Get("PropStockRemaining"), Kg(rem), rem <= 0));
