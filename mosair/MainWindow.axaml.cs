@@ -424,7 +424,8 @@ public partial class MainWindow : Window
     }
 
     // Kalıba Tamamla (catalog bar, Araçlar menu): the view model saves the whole-mould image in mosairPROJECT; it is then loaded
-    // like Görsel Yükle (keeping the chosen Optimum count) and Mos'd with the current settings.
+    // like Görsel Yükle (keeping the chosen Optimum count), Mos'd with the current settings and saved as a project in the
+    // same folder (as Kaydet).
     private async void OnCompleteMoulds(object? sender, RoutedEventArgs e)
     {
         string projectRoot;
@@ -444,6 +445,8 @@ public partial class MainWindow : Window
         _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
         await _vm.RunMosaicAsync();
         _vm.FitToWindow(imageScroller.Bounds.Width, imageScroller.Bounds.Height);
+        // The project (.mos) goes into the same mosairPROJECT folder as the completed image, as Kaydet would.
+        if (_vm.MosaicDone && _vm.CanSaveProject) await SaveToProjectFolderAsync();
         _vm.ShowMouldNote();
     }
 
@@ -1161,6 +1164,18 @@ public partial class MainWindow : Window
 
     private async void OnSaveProject(object? sender, RoutedEventArgs e)
     {
+        if (!await SaveToProjectFolderAsync()) return;
+
+        saveIcon.IsVisible = false;
+        saveCheckIcon.IsVisible = true;
+        await Task.Delay(1200);
+        saveCheckIcon.IsVisible = false;
+        saveIcon.IsVisible = true;
+    }
+
+    // Kaydet: Masaüstü/mosairPROJECT/<image name>/<image name>.mos (also after Kalıba Tamamla). False when not saved.
+    private async Task<bool> SaveToProjectFolderAsync()
+    {
         try
         {
             string desktop = System.Environment.GetFolderPath(System.Environment.SpecialFolder.Desktop);
@@ -1176,7 +1191,7 @@ public partial class MainWindow : Window
             System.IO.Directory.CreateDirectory(folder);
 
             string mosPath = System.IO.Path.Combine(folder, baseName + ".mos");
-            if (!await _vm.SaveProjectAsync(mosPath)) return;
+            if (!await _vm.SaveProjectAsync(mosPath)) return false;
 
             if (!string.IsNullOrEmpty(srcImagePath) && System.IO.File.Exists(srcImagePath))
             {
@@ -1190,14 +1205,9 @@ public partial class MainWindow : Window
         {
             // Folder could not be created or the image could not be copied (disk full, no access, ...).
             _vm.ReportSaveFailed(ex);
-            return;
+            return false;
         }
-
-        saveIcon.IsVisible = false;
-        saveCheckIcon.IsVisible = true;
-        await Task.Delay(1200);
-        saveCheckIcon.IsVisible = false;
-        saveIcon.IsVisible = true;
+        return true;
     }
 
     private async void OnSaveAsProject(object? sender, RoutedEventArgs e)
