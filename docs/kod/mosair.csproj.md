@@ -23,7 +23,7 @@ Uygulamanın MSBuild proje dosyası: hedef çatı, derleme seçenekleri, sürüm
 | `AllowUnsafeBlocks` | `true` | Bitmap piksel işlemlerinde `unsafe` işaretçi kodu için (`ImageService`, `MosaicRenderSource`). |
 | `ApplicationManifest` | `app.manifest` | Yalnızca derleme makinesi Windows ise (`IsOSPlatform('Windows')`). |
 | `AssemblyName` | `mosair` | Çıktı ikilisinin adı; `Info.plist` içindeki `CFBundleExecutable` ile aynı olmalı. |
-| `Version` | `1.3.1` | Yerel derleme sürümü (son sürümle aynı tutulur). **CI'da etiketten gelen sürümle ezilir** (`-p:Version=...`). |
+| `Version` | `1.3.2` | Yerel derleme sürümü (son sürümle aynı tutulur). **CI'da etiketten gelen sürümle ezilir** (`-p:Version=...`). |
 | `Company` / `Product` / `Copyright` | `ESCRobotics` / `mosair` / `© 2026 ESCRobotics` | Dosya özellikleri. |
 | `Description` | `Mozaik Tas Uretim Sistemi — Musteri Uygulamasi` | — |
 | `ApplicationIcon` | `Assets\mosair.ico` | Windows exe simgesi. |
@@ -71,7 +71,7 @@ Windows 10 uyumluluk kimliğini (`supportedOS`) bildirir; Avalonia'nın pencere 
 |---|---|
 | `CFBundleName` / `CFBundleDisplayName` | `mosair` |
 | `CFBundleIdentifier` | `com.escrobotics.mosair` |
-| `CFBundleVersion` / `CFBundleShortVersionString` | `1.3.1` (CI'da `plutil` ile etiket sürümüne çevrilir) |
+| `CFBundleVersion` / `CFBundleShortVersionString` | `1.3.2` (CI'da `plutil` ile etiket sürümüne çevrilir) |
 | `CFBundleExecutable` | `mosair` |
 | `CFBundleIconFile` | `mosair` (CI'nın ürettiği `mosair.icns`) |
 | `LSMinimumSystemVersion` | `12.0` |
@@ -83,7 +83,7 @@ Yoktur (derleme yapılandırması).
 
 ## Önemli davranışlar ve iş kuralları
 
-- **Sürüm:** Sürümün tek doğru kaynağı git etiketidir. CI `v1.2.3` etiketinden `1.2.3` üretip hem `-p:Version` hem `Info.plist` için kullanır. csproj ve `Info.plist` içindeki `1.3.1` değerleri yalnızca yerel derlemeyi etkiler; her yeni sürümde ikisi de etiketle aynı yapılır.
+- **Sürüm:** Sürümün tek doğru kaynağı git etiketidir. CI `v1.2.3` etiketinden `1.2.3` üretip hem `-p:Version` hem `Info.plist` için kullanır. csproj ve `Info.plist` içindeki `1.3.2` değerleri yalnızca yerel derlemeyi etkiler; her yeni sürümde ikisi de etiketle aynı yapılır.
 - Varlıklar `AppContext.BaseDirectory` altında aranır; tek dosya yayında (`PublishSingleFile`) `Content` dosyaları ikilinin yanına çıkarılır, gömülmez.
 
 ## Dikkat / bilinen sınırlamalar

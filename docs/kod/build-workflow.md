@@ -63,7 +63,7 @@ Yoktur.
 ## Önemli davranışlar ve iş kuralları
 
 - **Sürüm etiketten gelir:** csproj'daki `<Version>` ve `Info.plist` içindeki sürümler CI'da etiket değeriyle ezilir. Etiket biçimi `vX.Y.Z` olmalıdır.
-- **Sürüm notları:** Etiketi göndermeden önce `.github/release-notes/<etiket>.md` dosyası eklenmelidir (mevcut dosyalar: `v1.1.1.md`, `v1.3.1.md`). Dosya yoksa release yalnızca GitHub'ın otomatik notlarıyla oluşur.
+- **Sürüm notları:** Etiketi göndermeden önce `.github/release-notes/<etiket>.md` dosyası eklenmelidir (mevcut dosyalar: `v1.1.1.md`, `v1.3.1.md`, `v1.3.2.md`). Dosya yoksa release yalnızca GitHub'ın otomatik notlarıyla oluşur.
 - **Ad-hoc imza:** `codesign --force --deep --sign - mosair.app` ve ardından `codesign --verify --deep --strict`. Apple Developer hesabı ve notarization yoktur; amaç macOS'un "hasarlı" uyarısı yerine "Yine de Aç" (Open Anyway) ile açılabilmesidir. Kullanıcı ilk açılışta Gatekeeper uyarısını Sistem Ayarları → Gizlilik ve Güvenlik üzerinden onaylamalıdır.
 - **Tek dosya yayın:** `PublishSingleFile` + `IncludeNativeLibrariesForSelfExtract` ile yerel kütüphaneler (SkiaSharp) ikiliye gömülür; `Assets/` içeriği (`Content`) ikilinin yanında ayrı dosyalar olarak kalır.
 - Windows zip'i imzasızdır; SmartScreen uyarısı beklenir.

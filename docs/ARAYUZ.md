@@ -4,7 +4,7 @@
 > Kod tarafı için [`kod/`](kod/) klasörüne, belgelerin haritası için [README.md](README.md) dosyasına bakın.
 > Uygulama içindeki kılavuz (**Yardım → Kullanım Kılavuzu**, F1) bu dosyanın kısa özetidir; ikisi birbiriyle çelişmemelidir.
 >
-> Güncelleme: 2026-10-09 · Kapsadığı sürüm: v1.3.1
+> Güncelleme: 2026-10-10 · Kapsadığı sürüm: v1.3.2
 
 ## İçindekiler
 
