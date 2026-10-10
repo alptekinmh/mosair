@@ -3106,8 +3106,17 @@ public bool UseLab
                         }
                         using var data = bmp.Encode(SKEncodedImageFormat.Png, 100)
                             ?? throw new InvalidOperationException(Loc.Get("ExportEncodeFailed"));
-                        // The new image opens again at its whole-mould width and stone grid (size tag).
-                        System.IO.File.WriteAllBytes(newPath, ImageService.AddSizeTag(data.ToArray(), tag));
+                        // The new image opens again at its whole-mould width and stone grid (size tag). Written beside
+                        // the target first and then moved over it, so a file that cannot be replaced stays whole.
+                        string part = newPath + ".part";
+                        System.IO.File.WriteAllBytes(part, ImageService.AddSizeTag(data.ToArray(), tag));
+                        try { System.IO.File.Move(part, newPath, overwrite: true); }
+                        catch (System.IO.IOException)
+                        {
+                            try { System.IO.File.Delete(part); } catch { }
+                            // Typically open in another program (Fotoğraflar, Explorer's preview).
+                            throw new System.IO.IOException(Loc.Fmt("MouldFileInUse", System.IO.Path.GetFileName(newPath)));
+                        }
                     }
                     if (origPath != null)
                     {
