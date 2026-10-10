@@ -224,20 +224,18 @@ namespace mosair.ViewModels
         }
         public bool CanUseStock => !_isStockBusy;
 
-        // Same column header the sheet uses for this mosaic: picture name first, then project file name.
-        // The name of the image's own column in the stock sheet. An image completed to whole moulds ("x_URT")
-        // is still the same mosaic as "x".
+        // Kalıba Tamamla names its saves "<image>_URT", "<image>_URT_2", …; WithoutMouldSuffix gives "<image>" back
+        // (also for "_kalip" names from an earlier test build) when a completed image is completed again.
         private const string MouldSuffix = "_URT";
-        // "x_URT", "x_URT_2", … → "x" (the image's own name before Kalıba Tamamla).
-        private static readonly System.Text.RegularExpressions.Regex MouldSuffixRx = new(@"_(URT|kalip)(_\d+)?$");   // "_kalip": names from an earlier test build
+        private static readonly System.Text.RegularExpressions.Regex MouldSuffixRx = new(@"_(URT|kalip)(_\d+)?$");
         private static string WithoutMouldSuffix(string name) => MouldSuffixRx.Replace(name, "");
+
+        // Same column header the sheet uses for this mosaic: picture name first, then project file name. Used as
+        // it is ("x_URT" included): files already named "…_URT" have sheet columns under that name.
         private static string StockProjectName()
         {
             if (!string.IsNullOrEmpty(ProjectService.CurrentPictureFileName))
-            {
-                string n = System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
-                return WithoutMouldSuffix(n);
-            }
+                return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentPictureFileName);
             if (!string.IsNullOrEmpty(ProjectService.CurrentFileName))
                 return System.IO.Path.GetFileNameWithoutExtension(ProjectService.CurrentFileName);
             return "";
